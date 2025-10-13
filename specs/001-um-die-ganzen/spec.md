@@ -5,6 +5,12 @@
 **Status**: Draft
 **Input**: User description: "Demonstrate boilerplate capabilities using a video and note management scenario."
 
+## Clarifications
+### Session 2025-10-13
+- Q: What should happen if a note was changed both locally and on the server while the user was offline? → A: Server Wins: The local changes at this specific note will be overwritten.
+
+- Q: Where exactly should the validation for video references occur? → A: API-side: The notes-service is solely responsible for validation before writing to the database.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Import Video URLs from Local Notes (Priority: P1)
@@ -18,20 +24,21 @@ As a user, I want to run a command-line tool that scans my local Markdown notes,
 **Acceptance Scenarios**:
 
 1. **Given** a directory containing Markdown files with YouTube URLs, **When** the user runs the import CLI, **Then** the system identifies all unique URLs and prompts for confirmation for each.
-2. **Given** the user confirms a URL for import, **When** the URL does not exist in the database, **Then** a new `Video` record is created.
+2. **Given** the user confirms a URL for import, **When** the URL does not exist in the database, **Then** a new `Video` record is created with a null title.
 3. **Given** the user confirms a URL for import, **When** the URL already exists, **Then** the existing `Video` record is used (upsert).
-4. **Given** a note file is processed, **When** videos are imported from it, **Then** a many-to-many relationship is created between the `Note` and all confirmed `Video` records.
+4. **Given** a note file is processed, **When** new videos are imported from it, **Then** a many-to-many relationship is created between the `Note` and the newly created `Video` records.
 5. **Given** the user denies a URL for import, **When** the process completes, **Then** no `Video` or `NoteVideo` record is created for that URL.
+6. **Given** a note file contains a URL for a `Video` that already exists, **When** the user confirms the import, **Then** a new many-to-many relationship is created linking the current `Note` to the *existing* `Video` record.
 
 ---
 
 ### User Story 2 - Manage Notes via Web Interface (Priority: P2)
 
-As a user, I want a web application where I can create, view, update, and delete my notes. When editing a note, I want to be able to associate it with multiple videos from my library using a multi-select picker.
+As a user, I want a web application where I can create, view, update, and delete my notes. When editing a note, I want to be able to associate it with multiple videos from my library using a multi-select picker. I also want to be able to edit the titles of my videos.
 
-**Why this priority**: This provides the core user-facing interface for managing the primary content.
+**Why this priority**: This provides the core user-facing interface for managing the primary content and its metadata.
 
-**Independent Test**: The web app's note management section can be tested by creating a new note, associating it with mock video data, updating it, and then deleting it.
+**Independent Test**: The web app's note management section can be tested by creating a new note, associating it with mock video data, updating it, and then deleting it. Video title editing can be tested similarly.
 
 **Acceptance Scenarios**:
 
@@ -39,6 +46,7 @@ As a user, I want a web application where I can create, view, update, and delete
 2. **Given** an existing note, **When** I edit its content and change the video associations, **Then** the `Note` record and its `NoteVideo` relationships are updated accordingly.
 3. **Given** I try to save a note that references a non-existent video ID, **When** I submit the form, **Then** the system shows a validation error and does not save the note.
 4. **Given** an existing note, **When** I delete it, **Then** the `Note` record and its corresponding `NoteVideo` entries are removed.
+5. **Given** I am viewing a video in the web app, **When** I edit its title and save, **Then** the `title` field of the `Video` record is updated.
 
 ---
 
@@ -52,7 +60,7 @@ As a user, I want to browse my entire collection of videos and notes through the
 
 **Acceptance Scenarios**:
 
-1. **Given** I am viewing the list of all videos, **When** I select a video, **Then** I can see a list of all notes that reference it.
+1. **Given** I am viewing the list of all videos, **When** I select a video, **Then** I can see its title and a list of all notes that reference it.
 2. **Given** I am viewing the list of all notes, **When** I select a note, **Then** I can see a list of all videos referenced within it.
 
 ---
@@ -69,7 +77,9 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 
 1. **Given** I run the initial sync command in the private CLI, **When** the sync completes, **Then** all notes and their video relationships are stored as local Markdown files.
 2. **Given** I am offline and edit a note file locally, **When** I reconnect and run the sync command, **Then** the changes are pushed to the remote server.
-3. **Given** a note was updated on the server while I was offline, **When** I run the sync command, **Then** the local version of the note file is updated with the server's changes (server wins).
+3. **Given** a note was updated on the server while I was offline, **When** I run the sync command, **Then** the local version of the note file is updated with the server's changes.
+4. **Given** a note was updated both locally and on the server while offline, **When** I run the sync command, **Then** the local version of the note file is overwritten by the server's version ("Server Wins").
+5. **Given** a note file that was previously synced is deleted locally, **When** I run the sync command, **Then** the corresponding `Note` record and its `NoteVideo` relationships are deleted from the server.
 
 ### Edge Cases
 
@@ -92,6 +102,9 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 - **FR-009**: A public web application MUST be provided to display and manage notes and videos.
 - **FR-010**: A private CLI tool MUST be able to synchronize note and video relationship data for offline use, storing them as local files.
 - **FR-011**: The private CLI tool MUST be able to push local file changes back to the server API.
+- **FR-012**: The web application MUST provide an interface for users to edit the title of a video.
+- **FR-013**: The private CLI tool's sync process MUST detect the deletion of local note files and delete the corresponding `Note` on the server.
+- **FR-014**: The notes-service API MUST be the single source of truth for validating the existence of video IDs during note creation or updates.
 
 ### Data Contracts & Schemas *(include if feature involves data)*
 <!--
@@ -100,7 +113,7 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
   database models, and frontend types.
 -->
 
-- **Video**: Represents a YouTube video with a unique URL and an optional title.
+- **Video**: Represents a YouTube video with a unique URL and an optional, user-managed title.
 - **Note**: Represents a Markdown note with a file path, content, and relationships to multiple videos.
 - **NoteVideo**: A join table representing the many-to-many relationship between Notes and Videos.
 
