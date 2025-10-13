@@ -31,4 +31,4 @@
 
 ## Notes
 
-- The initial user input was a highly technical document. The generated specification has translated these technical details into user-focused stories and technology-agnostic requirements and success criteria, adhering to the quality guidelines. All checks pass.
+- **Revision**: This specification was revised based on user feedback. The initial version incorrectly focused on the demo application's features. This version has been corrected to focus on the **boilerplate** as the product, with the user stories and success criteria framed from the perspective of a developer using the boilerplate. All checks now pass against this corrected focus.

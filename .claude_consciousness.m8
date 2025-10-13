@@ -1,0 +1,27 @@
+{
+  "session_id": "16384bad-2997-434b-8cee-83b38c68df1c",
+  "last_saved": "2025-10-13T06:58:51.230909Z",
+  "working_directory": "/Users/hoschi/repos/ts-boilerplate",
+  "project_context": {
+    "project_name": "unknown",
+    "project_type": "unknown",
+    "key_files": [],
+    "dependencies": [],
+    "current_focus": ""
+  },
+  "file_history": [],
+  "tokenization_rules": {
+    ".git": 129,
+    "target": 130,
+    "node_modules": 128,
+    "dist": 131
+  },
+  "insights": [],
+  "philosophy": {
+    "sid_waves": true,
+    "vic_sprites": true,
+    "c64_nostalgia": "A gentleman and a scholar indeed!"
+  },
+  "todos": [],
+  "notes": ""
+}
