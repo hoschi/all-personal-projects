@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: Video & Note Management API
+  version: 1.0.0
+  description: API for managing videos and their relationships to markdown notes, demonstrating the Pragmatic TypeScript Boilerplate.
+paths:
+  /videos:
+    get:
+      summary: List all videos
+      operationId: getVideos
+      responses:
+        '200':
+          description: A list of videos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Video'
+  /videos/{id}:
+    get:
+      summary: Get a single video
+      operationId: getVideo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A single video.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        '404':
+          description: Video not found.
+  /videos/{id}/notes:
+    get:
+      summary: Get notes for a video
+      operationId: getNotesForVideo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of notes associated with the video.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+  /notes:
+    get:
+      summary: List all notes
+      operationId: getNotes
+      responses:
+        '200':
+          description: A list of notes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+    post:
+      summary: Create a new note
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNote'
+      responses:
+        '201':
+          description: The created note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+  /notes/{id}:
+    get:
+      summary: Get a single note
+      operationId: getNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A single note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note not found.
+    put:
+      summary: Update a note
+      operationId: updateNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNote' # Re-uses the create schema for updates
+      responses:
+        '200':
+          description: The updated note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    delete:
+      summary: Delete a note
+      operationId: deleteNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Note deleted successfully.
+  /notes/{id}/videos:
+    get:
+      summary: Get videos for a note
+      operationId: getVideosForNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of videos associated with the note.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Video'
+
+components:
+  schemas:
+    Video:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+          nullable: true
+      required:
+        - id
+        - url
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        filePath:
+          type: string
+        content:
+          type: string
+        videoIds:
+          type: array
+          items:
+            type: integer
+      required:
+        - id
+        - filePath
+        - content
+        - videoIds
+    CreateNote:
+      type: object
+      properties:
+        filePath:
+          type: string
+        content:
+          type: string
+        videoIds:
+          type: array
+          items:
+            type: integer
+      required:
+        - filePath
+        - content
+        - videoIds
