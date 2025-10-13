@@ -95,10 +95,15 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
-### Key Entities *(include if feature involves data)*
+### Data Contracts & Schemas *(include if feature involves data)*
+<!--
+  Per Constitution Principle V (Schema-Driven), these entities MUST be defined
+  as Effect Schemas. They are the single source of truth for API contracts,
+  database models, and frontend types.
+-->
 
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
+- **[Schema 1]**: [What it represents, key attributes without implementation]
+- **[Schema 2]**: [What it represents, relationships to other schemas]
 
 ## Success Criteria *(mandatory)*
 

@@ -31,7 +31,12 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] **Principle I (Functional Core/Imperative Shell):** Is there a clear separation between pure `core` logic and side-effectful `shell`/`apps`?
+- [ ] **Principle II (Opinionated Frameworks):** Does the plan leverage the standard stack (Effect, Next.js, Prisma) or provide justification for deviation?
+- [ ] **Principle III (Unified Tech Stack):** Does the plan adhere to using TypeScript, Bun, and Turbopack?
+- [ ] **Principle IV (AI-Centric & Quality Gates):** Does the plan include tasks for achieving 100% test coverage for the core logic?
+- [ ] **Principle V (Schema-Driven):** Are all data structures defined as shareable Effect Schemas? Is OpenAPI generation planned for?
+- [ ] **Principle VI (Monorepo Structure):** Does the proposed file structure fit within the established monorepo (`packages/`, `apps/`) or separate private repo conventions?
 
 ## Project Structure
 
@@ -49,46 +54,26 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 <!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  ACTION REQUIRED: The following structure is the default based on the constitution.
+  Confirm the package and application names and update the paths accordingly.
 -->
 
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# Monorepo Structure (DEFAULT)
+apps/
+└── [your-app-name]/         # Imperative Shell: Next.js frontend, API routes, etc.
+    ├── src/
+    └── tests/
 
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+packages/
+├── core/                    # Functional Core: Pure business logic, types, and functions.
+│   ├── src/
+│   └── tests/
+├── shell/                   # Imperative Shell: DB access, external clients, side effects.
+│   ├── src/
+│   └── tests/
+└── shared-schemas/          # Effect Schemas for end-to-end type safety.
+    └── src/
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
