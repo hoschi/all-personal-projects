@@ -57,19 +57,19 @@ As a user, I want to browse my entire collection of videos and notes through the
 
 ---
 
-### User Story 4 - Offline Note Synchronization (Priority: P4)
+### User Story 4 - Offline Note Synchronization via Private CLI (Priority: P4)
 
-As a user of a private desktop application, I want to be able to download all my notes and their video relationships for offline viewing and editing. When I'm back online, I want to sync any changes I made back to the server.
+As a user of a private CLI tool, I want to be able to download all my notes and their video relationships for offline viewing and editing directly in my local Markdown files. When I'm back online, I want to run a command to sync any changes I made back to the server.
 
-**Why this priority**: This provides a "local-first" experience for the private notes manager, demonstrating a different application type.
+**Why this priority**: This provides a "local-first" experience for managing notes, demonstrating a different application type that integrates with a user's local file system.
 
-**Independent Test**: The sync mechanism can be tested by running the desktop client, performing an initial sync, disconnecting, making local changes, reconnecting, and running the sync again, then verifying the data on the server.
+**Independent Test**: The sync mechanism can be tested by running the CLI, performing an initial sync, disconnecting, making local file changes, reconnecting, and running the sync again, then verifying the data on the server.
 
 **Acceptance Scenarios**:
 
-1. **Given** I run the initial sync on the desktop app, **When** the sync completes, **Then** all notes and their video relationships are stored locally.
-2. **Given** I am offline and edit a note locally, **When** I reconnect and run the sync, **Then** the changes are pushed to the remote server.
-3. **Given** a note was updated on the server while I was offline, **When** I run the sync, **Then** the local version of the note is updated with the server's changes (server wins).
+1. **Given** I run the initial sync command in the private CLI, **When** the sync completes, **Then** all notes and their video relationships are stored as local Markdown files.
+2. **Given** I am offline and edit a note file locally, **When** I reconnect and run the sync command, **Then** the changes are pushed to the remote server.
+3. **Given** a note was updated on the server while I was offline, **When** I run the sync command, **Then** the local version of the note file is updated with the server's changes (server wins).
 
 ### Edge Cases
 
@@ -90,8 +90,8 @@ As a user of a private desktop application, I want to be able to download all my
 - **FR-007**: The system MUST provide API endpoints to list all videos and all notes.
 - **FR-008**: The API MUST allow fetching all notes for a given video and all videos for a given note.
 - **FR-009**: A public web application MUST be provided to display and manage notes and videos.
-- **FR-010**: A private desktop application MUST be able to synchronize note and video relationship data for offline use.
-- **FR-011**: The private application MUST be able to push local changes back to the server API.
+- **FR-010**: A private CLI tool MUST be able to synchronize note and video relationship data for offline use, storing them as local files.
+- **FR-011**: The private CLI tool MUST be able to push local file changes back to the server API.
 
 ### Data Contracts & Schemas *(include if feature involves data)*
 <!--
@@ -108,7 +108,7 @@ As a user of a private desktop application, I want to be able to download all my
 
 ### Measurable Outcomes
 
-- **SC-001**: The CLI can process a directory with 50 Markdown files and 100 unique URLs in under 60 seconds (excluding user interaction time).
-- **SC-002**: The web application's note editor loads and displays a note with 20 associated videos in under 2 seconds.
-- **SC-003**: API response time for fetching a list of 100 videos is less than 500ms.
-- **SC-004**: The offline sync for the private desktop app successfully synchronizes 200 notes and their relationships within 30 seconds on a stable connection.
+- **SC-001**: The CLI successfully processes all Markdown files in a directory, correctly identifying and prompting for all unique YouTube URLs.
+- **SC-002**: The web application's note editor loads and displays notes and their associated videos promptly, ensuring a fluid user experience.
+- **SC-003**: The API provides timely responses for fetching collections of data, supporting a responsive user interface.
+- **SC-004**: The offline sync for the private desktop app reliably synchronizes a large volume of notes and their relationships.
