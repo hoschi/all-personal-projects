@@ -124,4 +124,4 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 - **SC-001**: The CLI successfully processes all Markdown files in a directory, correctly identifying and prompting for all unique YouTube URLs.
 - **SC-002**: The web application's note editor loads and displays notes and their associated videos promptly, ensuring a fluid user experience.
 - **SC-003**: The API provides timely responses for fetching collections of data, supporting a responsive user interface.
-- **SC-004**: The offline sync for the private desktop app reliably synchronizes a large volume of notes and their relationships.
+- **SC-004**: The offline sync for the private CLI tool reliably synchronizes a large volume of notes and their relationships.
