@@ -9,7 +9,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@repo/video-service": "*",
+    "@repo/video-service": "*"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
