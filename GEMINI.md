@@ -1,24 +1,23 @@
-# ts-boilerplate Development Guidelines
+# Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-10-14
+Auto-generated from all feature plans. Last updated: 2025-10-15
 
 ## Active Technologies
-- TypeScript 5.x + Effect (Platform, Schema), Prisma, Next.js 14+, React 18+, Material UI (001-um-die-ganzen)
-
-## Project Structure
-```
-src/
-tests/
-```
+- TypeScript 5.x + Effect (Platform, Schema), Bun (not NPM, not Node), Prisma, Next.js 14+, React 18+, Material UI
 
 ## Commands
-npm test [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] npm run lint
+Use these commands at the top level to verify your changes:
+```
+bun run check-types
+bun run lint
+```
+
+## Tools
+- Use the effects-docs and context7 MCP Server to gather information about libraries
 
 ## Code Style
 TypeScript 5.x: Follow standard conventions
 
-## Recent Changes
-- 001-um-die-ganzen: Added TypeScript 5.x + Effect (Platform, Schema), Prisma, Next.js 14+, React 18+, Material UI
-
 <!-- MANUAL ADDITIONS START -->
+Read ALWAYS `.specify/memory/constitution.md` and stick to these principles.
 <!-- MANUAL ADDITIONS END -->
