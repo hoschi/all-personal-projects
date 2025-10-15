@@ -27,14 +27,12 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 
 **Purpose**: Monorepo and core tooling initialization.
 
-- [ ] T001 [P] Initialize the `public-monorepo` using `bun create turbo`.
-- [ ] T002 [P] Initialize the `private-project` with a `notes-manager-cli` package.
-- [ ] T003 Configure `turbo.json` in `public-monorepo` to use `bun` as the package manager and define basic pipelines (build, test, lint).
-- [ ] T004 [P] Create a custom ESLint package `eslint-config-custom` in `public-monorepo`.
-- [ ] T005 [P] Create a shared `tsconfig` package in `public-monorepo` for consistent TypeScript settings.
-- [ ] T006 Configure ESLint rules in `eslint-config-custom` to enforce the "Functional Core, Imperative Shell" import restrictions.
-- [ ] T007 [P] Configure VS Code workspace settings (`.vscode/settings.json`) for ESLint, Prettier, and hiding `console.log` errors.
-- [ ] T008 [P] Set up Prettier for code formatting, separate from ESLint.
+- [X] T001 [P] Initialize the `public-monorepo` using `bun create turbo`.
+- [X] T003 Configure `turbo.json` in `public-monorepo` to use `bun` as the package manager and define basic pipelines (build, test, lint).
+- [X] T008 [P] Set up Prettier for code formatting, separate from ESLint.
+- [X] T005 [P] Create a shared `tsconfig` package in `public-monorepo` for consistent TypeScript settings.
+- [X] T004 [P] Create a custom ESLint package `eslint-config-custom` in `public-monorepo`.
+- [ ] T015 [P] Create core Project `public-monorepo/packages/core/` 
 
 ---
 
@@ -45,7 +43,6 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 - [ ] T009 Set up the Prisma schema in `public-monorepo/packages/shell/prisma/schema.prisma` based on `data-model.md`.
 - [ ] T010 Create the initial database migration using `prisma migrate dev`.
 - [ ] T011 Implement the Effect `PrismaService` layer in `public-monorepo/packages/shell/src/db.ts` to manage the Prisma client.
-- [ ] T012 Implement a configurable Effect `FileLogger` service in `public-monorepo/packages/shell/src/logger.ts`.
 - [ ] T013 Define the core Effect Schemas (`Video`, `Note`, etc.) in `public-monorepo/packages/shared-api/src/schemas.ts`.
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
@@ -137,6 +134,13 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 - [ ] T039 Set up GitHub Actions workflow for CI (lint, test, build).
 - [ ] T040 Configure Renovate Bot for automated dependency updates.
 - [ ] T041 Implement automated checks for unused code (`knip`) and circular dependencies (`dpdm`).
+
+## Additional Stuff, implement when needed
+
+- [ ] T002 [P] Initialize the `private-project` with a `notes-manager-cli` package.
+- [ ] T006 Configure ESLint rules in `eslint-config-custom` to enforce the "Functional Core, Imperative Shell" import restrictions.
+- [ ] T007 [P] Configure VS Code workspace settings (`.vscode/settings.json`) for ESLint, Prettier, and hiding `console.log` errors.
+- [ ] T012 Implement a configurable Effect `FileLogger` service in `public-monorepo/packages/shell/src/logger.ts`.
 
 ---
 
