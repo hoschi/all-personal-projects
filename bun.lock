@@ -28,6 +28,20 @@
         "typescript": "5.9.2",
       },
     },
+    "apps/rest-server": {
+      "name": "@repo/rest-server",
+      "version": "0.1.0",
+      "dependencies": {
+        "@repo/video-service": "*",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
+        "eslint": "^9.34.0",
+        "typescript": "5.9.2",
+      },
+    },
     "apps/web": {
       "name": "web",
       "version": "0.1.0",
@@ -81,6 +95,17 @@
         "@types/node": "^22.15.3",
         "@types/react": "19.1.0",
         "@types/react-dom": "19.1.1",
+        "eslint": "^9.34.0",
+        "typescript": "5.9.2",
+      },
+    },
+    "packages/video-service": {
+      "name": "@repo/video-service",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
         "eslint": "^9.34.0",
         "typescript": "5.9.2",
       },
@@ -189,9 +214,13 @@
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
+    "@repo/rest-server": ["@repo/rest-server@workspace:apps/rest-server"],
+
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
     "@repo/ui": ["@repo/ui@workspace:packages/ui"],
+
+    "@repo/video-service": ["@repo/video-service@workspace:packages/video-service"],
 
     "@swc/helpers": ["@swc/helpers@0.5.15", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g=="],
 
