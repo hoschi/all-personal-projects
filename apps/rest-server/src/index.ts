@@ -4,15 +4,13 @@ import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import {
     HttpApiBuilder
 } from "@effect/platform";
-import { createServer } from "node:http";
-
 
 
 console.log(hello('mytest'))
 
 const ServerLive = HttpApiBuilder.serve().pipe(
     Layer.provide(MyApiLive),
-    Layer.provide(BunHttpServer.layer(createServer))
+    Layer.provide(BunHttpServer.layer({ port: 3055 }))
 )
 
 // Launch the server
