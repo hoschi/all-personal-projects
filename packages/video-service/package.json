@@ -16,5 +16,7 @@
     "eslint": "^9.34.0",
     "typescript": "5.9.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@effect/platform": "^0.92.1"
+  }
 }

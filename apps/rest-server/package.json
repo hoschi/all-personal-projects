@@ -9,6 +9,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/platform-bun": "^0.81.1",
     "@repo/video-service": "*"
   },
   "devDependencies": {
