@@ -1,5 +1,5 @@
 import { HttpApi, HttpApiBuilder, HttpApiEndpoint, HttpApiError, HttpApiGroup, HttpApiSchema } from "@effect/platform"
-import { Effect, Layer, Schema } from "effect"
+import { Effect, Layer, Schema, Option } from "effect"
 
 class Video extends Schema.Class<Video>("Video")({
     id: Schema.Number,
@@ -38,7 +38,14 @@ const VideoApi = HttpApi.make("VideoApi").add(HttpApiGroup.make("Videos")
 
 const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
     handlers
-        .handle("getVideo", ({ path: { id } }) => fakeDb[id] ? Effect.succeed(fakeDb[id]) : new HttpApiError.NotFound())
+        .handle("getVideo", ({ path: { id } }) =>
+            Option.fromNullable(fakeDb[id]).pipe(
+                Option.match({
+                    onSome: Effect.succeed,
+                    onNone: () => Effect.fail(new HttpApiError.NotFound())
+                })
+            )
+        )
         .handle("getVideos", () => Effect.succeed(Object.values(fakeDb))
         ))
 
