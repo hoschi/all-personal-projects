@@ -39,11 +39,8 @@ const VideoApi = HttpApi.make("VideoApi").add(HttpApiGroup.make("Videos")
 const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
     handlers
         .handle("getVideo", ({ path: { id } }) =>
-            Option.fromNullable(fakeDb[id]).pipe(
-                Option.match({
-                    onSome: Effect.succeed,
-                    onNone: () => Effect.fail(new HttpApiError.NotFound())
-                })
+            Effect.fromNullable(fakeDb[id]).pipe(
+                Effect.mapError(() => new HttpApiError.NotFound())
             )
         )
         .handle("getVideos", () => Effect.succeed(Object.values(fakeDb))
