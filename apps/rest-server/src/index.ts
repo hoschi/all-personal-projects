@@ -1,4 +1,4 @@
-import { hello, MyApiLive } from "@repo/video-service/video";
+import { VideoApiLive } from "@repo/video-service/video";
 import { Layer } from "effect";
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import {
@@ -6,10 +6,9 @@ import {
 } from "@effect/platform";
 
 
-console.log(hello('mytest'))
 
 const ServerLive = HttpApiBuilder.serve().pipe(
-    Layer.provide(MyApiLive),
+    Layer.provide(VideoApiLive),
     Layer.provide(BunHttpServer.layer({ port: 3055 }))
 )
 

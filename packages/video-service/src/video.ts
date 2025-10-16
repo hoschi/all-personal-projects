@@ -1,24 +1,46 @@
-import {
-    HttpApi,
-    HttpApiBuilder,
-    HttpApiEndpoint,
-    HttpApiGroup
-} from "@effect/platform"
+import { HttpApi, HttpApiBuilder, HttpApiEndpoint, HttpApiError, HttpApiGroup, HttpApiSchema } from "@effect/platform"
 import { Effect, Layer, Schema } from "effect"
 
-// Define our API with one group named "Greetings" and one endpoint called "hello-world"
-const MyApi = HttpApi.make("MyApi").add(
-    HttpApiGroup.make("Greetings").add(
-        HttpApiEndpoint.get("hello-world")`/`.addSuccess(Schema.String)
-    )
+class Video extends Schema.Class<Video>("Video")({
+    id: Schema.Number,
+    title: Schema.NonEmptyString
+}) { }
+
+const idParam = HttpApiSchema.param("id", Schema.NumberFromString)
+
+const fakeDb: Record<number, Video> = [
+    {
+        id: 1,
+        title: 'my first title'
+    },
+    {
+        id: 42,
+        title: 'The Answer'
+    },
+
+].reduce((dict, video) => ({ ...dict, [video.id]: video }), {})
+
+console.log("videos", fakeDb)
+
+const getVideos = HttpApiEndpoint.get("getVideos", "/Videos").addSuccess(
+    Schema.Array(Video)
 )
 
-// Implement the "Greetings" group
-const GreetingsLive = HttpApiBuilder.group(MyApi, "Greetings", (handlers) =>
-    handlers.handle("hello-world", () => Effect.succeed("Hello, World!!!"))
+const getVideo = HttpApiEndpoint.get("getVideo")`/Video/${idParam}`
+    .addSuccess(Video)
+    // Add a 404 error response for this endpoint
+    .addError(HttpApiError.NotFound)
+
+const VideoApi = HttpApi.make("VideoApi").add(HttpApiGroup.make("Videos")
+    .add(getVideos)
+    .add(getVideo)
 )
 
-// Provide the implementation for the API
-export const MyApiLive = HttpApiBuilder.api(MyApi).pipe(Layer.provide(GreetingsLive))
+const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
+    handlers
+        .handle("getVideo", ({ path: { id } }) => fakeDb[id] ? Effect.succeed(fakeDb[id]) : new HttpApiError.NotFound())
+        .handle("getVideos", () => Effect.succeed(Object.values(fakeDb))
+        ))
 
-export const hello = (input: string): string => `hallo: ${input}`
+
+export const VideoApiLive = HttpApiBuilder.api(VideoApi).pipe(Layer.provide(VideoLive))
