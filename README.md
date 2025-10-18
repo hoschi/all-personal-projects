@@ -17,9 +17,17 @@ dotenv -f .env.staging run -- npx prisma migrate deploy
 dotenv -f .env.dev run -- npx prisma migrate deploy
 ```
 
+## Daily Work
 
+### Push data from prod over staging to dev
 
-### Apps and Packages
+```bash
+cd ./packages/db/
+NODE_ENV=staging bun src/copy.ts
+NODE_ENV=dev bun src/copy.ts
+```
+
+## Apps and Packages
 
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
@@ -27,7 +35,7 @@ dotenv -f .env.dev run -- npx prisma migrate deploy
 - `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-### Utilities
+## Utilities
 
 This Turborepo has some additional tools already setup for you:
 
@@ -35,7 +43,7 @@ This Turborepo has some additional tools already setup for you:
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
 
-### Build
+## Build
 
 To build all apps and packages, run the following command:
 
@@ -63,7 +71,7 @@ yarn exec turbo build --filter=docs
 pnpm exec turbo build --filter=docs
 ```
 
-### Develop
+## Develop
 
 To develop all apps and packages, run the following command:
 
