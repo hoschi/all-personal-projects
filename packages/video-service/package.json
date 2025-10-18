@@ -17,6 +17,7 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "@effect/platform": "^0.92.1"
+    "@effect/platform": "^0.92.1",
+    "@repo/db": "*"
   }
 }

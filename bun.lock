@@ -121,6 +121,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@effect/platform": "^0.92.1",
+        "@repo/db": "*",
       },
       "devDependencies": {
         "@repo/eslint-config": "*",
