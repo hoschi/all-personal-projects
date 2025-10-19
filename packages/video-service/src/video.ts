@@ -1,5 +1,6 @@
 import { HttpApi, HttpApiBuilder, HttpApiEndpoint, HttpApiError, HttpApiGroup, HttpApiSchema } from "@effect/platform"
-import { Effect, Layer, Schema, Option } from "effect"
+import { client } from "@repo/db/client"
+import { Effect, Either, Layer, Schema, Option } from "effect"
 
 class Video extends Schema.Class<Video>("Video")({
     id: Schema.Number,
@@ -22,9 +23,13 @@ const fakeDb: Record<number, Video> = [
 
 console.log("videos", fakeDb)
 
+const f = async () => {
+    const videos = await client.video.findMany()
+}
+
 const getVideos = HttpApiEndpoint.get("getVideos", "/Videos").addSuccess(
     Schema.Array(Video)
-)
+).addError(HttpApiError.HttpApiDecodeError)
 
 const getVideo = HttpApiEndpoint.get("getVideo")`/Video/${idParam}`
     .addSuccess(Video)
@@ -43,7 +48,17 @@ const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
                 Effect.mapError(() => new HttpApiError.NotFound())
             )
         )
-        .handle("getVideos", () => Effect.succeed(Object.values(fakeDb))
+        .handle("getVideos", () => Effect.gen(function* () {
+            //return Object.values(fakeDb)
+            const videos = yield* Effect.promise(() => client.video.findMany())
+            if (videos.length <= 0) {
+                return yield* Effect.fail(new HttpApiError.HttpApiDecodeError())
+            }
+
+            const videoOne = yield* Schema.decodeUnknownEither(Video)(videos[0])
+
+            return [videoOne]
+        })
         ))
 
 
