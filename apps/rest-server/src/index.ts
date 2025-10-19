@@ -4,6 +4,7 @@ import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import {
     HttpApiBuilder
 } from "@effect/platform";
+import { VideoApiLive } from "@repo/video-service/video";
 
 
 
