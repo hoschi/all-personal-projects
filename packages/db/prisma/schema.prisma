@@ -2,6 +2,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator sqlSchema {
+  provider = "bun ./generators/sql-schema-generator.ts"
+  output   = "../src/generated"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

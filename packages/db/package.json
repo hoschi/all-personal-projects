@@ -13,6 +13,8 @@
     "migrate:prod": "dotenv -e .env.production -- prisma migrate deploy"
   },
   "devDependencies": {
+    "@prisma/generator-helper": "^6.17.1",
+    "@prisma/internals": "^6.17.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "^22.15.3",
