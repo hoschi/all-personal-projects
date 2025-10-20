@@ -22,6 +22,8 @@ const fakeDb: Record<number, Video> = [
 ].reduce((dict, video) => ({ ...dict, [video.id]: video }), {})
 
 console.log("videos", fakeDb)
+console.log('connection?', process.env.DATABASE_URL)
+
 
 const f = async () => {
     const videos = await client.video.findMany()
@@ -29,7 +31,7 @@ const f = async () => {
 
 const getVideos = HttpApiEndpoint.get("getVideos", "/Videos").addSuccess(
     Schema.Array(Video)
-).addError(HttpApiError.HttpApiDecodeError)
+).addError(HttpApiError.NotFound)
 
 const getVideo = HttpApiEndpoint.get("getVideo")`/Video/${idParam}`
     .addSuccess(Video)
@@ -49,15 +51,16 @@ const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
             )
         )
         .handle("getVideos", () => Effect.gen(function* () {
-            //return Object.values(fakeDb)
+            console.log('hello?', process.env.DATABASE_URL)
             const videos = yield* Effect.promise(() => client.video.findMany())
-            if (videos.length <= 0) {
-                return yield* Effect.fail(new HttpApiError.HttpApiDecodeError())
-            }
+            console.log(videos)
 
-            const videoOne = yield* Schema.decodeUnknownEither(Video)(videos[0])
-
-            return [videoOne]
+            return yield* Effect.forEach(videos, (video) =>
+                Schema.decodeUnknown(Video)(video, { onExcessProperty: "error" }).pipe(
+                    Effect.tap((x) => Effect.logInfo(x)),
+                    Effect.mapError((parseError) => new HttpApiError.NotFound())
+                )
+            )
         })
         ))
 
