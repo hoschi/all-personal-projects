@@ -62,6 +62,17 @@
         "typescript": "5.9.2",
       },
     },
+    "packages/boil-mini": {
+      "name": "@repo/boil-mini",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
+        "eslint": "^9.34.0",
+        "typescript": "5.9.2",
+      },
+    },
     "packages/db": {
       "name": "@repo/db",
       "version": "0.0.0",
@@ -125,6 +136,17 @@
         "@effect/platform": "^0.92.1",
         "@repo/db": "*",
       },
+      "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
+        "@types/node": "^22.15.3",
+        "eslint": "^9.34.0",
+        "typescript": "5.9.2",
+      },
+    },
+    "packages/yt-takeout-extractor": {
+      "name": "@repo/yt-takeout-extractor",
+      "version": "0.0.0",
       "devDependencies": {
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
@@ -321,6 +343,8 @@
 
     "@prisma/schema-files-loader": ["@prisma/schema-files-loader@6.17.1", "", { "dependencies": { "@prisma/prisma-schema-wasm": "6.17.1-1.272a37d34178c2894197e17273bf937f25acdeac", "fs-extra": "11.3.0" } }, "sha512-rRYUP664wFbdvqSbqKdNijb2LHP6A3yEauPy4V7WJDR9ySQJ8adV0nP0cBcUAzHAsBW1JVMwqF+OKIrcwVG3qg=="],
 
+    "@repo/boil-mini": ["@repo/boil-mini@workspace:packages/boil-mini"],
+
     "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
@@ -332,6 +356,8 @@
     "@repo/ui": ["@repo/ui@workspace:packages/ui"],
 
     "@repo/video-service": ["@repo/video-service@workspace:packages/video-service"],
+
+    "@repo/yt-takeout-extractor": ["@repo/yt-takeout-extractor@workspace:packages/yt-takeout-extractor"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.0.0", "", {}, "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="],
 
