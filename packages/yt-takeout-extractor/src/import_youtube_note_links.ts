@@ -115,6 +115,7 @@ const main = async (): Promise<number> => {
 
   let inserted = 0;
   let errors = 0;
+  const errorMessages: string[] = [];
 
   try {
     const files = await findAllMarkdownFiles(folder);
@@ -129,14 +130,16 @@ const main = async (): Promise<number> => {
         const { url } = link;
 
         if (!isYouTubeUrl(url)) {
-          logErr(`${file}: Link kein YouTube-Link: ${url}`);
+          const errorMessage = `${file}: Link kein YouTube-Link: ${url}`;
+          errorMessages.push(errorMessage);
           errors++;
           continue;
         }
 
         const youtube_id = extractYouTubeId(url);
         if (!youtube_id) {
-          logErr(`${file}: konnte YouTube-Id nicht extrahieren: ${url}`);
+          const errorMessage = `${file}: konnte YouTube-Id nicht extrahieren: ${url}`;
+          errorMessages.push(errorMessage);
           errors++;
           continue;
         }
@@ -149,7 +152,8 @@ const main = async (): Promise<number> => {
 
         const parse = NoteLinkSchema.safeParse(data);
         if (!parse.success) {
-          logErr(`Validierungsfehler: ${JSON.stringify(parse.error)}`);
+          const errorMessage = `Validierungsfehler: ${JSON.stringify(parse.error)}`;
+          errorMessages.push(errorMessage);
           errors++;
           continue;
         }
@@ -161,13 +165,22 @@ const main = async (): Promise<number> => {
         } else if (result === 'duplicate') {
           logWarn(`Bereits vorhanden (kein Fehler): id=${youtube_id} / titel=${titel} / datei=${file}`);
         } else if (result === 'title-mismatch') {
-          logErr(`Fehler: id ${youtube_id} existiert mit anderem Titel als "${titel}" (in ${file})`);
+          const errorMessage = `Fehler: id ${youtube_id} existiert mit anderem Titel als "${titel}" (in ${file})`;
+          errorMessages.push(errorMessage);
           errors++;
         }
       }
     }
   } finally {
     await client.end();
+  }
+
+  // Gib alle gesammelten Fehler aus
+  if (errorMessages.length > 0) {
+    logErr('\x1b[31m=== GESAMMELTE FEHLER ===\x1b[0m');
+    errorMessages.forEach((msg, index) => {
+      logErr(`${index + 1}. ${msg}`);
+    });
   }
 
   logInfo(`\nFertig. Neu eingetragen: ${inserted}. Fehler: ${errors}`);
