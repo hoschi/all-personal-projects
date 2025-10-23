@@ -41,6 +41,22 @@ CREATE TABLE IF NOT EXISTS youtube_history (
   - `youtube_id`: Video-spezifische Suche
   - GIN-Index für JSON-Daten
 
+## Import Youtube Note Links
+
+**Ablauf:**
+
+Das Skript erhält einen Ordnerpfad als Kommandozeilenargument und findet alle Markdown-Dateien darin. Für jede Datei extrahiert es die erste H1-Überschrift als Titel und sucht nach Markdown-Links im Format `[URL](http://...)`. Nur Links mit dem Label "URL" werden berücksichtigt.
+
+Jeder gefundene Link wird validiert: Ist es keine YouTube-URL, wird ein Fehler geloggt. Bei gültigen YouTube-URLs wird die Video-ID extrahiert (unterstützt verschiedene URL-Formate wie `youtube.com/watch?v=...`, `youtu.be/...`, `embed`).
+
+Die extrahierten Daten (YouTube-ID, Titel, Dateipfad) werden per Zod-Schema validiert und in die Datenbank eingefügt. Dabei wird geprüft: Existiert der Eintrag bereits identisch (ID + Titel + Datei), wird dies als Info geloggt. Existiert die ID mit anderem Titel, gilt dies als Fehler.
+
+**Fehlerbehandlung:**
+
+Das Skript bricht bei Fehlern nicht ab, sondern zählt sie mit. Am Ende erfolgt eine Zusammenfassung mit Anzahl neuer Einträge und Fehler. Der Exit-Code signalisiert, ob Fehler auftraten (1) oder nicht (0).
+
+Die Implementierung ist rein funktional ohne objektorientierte Konstrukte und nutzt `zod`, `pg` und `dotenv`.
+
 ## 📋 Voraussetzungen
 - Node.js ≥18.x
 - PostgreSQL ≥15
@@ -51,13 +67,17 @@ CREATE TABLE IF NOT EXISTS youtube_history (
 
 ## 🛠️ Installation
 ```bash
+bun install
 cd packages/yt-takeout-extractor
-npm install
+cp .env.example .env
+dotenv -f .env run -- zsh
+psql $DATABASE_URL -f src/create_youtube_history.sql
+psql $DATABASE_URL -f src/create_youtube_note_links.sql
 ```
 
 ## 🚀 Verwendung
 ```bash
-tsx src/import_youtube_history.ts path/to/history.json
+bun src/import_youtube_history.ts watched.json
 ```
 
 ## 💻 Beispielausgabe

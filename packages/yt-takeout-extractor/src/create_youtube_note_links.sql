@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS main;
+SET search_path TO main;
+
 CREATE TABLE IF NOT EXISTS youtube_note_links (
     id SERIAL PRIMARY KEY,
     youtube_id TEXT NOT NULL,

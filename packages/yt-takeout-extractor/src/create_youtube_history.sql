@@ -1,3 +1,6 @@
+CREATE SCHEMA IF NOT EXISTS main;
+SET search_path TO main;
+
 CREATE TABLE IF NOT EXISTS youtube_history (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,

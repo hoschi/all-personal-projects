@@ -70,7 +70,7 @@ const insertNoteLink = async (
 
   // Prüfe, ob exakt dieser Eintrag schon existiert (youtube_id + titel + file_name)
   const exactMatch = await client.query(
-    'SELECT * FROM youtube_note_links WHERE youtube_id = $1 AND titel IS NOT DISTINCT FROM $2 AND file_name = $3',
+    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND titel IS NOT DISTINCT FROM $2 AND file_name = $3',
     [youtube_id, titel ?? null, file_name]
   );
 
@@ -80,7 +80,7 @@ const insertNoteLink = async (
 
   // Prüfe, ob YouTube-ID mit anderem Titel existiert
   const conflictingRes = await client.query(
-    'SELECT * FROM youtube_note_links WHERE youtube_id = $1 AND titel IS DISTINCT FROM $2',
+    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND titel IS DISTINCT FROM $2',
     [youtube_id, titel ?? null]
   );
 
@@ -90,7 +90,7 @@ const insertNoteLink = async (
 
   // Insert neuen Eintrag
   await client.query(
-    'INSERT INTO youtube_note_links (youtube_id, titel, file_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+    'INSERT INTO main.youtube_note_links (youtube_id, titel, file_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
     [youtube_id, titel ?? null, file_name]
   );
 
