@@ -30,11 +30,13 @@ const isYouTubeUrl = (url: string): boolean =>
 const extractYouTubeId = (url: string): string | null => {
   // Unterstützung für verschiedene URL-Formate
   let m = url.match(/[?&]v=([\w-]{11})/);
-  if (m) return m[1];
+  if (m && m[1]) return m[1];
+  m = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
+  if (m && m[1]) return m[1];
   m = url.match(/youtu\.be\/([\w-]{11})/);
-  if (m) return m[1];
+  if (m && m[1]) return m[1];
   m = url.match(/youtube\.com\/embed\/([\w-]{11})/);
-  if (m) return m[1];
+  if (m && m[1]) return m[1];
   return null;
 };
 
