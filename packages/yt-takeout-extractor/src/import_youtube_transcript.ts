@@ -1,8 +1,8 @@
-import { Effect, Schedule, Layer, pipe } from "effect";
+import { Effect, Schedule, pipe } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
 import { Command, CommandExecutor } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
-import { BunContext } from "@effect/platform-bun";
+import { BunContext, BunRuntime } from "@effect/platform-bun";
 import { Client } from "pg";
 import * as dotenv from "dotenv";
 
@@ -41,47 +41,24 @@ const executeYtDlp = (videoId: string) =>
 
         yield* _(Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`));
 
-        const result = yield* _(
-            executor.start(command),
-            Effect.flatMap((process) =>
-                Effect.gen(function* (_) {
-                    const exitCode = yield* _(process.exitCode);
-                    const stdout = yield* _(process.stdout, Effect.flatMap(Effect.runCollect));
-                    const stderr = yield* _(process.stderr, Effect.flatMap(Effect.runCollect));
+        const exitCode = yield* _(Command.exitCode(command));
 
-                    const stdoutText = stdout.map((chunk) => new TextDecoder().decode(chunk)).join("");
-                    const stderrText = stderr.map((chunk) => new TextDecoder().decode(chunk)).join("");
-
-                    if (stdoutText) {
-                        yield* _(Effect.logTrace(`Standardausgabe: ${stdoutText}`));
-                    }
-
-                    if (stderrText) {
-                        yield* _(Effect.logError(`Standardfehler: ${stderrText}`));
-                    }
-
-                    if (exitCode !== 0) {
-                        return yield* _(Effect.fail(new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)));
-                    }
-
-                    return { stdout: stdoutText, stderr: stderrText };
-                })
-            )
-        );
+        if (exitCode !== 0) {
+            return yield* _(Effect.fail(new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)));
+        }
 
         yield* _(Effect.log(`CLI erfolgreich ausgeführt für Video ${videoId}`));
-        return result;
+        return exitCode;
     }).pipe(
         Effect.retry(
-            pipe(
-                Schedule.exponential("30 seconds"),
-                Schedule.compose(Schedule.recurs(5)),
-                Schedule.tapInput((attempt) =>
+            Schedule.exponential("30 seconds").pipe(
+                Schedule.intersect(Schedule.recurs(5)),
+                Schedule.tapInput((attempt: number) =>
                     Effect.logWarning(`Versuch ${attempt + 1} für Video ${videoId}`)
                 )
             )
         ),
-        Effect.tapError((error) =>
+        Effect.tapError((error: Error) =>
             Effect.logError(`CLI-Fehler nach allen Versuchen für Video ${videoId}: ${error.message}`)
         )
     );
@@ -107,7 +84,7 @@ const findAndReadTranscripts = () =>
             );
 
             const langMatch = filename.match(/transcript\.([^.]+)\.srt/);
-            const lang = langMatch ? langMatch[1] : "unknown";
+            const lang = langMatch?.[1] ?? "unknown";
 
             transcripts.push({ filename, lang, content });
             yield* _(Effect.logTrace(`Transkriptdatei gefunden: ${filename} (${lang})`));
@@ -139,9 +116,9 @@ const saveTranscriptsToDb = (
                             [videoId, transcript.content, transcript.lang]
                         );
 
-                        Effect.log(
+                        yield * _(Effect.log(
                             `Transkript für Video ${videoId} (Sprache: ${transcript.lang}) in DB gespeichert`
-                        ).pipe(Effect.runSync);
+                        ));
                     }
                 },
                 catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
@@ -240,11 +217,9 @@ const cli = CliCommand.run(command, {
     version: "1.0.0",
 });
 
-// Layer mit BunContext
-const layer = BunContext.layer;
-
 pipe(
     cli(process.argv),
-    Effect.provide(layer),
-    Effect.runPromise
+    Effect.provide(BunContext.layer),
+    Effect.scoped,
+    BunRuntime.runMain
 );
