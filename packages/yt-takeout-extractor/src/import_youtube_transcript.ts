@@ -26,7 +26,7 @@ if (!DATABASE_URL) {
 const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
-const executeYtDlp = (videoId: string) =>
+const executeYtDlp = (videoId: string) => Effect.retry(
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
         const command = Command.make(
@@ -40,7 +40,6 @@ const executeYtDlp = (videoId: string) =>
             "transcript.%(ext)s",
             url
         ).pipe(Command.stdout("inherit"), Command.stderr("inherit"));
-
         yield* Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`);
 
         const exitCode = yield* Command.exitCode(command);
@@ -53,22 +52,13 @@ const executeYtDlp = (videoId: string) =>
 
         yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
         return exitCode;
-    }).pipe(
-        Effect.retry(
-            Schedule.identity().pipe(
-                Schedule.exponential(Duration.seconds(30)),
-                Schedule.intersect(Schedule.recurs(5)),
-                Schedule.tapInput((attempt: number) =>
-                    Effect.logWarning(`Versuch ${attempt + 1} für Video ${videoId}`)
-                )
-            )
-        ),
-        Effect.tapError((error: Error) =>
-            Effect.logError(
-                `CLI-Fehler nach allen Versuchen für Video ${videoId}: ${error.message}`
-            )
-        )
-    );
+    }),
+    Schedule.intersect(
+        //Schedule.jittered(Schedule.exponential("30 seconds")),
+        Schedule.exponential("30 seconds"),
+        Schedule.recurs(5),
+    ))
+
 
 const findAndReadTranscripts = () =>
     Effect.gen(function* () {
