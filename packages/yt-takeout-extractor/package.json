@@ -12,7 +12,8 @@
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
-    "@types/node": "^22.15.3",
+    "@types/node": "^24.9.1",
+    "@types/pg": "^8.15.5",
     "eslint": "^9.34.0",
     "typescript": "5.9.2"
   },

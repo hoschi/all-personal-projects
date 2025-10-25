@@ -1,14 +1,13 @@
-import { Effect, Schedule, Logger, pipe, Chunk } from "effect";
+import { Effect, Schedule, Layer, pipe } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
 import { Command, CommandExecutor } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
-import { BunContext, BunRuntime } from "@effect/platform-bun";
+import { BunContext } from "@effect/platform-bun";
 import { Client } from "pg";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
-// Typen
 interface TranscriptFile {
     filename: string;
     lang: string;
@@ -19,64 +18,60 @@ interface VideoRecord {
     youtube_id: string;
 }
 
-// Konfiguration
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
     throw new Error("DATABASE_URL nicht in .env gefunden");
 }
 
-// Helper: YouTube URL erstellen
 const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
-// Helper: CLI ausführen mit Retry-Logik
 const executeYtDlp = (videoId: string) =>
-    pipe(
-        Effect.gen(function* (_) {
-            const url = buildYouTubeUrl(videoId);
-            const command = Command.make("yt-dlp",
-                "--skip-download",
-                "--write-subs",
-                "--write-auto-subs",
-                "--sub-format", "srt",
-                "-o", "transcript.%(ext)s",
-                url
-            );
+    Effect.gen(function* (_) {
+        const executor = yield* _(CommandExecutor.CommandExecutor);
+        const url = buildYouTubeUrl(videoId);
+        const command = Command.make("yt-dlp",
+            "--skip-download",
+            "--write-subs",
+            "--write-auto-subs",
+            "--sub-format", "srt",
+            "-o", "transcript.%(ext)s",
+            url
+        );
 
-            yield* _(Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`));
+        yield* _(Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`));
 
-            const executor = yield* _(CommandExecutor.CommandExecutor);
-            const result = yield* _(
-                executor.start(command),
-                Effect.flatMap((process) =>
-                    Effect.gen(function* (_) {
-                        const exitCode = yield* _(process.exitCode);
-                        const stdout = yield* _(process.stdout, Effect.flatMap(Effect.runCollect));
-                        const stderr = yield* _(process.stderr, Effect.flatMap(Effect.runCollect));
+        const result = yield* _(
+            executor.start(command),
+            Effect.flatMap((process) =>
+                Effect.gen(function* (_) {
+                    const exitCode = yield* _(process.exitCode);
+                    const stdout = yield* _(process.stdout, Effect.flatMap(Effect.runCollect));
+                    const stderr = yield* _(process.stderr, Effect.flatMap(Effect.runCollect));
 
-                        const stdoutText = stdout.map((chunk) => new TextDecoder().decode(chunk)).join("");
-                        const stderrText = stderr.map((chunk) => new TextDecoder().decode(chunk)).join("");
+                    const stdoutText = stdout.map((chunk) => new TextDecoder().decode(chunk)).join("");
+                    const stderrText = stderr.map((chunk) => new TextDecoder().decode(chunk)).join("");
 
-                        if (stdoutText) {
-                            yield* _(Effect.logTrace(`Standardausgabe: ${stdoutText}`));
-                        }
+                    if (stdoutText) {
+                        yield* _(Effect.logTrace(`Standardausgabe: ${stdoutText}`));
+                    }
 
-                        if (stderrText) {
-                            yield* _(Effect.logError(`Standardfehler: ${stderrText}`));
-                        }
+                    if (stderrText) {
+                        yield* _(Effect.logError(`Standardfehler: ${stderrText}`));
+                    }
 
-                        if (exitCode !== 0) {
-                            return yield* _(Effect.fail(new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)));
-                        }
+                    if (exitCode !== 0) {
+                        return yield* _(Effect.fail(new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)));
+                    }
 
-                        return { stdout: stdoutText, stderr: stderrText };
-                    })
-                )
-            );
+                    return { stdout: stdoutText, stderr: stderrText };
+                })
+            )
+        );
 
-            yield* _(Effect.log(`CLI erfolgreich ausgeführt für Video ${videoId}`));
-            return result;
-        }),
+        yield* _(Effect.log(`CLI erfolgreich ausgeführt für Video ${videoId}`));
+        return result;
+    }).pipe(
         Effect.retry(
             pipe(
                 Schedule.exponential("30 seconds"),
@@ -91,7 +86,6 @@ const executeYtDlp = (videoId: string) =>
         )
     );
 
-// Helper: Transkript-Dateien finden und einlesen
 const findAndReadTranscripts = () =>
     Effect.gen(function* (_) {
         const fs = yield* _(FileSystem.FileSystem);
@@ -122,7 +116,6 @@ const findAndReadTranscripts = () =>
         return transcripts;
     }).pipe(Effect.orDie);
 
-// Helper: Transkripte in Datenbank speichern und Dateien löschen
 const saveTranscriptsToDb = (
     client: Client,
     videoId: string,
@@ -166,7 +159,6 @@ const saveTranscriptsToDb = (
         }
     });
 
-// Helper: Prüfen ob Video bereits existiert
 const videoExistsInDb = (client: Client, videoId: string) =>
     Effect.tryPromise({
         try: async () => {
@@ -179,7 +171,6 @@ const videoExistsInDb = (client: Client, videoId: string) =>
         catch: (error) => new Error(`Datenbankfehler beim Prüfen: ${error}`),
     });
 
-// Helper: Video-IDs aus Eingabetabelle laden
 const loadVideoIds = (client: Client, tableName: string) =>
     Effect.tryPromise({
         try: async () => {
@@ -192,7 +183,6 @@ const loadVideoIds = (client: Client, tableName: string) =>
             new Error(`Fehler beim Laden der Video-IDs aus ${tableName}: ${error}`),
     });
 
-// Haupt-Workflow für ein einzelnes Video
 const processVideo = (client: Client, videoId: string) =>
     pipe(
         videoExistsInDb(client, videoId),
@@ -210,7 +200,6 @@ const processVideo = (client: Client, videoId: string) =>
         )
     );
 
-// Haupt-Programm
 const mainProgram = (schemaAndTable: string) =>
     Effect.gen(function* (_) {
         const client = new Client({ connectionString: DATABASE_URL });
@@ -238,17 +227,12 @@ const mainProgram = (schemaAndTable: string) =>
         yield* _(Effect.log("Alle Videos verarbeitet"));
     });
 
-// CLI-Definitionen
 const tableArg = Args.text({ name: "table" }).pipe(
     Args.withDescription("Schema und Tabellenname (z.B. public.videos)")
 );
 
 const command = CliCommand.make("download-transcripts", { table: tableArg }, ({ table }) =>
-    pipe(
-        mainProgram(table),
-        Effect.tapError((error) => Effect.logError(`Hauptfehler: ${error.message}`)),
-        Effect.provide(BunContext.layer)
-    )
+    mainProgram(table)
 );
 
 const cli = CliCommand.run(command, {
@@ -256,9 +240,11 @@ const cli = CliCommand.run(command, {
     version: "1.0.0",
 });
 
-// Programm ausführen
+// Layer mit BunContext
+const layer = BunContext.layer;
+
 pipe(
     cli(process.argv),
-    Effect.provide(BunContext.layer),
-    BunRuntime.runMain
+    Effect.provide(layer),
+    Effect.runPromise
 );
