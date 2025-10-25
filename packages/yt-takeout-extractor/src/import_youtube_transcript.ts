@@ -55,7 +55,7 @@ const executeYtDlp = (videoId: string) =>
         return exitCode;
     }).pipe(
         Effect.retry(
-            pipe(
+            Schedule.identity().pipe(
                 Schedule.exponential(Duration.seconds(30)),
                 Schedule.intersect(Schedule.recurs(5)),
                 Schedule.tapInput((attempt: number) =>
