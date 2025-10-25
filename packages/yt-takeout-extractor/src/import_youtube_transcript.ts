@@ -1,6 +1,6 @@
-import { Effect, Schedule, pipe } from "effect";
+import { Effect, Schedule, pipe, Duration } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
-import { Command, CommandExecutor } from "@effect/platform";
+import { Command } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
 import { Client } from "pg";
@@ -27,31 +27,36 @@ const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
 const executeYtDlp = (videoId: string) =>
-    Effect.gen(function* (_) {
-        const executor = yield* _(CommandExecutor.CommandExecutor);
+    Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
-        const command = Command.make("yt-dlp",
+        const command = Command.make(
+            "yt-dlp",
             "--skip-download",
             "--write-subs",
             "--write-auto-subs",
-            "--sub-format", "srt",
-            "-o", "transcript.%(ext)s",
+            "--sub-format",
+            "srt",
+            "-o",
+            "transcript.%(ext)s",
             url
-        );
+        ).pipe(Command.stdout("inherit"), Command.stderr("inherit"));
 
-        yield* _(Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`));
+        yield* Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`);
 
-        const exitCode = yield* _(Command.exitCode(command));
+        const exitCode = yield* Command.exitCode(command);
 
         if (exitCode !== 0) {
-            return yield* _(Effect.fail(new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)));
+            return yield* Effect.fail(
+                new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)
+            );
         }
 
-        yield* _(Effect.log(`CLI erfolgreich ausgeführt für Video ${videoId}`));
+        yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
         return exitCode;
     }).pipe(
         Effect.retry(
-            Schedule.exponential("30 seconds").pipe(
+            pipe(
+                Schedule.exponential(Duration.seconds(30)),
                 Schedule.intersect(Schedule.recurs(5)),
                 Schedule.tapInput((attempt: number) =>
                     Effect.logWarning(`Versuch ${attempt + 1} für Video ${videoId}`)
@@ -59,35 +64,44 @@ const executeYtDlp = (videoId: string) =>
             )
         ),
         Effect.tapError((error: Error) =>
-            Effect.logError(`CLI-Fehler nach allen Versuchen für Video ${videoId}: ${error.message}`)
+            Effect.logError(
+                `CLI-Fehler nach allen Versuchen für Video ${videoId}: ${error.message}`
+            )
         )
     );
 
 const findAndReadTranscripts = () =>
-    Effect.gen(function* (_) {
-        const fs = yield* _(FileSystem.FileSystem);
+    Effect.gen(function* () {
+        const fs = yield* FileSystem.FileSystem;
 
-        const files = yield* _(fs.readDirectory("."));
-        const transcriptFiles = files.filter((f) => f.startsWith("transcript.") && f.endsWith(".srt"));
+        const files = yield* fs.readDirectory(".");
+        const transcriptFiles = files.filter(
+            (f) => f.startsWith("transcript.") && f.endsWith(".srt")
+        );
 
         if (transcriptFiles.length === 0) {
-            yield* _(Effect.logError("Keine Transkriptdateien gefunden nach CLI-Ausführung"));
-            return yield* _(Effect.fail(new Error("Keine Transkriptdateien gefunden")));
+            yield* Effect.logError("Keine Transkriptdateien gefunden nach CLI-Ausführung");
+            return yield* Effect.fail(
+                new Error("Keine Transkriptdateien gefunden")
+            );
         }
 
         const transcripts: TranscriptFile[] = [];
 
         for (const filename of transcriptFiles) {
-            const content = yield* _(
-                fs.readFileString(filename),
-                Effect.mapError((error) => new Error(`Fehler beim Lesen von ${filename}: ${error}`))
+            const content = yield* fs.readFileString(filename).pipe(
+                Effect.mapError(
+                    (error) => new Error(`Fehler beim Lesen von ${filename}: ${error}`)
+                )
             );
 
             const langMatch = filename.match(/transcript\.([^.]+)\.srt/);
             const lang = langMatch?.[1] ?? "unknown";
 
             transcripts.push({ filename, lang, content });
-            yield* _(Effect.logTrace(`Transkriptdatei gefunden: ${filename} (${lang})`));
+            yield* Effect.logTrace(
+                `Transkriptdatei gefunden: ${filename} (${lang})`
+            );
         }
 
         return transcripts;
@@ -98,42 +112,43 @@ const saveTranscriptsToDb = (
     videoId: string,
     transcripts: TranscriptFile[]
 ) =>
-    Effect.gen(function* (_) {
-        const fs = yield* _(FileSystem.FileSystem);
+    Effect.gen(function* () {
+        const fs = yield* FileSystem.FileSystem;
 
-        yield* _(
-            Effect.tryPromise({
-                try: async () => {
-                    for (const transcript of transcripts) {
-                        await client.query(
-                            `INSERT INTO main.youtube_transcript (youtube_id, transcript_original, lang, created_at, updated_at)
-               VALUES ($1, $2, $3, NOW(), NOW())
-               ON CONFLICT (youtube_id) 
-               DO UPDATE SET 
-                 transcript_original = EXCLUDED.transcript_original,
-                 lang = EXCLUDED.lang,
-                 updated_at = NOW()`,
-                            [videoId, transcript.content, transcript.lang]
-                        );
+        yield* Effect.tryPromise({
+            try: async () => {
+                for (const transcript of transcripts) {
+                    await client.query(
+                        `INSERT INTO main.youtube_transcript (youtube_id, transcript_original, lang, created_at, updated_at)
+             VALUES ($1, $2, $3, NOW(), NOW())
+             ON CONFLICT (youtube_id) 
+             DO UPDATE SET 
+               transcript_original = EXCLUDED.transcript_original,
+               lang = EXCLUDED.lang,
+               updated_at = NOW()`,
+                        [videoId, transcript.content, transcript.lang]
+                    );
+                }
+                return void 0;
+            },
+            catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
+        });
 
-                        yield * _(Effect.log(
-                            `Transkript für Video ${videoId} (Sprache: ${transcript.lang}) in DB gespeichert`
-                        ));
-                    }
-                },
-                catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
-            })
-        );
-
-        for (const transcript of transcripts) {
-            yield* _(
+        yield* Effect.forEach(transcripts, (transcript) =>
+            pipe(
                 fs.remove(transcript.filename),
                 Effect.tapError((error) =>
                     Effect.logError(`Fehler beim Löschen von ${transcript.filename}: ${error}`)
+                ),
+                Effect.flatMap(() =>
+                    Effect.logTrace(`Datei gelöscht: ${transcript.filename}`)
                 )
-            );
-            yield* _(Effect.logTrace(`Datei gelöscht: ${transcript.filename}`));
-        }
+            )
+        );
+
+        yield* Effect.log(
+            `Transkripte für Video ${videoId} (${transcripts.length} Dateien) verarbeitet`
+        );
     });
 
 const videoExistsInDb = (client: Client, videoId: string) =>
@@ -170,46 +185,54 @@ const processVideo = (client: Client, videoId: string) =>
                     Effect.log(`Verarbeite Video: ${videoId}`),
                     Effect.flatMap(() => executeYtDlp(videoId)),
                     Effect.flatMap(() => findAndReadTranscripts()),
-                    Effect.flatMap((transcripts) => saveTranscriptsToDb(client, videoId, transcripts)),
-                    Effect.flatMap(() => Effect.log(`Video ${videoId} erfolgreich verarbeitet`)),
-                    Effect.flatMap(() => Effect.sleep("30 seconds"))
+                    Effect.flatMap((transcripts) =>
+                        saveTranscriptsToDb(client, videoId, transcripts)
+                    ),
+                    Effect.flatMap(() =>
+                        Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
+                    ),
+                    Effect.flatMap(() => Effect.sleep(Duration.seconds(30)))
                 )
         )
     );
 
 const mainProgram = (schemaAndTable: string) =>
-    Effect.gen(function* (_) {
+    Effect.gen(function* () {
         const client = new Client({ connectionString: DATABASE_URL });
 
-        yield* _(Effect.tryPromise({
+        yield* Effect.tryPromise({
             try: () => client.connect(),
-            catch: (error) => new Error(`Datenbankverbindung fehlgeschlagen: ${error}`),
-        }));
+            catch: (error) =>
+                new Error(`Datenbankverbindung fehlgeschlagen: ${error}`),
+        });
 
-        yield* _(Effect.log(`Verbunden mit Datenbank`));
+        yield* Effect.log(`Verbunden mit Datenbank`);
 
-        const videoIds = yield* _(loadVideoIds(client, schemaAndTable));
+        const videoIds = yield* loadVideoIds(client, schemaAndTable);
 
-        yield* _(Effect.log(`${videoIds.length} Videos gefunden`));
+        yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
         for (const videoId of videoIds) {
-            yield* _(processVideo(client, videoId));
+            yield* processVideo(client, videoId);
         }
 
-        yield* _(Effect.tryPromise({
+        yield* Effect.tryPromise({
             try: () => client.end(),
-            catch: (error) => new Error(`Fehler beim Schließen der Verbindung: ${error}`),
-        }));
+            catch: (error) =>
+                new Error(`Fehler beim Schließen der Verbindung: ${error}`),
+        });
 
-        yield* _(Effect.log("Alle Videos verarbeitet"));
+        yield* Effect.log("Alle Videos verarbeitet");
     });
 
 const tableArg = Args.text({ name: "table" }).pipe(
     Args.withDescription("Schema und Tabellenname (z.B. public.videos)")
 );
 
-const command = CliCommand.make("download-transcripts", { table: tableArg }, ({ table }) =>
-    mainProgram(table)
+const command = CliCommand.make(
+    "download-transcripts",
+    { table: tableArg },
+    ({ table }) => mainProgram(table)
 );
 
 const cli = CliCommand.run(command, {
