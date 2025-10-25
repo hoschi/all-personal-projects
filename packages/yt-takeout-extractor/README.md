@@ -73,6 +73,7 @@ cp .env.example .env
 dotenv -f .env run -- zsh
 psql $DATABASE_URL -f src/create_youtube_history.sql
 psql $DATABASE_URL -f src/create_youtube_note_links.sql
+psql $DATABASE_URL -f src/create_youtube_transcript.sql
 ```
 
 ## 🚀 Verwendung
