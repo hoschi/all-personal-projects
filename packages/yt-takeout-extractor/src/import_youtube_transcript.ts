@@ -36,11 +36,12 @@ const executeYtDlp = (videoId: string) => Effect.retry(
             "--write-auto-subs",
             "--sub-format",
             "srt",
+            "--cookies-from-browser=chrome",
             "-o",
             "transcript.%(ext)s",
             url
         ).pipe(Command.stdout("inherit"), Command.stderr("inherit"));
-        yield* Effect.logTrace(`Führe yt-dlp aus für Video: ${videoId}`);
+        yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}`);
 
         const exitCode = yield* Command.exitCode(command);
 
@@ -53,11 +54,14 @@ const executeYtDlp = (videoId: string) => Effect.retry(
         yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
         return exitCode;
     }),
-    Schedule.intersect(
-        //Schedule.jittered(Schedule.exponential("30 seconds")),
-        Schedule.exponential("30 seconds"),
-        Schedule.recurs(5),
-    ))
+    /*
+        Schedule.intersect(
+            Schedule.exponential("180 seconds"),
+            Schedule.recurs(5),
+        )
+    */
+    Schedule.recurs(1)
+)
 
 
 const findAndReadTranscripts = () =>
