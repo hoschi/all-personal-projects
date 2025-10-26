@@ -1,10 +1,11 @@
-import { Effect, Schedule, pipe, Duration } from "effect";
+import { Effect, pipe, Duration } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
 import { Command } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
 import { Client } from "pg";
 import * as dotenv from "dotenv";
+import { EffectTypeId } from "effect/Effect";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ if (!DATABASE_URL) {
 const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
-const executeYtDlp = (videoId: string) => Effect.retry(
+const executeYtDlp = (videoId: string) =>
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
         const command = Command.make(
@@ -53,15 +54,7 @@ const executeYtDlp = (videoId: string) => Effect.retry(
 
         yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
         return exitCode;
-    }),
-    /*
-        Schedule.intersect(
-            Schedule.exponential("180 seconds"),
-            Schedule.recurs(5),
-        )
-    */
-    Schedule.recurs(1)
-)
+    })
 
 
 const findAndReadTranscripts = () =>
@@ -193,6 +186,7 @@ const processVideo = (client: Client, videoId: string) =>
 const mainProgram = (schemaAndTable: string) =>
     Effect.gen(function* () {
         const client = new Client({ connectionString: DATABASE_URL });
+        let sleepMinutes = 10
 
         yield* Effect.tryPromise({
             try: () => client.connect(),
@@ -209,9 +203,9 @@ const mainProgram = (schemaAndTable: string) =>
         for (const videoId of videoIds) {
             yield* pipe(
                 processVideo(client, videoId),
-                Effect.catchAll((error) =>
-                    Effect.logError(`Fehler bei Video ${videoId}: ${error}`)
-                )
+                Effect.catchAll((error) => pipe(
+                    Effect.logError(`Fehler bei Video ${videoId}: ${error}. WARTE ${sleepMinutes}min.`),
+                ))
             );
         }
 
