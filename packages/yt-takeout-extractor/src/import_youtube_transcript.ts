@@ -202,6 +202,9 @@ const mainProgram = (schemaAndTable: string) =>
         yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
         for (const [videoId, titel] of videoIds) {
+            if (!videoId) {
+                return yield* Effect.fail("No video id!")
+            }
             yield* pipe(
                 processVideo(client, videoId),
                 Effect.catchAll((error) => pipe(
