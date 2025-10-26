@@ -197,6 +197,25 @@ const saveTranscriptsToDb = (
         );
     });
 
+
+const saveErrorToDb = (
+    client: Client,
+    videoId: string,
+    err: TranscriptionError
+) =>
+    Effect.tryPromise({
+        try: async () => {
+            await client.query(
+                `INSERT INTO main.youtube_transcript (youtube_id, error)
+                     VALUES ($1, $2)`,
+                [videoId, `TranscriptionError: ${err.message}\n\n${err.commandLog}`]
+            );
+
+            return void 0;
+        },
+        catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
+    });
+
 const videoExistsInDb = (client: Client, videoId: string) =>
     Effect.tryPromise({
         try: async () => {
@@ -238,10 +257,11 @@ const processVideo = (client: Client, videoId: string, title: string) =>
                         Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
                     ),
                     Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
-                    Effect.catchTag("TranscriptionError", (err) => {
+                    Effect.catchTag("TranscriptionError", (err) => Effect.gen(function* () {
                         console.log(err.commandLog)
-                        return Effect.logError(`TranscriptionError: ${err.message}`)
-                    })
+                        yield* Effect.logError(`TranscriptionError: ${err.message}`)
+                        yield* saveErrorToDb(client, videoId, err)
+                    })),
                 )
         )
     );
