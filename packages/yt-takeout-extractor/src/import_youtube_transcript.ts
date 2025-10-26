@@ -17,6 +17,7 @@ interface TranscriptFile {
 
 interface VideoRecord {
     youtube_id: string;
+    titel: string;
 }
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -154,9 +155,9 @@ const loadVideoIds = (client: Client, tableName: string) =>
     Effect.tryPromise({
         try: async () => {
             const result = await client.query<VideoRecord>(
-                `SELECT youtube_id FROM ${tableName}`
+                `SELECT youtube_id,titel FROM ${tableName}`
             );
-            return result.rows.map((row) => row.youtube_id);
+            return result.rows.map((row) => [row.youtube_id, row.titel]);
         },
         catch: (error) =>
             new Error(`Fehler beim Laden der Video-IDs aus ${tableName}: ${error}`),
@@ -200,11 +201,11 @@ const mainProgram = (schemaAndTable: string) =>
 
         yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
-        for (const videoId of videoIds) {
+        for (const [videoId, titel] of videoIds) {
             yield* pipe(
                 processVideo(client, videoId),
                 Effect.catchAll((error) => pipe(
-                    Effect.logError(`Fehler bei Video ${videoId}: ${error}. WARTE ${sleepMinutes}min.`),
+                    Effect.logError(`Fehler bei Video ${videoId} "${titel}": ${error}. WARTE ${sleepMinutes}min.`),
                 ))
             );
         }

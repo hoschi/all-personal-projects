@@ -18,7 +18,7 @@ if (!DATABASE_URL) {
 // --- SCHEMAS ---
 const NoteLinkSchema = z.object({
   youtube_id: z.string().min(5),
-  titel: z.string().optional(),
+  title: z.string().optional(),
   file_name: z.string().min(1),
 });
 type NoteLink = z.infer<typeof NoteLinkSchema>;
@@ -68,22 +68,22 @@ const insertNoteLink = async (
   client: Client,
   note: NoteLink
 ): Promise<'inserted' | 'duplicate' | 'title-mismatch'> => {
-  const { youtube_id, titel, file_name } = note;
+  const { youtube_id, title, file_name } = note;
 
-  // Prüfe, ob exakt dieser Eintrag schon existiert (youtube_id + titel + file_name)
+  // Prüfe, ob exakt dieser Eintrag schon existiert (youtube_id + title + file_name)
   const exactMatch = await client.query(
-    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND titel IS NOT DISTINCT FROM $2 AND file_name = $3',
-    [youtube_id, titel ?? null, file_name]
+    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND title IS NOT DISTINCT FROM $2 AND file_name = $3',
+    [youtube_id, title ?? null, file_name]
   );
 
   if (exactMatch.rows.length > 0) {
     return 'duplicate';
   }
 
-  // Prüfe, ob YouTube-ID mit anderem Titel existiert
+  // Prüfe, ob YouTube-ID mit anderem title existiert
   const conflictingRes = await client.query(
-    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND titel IS DISTINCT FROM $2',
-    [youtube_id, titel ?? null]
+    'SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND title IS DISTINCT FROM $2',
+    [youtube_id, title ?? null]
   );
 
   if (conflictingRes.rows.length > 0) {
@@ -92,8 +92,8 @@ const insertNoteLink = async (
 
   // Insert neuen Eintrag
   await client.query(
-    'INSERT INTO main.youtube_note_links (youtube_id, titel, file_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-    [youtube_id, titel ?? null, file_name]
+    'INSERT INTO main.youtube_note_links (youtube_id, title, file_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+    [youtube_id, title ?? null, file_name]
   );
 
   return 'inserted';
@@ -125,7 +125,7 @@ const main = async (): Promise<number> => {
 
     for (const file of files) {
       const content = await fs.readFile(file, 'utf8');
-      const titel = extractFirstH1(content);
+      const title = extractFirstH1(content);
       const links = extractLinks(content).filter(l => l.label === "URL");
 
       for (const link of links) {
@@ -149,7 +149,7 @@ const main = async (): Promise<number> => {
         const data: NoteLink = {
           youtube_id,
           file_name: path.resolve(file),
-          ...(titel ? { titel } : {})
+          ...(title ? { title } : {})
         };
 
         const parse = NoteLinkSchema.safeParse(data);
@@ -162,12 +162,12 @@ const main = async (): Promise<number> => {
 
         const result = await insertNoteLink(client, data);
         if (result === 'inserted') {
-          logInfo(`DB: Eingefügt: id=${youtube_id}, titel=${titel}, datei=${file}`);
+          logInfo(`DB: Eingefügt: id=${youtube_id}, title=${title}, datei=${file}`);
           inserted++;
         } else if (result === 'duplicate') {
-          logWarn(`Bereits vorhanden (kein Fehler): id=${youtube_id} / titel=${titel} / datei=${file}`);
+          logWarn(`Bereits vorhanden (kein Fehler): id=${youtube_id} / title=${title} / datei=${file}`);
         } else if (result === 'title-mismatch') {
-          const errorMessage = `Fehler: id ${youtube_id} existiert mit anderem Titel als "${titel}" (in ${file})`;
+          const errorMessage = `Fehler: id ${youtube_id} existiert mit anderem title als "${title}" (in ${file})`;
           errorMessages.push(errorMessage);
           errors++;
         }
