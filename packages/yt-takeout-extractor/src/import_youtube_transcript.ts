@@ -1,4 +1,4 @@
-import { Effect, pipe, Duration, Data, Console } from "effect";
+import { Effect, pipe, Duration, Data, String, Stream, Console } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
 import { Command } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
@@ -27,11 +27,21 @@ if (!DATABASE_URL) {
 const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
+// Helper function to collect stream output as a string
+const runString = <E, R>(
+    stream: Stream.Stream<Uint8Array, E, R>
+): Effect.Effect<string, E, R> =>
+    stream.pipe(
+        Stream.decodeText(),
+        Stream.runFold(String.empty, String.concat)
+    )
+
 
 class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
     message: string,
     commandLog: string
 }> { }
+
 const executeYtDlp = (videoId: string) =>
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
@@ -62,8 +72,26 @@ const executeYtDlp = (videoId: string) =>
         )
         yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}: ${args.join(' ')}`);
 
-        const output: string = yield* Command.string(command)
-
+        //const output: string = yield* Command.string(command)
+        const [exitCode, stdout, stderr] = yield* pipe(
+            // Start running the command and return a handle to the running process
+            Command.start(command),
+            Effect.flatMap((process) =>
+                Effect.all(
+                    [
+                        // Waits for the process to exit and returns
+                        // the ExitCode of the command that was run
+                        process.exitCode,
+                        // The standard output stream of the process
+                        runString(process.stdout),
+                        // The standard error stream of the process
+                        runString(process.stderr)
+                    ],
+                    { concurrency: 3 }
+                )
+            )
+        )
+        const output = stdout + stderr
         if (output.includes('There are no subtitles for the requested languages')) {
             yield* new TranscriptionError({
                 message: `yt-dlp fehlgeschlagen, keine subtitles für dieses Video!`,
@@ -80,7 +108,7 @@ const executeYtDlp = (videoId: string) =>
         }
 
         if (output.includes('Writing video subtitles')) {
-            yield* Effect.log(output);
+            console.log(output)
             yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
             return
         }
@@ -193,14 +221,14 @@ const loadVideoIds = (client: Client, tableName: string) =>
             new Error(`Fehler beim Laden der Video-IDs aus ${tableName}: ${error}`),
     });
 
-const processVideo = (client: Client, videoId: string) =>
+const processVideo = (client: Client, videoId: string, title: string) =>
     pipe(
         videoExistsInDb(client, videoId),
         Effect.flatMap((exists) =>
             exists
                 ? Effect.logInfo(`Video ${videoId} bereits vorhanden, überspringe`)
                 : pipe(
-                    Effect.log(`Verarbeite Video: ${videoId}`),
+                    Effect.log(`Verarbeite Video: ${videoId} - ${title}`),
                     Effect.flatMap(() => executeYtDlp(videoId)),
                     Effect.flatMap(() => findAndReadTranscripts()),
                     Effect.flatMap((transcripts) =>
@@ -210,7 +238,7 @@ const processVideo = (client: Client, videoId: string) =>
                         Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
                     ),
                     Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
-                    Effect.catchTag("TranscriptionError", (err) => Effect.logError(`TranscriptionError: ${err.message}\n\n${err.commandLog}`))
+                    Effect.catchTag("TranscriptionError", (err) => Effect.logError(`${err.commandLog}\n\nTranscriptionError: ${err.message}`))
                 )
         )
     );
@@ -218,7 +246,6 @@ const processVideo = (client: Client, videoId: string) =>
 const mainProgram = (schemaAndTable: string) =>
     Effect.gen(function* () {
         const client = new Client({ connectionString: DATABASE_URL });
-        let sleepMinutes = 10
 
         yield* Effect.tryPromise({
             try: () => client.connect(),
@@ -233,15 +260,10 @@ const mainProgram = (schemaAndTable: string) =>
         yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
         for (const [videoId, title] of videoIds) {
-            if (!videoId) {
-                return yield* Effect.fail("No video id!")
+            if (!videoId || !title) {
+                return yield* Effect.fail("No video id or title!")
             }
-            yield* pipe(
-                processVideo(client, videoId),
-                Effect.catchAll((error) => pipe(
-                    Effect.logError(`Fehler bei Video ${videoId} "${title}": ${error}. WARTE ${sleepMinutes}min.`),
-                ))
-            );
+            yield* processVideo(client, videoId, title)
         }
 
         yield* Effect.tryPromise({
