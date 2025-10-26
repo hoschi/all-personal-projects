@@ -207,7 +207,12 @@ const mainProgram = (schemaAndTable: string) =>
         yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
         for (const videoId of videoIds) {
-            yield* processVideo(client, videoId);
+            yield* pipe(
+                processVideo(client, videoId),
+                Effect.catchAll((error) =>
+                    Effect.logError(`Fehler bei Video ${videoId}: ${error}`)
+                )
+            );
         }
 
         yield* Effect.tryPromise({
