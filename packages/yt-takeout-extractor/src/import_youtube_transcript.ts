@@ -238,7 +238,10 @@ const processVideo = (client: Client, videoId: string, title: string) =>
                         Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
                     ),
                     Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
-                    Effect.catchTag("TranscriptionError", (err) => Effect.logError(`${err.commandLog}\n\nTranscriptionError: ${err.message}`))
+                    Effect.catchTag("TranscriptionError", (err) => {
+                        console.log(err.commandLog)
+                        return Effect.logError(`TranscriptionError: ${err.message}`)
+                    })
                 )
         )
     );
