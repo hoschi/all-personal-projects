@@ -36,6 +36,18 @@ const executeYtDlp = (videoId: string) =>
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
 
+        const args = [
+            "yt-dlp",
+            "--skip-download",
+            "--write-subs",
+            "--write-auto-subs",
+            "--sub-format",
+            "srt",
+            "--cookies-from-browser=chrome",
+            "-o",
+            `"transcript.%(ext)s"`,
+            `"${url}"`
+        ]
         const command = Command.make(
             "yt-dlp",
             "--skip-download",
@@ -48,7 +60,7 @@ const executeYtDlp = (videoId: string) =>
             "transcript.%(ext)s",
             url
         )
-        yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}`);
+        yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}: ${args.join(' ')}`);
 
         const output: string = yield* Command.string(command)
 
