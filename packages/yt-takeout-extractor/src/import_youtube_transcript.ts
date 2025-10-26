@@ -16,7 +16,7 @@ interface TranscriptFile {
 
 interface VideoRecord {
     youtube_id: string;
-    titel: string;
+    title: string;
 }
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -35,6 +35,7 @@ class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
 const executeYtDlp = (videoId: string) =>
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
+
         const command = Command.make(
             "yt-dlp",
             "--skip-download",
@@ -47,41 +48,33 @@ const executeYtDlp = (videoId: string) =>
             "transcript.%(ext)s",
             url
         )
-
         yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}`);
 
         const output: string = yield* Command.string(command)
 
         if (output.includes('There are no subtitles for the requested languages')) {
-            return yield* new TranscriptionError({
+            yield* new TranscriptionError({
                 message: `yt-dlp fehlgeschlagen, keine subtitles für dieses Video!`,
                 commandLog: output
             });
+            return
         }
         if (output.includes('Unable to download video subtitles')) {
-            return yield* new TranscriptionError({
+            yield* Effect.fail(new TranscriptionError({
                 message: `yt-dlp fehlgeschlagen, konnte subtitle sicht herunterladen!`,
                 commandLog: output
-            });
+            }));
+            return
         }
 
         if (output.includes('Writing video subtitles')) {
             yield* Effect.log(output);
-            return yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
+            yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
+            return
         }
 
-        yield* Effect.fail(new Error(`Unknown error during yt-dlp execution for Video "${videoId}". Output:\n\n${output}`))
+        yield* Effect.dieMessage(`Unknown error during yt-dlp execution for Video "${videoId}". Output:\n\n${output}`)
     })
-
-const program = Effect.gen(function* () {
-    yield* executeYtDlp('abc123')
-}).pipe(
-    // Catch and handle the tagged error
-    Effect.catchTag("TranscriptionError", (err) =>
-        Console.error(`error`)
-    )
-)
-
 
 const findAndReadTranscripts = () =>
     Effect.gen(function* () {
@@ -180,9 +173,9 @@ const loadVideoIds = (client: Client, tableName: string) =>
     Effect.tryPromise({
         try: async () => {
             const result = await client.query<VideoRecord>(
-                `SELECT youtube_id,titel FROM ${tableName}`
+                `SELECT youtube_id,title FROM ${tableName}`
             );
-            return result.rows.map((row) => [row.youtube_id, row.titel]);
+            return result.rows.map((row) => [row.youtube_id, row.title]);
         },
         catch: (error) =>
             new Error(`Fehler beim Laden der Video-IDs aus ${tableName}: ${error}`),
@@ -205,7 +198,7 @@ const processVideo = (client: Client, videoId: string) =>
                         Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
                     ),
                     Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
-                    Effect.catchTag("TranscriptionError", ({}))
+                    Effect.catchTag("TranscriptionError", (err) => Effect.logError(`TranscriptionError: ${err.message}\n\n${err.commandLog}`))
                 )
         )
     );
@@ -227,14 +220,14 @@ const mainProgram = (schemaAndTable: string) =>
 
         yield* Effect.log(`${videoIds.length} Videos gefunden`);
 
-        for (const [videoId, titel] of videoIds) {
+        for (const [videoId, title] of videoIds) {
             if (!videoId) {
                 return yield* Effect.fail("No video id!")
             }
             yield* pipe(
                 processVideo(client, videoId),
                 Effect.catchAll((error) => pipe(
-                    Effect.logError(`Fehler bei Video ${videoId} "${titel}": ${error}. WARTE ${sleepMinutes}min.`),
+                    Effect.logError(`Fehler bei Video ${videoId} "${title}": ${error}. WARTE ${sleepMinutes}min.`),
                 ))
             );
         }
