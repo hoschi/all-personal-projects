@@ -1,11 +1,10 @@
-import { Effect, pipe, Duration } from "effect";
+import { Effect, pipe, Duration, Data, Console } from "effect";
 import { Command as CliCommand, Args } from "@effect/cli";
 import { Command } from "@effect/platform";
 import { FileSystem } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
 import { Client } from "pg";
 import * as dotenv from "dotenv";
-import { EffectTypeId } from "effect/Effect";
 
 dotenv.config();
 
@@ -28,6 +27,11 @@ if (!DATABASE_URL) {
 const buildYouTubeUrl = (videoId: string): string =>
     `https://www.youtube.com/watch?v=${videoId}`;
 
+
+class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
+    message: string,
+    commandLog: string
+}> { }
 const executeYtDlp = (videoId: string) =>
     Effect.gen(function* () {
         const url = buildYouTubeUrl(videoId);
@@ -42,20 +46,41 @@ const executeYtDlp = (videoId: string) =>
             "-o",
             "transcript.%(ext)s",
             url
-        ).pipe(Command.stdout("inherit"), Command.stderr("inherit"));
+        )
+
         yield* Effect.logInfo(`Führe yt-dlp aus für Video: ${videoId}`);
 
-        const exitCode = yield* Command.exitCode(command);
+        const output: string = yield* Command.string(command)
 
-        if (exitCode !== 0) {
-            return yield* Effect.fail(
-                new Error(`yt-dlp fehlgeschlagen mit Exit-Code ${exitCode}`)
-            );
+        if (output.includes('There are no subtitles for the requested languages')) {
+            return yield* new TranscriptionError({
+                message: `yt-dlp fehlgeschlagen, keine subtitles für dieses Video!`,
+                commandLog: output
+            });
+        }
+        if (output.includes('Unable to download video subtitles')) {
+            return yield* new TranscriptionError({
+                message: `yt-dlp fehlgeschlagen, konnte subtitle sicht herunterladen!`,
+                commandLog: output
+            });
         }
 
-        yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
-        return exitCode;
+        if (output.includes('Writing video subtitles')) {
+            yield* Effect.log(output);
+            return yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`);
+        }
+
+        yield* Effect.fail(new Error(`Unknown error during yt-dlp execution for Video "${videoId}". Output:\n\n${output}`))
     })
+
+const program = Effect.gen(function* () {
+    yield* executeYtDlp('abc123')
+}).pipe(
+    // Catch and handle the tagged error
+    Effect.catchTag("TranscriptionError", (err) =>
+        Console.error(`error`)
+    )
+)
 
 
 const findAndReadTranscripts = () =>
@@ -179,7 +204,8 @@ const processVideo = (client: Client, videoId: string) =>
                     Effect.flatMap(() =>
                         Effect.log(`Video ${videoId} erfolgreich verarbeitet`)
                     ),
-                    Effect.flatMap(() => Effect.sleep(Duration.seconds(30)))
+                    Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
+                    Effect.catchTag("TranscriptionError", ({}))
                 )
         )
     );
