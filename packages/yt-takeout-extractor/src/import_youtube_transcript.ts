@@ -214,7 +214,7 @@ const saveErrorToDb = (
             return void 0;
         },
         catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
-    });
+    }).pipe(Effect.andThen(Effect.logInfo(`Fehler in DB gespeichert für Video ${videoId}`)));
 
 const videoExistsInDb = (client: Client, videoId: string) =>
     Effect.tryPromise({
@@ -259,8 +259,9 @@ const processVideo = (client: Client, videoId: string, title: string) =>
                     Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
                     Effect.catchTag("TranscriptionError", (err) => Effect.gen(function* () {
                         console.log(err.commandLog)
-                        yield* Effect.logError(`TranscriptionError: ${err.message}`)
+                        yield* Effect.logError(`TranscriptionError für Video "${title}": ${err.message}`)
                         yield* saveErrorToDb(client, videoId, err)
+                        yield* Effect.sleep(Duration.seconds(30))
                     })),
                 )
         )
