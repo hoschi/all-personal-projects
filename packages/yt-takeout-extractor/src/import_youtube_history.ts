@@ -18,7 +18,7 @@ const RawYouTubeHistoryEntrySchema = z.object({
   time: z.string().datetime(),
   products: z.array(z.string()).optional(),
   activityControls: z.array(z.string()).optional(),
-  details: z.string().optional()
+  details: z.array(z.object({ name: z.string() })).optional()
 });
 
 type RawYouTubeHistoryEntry = z.infer<typeof RawYouTubeHistoryEntrySchema>;
@@ -27,7 +27,7 @@ type ProcessedEntry = {
   title: string;
   youtubeId: string;
   watchedTime: Date;
-  details: string | null;
+  details?: string;
   activityControls: string[];
 };
 
@@ -54,7 +54,7 @@ const processEntry = (entry: RawYouTubeHistoryEntry): ProcessedEntry | null => {
     title: entry.title,
     youtubeId,
     watchedTime: new Date(entry.time),
-    details: entry.details ?? null,
+    details: (entry.details || [])[0]?.name,
     activityControls: entry.activityControls ?? []
   };
 };
