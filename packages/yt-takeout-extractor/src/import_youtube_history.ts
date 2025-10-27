@@ -164,7 +164,7 @@ const main = async (): Promise<number> => {
       } catch (error) {
         if (error instanceof z.ZodError) {
           console.error(`Validierungsfehler bei Eintrag ${index}:`);
-          console.error(JSON.stringify(error.errors, null, 2));
+          console.error(JSON.stringify(error, null, 2));
         } else {
           console.error(`Fehler bei Eintrag ${index}:`, error instanceof Error ? error.message : error);
         }
