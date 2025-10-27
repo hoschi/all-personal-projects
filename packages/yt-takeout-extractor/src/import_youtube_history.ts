@@ -44,6 +44,10 @@ const extractYouTubeId = (url: string): string | null => {
 };
 
 const processEntry = (entry: RawYouTubeHistoryEntry): ProcessedEntry | null => {
+  if (!entry.titleUrl) {
+    return null
+  }
+
   const youtubeId = extractYouTubeId(entry.titleUrl);
 
   if (!youtubeId) {
