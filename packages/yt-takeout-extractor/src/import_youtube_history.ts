@@ -150,6 +150,14 @@ const main = async (): Promise<number> => {
     for (const [index, rawEntry] of rawEntries.entries()) {
       try {
         const validated = RawYouTubeHistoryEntrySchema.parse(rawEntry);
+
+        if ((validated.details || [])[0]?.name.includes('Google Anzeigen')) {
+          console.info(
+            `Überspringe Werbungsvideo "${validated.title}" bei Eintrag ${index}`
+          );
+          continue
+        }
+
         const processed = processEntry(validated);
 
         if (!processed) {
