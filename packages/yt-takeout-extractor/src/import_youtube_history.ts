@@ -10,7 +10,7 @@ config();
 const RawYouTubeHistoryEntrySchema = z.object({
   header: z.string().optional(),
   title: z.string().min(1),
-  titleUrl: z.string().url(),
+  titleUrl: z.string().url().optional(),
   subtitles: z.array(z.object({
     name: z.string(),
     url: z.string().url()
