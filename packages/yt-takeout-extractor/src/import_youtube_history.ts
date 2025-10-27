@@ -66,7 +66,7 @@ const insertEntry = async (
 ): Promise<{ success: boolean; isDuplicate: boolean }> => {
   try {
     const result = await client.query(
-      `INSERT INTO youtube_history (title, youtube_id, watched_time, details, activity_controls)
+      `INSERT INTO main.youtube_history (title, youtube_id, watched_time, details, activity_controls)
        VALUES ($1, $2, $3, $4, $5::jsonb)
        ON CONFLICT (youtube_id, watched_time) DO NOTHING`,
       [entry.title, entry.youtubeId, entry.watchedTime, entry.details, JSON.stringify(entry.activityControls)]

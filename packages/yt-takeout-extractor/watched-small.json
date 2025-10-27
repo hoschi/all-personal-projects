@@ -1,0 +1,34 @@
+[
+	{
+  "header": "YouTube",
+  "title": "Bambu Lab P2S | Der beste 3D-Drucker jetzt noch BESSER?! (XXL Test) angesehen",
+  "titleUrl": "https://www.youtube.com/watch?v\u003dPVdxJm9LcAE",
+  "subtitles": [{
+    "name": "mpoxDE",
+    "url": "https://www.youtube.com/channel/UCJZnRJATAFN5rbXpewp7Vyw"
+  }],
+  "time": "2025-10-22T08:30:11.364Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube-Wiedergabeverlauf"]
+},
+{
+  "header": "YouTube",
+  "title": "David Hasselhoff x Nura - Looking for Schnitzel | Uber Eats angesehen",
+  "titleUrl": "https://www.youtube.com/watch?v=b2mWrJUZ0Wo",
+  "description": "Angesehen um 20:50",
+  "time": "2024-11-13T19:50:47.432Z",
+  "products": [
+    "YouTube"
+  ],
+  "details": [
+    {
+      "name": "Von Google Anzeigen"
+    }
+  ],
+  "activityControls": [
+    "Web- & App-Aktivitäten",
+    "YouTube-Wiedergabeverlauf",
+    "YouTube-Suchverlauf"
+  ]
+}
+]
