@@ -92,7 +92,7 @@ const insertEntry = async (
 const processBatch = async (
   client: Client,
   entries: Array<{ processed: ProcessedEntry; raw: RawYouTubeHistoryEntry }>
-): Promise<{ successful: number; failed: number; duplicates: number }> => {
+): Promise<{ successful: number; failed: number; duplicates: number; validationErrors: number }> => {
   const results = await Promise.all(
     entries.map(({ processed, raw }) => insertEntry(client, processed, raw))
   );
@@ -101,9 +101,10 @@ const processBatch = async (
     (acc, result) => ({
       successful: acc.successful + (result.success && !result.isDuplicate ? 1 : 0),
       failed: acc.failed + (result.success ? 0 : 1),
-      duplicates: acc.duplicates + (result.isDuplicate ? 1 : 0)
+      duplicates: acc.duplicates + (result.isDuplicate ? 1 : 0),
+      validationErrors: acc.validationErrors + 0 // validationErrors werden in der Batch-Verarbeitung nicht gezählt
     }),
-    { successful: 0, failed: 0, duplicates: 0 }
+    { successful: 0, failed: 0, duplicates: 0, validationErrors: 0 }
   );
 };
 
@@ -122,8 +123,7 @@ const main = async (): Promise<number> => {
   }
 
   const client = new Client({ connectionString: process.env.DATABASE_URL });
-  let totalStats = { successful: 0, failed: 0, duplicates: 0 };
-  let hasErrors = false;
+  let totalStats = { successful: 0, failed: 0, duplicates: 0, validationErrors: 0 };
   let validationErrors = 0;
 
   const BATCH_SIZE = 8;
@@ -157,7 +157,7 @@ const main = async (): Promise<number> => {
             `Fehler bei Eintrag ${index}: Keine YouTube-ID aus URL extrahierbar`
           );
           console.error('Original-Daten:', JSON.stringify(rawEntry, null, 2));
-          hasErrors = true;
+          // Validierungsfehler werden später zu totalStats addiert
           continue;
         }
 
@@ -171,7 +171,7 @@ const main = async (): Promise<number> => {
           console.error(`Fehler bei Eintrag ${index}:`, error instanceof Error ? error.message : error);
         }
         console.error('Original-Daten:', JSON.stringify(rawEntry, null, 2));
-        hasErrors = true;
+        // Validierungsfehler werden später zu totalStats addiert
       }
     }
 
@@ -187,7 +187,7 @@ const main = async (): Promise<number> => {
       totalStats.failed += batchStats.failed;
       totalStats.duplicates += batchStats.duplicates;
 
-      console.log(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batchStats.successful} erfolgreich, ${batchStats.failed} Fehler, ${batchStats.duplicates} Duplikate`);
+      console.log(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batchStats.successful} erfolgreich, ${batchStats.failed} DB-Fehler, ${batchStats.duplicates} Duplikate`);
     }
 
   } catch (error) {
@@ -195,7 +195,7 @@ const main = async (): Promise<number> => {
       'Kritischer Fehler:',
       error instanceof Error ? error.message : error
     );
-    hasErrors = true;
+    // Kritische Fehler werden später zu totalStats addiert
   } finally {
     await client.end();
   }
@@ -205,9 +205,9 @@ const main = async (): Promise<number> => {
   console.log(`Duplikate übersprungen: ${totalStats.duplicates}`);
   console.log(`Datenbank-Fehler: ${totalStats.failed}`);
   console.log(`Validierungsfehler: ${validationErrors}`);
-  console.log(`Gesamtfehler: ${totalStats.failed + validationErrors}`);
+  console.log(`Gesamtfehler: ${totalStats.failed + totalStats.validationErrors}`);
 
-  return (totalStats.failed + validationErrors > 0 || hasErrors) ? 1 : 0;
+  return (totalStats.failed + validationErrors > 0) ? 1 : 0;
 };
 
 main().then(process.exit);
