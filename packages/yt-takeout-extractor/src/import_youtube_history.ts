@@ -124,6 +124,7 @@ const main = async (): Promise<number> => {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   let totalStats = { successful: 0, failed: 0, duplicates: 0 };
   let hasErrors = false;
+  let validationErrors = 0;
 
   const BATCH_SIZE = 8;
 
@@ -165,6 +166,7 @@ const main = async (): Promise<number> => {
         if (error instanceof z.ZodError) {
           console.error(`Validierungsfehler bei Eintrag ${index}:`);
           console.error(JSON.stringify(error, null, 2));
+          validationErrors++;
         } else {
           console.error(`Fehler bei Eintrag ${index}:`, error instanceof Error ? error.message : error);
         }
@@ -201,9 +203,11 @@ const main = async (): Promise<number> => {
   console.log('\n========== Zusammenfassung ==========');
   console.log(`Erfolgreich importiert: ${totalStats.successful}`);
   console.log(`Duplikate übersprungen: ${totalStats.duplicates}`);
-  console.log(`Fehler: ${totalStats.failed}`);
+  console.log(`Datenbank-Fehler: ${totalStats.failed}`);
+  console.log(`Validierungsfehler: ${validationErrors}`);
+  console.log(`Gesamtfehler: ${totalStats.failed + validationErrors}`);
 
-  return (totalStats.failed > 0 || hasErrors) ? 1 : 0;
+  return (totalStats.failed + validationErrors > 0 || hasErrors) ? 1 : 0;
 };
 
 main().then(process.exit);
