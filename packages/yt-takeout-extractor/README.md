@@ -1,20 +1,12 @@
 # yt-takeout-extractor
 
-## 📌 Übersicht
-Tool zum Importieren von YouTube-History-Daten aus Google Takeout in eine PostgreSQL-Datenbank. Verarbeitet JSON-Daten, extrahiert Video-IDs, validiert Eingaben und vermeidet Duplikate.
+Tool zum Importieren von YouTube-History-Daten aus Google Takeout in eine PostgreSQL-Datenbank. Verarbeitet JSON-Daten, extrahiert Video-IDs, validiert Eingaben und vermeidet Duplikate. Unterstützt jetzt auch:
+- Verknüpfung von Markdown-Notizen mit YouTube-Videos
+- Automatischen Download von Video-Transkripten
 
 ## ⚙️ Funktionsweise
 
 ### Import-Skript (`import_youtube_history.ts`)
-```typescript
-// Code-Snippet: Validierung mit Zod
-const RawYouTubeHistoryEntrySchema = z.object({
-  title: z.string().min(1),
-  titleUrl: z.string().url(),
-  time: z.string().datetime(),
-  // ...
-});
-```
 
 - **Validierung**: Zod-Schema prüft Rohdatenstruktur
 - **ID-Extraktion**: Regex-Muster extrahieren YouTube-ID aus URLs
@@ -22,48 +14,33 @@ const RawYouTubeHistoryEntrySchema = z.object({
 - **Duplikaterkennung**: `ON CONFLICT`-Klausel überspringt vorhandene Einträge
 - **Fehlerlogging**: Detaillierte Fehlerprotokolle mit Originaldaten
 
-### Datenbank-Schema (`create_youtube_history.sql`)
-```sql
-CREATE TABLE IF NOT EXISTS youtube_history (
-    youtube_id VARCHAR(20) NOT NULL,
-    watched_time TIMESTAMP NOT NULL,
-    -- ...
-    UNIQUE (youtube_id, watched_time)
-);
-```
+### Note-Link Skript (`import_youtube_note_links.ts`)
 
-- **Tabellenstruktur**:
-  - `youtube_id`: Video-Identifier (20 Zeichen)
-  - `watched_time`: Exakter Wiedergabezeitpunkt
-  - `activity_controls`: JSONB für YouTube-Interaktionen
-- **Indizes**:
-  - `watched_time DESC`: Schnelle Zeitbereichsabfragen
-  - `youtube_id`: Video-spezifische Suche
-  - GIN-Index für JSON-Daten
+- **Markdown-Scanning**: Durchsucht .md-Dateien rekursiv nach YouTube-Links
+- **ID-Extraktion**: Unterstützt verschiedene YouTube-URL-Formate (Video, Shorts, Embed)
+- **Datenbanklogik**:
+  - Duplikatsprüfung auf (youtube_id, title, file_name)
+  - Erkennung von Titelkonflikten bei gleicher Video-ID
+- **Fehlerprotokollierung**: Sammelt alle Fehler für gebündelte Ausgabe
 
-## Import Youtube Note Links
+### Transkript-Skript (`import_youtube_transcript.ts`)
 
-**Ablauf:**
-
-Das Skript erhält einen Ordnerpfad als Kommandozeilenargument und findet alle Markdown-Dateien darin. Für jede Datei extrahiert es die erste H1-Überschrift als Titel und sucht nach Markdown-Links im Format `[URL](http://...)`. Nur Links mit dem Label "URL" werden berücksichtigt.
-
-Jeder gefundene Link wird validiert: Ist es keine YouTube-URL, wird ein Fehler geloggt. Bei gültigen YouTube-URLs wird die Video-ID extrahiert (unterstützt verschiedene URL-Formate wie `youtube.com/watch?v=...`, `youtu.be/...`, `embed`).
-
-Die extrahierten Daten (YouTube-ID, Titel, Dateipfad) werden per Zod-Schema validiert und in die Datenbank eingefügt. Dabei wird geprüft: Existiert der Eintrag bereits identisch (ID + Titel + Datei), wird dies als Info geloggt. Existiert die ID mit anderem Titel, gilt dies als Fehler.
-
-**Fehlerbehandlung:**
-
-Das Skript bricht bei Fehlern nicht ab, sondern zählt sie mit. Am Ende erfolgt eine Zusammenfassung mit Anzahl neuer Einträge und Fehler. Der Exit-Code signalisiert, ob Fehler auftraten (1) oder nicht (0).
-
-Die Implementierung ist rein funktional ohne objektorientierte Konstrukte und nutzt `zod`, `pg` und `dotenv`.
+- **yt-dlp Integration**: Lädt Untertitel im SRT-Format herunter
+- **Effect.ts**: Robustes Error-Handling mit Retry-Logik
+- **Datenbankoperationen**:
+  - Upsert von Transkripten mit Sprachkennung
+  - Speicherung von Fehlermeldungen bei fehlgeschlagenen Downloads
+- **Cleanup**: Automatisches Löschen temporärer Dateien
 
 ## 📋 Voraussetzungen
 - Node.js ≥18.x
 - PostgreSQL ≥15
+- yt-dlp (`brew install yt-dlp` oder `pip install yt-dlp`)
 - `.env`-Datei mit:
   ```env
   DATABASE_URL="postgres://user:pass@host:port/db"
   ```
+- **Für Transkripte**: Chrome-Browser mit angemeldetem YouTube-Account (für Cookie-Zugriff)
 
 ## 🛠️ Installation
 ```bash
@@ -78,38 +55,56 @@ psql $DATABASE_URL -f src/create_youtube_transcript.sql
 
 ## 🚀 Verwendung
 ```bash
-bun src/import_youtube_history.ts watched.json
-```
+# History-Import
+bun src/import_youtube_history.ts path/to/history.json
 
-## 💻 Beispielausgabe
-```
-Verarbeite 542 validierte Einträge in Batches à 8...
-Batch 1: 8 erfolgreich, 0 Fehler, 2 Duplikate
-Batch 2: 6 erfolgreich, 2 Fehler, 0 Duplikate
-...
-========== Zusammenfassung ==========
-Erfolgreich importiert: 521
-Duplikate übersprungen: 15
-Fehler: 6
+# Note-Link-Import
+bun src/import_youtube_note_links.ts /pfad/zu/notes
+
+# Transkript-Download
+bun src/import_youtube_transcript.ts main.youtube_videos
 ```
 
 ## 🗃️ Datenbankschema-Dokumentation
+
+### youtube_history
 | Spalte | Typ | Beschreibung |
 |--------|-----|--------------|
 | id | SERIAL | Primärschlüssel |
-| title | TEXT | Videotitel |
 | youtube_id | VARCHAR(20) | Eindeutige YouTube-Video-ID |
 | watched_time | TIMESTAMP | Exakter Wiedergabezeitpunkt |
 | details | JSONB | Zusätzliche Metadaten |
-| activity_controls | JSONB | Nutzerinteraktionen (z.B. "Watched", "Search") |
+| activity_controls | JSONB | Nutzerinteraktionen |
+
+### youtube_note_links
+| Spalte | Typ | Beschreibung |
+|--------|-----|--------------|
+| youtube_id | VARCHAR(20) | Video-ID (Fremdschlüssel) |
+| title | TEXT | Optionaler benutzerdefinierter Titel |
+| file_name | TEXT | Vollständiger Pfad zur Markdown-Datei |
+| created_at | TIMESTAMP | Erstellungszeitpunkt |
+
+### youtube_transcript
+| Spalte | Typ | Beschreibung |
+|--------|-----|--------------|
+| youtube_id | VARCHAR(20) | Primärschlüssel |
+| transcript_original | TEXT | Roh-Transkript im SRT-Format |
+| lang | VARCHAR(10) | Sprachkürzel (z.B. 'en', 'de') |
+| error | TEXT | Fehlermeldung bei fehlgeschlagenem Download |
+| updated_at | TIMESTAMP | Letzte Aktualisierung |
 
 ## 🚨 Fehlerbehandlung
-- **Validierungsfehler**:
-  - Protokolliert ungültige JSON-Strukturen
-  - Speichert fehlerhafte Rohdaten zur Analyse
-- **Datenbankfehler**:
-  - Transaktionsrollback bei Batch-Fehlern
-  - Isolierte Fehler pro Eintrag (kein Abbruch)
-- **Logging**:
+- **Allgemein**:
   - Konsolenausgabe mit Fehlerstatistiken
   - Detailierte Originaldaten bei schweren Fehlern
+  - Transaktionssicherheit bei Datenbankoperationen
+
+- **Transkript-spezifisch**:
+  - Behandlung von privaten/gesperrten Videos
+  - Cookie-basierte Authentifizierungsfehler
+  - Speicherung von Fehlerlogs in der Datenbank
+
+- **Note-Link-spezifisch**:
+  - Titelkonflikt-Erkennung bei gleicher Video-ID
+  - Validierung von YouTube-Link-Formaten
+  - Batch-Verarbeitung von Markdown-Dateien
