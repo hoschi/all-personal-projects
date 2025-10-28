@@ -113,6 +113,13 @@ const executeYtDlp = (videoId: string) =>
             }));
             return
         }
+        if (output.includes('No subtitle format found')) {
+            yield* Effect.fail(new TranscriptionError({
+                message: `yt-dlp fehlgeschlagen, kein SRT Format gefunden!`,
+                commandLog: output
+            }));
+            return
+        }
 
         if (output.includes('Writing video subtitles')) {
             console.log(output)
