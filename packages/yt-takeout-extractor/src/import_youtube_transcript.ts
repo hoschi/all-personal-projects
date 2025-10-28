@@ -106,6 +106,13 @@ const executeYtDlp = (videoId: string) =>
             }));
             return
         }
+        if (output.includes('Video unavailable. This video is private')) {
+            yield* Effect.fail(new TranscriptionError({
+                message: `yt-dlp fehlgeschlagen, privates Video!`,
+                commandLog: output
+            }));
+            return
+        }
 
         if (output.includes('Writing video subtitles')) {
             console.log(output)
