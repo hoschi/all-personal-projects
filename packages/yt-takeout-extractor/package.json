@@ -18,6 +18,7 @@
     "typescript": "5.9.2"
   },
   "dependencies": {
+    "@aj-archipelago/subvibe": "^1.0.12",
     "@effect/cli": "^0.71.0",
     "@effect/platform": "^0.92.1",
     "@effect/platform-bun": "^0.81.1",

@@ -148,6 +148,7 @@
       "name": "@repo/yt-takeout-extractor",
       "version": "0.0.0",
       "dependencies": {
+        "@aj-archipelago/subvibe": "^1.0.12",
         "@effect/cli": "^0.71.0",
         "@effect/platform": "^0.92.1",
         "@effect/platform-bun": "^0.81.1",
@@ -168,6 +169,8 @@
     },
   },
   "packages": {
+    "@aj-archipelago/subvibe": ["@aj-archipelago/subvibe@1.0.12", "", {}, "sha512-yx/LqBWBIYm4UDptnpC3DRSi/UivMlXxGyJ1AhGk1w0ZvoYGjTExVei/sD9UOn6u5X7hS4u3AjrtsHc3NalW2w=="],
+
     "@effect/cli": ["@effect/cli@0.71.0", "", { "dependencies": { "ini": "^4.1.3", "toml": "^3.0.0", "yaml": "^2.5.0" }, "peerDependencies": { "@effect/platform": "^0.92.0", "@effect/printer": "^0.46.0", "@effect/printer-ansi": "^0.46.0", "effect": "^3.18.0" } }, "sha512-ZmJpUVyhMpIUsiurf4UmEWTURPhGHtZrLRXkMOqggkhIeVR1kSxn8EM+ZMXLlT/23gxbHN4ymj7BmBjxP1oodA=="],
 
     "@effect/cluster": ["@effect/cluster@0.50.4", "", { "peerDependencies": { "@effect/platform": "^0.92.1", "@effect/rpc": "^0.71.0", "@effect/sql": "^0.46.0", "@effect/workflow": "^0.11.3", "effect": "^3.18.4" } }, "sha512-9uS2pRN4BCguAGqFCLFlQkReXG993UFj/TLtiwaXsacytKhdlGBU5zDDI/TckbM0wUv4g2nZPRRywqU8qnrvjQ=="],
