@@ -38,3 +38,4 @@ yarn-error.log*
 *.pem
 
 .claude_consciousness.m8
+.history/
