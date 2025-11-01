@@ -5,6 +5,8 @@ import {
   toPlainText,
   toLLMFormat,
 } from './subtitle-processors';
+import invariant from 'tiny-invariant';
+
 
 // ============================================================================
 // Test Data with Template Strings
@@ -156,6 +158,7 @@ describe('parseSRT', () => {
   it('should parse basic SRT correctly', () => {
     const result = parseSRT(basicSRT);
     expect(result.length).toBe(2);
+    invariant(result[0])
     expect(result[0].index).toBe(1);
     expect(result[0].startTime).toBe(1000);
     expect(result[0].endTime).toBe(4000);
@@ -164,6 +167,8 @@ describe('parseSRT', () => {
 
   it('should handle multiline text in subtitles', () => {
     const result = parseSRT(srtMultilineText);
+    invariant(result[0])
+
     expect(result[0].text).toContain('First line');
     expect(result[0].text).toContain('Second line');
     expect(result[0].text).toContain('Third line');
@@ -171,12 +176,16 @@ describe('parseSRT', () => {
 
   it('should parse timestamps with comma separators', () => {
     const result = parseSRT(srtWithCommaTimestamps);
+    invariant(result[0])
+
     expect(result[0].startTime).toBe(1000);
     expect(result[0].endTime).toBe(4000);
   });
 
   it('should parse timestamps with dot separators', () => {
     const result = parseSRT(srtWithDotTimestamps);
+    invariant(result[0])
+
     expect(result[0].startTime).toBe(1000);
     expect(result[0].endTime).toBe(4000);
   });
@@ -184,11 +193,15 @@ describe('parseSRT', () => {
   it('should handle large timestamps', () => {
     const result = parseSRT(largeTimestampSRT);
     const expectedStart = 2 * 3600000 + 30 * 60000 + 45 * 1000 + 500;
+    invariant(result[0])
+
     expect(result[0].startTime).toBe(expectedStart);
   });
 
   it('should preserve special characters', () => {
     const result = parseSRT(srtWithSpecialCharacters);
+    invariant(result[0])
+
     expect(result[0].text).toContain('©');
     expect(result[0].text).toContain('&');
   });
@@ -206,6 +219,8 @@ describe('parseSRT', () => {
 
   it('should remove formatting tags during parsing', () => {
     const result = parseSRT(srtWithFormatting);
+    invariant(result[0])
+
     expect(result[0].text).not.toContain('<i>');
     expect(result[0].text).not.toContain('</i>');
     expect(result[0].text).toContain('Italic Text');
@@ -219,17 +234,23 @@ describe('parseSRT', () => {
 
   it('should cleanup extra whitespace', () => {
     const result = parseSRT(srtWithExtraWhitespace);
+    invariant(result[0])
+
     expect(result[0].text).not.toContain('   ');
   });
 
   it('should calculate correct timestamp in milliseconds', () => {
     const result = parseSRT(basicSRT);
+    invariant(result[1])
+
     expect(result[1].startTime).toBe(5000);
     expect(result[1].endTime).toBe(8500);
   });
 
   it('should handle multiple formatting types', () => {
     const result = parseSRT(multipleFormattingTagsSRT);
+    invariant(result[0])
+
     expect(result[0].text).not.toContain('<b>');
     expect(result[0].text).not.toContain('{speaker:');
   });
@@ -380,6 +401,8 @@ describe('toLLMFormat', () => {
 
   it('should format time correctly', () => {
     const result = toLLMFormat(basicSRT);
+    invariant(result[0])
+
     expect(result[0].time).toMatch(/\d{2}:\d{2}:\d{2}/);
   });
 
@@ -391,6 +414,8 @@ describe('toLLMFormat', () => {
   it('should concatenate text from same interval', () => {
     const result = toLLMFormat(denseSRT, 20);
     // All dense subtitles should aggregate into first interval
+    invariant(result[0])
+
     expect(result[0].text.split(' ').length).toBeGreaterThan(1);
   });
 
@@ -428,7 +453,11 @@ Another boundary`;
 
     const result = toLLMFormat(srtExactBoundary, 20);
     expect(result.length).toBe(2);
+    invariant(result[0])
+
     expect(result[0].time).toBe('00:00:20');
+    invariant(result[1])
+
     expect(result[1].time).toBe('00:00:40');
   });
 
@@ -491,6 +520,8 @@ Later subtitle`;
 ${longText}`;
     const result = parseSRT(srt);
     expect(result.length).toBe(1);
+    invariant(result[0])
+
     expect(result[0].text.length).toBe(5000);
   });
 
@@ -528,6 +559,7 @@ Only one subtitle`;
 
     expect(plain).toBe('Only one subtitle');
     expect(llm.length).toBe(1);
+    invariant(llm[0])
     expect(llm[0].text).toBe('Only one subtitle');
   });
 });

@@ -2,6 +2,8 @@
  * Subtitle Processing Module
  * Converts SRT subtitles to various formats using @aj-archipelago/subvibe
  * Functional programming approach with pure functions
+ * 
+ * https://www.perplexity.ai/search/du-bist-ein-typescript-senior-0wPQ5DjgSl.kxXYajyFLxA?preview=1#3
  */
 
 import { parse, SubtitleUtils, type SubtitleCue } from '@aj-archipelago/subvibe';

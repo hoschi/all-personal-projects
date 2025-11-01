@@ -1,6 +1,8 @@
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
+// https://www.perplexity.ai/search/du-bist-senior-softwareentwick-kN8oJ3ilQfWQ7sFN.0mi1g
+
 dotenv.config();
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
