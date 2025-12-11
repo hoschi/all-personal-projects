@@ -41,15 +41,15 @@ model NoteVideo {
 These schemas define the data contracts used across the entire application stack, from API request/response validation to frontend type safety.
 
 ```typescript
-import { Schema } from "effect";
+import { Schema } from "effect"
 
 // Represents a video entity. Used in API responses.
 export const Video = Schema.Struct({
   id: Schema.Number,
   url: Schema.String,
   title: Schema.optional(Schema.String).pipe(Schema.nullable),
-});
-export type Video = Schema.Schema.Type<typeof Video>;
+})
+export type Video = Schema.Schema.Type<typeof Video>
 
 // Represents a note entity, including the IDs of all associated videos.
 export const Note = Schema.Struct({
@@ -57,17 +57,17 @@ export const Note = Schema.Struct({
   filePath: Schema.String,
   content: Schema.String,
   videoIds: Schema.Array(Schema.Number),
-});
-export type Note = Schema.Schema.Type<typeof Note>;
+})
+export type Note = Schema.Schema.Type<typeof Note>
 
 // Schema for creating a new note. `id` is omitted.
-export const CreateNote = Schema.omit(Note, "id");
-export type CreateNote = Schema.Schema.Type<typeof CreateNote>;
+export const CreateNote = Schema.omit(Note, "id")
+export type CreateNote = Schema.Schema.Type<typeof CreateNote>
 
 // Schema for the many-to-many relationship.
 export const NoteVideo = Schema.Struct({
   noteId: Schema.Number,
   videoId: Schema.Number,
-});
-export type NoteVideo = Schema.Schema.Type<typeof NoteVideo>;
+})
+export type NoteVideo = Schema.Schema.Type<typeof NoteVideo>
 ```

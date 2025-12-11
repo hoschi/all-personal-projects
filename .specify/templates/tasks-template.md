@@ -12,26 +12,28 @@ description: "Task list template for feature implementation"
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing.
 
 ## Format: `[ID] [P?] [Story] Description`
+
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
 
 ## Path Conventions
+
 - **Functional Core**: `packages/core/src/`, `packages/core/tests/`
 - **Imperative Shell**: `packages/shell/src/`, `packages/shell/tests/`
 - **Shared Schemas**: `packages/shared-schemas/src/`
 - **Applications**: `apps/[app-name]/src/`, `apps/[app-name]/tests/`
 - Paths shown below assume this monorepo structure.
 
-<!-- 
+<!--
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
-  
+
   The /speckit.tasks command MUST replace these with actual tasks based on:
   - User stories from spec.md
   - Data contracts from spec.md
   - Technical approach from plan.md
-  
+
   Tasks MUST be organized by user story and follow the constitution's workflow.
   DO NOT keep these sample tasks in the generated tasks.md file.
   ============================================================================

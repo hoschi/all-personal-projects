@@ -39,6 +39,6 @@
 - **Decision**: The documentation will specify a clear workflow:
   1. In `public-monorepo/packages/[package-name]`, run `bun link`.
   2. In `private-project/notes-manager-cli`, run `bun link [package-name]`.
-  A pre-push hook (using a tool like `husky`) will be configured in the private project to temporarily run `bun unlink` and `bun install` to ensure the project works with the published versions of packages before allowing a push.
+     A pre-push hook (using a tool like `husky`) will be configured in the private project to temporarily run `bun unlink` and `bun install` to ensure the project works with the published versions of packages before allowing a push.
 - **Rationale**: This provides a reliable local development experience while the pre-push hook acts as a safety net, preventing broken code from being pushed (Principle VI).
 - **Alternatives considered**: Using `npm link` or `yarn link`. Rejected to maintain consistency with Bun as the sole package manager. Using relative file paths. Rejected as it's brittle and doesn't simulate a real-world installation.

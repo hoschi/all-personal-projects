@@ -6,12 +6,14 @@
 **Input**: User description: "Demonstrate boilerplate capabilities using a video and note management scenario."
 
 ## Clarifications
+
 ### Session 2025-10-13
+
 - Q: What should happen if a note was changed both locally and on the server while the user was offline? → A: Server Wins: The local changes at this specific note will be overwritten.
 
 - Q: Where exactly should the validation for video references occur? → A: API-side: The notes-service is solely responsible for validation before writing to the database.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Import Video URLs from Local Notes (Priority: P1)
 
@@ -28,7 +30,7 @@ As a user, I want to run a command-line tool that scans my local Markdown notes,
 3. **Given** the user confirms a URL for import, **When** the URL already exists, **Then** the existing `Video` record is used (upsert).
 4. **Given** a note file is processed, **When** new videos are imported from it, **Then** a many-to-many relationship is created between the `Note` and the newly created `Video` records.
 5. **Given** the user denies a URL for import, **When** the process completes, **Then** no `Video` or `NoteVideo` record is created for that URL.
-6. **Given** a note file contains a URL for a `Video` that already exists, **When** the user confirms the import, **Then** a new many-to-many relationship is created linking the current `Note` to the *existing* `Video` record.
+6. **Given** a note file contains a URL for a `Video` that already exists, **When** the user confirms the import, **Then** a new many-to-many relationship is created linking the current `Note` to the _existing_ `Video` record.
 
 ---
 
@@ -87,7 +89,7 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 - How does the system handle non-YouTube URLs or malformed URLs? (They should be ignored by the importer).
 - What happens if the database is unavailable during an import? (The CLI should report a clear error and exit gracefully).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -106,7 +108,8 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 - **FR-013**: The private CLI tool's sync process MUST detect the deletion of local note files and delete the corresponding `Note` on the server.
 - **FR-014**: The notes-service API MUST be the single source of truth for validating the existence of video IDs during note creation or updates.
 
-### Data Contracts & Schemas *(include if feature involves data)*
+### Data Contracts & Schemas _(include if feature involves data)_
+
 <!--
   Per Constitution Principle V (Schema-Driven), these entities MUST be defined
   as Effect Schemas. They are the single source of truth for API contracts,
@@ -117,7 +120,7 @@ As a user of a private CLI tool, I want to be able to download all my notes and 
 - **Note**: Represents a Markdown note with a file path, content, and relationships to multiple videos.
 - **NoteVideo**: A join table representing the many-to-many relationship between Notes and Videos.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

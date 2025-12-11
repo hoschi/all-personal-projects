@@ -19,9 +19,9 @@ dotenv -f .env.dev run -- npx prisma migrate deploy
 
 ## Todos
 
-* 
+-
 
 ## Done
 
-* started with `schema.prisma` and tested migrations
-* `copy.ts` to copy DBs, e.g. dev to staging
+- started with `schema.prisma` and tested migrations
+- `copy.ts` to copy DBs, e.g. dev to staging

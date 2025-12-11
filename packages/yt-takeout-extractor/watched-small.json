@@ -10,12 +10,8 @@
       }
     ],
     "time": "2025-10-22T08:30:11.364Z",
-    "products": [
-      "YouTube"
-    ],
-    "activityControls": [
-      "YouTube-Wiedergabeverlauf"
-    ]
+    "products": ["YouTube"],
+    "activityControls": ["YouTube-Wiedergabeverlauf"]
   },
   {
     "header": "YouTube",
@@ -23,9 +19,7 @@
     "titleUrl": "https://www.youtube.com/watch?v=b2mWrJUZ0Wo",
     "description": "Angesehen um 20:50",
     "time": "2024-11-13T19:50:47.432Z",
-    "products": [
-      "YouTube"
-    ],
+    "products": ["YouTube"],
     "details": [
       {
         "name": "Von Google Anzeigen"
@@ -41,17 +35,12 @@
     "header": "YouTube",
     "title": "Hat Anzeigen auf der YouTube-Startseite angesehen",
     "time": "2025-06-04T15:58:06.730Z",
-    "products": [
-      "YouTube"
-    ],
+    "products": ["YouTube"],
     "details": [
       {
         "name": "Von Google Anzeigen"
       }
     ],
-    "activityControls": [
-      "Web- & App-Aktivitäten",
-      "YouTube-Wiedergabeverlauf"
-    ]
+    "activityControls": ["Web- & App-Aktivitäten", "YouTube-Wiedergabeverlauf"]
   }
 ]

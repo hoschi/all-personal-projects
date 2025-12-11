@@ -14,7 +14,7 @@ gh.generatorHandler({
     return {
       defaultOutput: "../src/generated/effect-prisma",
       prettyName: "Prisma Effect Generator",
-      requiresEngines: ["queryEngine"]
+      requiresEngines: ["queryEngine"],
     }
   },
 
@@ -38,8 +38,10 @@ gh.generatorHandler({
     // Generate types file
     await generateTypes([...models], outputDir)
 
-    console.log(`🎉 Successfully generated unified PrismaService for ${models.length} models`)
-  }
+    console.log(
+      `🎉 Successfully generated unified PrismaService for ${models.length} models`,
+    )
+  },
 })
 
 function generateRawSqlOperations() {
@@ -361,7 +363,7 @@ ${models
     (model) => `
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export type ${model.name} = Prisma.${model.name}GetPayload<{}>
-  `
+  `,
   )
   .join("\n")}
 `

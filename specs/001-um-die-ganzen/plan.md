@@ -22,7 +22,7 @@ The goal is to create a comprehensive, opinionated TypeScript boilerplate for sm
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - [x] **Principle I (Functional Core/Imperative Shell):** The plan explicitly includes `packages/core` and `packages/shell` to enforce this separation.
 - [x] **Principle II (Opinionated Frameworks):** The plan adopts the specified stack (Effect, Next.js, Prisma) without deviation.
@@ -49,6 +49,7 @@ specs/001-um-die-ganzen/
 ```
 
 ### Source Code (repository root)
+
 ```
 .
 ├── public-monorepo/

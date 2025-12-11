@@ -1,16 +1,11 @@
-
-import { Layer } from "effect";
-import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
-import {
-    HttpApiBuilder
-} from "@effect/platform";
-import { VideoApiLive } from "@repo/video-service/video";
-
-
+import { Layer } from "effect"
+import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
+import { HttpApiBuilder } from "@effect/platform"
+import { VideoApiLive } from "@repo/video-service/video"
 
 const ServerLive = HttpApiBuilder.serve().pipe(
-    Layer.provide(VideoApiLive),
-    Layer.provide(BunHttpServer.layer({ port: 3055 }))
+  Layer.provide(VideoApiLive),
+  Layer.provide(BunHttpServer.layer({ port: 3055 })),
 )
 
 // Launch the server

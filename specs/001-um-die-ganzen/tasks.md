@@ -12,10 +12,12 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing.
 
 ## Format: `[ID] [P?] [Story] Description`
+
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
 
 ## Path Conventions
+
 - **Public Monorepo**: `public-monorepo/`
 - **Private Project**: `private-project/`
 - **Functional Core**: `public-monorepo/packages/core/`
@@ -27,12 +29,12 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 
 **Purpose**: Monorepo and core tooling initialization.
 
-- [X] T001 [P] Initialize the `public-monorepo` using `bun create turbo`.
-- [X] T003 Configure `turbo.json` in `public-monorepo` to use `bun` as the package manager and define basic pipelines (build, test, lint).
-- [X] T008 [P] Set up Prettier for code formatting, separate from ESLint.
-- [X] T005 [P] Create a shared `tsconfig` package in `public-monorepo` for consistent TypeScript settings.
-- [X] T004 [P] Create a custom ESLint package `eslint-config-custom` in `public-monorepo`.
-- [ ] T015 [P] Create core Project `public-monorepo/packages/core/` 
+- [x] T001 [P] Initialize the `public-monorepo` using `bun create turbo`.
+- [x] T003 Configure `turbo.json` in `public-monorepo` to use `bun` as the package manager and define basic pipelines (build, test, lint).
+- [x] T008 [P] Set up Prettier for code formatting, separate from ESLint.
+- [x] T005 [P] Create a shared `tsconfig` package in `public-monorepo` for consistent TypeScript settings.
+- [x] T004 [P] Create a custom ESLint package `eslint-config-custom` in `public-monorepo`.
+- [ ] T015 [P] Create core Project `public-monorepo/packages/core/`
 
 ---
 
@@ -56,10 +58,12 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 **Independent Test**: Run the CLI on a test directory and verify database state.
 
 ### Core Logic (TDD) for User Story 1
+
 - [ ] T014 [P] [US1] Write failing tests in `public-monorepo/packages/core/tests/url-extractor.test.ts` for URL extraction logic.
 - [ ] T015 [P] [US1] Implement the pure function `extractYouTubeUrls` in `public-monorepo/packages/core/src/url-extractor.ts` to make tests pass.
 
 ### Shell & CLI Implementation for User Story 1
+
 - [ ] T016 [US1] Implement file system interaction (scanning files) in `public-monorepo/packages/shell/src/fs.ts` using Effect.
 - [ ] T017 [US1] Implement database logic for upserting videos and creating notes/relationships in `public-monorepo/packages/shell/src/video-db.ts`.
 - [ ] T018 [US1] Create the `cli-importer` package structure in `public-monorepo/packages/`.
@@ -76,11 +80,13 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 **Independent Test**: Interact with the web UI at `localhost:3000` to create, edit, and delete notes and videos.
 
 ### API Services for User Story 2
+
 - [ ] T020 [P] [US2] Implement `video-service` endpoints (`getVideos`, `getVideo`) in `public-monorepo/packages/video-service/`.
 - [ ] T021 [P] [US2] Implement `notes-service` endpoints (CRUD operations) in `public-monorepo/packages/notes-service/`.
 - [ ] T022 [US2] Implement API endpoint for updating a video's title in `video-service`.
 
 ### Web App Implementation for User Story 2
+
 - [ ] T023 [US2] Set up the Next.js application in `public-monorepo/apps/web/`.
 - [ ] T024 [P] [US2] Create React components for displaying lists of notes and videos.
 - [ ] T025 [P] [US2] Create the note editor form component, including a multi-select for video associations.
@@ -98,10 +104,12 @@ description: "Task list for implementing the Pragmatic TypeScript Boilerplate"
 **Independent Test**: Navigate the web UI to see which notes are linked to a video and vice-versa.
 
 ### API Services for User Story 3
+
 - [ ] T028 [P] [US3] Implement `getNotesForVideo(id)` endpoint in `video-service`.
 - [ ] T029 [P] [US3] Implement `getVideosForNote(id)` endpoint in `notes-service`.
 
 ### Web App Implementation for User Story 3
+
 - [ ] T030 [US3] In the web app's video detail view, display a list of all associated notes.
 - [ ] T031 [US3] In the web app's note detail view, display a list of all associated videos.
 

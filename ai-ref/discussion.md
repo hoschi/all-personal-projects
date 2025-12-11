@@ -211,12 +211,11 @@ Die TypeScript-Ökosystem für Backend-Entwicklung ist deutlich ausgereifter gew
 
 [^1_62]: https://leapcell.io/blog/honojs-next-gen-nodejs-framework
 
-
 ---
 
 # Wie wird Effect vom mainstream verwendet, was funktioniert gut, was nicht.
 
-<function_results>[{"id": "", "url": "https://effect.website/blog/this-week-in-effect/2025/01/03/", "name": "This Week in Effect - 2025-01-03 | Effect Documentation", "publish_date": "2025-01-03", "snippet": "Community Highlights ; Content Updates ; Closing Notes ; Contributors", "content": "Closed PRs this week: **136**\n\n\# Community Highlights\n\nOur Discord community is growing week by week! We have just reached **4,041** members and had a total of **4,158** messages sent in the community last week.\n\nTo celebrate the New Year, we'd like to share some of the recently published blog articles by Effect community members.\n\n\#\# Effect Days 2025\n\nWe are happy to announce **Effect Days 2025**. This will be Effect's 2nd annual conference focused on building robust applications using TypeScript and the Effect Ecosystem.\n\nThis year's event will be held in-person in Vienna, Austria on **June 24-25, 2025**. Get ready for an exciting lineup of talks and workshops from both the core Effect team and amazing community members.\n\nTickets will go on sale soon. You can follow our updates on Effect Days 2025 on Twitter/X to know when tickets become available: **@effectdays**\n\nBe sure to also check out the talks from Effect Days 2024 if you haven't already on YouTube.\n\n\#\# A New Project for the New Year: Building Type Safe CRUD with Effect and Drizzle ORM\n\nBy **Martin Persson** (@martinpersson)\n\nMartin shares how he built a type-safe, robust backend using Effect, GraphQL, and Drizzle ORM to create a hierarchical ticket management system. The article demonstrates how these technologies work together to provide end-to-end type safety while maintaining clean separation of concerns.\n\nIn this comprehensive guide, Martin covers:\n\n- Setting up a GraphQL server with Effect's HTTP module\n- Implementing Drizzle ORM with PostgreSQL for data persistence\n- Creating a service layer that bridges GraphQL resolvers with database operations\n- Handling hierarchical data structures in a type-safe manner\n\nThe project showcases Effect's strengths in managing side effects, dependency injection, and error handling in a real-world application.\n\n🔗 [Read the full article](https://dev.to/martinpersson/building-a-robust-backend-with-effect-graphql-and-drizzle-k4j)\n\n\#\# 14.ai: Building Reliable AI Agent Systems with Effect\n\nBy **14.ai team**\n\nThe 14.ai team shares their experience building LLMOps systems using Effect, demonstrating how functional programming principles can address challenges in AI agent reliability and observability.\n\nTheir comprehensive case study covers:\n\n- **Structured Error Handling**: Using Effect's type-safe error management to handle LLM failures gracefully\n- **Observability Integration**: Leveraging Effect's built-in tracing and metrics for monitoring AI agents in production\n- **Resource Management**: Managing LLM connections and rate limits through Effect's resource safety patterns\n- **Workflow Orchestration**: Composing complex AI workflows while maintaining type safety and error boundaries\n\nThe article provides valuable insights for teams looking to build production-grade AI systems with TypeScript and Effect.\n\n🔗 [Read the full article](https://www.zenml.io/llmops-database/building-reliable-ai-agent-systems-with-effect-typescript-framework)\n\n\# Content Updates\n\n\#\# Update to \"Effect vs fp-ts\" Documentation\n\n@mikearnaldi updated our comparison documentation between Effect and fp-ts to reflect the recent merger of the two projects. The updated content includes:\n\n- Clarification on the relationship between fp-ts and Effect\n- Updated comparison tables highlighting Effect's additional features\n- Information about migration paths for fp-ts users\n- Bundle size considerations and optimization strategies\n\nYou can read the updated documentation [here](https://effect.website/docs/additional-resources/effect-vs-fp-ts/).\n\n\# Closing Notes\n\nThat's all for this week. Thank you for being a valued member of the Effect community. We look forward to your continued involvement as we shape the future of TypeScript.\n\n_The Effect Website Team_"}, {"id": "", "url": "https://effect.website/docs/guides/introduction/", "name": "Introduction | Effect Documentation", "publish_date": "2024-04-15", "snippet": "Effect is a powerful TypeScript library designed to help developers easily create complex, synchronous, and asynchronous programs.", "content": "\# Introduction\n\nEffect is a powerful TypeScript library designed to help developers easily create complex, synchronous, and asynchronous programs. One of the key features that makes Effect so powerful is how it leverages structured concurrency to provide features such as async cancellation and automatic resource cleanup.\n\nOverall, Effect makes building concurrent programs easier, safer, and more productive.\n\nThe library is\n\n**batteries-included**, meaning it comes with a rich set of built-in features:\n\n- **Observability**: First-class support for logging, metrics, and distributed tracing.\n- **Resiliency**: A powerful suite of utilities for handling errors, retrying operations, rate limiting, and more.\n- **Dependency management**: A lightweight dependency injection system.\n- **Resource management**: Structured concurrency with efficient, scope-aware resource handling.\n- **Testability**: First-class support for testability and built-in support for test services.\n- **Caching**: A powerful caching system for improving the performance of your applications.\n- **Streaming**: A robust streaming library for processing large amounts of data.\n- **Batching**: An intelligent batching system for optimizing resource utilization.\n- **Documentation**: Effect is designed to help you write self-documenting, type-safe code.\n- **Error handling**: A compositional approach to error handling that makes it easy to reason about and handle errors.\n\nWhile we don't expect you to use all of these features all the time, they're there when you need them.\n\n\#\# Core Philosophy\n\nEffect encourages a functional programming approach, helping developers build highly testable, maintainable applications. The library emphasizes:\n\n- **Type safety**: Leveraging TypeScript's type system to catch errors at compile time.\n- **Composability**: Building applications through the composition of smaller, reusable components.\n- **Declarative programming**: Writing code that describes what to do, rather than how to do it.\n\n\#\# Architecture\n\nEffect is built around the central concept of an\n\n`Effect`, which represents a program that may succeed or fail, might have dependencies, and may produce side effects. This approach provides a structured and type-safe way to handle complex operations.\n\n\#\# The Effect Ecosystem\n\nEffect is not just a single library, but a ecosystem of packages designed to work together:\n\n- **effect**: The core library\n- **@effect/platform**: Cross-platform APIs\n- **@effect/schema**: Schema validation and transformation\n- **@effect/opentelemetry**: OpenTelemetry integration\n- **@effect/vitest**: Testing utilities for Vitest\n- **@effect/cli**: Command-line interfaces\n- **@effect/rpc**: Remote procedure call utilities\n- **@effect/sql**: SQL database utilities\n\nEach package is designed to work seamlessly with the others, providing a coherent and powerful toolset for TypeScript development.... \#\# Getting Started\n\nReady to dive in? Head over to the [Getting Started](https://effect.website/docs/guides/getting-started/) guide to begin your journey with Effect."}, {"id": "", "url": "https://dev.to/martinpersson/the-journey-from-fp-ts-to-effect-part-2-21jl", "name": "The journey from fp-ts to Effect: Part 2", "publish_date": "2024-04-18", "snippet": "Part 2 of this series covers lessons learned from using Effect in a production application. I'll be sharing what went well and what didn't, after two ..."}, {"id": "", "url": "https://x.com/sandromaglione/status/1863886113073094786", "name": "Post by @sandromaglione", "publish_date": "2024-12-02", "snippet": "My take is that Effect.ts is great if you really understand what you are buying into. I suggest using it if you know functional programming and you understand ..."}, {"id": "", "url": "https://dev.to/effect/effect-3-0-release-candidate-4ooj", "name": "Effect 3.0 Release Candidate", "publish_date": "2024-03-26", "snippet": "Effect 3.0 Release Candidate. The Effect team is excited to announce that Effect 3.0 Release Candidate is now available. This is the first (hopefully) stable ..."}, {"id": "", "url": "https://dev.to/effect/effect-v3-stable-release-46me", "name": "Effect v3 Stable Release", "publish_date": "2024-04-15", "snippet": "We are excited to announce the stable release of Effect v3. This milestone ... Prisma ORM is a popular library used by TypeScript developers to work with ..."}, {"id": "", "url": "https://www.zenml.io/blog/effect-typescript-functional-programming", "name": "Functional Programming with Effect TypeScript", "publish_date": "2024-11-22", "snippet": "Functional Programming with Effect TypeScript: A Comprehensive Guide to Building Robust Applications. November 22, 2024."}, {"id": "", "url": "https://dev.to/martinpersson/from-redux-to-effect-state-management-40a1", "name": "From Redux to Effect State Management", "publish_date": "2024-05-14", "snippet": "In this post, I'll explore how to use Effect to manage client-side state, comparing it to other popular state management libraries like Redux."}, {"id": "", "url": "https://blog.sequinstream.com/adopting-effect/", "name": "Adopting Effect TypeScript in our codebase", "publish_date": "2024-10-18", "snippet": "In July, we made the decision to adopt Effect TypeScript in our codebase. We'd been happy TypeScript + Node.js users for years, but we were ..."}, {"id": "", "url": "https://drizzle.team/blog/drizzle-v0-35-0-release", "name": "Drizzle v0.35.0: Effect TypeScript Support", "publish_date": "2024-11-15", "snippet": "We are excited to announce official support for Effect TypeScript in Drizzle ORM. Effect-TS is a powerful library for TypeScript that brings ...", "content": "Drizzle team\n\nNovember 15, 2024\n\n\# Drizzle v0.35.0: Effect TypeScript Support\n\nWe are excited to announce official support for Effect TypeScript in Drizzle ORM. Effect-TS is a powerful library for TypeScript that brings functional programming concepts such as error handling, dependency injection, and observability to JavaScript and TypeScript applications.\n\n\#\# Effect TypeScript Integration\n\nWith this release, you can now use Drizzle with Effect seamlessly. This integration allows you to leverage Effect's powerful error handling, dependency injection, and observability features while working with your database.\n\n\#\#\# Example Usage\n\nHere's a quick example of how to use Drizzle with Effect:\n\n```ts\nimport { Effect, Layer } from \"effect\";\nimport { drizzle } from \"drizzle-orm/effect\";\nimport { Database } from \"better-sqlite3\";\n\n// Define your database connection\nconst makeDb = Effect.sync(() => drizzle(new Database(\":memory:\")));\n\n// Create a service layer\nconst DatabaseLayer = Layer.effect(\"Database\", makeDb);\n\n// Use in your application\nconst program = Effect.gen(function* (_) {\n  const db = yield* _(Effect.service(\"Database\"));\n  const result = yield* _(db.select().from(users));\n  return result;\n}).pipe(Effect.provide(DatabaseLayer));\n``````bash\nnpm install drizzle-orm effect\n``````ts\nimport { drizzle } from \"drizzle-orm/effect\";\n``````ts\n// fp-ts style\nconst program = pipe(\n  getUserById(id),\n  TE.chain(user => \n    pipe(\n      getOrdersByUserId(user.id),\n      TE.map(orders => ({ user, orders }))\n    )\n  )\n);\n\n// Effect style  \nconst program = Effect.gen(function* (_) {\n  const user = yield* _(getUserById(id));\n  const orders = yield* _(getOrdersByUserId(user.id));\n  return { user, orders };\n});\n``````ts\n// fp-ts\ntype MyResult = Either<Error, string>;\n\n// Effect  \ntype MyResult = Effect<string, Error>;\n``````ts\n// fp-ts\ntype MyTask = TaskEither<Error, string>;\n\n// Effect (same type handles both sync and async)\ntype MyTask = Effect<string, Error>;\n``````ts\n// fp-ts (using ReaderTaskEither)\ntype MyProgram = ReaderTaskEither<Dependencies, Error, string>;\n\n// Effect (built-in DI system)\ntype MyProgram = Effect<string, Error, Dependencies>;\n```
+<function*results>[{"id": "", "url": "https://effect.website/blog/this-week-in-effect/2025/01/03/", "name": "This Week in Effect - 2025-01-03 | Effect Documentation", "publish_date": "2025-01-03", "snippet": "Community Highlights ; Content Updates ; Closing Notes ; Contributors", "content": "Closed PRs this week: **136**\n\n\# Community Highlights\n\nOur Discord community is growing week by week! We have just reached **4,041** members and had a total of **4,158** messages sent in the community last week.\n\nTo celebrate the New Year, we'd like to share some of the recently published blog articles by Effect community members.\n\n\#\# Effect Days 2025\n\nWe are happy to announce **Effect Days 2025**. This will be Effect's 2nd annual conference focused on building robust applications using TypeScript and the Effect Ecosystem.\n\nThis year's event will be held in-person in Vienna, Austria on **June 24-25, 2025**. Get ready for an exciting lineup of talks and workshops from both the core Effect team and amazing community members.\n\nTickets will go on sale soon. You can follow our updates on Effect Days 2025 on Twitter/X to know when tickets become available: **@effectdays**\n\nBe sure to also check out the talks from Effect Days 2024 if you haven't already on YouTube.\n\n\#\# A New Project for the New Year: Building Type Safe CRUD with Effect and Drizzle ORM\n\nBy **Martin Persson** (@martinpersson)\n\nMartin shares how he built a type-safe, robust backend using Effect, GraphQL, and Drizzle ORM to create a hierarchical ticket management system. The article demonstrates how these technologies work together to provide end-to-end type safety while maintaining clean separation of concerns.\n\nIn this comprehensive guide, Martin covers:\n\n- Setting up a GraphQL server with Effect's HTTP module\n- Implementing Drizzle ORM with PostgreSQL for data persistence\n- Creating a service layer that bridges GraphQL resolvers with database operations\n- Handling hierarchical data structures in a type-safe manner\n\nThe project showcases Effect's strengths in managing side effects, dependency injection, and error handling in a real-world application.\n\n🔗 [Read the full article](https://dev.to/martinpersson/building-a-robust-backend-with-effect-graphql-and-drizzle-k4j)\n\n\#\# 14.ai: Building Reliable AI Agent Systems with Effect\n\nBy **14.ai team**\n\nThe 14.ai team shares their experience building LLMOps systems using Effect, demonstrating how functional programming principles can address challenges in AI agent reliability and observability.\n\nTheir comprehensive case study covers:\n\n- **Structured Error Handling**: Using Effect's type-safe error management to handle LLM failures gracefully\n- **Observability Integration**: Leveraging Effect's built-in tracing and metrics for monitoring AI agents in production\n- **Resource Management**: Managing LLM connections and rate limits through Effect's resource safety patterns\n- **Workflow Orchestration**: Composing complex AI workflows while maintaining type safety and error boundaries\n\nThe article provides valuable insights for teams looking to build production-grade AI systems with TypeScript and Effect.\n\n🔗 [Read the full article](https://www.zenml.io/llmops-database/building-reliable-ai-agent-systems-with-effect-typescript-framework)\n\n\# Content Updates\n\n\#\# Update to \"Effect vs fp-ts\" Documentation\n\n@mikearnaldi updated our comparison documentation between Effect and fp-ts to reflect the recent merger of the two projects. The updated content includes:\n\n- Clarification on the relationship between fp-ts and Effect\n- Updated comparison tables highlighting Effect's additional features\n- Information about migration paths for fp-ts users\n- Bundle size considerations and optimization strategies\n\nYou can read the updated documentation [here](https://effect.website/docs/additional-resources/effect-vs-fp-ts/).\n\n\# Closing Notes\n\nThat's all for this week. Thank you for being a valued member of the Effect community. We look forward to your continued involvement as we shape the future of TypeScript.\n\n_The Effect Website Team*"}, {"id": "", "url": "https://effect.website/docs/guides/introduction/", "name": "Introduction | Effect Documentation", "publish*date": "2024-04-15", "snippet": "Effect is a powerful TypeScript library designed to help developers easily create complex, synchronous, and asynchronous programs.", "content": "\# Introduction\n\nEffect is a powerful TypeScript library designed to help developers easily create complex, synchronous, and asynchronous programs. One of the key features that makes Effect so powerful is how it leverages structured concurrency to provide features such as async cancellation and automatic resource cleanup.\n\nOverall, Effect makes building concurrent programs easier, safer, and more productive.\n\nThe library is\n\n**batteries-included**, meaning it comes with a rich set of built-in features:\n\n- **Observability**: First-class support for logging, metrics, and distributed tracing.\n- **Resiliency**: A powerful suite of utilities for handling errors, retrying operations, rate limiting, and more.\n- **Dependency management**: A lightweight dependency injection system.\n- **Resource management**: Structured concurrency with efficient, scope-aware resource handling.\n- **Testability**: First-class support for testability and built-in support for test services.\n- **Caching**: A powerful caching system for improving the performance of your applications.\n- **Streaming**: A robust streaming library for processing large amounts of data.\n- **Batching**: An intelligent batching system for optimizing resource utilization.\n- **Documentation**: Effect is designed to help you write self-documenting, type-safe code.\n- **Error handling**: A compositional approach to error handling that makes it easy to reason about and handle errors.\n\nWhile we don't expect you to use all of these features all the time, they're there when you need them.\n\n\#\# Core Philosophy\n\nEffect encourages a functional programming approach, helping developers build highly testable, maintainable applications. The library emphasizes:\n\n- **Type safety**: Leveraging TypeScript's type system to catch errors at compile time.\n- **Composability**: Building applications through the composition of smaller, reusable components.\n- **Declarative programming**: Writing code that describes what to do, rather than how to do it.\n\n\#\# Architecture\n\nEffect is built around the central concept of an\n\n`Effect`, which represents a program that may succeed or fail, might have dependencies, and may produce side effects. This approach provides a structured and type-safe way to handle complex operations.\n\n\#\# The Effect Ecosystem\n\nEffect is not just a single library, but a ecosystem of packages designed to work together:\n\n- **effect**: The core library\n- **@effect/platform**: Cross-platform APIs\n- **@effect/schema**: Schema validation and transformation\n- **@effect/opentelemetry**: OpenTelemetry integration\n- **@effect/vitest**: Testing utilities for Vitest\n- **@effect/cli**: Command-line interfaces\n- **@effect/rpc**: Remote procedure call utilities\n- **@effect/sql**: SQL database utilities\n\nEach package is designed to work seamlessly with the others, providing a coherent and powerful toolset for TypeScript development.... \#\# Getting Started\n\nReady to dive in? Head over to the [Getting Started](https://effect.website/docs/guides/getting-started/) guide to begin your journey with Effect."}, {"id": "", "url": "https://dev.to/martinpersson/the-journey-from-fp-ts-to-effect-part-2-21jl", "name": "The journey from fp-ts to Effect: Part 2", "publish_date": "2024-04-18", "snippet": "Part 2 of this series covers lessons learned from using Effect in a production application. I'll be sharing what went well and what didn't, after two ..."}, {"id": "", "url": "https://x.com/sandromaglione/status/1863886113073094786", "name": "Post by @sandromaglione", "publish_date": "2024-12-02", "snippet": "My take is that Effect.ts is great if you really understand what you are buying into. I suggest using it if you know functional programming and you understand ..."}, {"id": "", "url": "https://dev.to/effect/effect-3-0-release-candidate-4ooj", "name": "Effect 3.0 Release Candidate", "publish_date": "2024-03-26", "snippet": "Effect 3.0 Release Candidate. The Effect team is excited to announce that Effect 3.0 Release Candidate is now available. This is the first (hopefully) stable ..."}, {"id": "", "url": "https://dev.to/effect/effect-v3-stable-release-46me", "name": "Effect v3 Stable Release", "publish_date": "2024-04-15", "snippet": "We are excited to announce the stable release of Effect v3. This milestone ... Prisma ORM is a popular library used by TypeScript developers to work with ..."}, {"id": "", "url": "https://www.zenml.io/blog/effect-typescript-functional-programming", "name": "Functional Programming with Effect TypeScript", "publish_date": "2024-11-22", "snippet": "Functional Programming with Effect TypeScript: A Comprehensive Guide to Building Robust Applications. November 22, 2024."}, {"id": "", "url": "https://dev.to/martinpersson/from-redux-to-effect-state-management-40a1", "name": "From Redux to Effect State Management", "publish_date": "2024-05-14", "snippet": "In this post, I'll explore how to use Effect to manage client-side state, comparing it to other popular state management libraries like Redux."}, {"id": "", "url": "https://blog.sequinstream.com/adopting-effect/", "name": "Adopting Effect TypeScript in our codebase", "publish_date": "2024-10-18", "snippet": "In July, we made the decision to adopt Effect TypeScript in our codebase. We'd been happy TypeScript + Node.js users for years, but we were ..."}, {"id": "", "url": "https://drizzle.team/blog/drizzle-v0-35-0-release", "name": "Drizzle v0.35.0: Effect TypeScript Support", "publish_date": "2024-11-15", "snippet": "We are excited to announce official support for Effect TypeScript in Drizzle ORM. Effect-TS is a powerful library for TypeScript that brings ...", "content": "Drizzle team\n\nNovember 15, 2024\n\n\# Drizzle v0.35.0: Effect TypeScript Support\n\nWe are excited to announce official support for Effect TypeScript in Drizzle ORM. Effect-TS is a powerful library for TypeScript that brings functional programming concepts such as error handling, dependency injection, and observability to JavaScript and TypeScript applications.\n\n\#\# Effect TypeScript Integration\n\nWith this release, you can now use Drizzle with Effect seamlessly. This integration allows you to leverage Effect's powerful error handling, dependency injection, and observability features while working with your database.\n\n\#\#\# Example Usage\n\nHere's a quick example of how to use Drizzle with Effect:\n\n```ts\nimport { Effect, Layer } from \"effect\";\nimport { drizzle } from \"drizzle-orm/effect\";\nimport { Database } from \"better-sqlite3\";\n\n// Define your database connection\nconst makeDb = Effect.sync(() => drizzle(new Database(\":memory:\")));\n\n// Create a service layer\nconst DatabaseLayer = Layer.effect(\"Database\", makeDb);\n\n// Use in your application\nconst program = Effect.gen(function\* (*) {\n const db = yield* \_(Effect.service(\"Database\"));\n const result = yield* _(db.select().from(users));\n return result;\n}).pipe(Effect.provide(DatabaseLayer));\n`bash\nnpm install drizzle-orm effect\n`ts\nimport { drizzle } from \"drizzle-orm/effect\";\n``````ts\n// fp-ts style\nconst program = pipe(\n getUserById(id),\n TE.chain(user => \n pipe(\n getOrdersByUserId(user.id),\n TE.map(orders => ({ user, orders }))\n )\n )\n);\n\n// Effect style \nconst program = Effect.gen(function\* (_) {\n const user = yield* \_(getUserById(id));\n const orders = yield* \_(getOrdersByUserId(user.id));\n return { user, orders };\n});\n`ts\n// fp-ts\ntype MyResult = Either<Error, string>;\n\n// Effect  \ntype MyResult = Effect<string, Error>;\n`ts\n// fp-ts\ntype MyTask = TaskEither<Error, string>;\n\n// Effect (same type handles both sync and async)\ntype MyTask = Effect<string, Error>;\n````ts\n// fp-ts (using ReaderTaskEither)\ntype MyProgram = ReaderTaskEither<Dependencies, Error, string>;\n\n// Effect (built-in DI system)\ntype MyProgram = Effect<string, Error, Dependencies>;\n`
 </function_results>
 
 **Deine Frage war:** Du möchtest wissen, wie Effect vom Mainstream verwendet wird, was gut funktioniert und was nicht.
@@ -283,9 +282,9 @@ Ein wichtiger Indikator für Mainstream-Adoption ist die Integration mit etablie
 
 **Serialisierungsprobleme**: Ein bedeutendes Problem ist Effect's mangelnde Serialisierbarkeit. Dies führt zu Inkompatibilitäten mit:[^2_18]
 
-* Next.js (keine Serialisierung zum Cache möglich)[^2_18]
-* tRPC (kann Effect-Types nicht direkt zurückgeben)[^2_18]
-* Anderen Frameworks, die Serialisierung erwarten
+- Next.js (keine Serialisierung zum Cache möglich)[^2_18]
+- tRPC (kann Effect-Types nicht direkt zurückgeben)[^2_18]
+- Anderen Frameworks, die Serialisierung erwarten
 
 **Build-Tool Integration**: Das inzwischen eingestellte TS+-Projekt zeigt die Herausforderungen bei der Integration mit modernen Build-Tools. Effect funktioniert nicht out-of-the-box mit Tools wie Vite und esbuild, die parallele Kompilierung erwarten.[^2_14]
 
@@ -307,18 +306,18 @@ Effect zeigt Eigenschaften einer Technologie im Übergang vom Early Adopter-Stad
 
 **Pro-Mainstream Indikatoren**:
 
-* Wachsende Download-Zahlen und Community
-* Produktionsnutzung in Unternehmen
-* Integration mit etablierten Tools
-* Stable 3.0 Release
-* Kommerzielle Unterstützung und Konferenzen
+- Wachsende Download-Zahlen und Community
+- Produktionsnutzung in Unternehmen
+- Integration mit etablierten Tools
+- Stable 3.0 Release
+- Kommerzielle Unterstützung und Konferenzen
 
 **Contra-Mainstream Indikatoren**:
 
-* Steile Lernkurve schränkt Adoption ein
-* Framework-Integration noch problematisch
-* Begrenzte Anzahl von Entwicklern mit entsprechender Expertise
-* Bundle Size für kleinere Projekte bedenklich
+- Steile Lernkurve schränkt Adoption ein
+- Framework-Integration noch problematisch
+- Begrenzte Anzahl von Entwicklern mit entsprechender Expertise
+- Bundle Size für kleinere Projekte bedenklich
 
 Effect befindet sich in einer Phase, wo es für **spezielle Anwendungsfälle** (komplexe Backend-Systeme, Observable-heavy Applications, Unternehmen mit FP-Expertise) sehr gut funktioniert, aber noch nicht die Mainstream-Tauglichkeit von Express oder ähnlichen etablierten Tools erreicht hat. Die nächsten Jahre werden zeigen, ob Effect diese Übergangsphase erfolgreich meistern kann.
 <span style="display:none">[^2_21][^2_22][^2_23][^2_24][^2_25][^2_26][^2_27][^2_28][^2_29][^2_30][^2_31][^2_32][^2_33][^2_34][^2_35][^2_36][^2_37][^2_38][^2_39][^2_40][^2_41][^2_42][^2_43][^2_44][^2_45][^2_46][^2_47][^2_48]</span>
@@ -421,7 +420,6 @@ Effect befindet sich in einer Phase, wo es für **spezielle Anwendungsfälle** (
 
 [^2_48]: https://blog.nashtechglobal.com/typescripts-impact-on-bundle-size-and-performance/
 
-
 ---
 
 # Erzähl mir mehr: Drizzle ORM führte im November 2024 offizielle Effect-Unterstützung ein, was zeigt, dass auch andere beliebte Libraries die Bedeutung von Effect anerkennen.
@@ -441,27 +439,26 @@ Die Integration erfolgt über das **@effect/sql-drizzle** Paket, das als Adapter
 **Effect-native Database Services**: Die Integration stellt Drizzle-Instanzen als Effect Services zur Verfügung, die über Effect's Layer-System verwaltet werden. Dies ermöglicht saubere Dependency Injection und einfaches Testing:[^3_2][^3_3]
 
 ```typescript
-import { Effect, Layer } from "effect";
-import { drizzle } from "drizzle-orm/effect";
-import { Database } from "better-sqlite3";
+import { Effect, Layer } from "effect"
+import { drizzle } from "drizzle-orm/effect"
+import { Database } from "better-sqlite3"
 
 // Define database connection as Effect Service
-const makeDb = Effect.sync(() => drizzle(new Database(":memory:")));
+const makeDb = Effect.sync(() => drizzle(new Database(":memory:")))
 
 // Create a service layer
-const DatabaseLayer = Layer.effect("Database", makeDb);
+const DatabaseLayer = Layer.effect("Database", makeDb)
 ```
 
 **Type-Safe Error Handling**: Alle Datenbank-Operationen geben Effect-Types zurück, die Fehler kompositionell behandeln können. Statt traditioneller try-catch-Blöcke werden Datenbankfehler Teil des Effect-Type-Systems:[^3_4]
 
 ```typescript
 const program = Effect.gen(function* (_) {
-  const db = yield* _(Effect.service("Database"));
-  const result = yield* _(db.select().from(users));
-  return result;
-}).pipe(Effect.provide(DatabaseLayer));
+  const db = yield* _(Effect.service("Database"))
+  const result = yield* _(db.select().from(users))
+  return result
+}).pipe(Effect.provide(DatabaseLayer))
 ```
-
 
 ### Hauptvorteile der Integration
 
@@ -479,7 +476,7 @@ const program = Effect.gen(function* (_) {
 
 ```typescript
 const program = Effect.gen(function* (_) {
-  const drizzle = yield* PgDrizzle;
+  const drizzle = yield* PgDrizzle
   const { price, product } = yield* drizzle
     .select()
     .from(productTable)
@@ -488,10 +485,10 @@ const program = Effect.gen(function* (_) {
     .leftJoin(priceTable, eq(productTable.id, priceTable.productId))
     .pipe(
       Effect.flatMap(Array.head),
-      Effect.mapError(() => new ErrorInvalidProduct())
-    );
-  return { price, product };
-});
+      Effect.mapError(() => new ErrorInvalidProduct()),
+    )
+  return { price, product }
+})
 ```
 
 **14.ai's AI-Agent-System**: Das Unternehmen nutzt Effect mit Drizzle für LLMOps-Systeme. Die Kombination ermöglicht robuste Fehlerbehandlung bei LLM-Fehlern und strukturierte Workflow-Orchestrierung.[^3_7]
@@ -511,9 +508,9 @@ Die Effect-Integration macht Transaktionen komplexer, da sie durch Effect's Gene
 ```typescript
 // Traditionelle Drizzle-Transaktion
 await db.transaction(async (tx) => {
-  await tx.insert(users).values(userData);
-  await tx.insert(profiles).values(profileData);
-});
+  await tx.insert(users).values(userData)
+  await tx.insert(profiles).values(profileData)
+})
 ```
 
 Erfordert die Effect-Version mehr Boilerplate:
@@ -521,14 +518,17 @@ Erfordert die Effect-Version mehr Boilerplate:
 ```typescript
 // Effect + Drizzle-Transaktion
 const program = Effect.gen(function* (_) {
-  const db = yield* _(Effect.service("Database"));
-  yield* _(db.transaction(Effect.gen(function* (_) {
-    yield* _(db.insert(users).values(userData));
-    yield* _(db.insert(profiles).values(profileData));
-  })));
-});
+  const db = yield* _(Effect.service("Database"))
+  yield* _(
+    db.transaction(
+      Effect.gen(function* (_) {
+        yield* _(db.insert(users).values(userData))
+        yield* _(db.insert(profiles).values(profileData))
+      }),
+    ),
+  )
+})
 ```
-
 
 ### Dokumentations-Lücken
 
@@ -568,11 +568,10 @@ Ein praktisches Problem ist die Synchronisation zwischen Drizzle-Schemas und Eff
 // Wrapper für bessere Schema-Integration
 export const DatabaseService = Effect.Service.create("Database")({
   succeed: Effect.sync(() => {
-    return drizzle(connection, { schema: allSchemas });
-  })
-});
+    return drizzle(connection, { schema: allSchemas })
+  }),
+})
 ```
-
 
 ### Bundle-Size-Auswirkungen
 
@@ -584,19 +583,17 @@ Die Kombination von Effect + Drizzle führt zu signifikantem Bundle-Size-Overhea
 
 Die erfolgreiche Drizzle-Integration ebnet den Weg für weitere Tool-Integrationen. Bereits gibt es Diskussionen über:
 
-* **Prisma-Integration**: Obwohl noch nicht offiziell angekündigt
-* **TypeORM-Kompatibilität**: Community-Requests für Effect-Integration
-* **Kysely-Support**: Informelle Gespräche über Integration
-
+- **Prisma-Integration**: Obwohl noch nicht offiziell angekündigt
+- **TypeORM-Kompatibilität**: Community-Requests für Effect-Integration
+- **Kysely-Support**: Informelle Gespräche über Integration
 
 ### Evolving Best Practices
 
 Die Community entwickelt Best Practices für Effect + Drizzle:
 
-* **Service Layer Patterns**: Standardisierte Approaches für Database Services
-* **Testing Strategies**: Patterns für Mocking und Testing
-* **Performance Optimization**: Techniken zur Minimierung von Effect-Overhead
-
+- **Service Layer Patterns**: Standardisierte Approaches für Database Services
+- **Testing Strategies**: Patterns für Mocking und Testing
+- **Performance Optimization**: Techniken zur Minimierung von Effect-Overhead
 
 ## Fazit
 
@@ -705,7 +702,6 @@ Diese Entwicklung deutet darauf hin, dass Effect sich von einem Nischen-Tool fü
 
 [^3_48]: https://www.youtube.com/watch?v=NroG_cLWxcE
 
-
 ---
 
 # Vergleiche Drizzle und Prisma untern der Annahme das man Effect benutzt. Das sind meine Anforderungen:
@@ -722,7 +718,7 @@ Diese Entwicklung deutet darauf hin, dass Effect sich von einem Nischen-Tool fü
         * der fokus liegt auf keinen bis mittleren privaten projekten, nicht auf enterprise projekten. ich bin alleine und habe kein team von entwicklern. ich arbeite aber massiv mit coding KIs. Aufgaben wie "Erstelle mir einen Backend Server der mit einer existierendem CLI Youtube Transkripte in der Datenbank speichert für meine gesehenen Videos du über die Youtube API abgerufen werden müssen jeden Tag um 4 Uhr" sollen einfach um zusetzen sein
         * einfaches muss einfach sein, komplexe dinge sind komplex. Doof ist wenn einfache dinge schwierig sind!
         * schnelle entwicklung ist priorisiert. lieber opinionated frameworks als alles von hand machen zu müssen
-        * wenn es geht würde ich gerne Haskell Code schreiben, aber halt in TypeScript. Ich kann aber aus Zeit Gründen dafür nicht die schnelle Entwicklung opfern. 
+        * wenn es geht würde ich gerne Haskell Code schreiben, aber halt in TypeScript. Ich kann aber aus Zeit Gründen dafür nicht die schnelle Entwicklung opfern.
         * functional core, imperative shell pattern: [https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell](https://www.destroyallsoftware.com/screencasts/catalog/functional-core-imperative-shell)
         * generell finde ich die "lazy" Variante von asynchronem Code sehr interessant. der große Vorteil ist hier ja das man synchronen und asynchronen code mischen kann, da erst zum starten des tasks man eine asynchrone "laufzeit" braucht. [https://gcanti.github.io/fp-ts/modules/Task.ts.html](https://gcanti.github.io/fp-ts/modules/Task.ts.html)
     * logging wie die Bibliothek `debug` mit der möglichkeit logging für jedes modul einzeln an und abzuschalten finde ich sinnvoll. Generell muss logging funktionieren, es muss aber keine enterprise lösung wie ein ELK Stack sein
@@ -744,16 +740,15 @@ Da du @effect/sql-drizzle als zu neu ausschließt, müssen beide ORMs mit **comm
 
 **Prisma dominiert bei LLM-Unterstützung** aufgrund seiner Popularität und langen Marktpräsenz. Die Prisma Schema Language (PSL) ist in allen gängigen LLM-Modellen gut repräsentiert:[^4_2][^4_3]
 
-* **Dokumentations-Volumen**: Prisma existiert seit 2018 und hat ein riesiges Ökosystem an Tutorials, Stack Overflow Antworten und Community-Content[^4_3]
-* **Schema-Klarheit**: Die deklarative `.prisma`-Datei ist für LLMs einfacher zu verstehen als Drizzle's TypeScript-basierte Schema-Definitionen[^4_4][^4_3]
-* **Konsistente Patterns**: Prisma's opinionate Herangehensweise führt zu vorhersagbaren Code-Patterns, die LLMs besser reproduzieren können
+- **Dokumentations-Volumen**: Prisma existiert seit 2018 und hat ein riesiges Ökosystem an Tutorials, Stack Overflow Antworten und Community-Content[^4_3]
+- **Schema-Klarheit**: Die deklarative `.prisma`-Datei ist für LLMs einfacher zu verstehen als Drizzle's TypeScript-basierte Schema-Definitionen[^4_4][^4_3]
+- **Konsistente Patterns**: Prisma's opinionate Herangehensweise führt zu vorhersagbaren Code-Patterns, die LLMs besser reproduzieren können
 
 **Drizzle's LLM-Herausforderungen**:
 
-* Erst seit 2021 verfügbar, deutlich weniger Training-Data[^4_5]
-* Code-first Schema in TypeScript kann zu inkonsistenten Patterns führen[^4_4]
-* Weniger Stack Overflow/Community-Content für komplexe Anwendungsfälle
-
+- Erst seit 2021 verfügbar, deutlich weniger Training-Data[^4_5]
+- Code-first Schema in TypeScript kann zu inkonsistenten Patterns führen[^4_4]
+- Weniger Stack Overflow/Community-Content für komplexe Anwendungsfälle
 
 ### Praktisches Beispiel für deine YouTube-Transkript-Aufgabe
 
@@ -770,21 +765,20 @@ Prisma unterstützt **PostgreSQL Schemas nativ** über den `schema` Parameter in
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL + "?schema=client_tenant1"
-    }
-  }
-});
+      url: process.env.DATABASE_URL + "?schema=client_tenant1",
+    },
+  },
+})
 
 // Oder dynamisch
-await prisma.$queryRaw`SET search_path TO ${schema}`;
+await prisma.$queryRaw`SET search_path TO ${schema}`
 ```
 
 **Vorteile**:
 
-* Eingebaute Unterstützung für Schema-Switching[^4_8]
-* Migrations können per Schema ausgeführt werden[^4_6]
-* Gut dokumentierte Multi-Tenant-Patterns[^4_6]
-
+- Eingebaute Unterstützung für Schema-Switching[^4_8]
+- Migrations können per Schema ausgeführt werden[^4_6]
+- Gut dokumentierte Multi-Tenant-Patterns[^4_6]
 
 ### Drizzle's Schema-Handling
 
@@ -792,13 +786,17 @@ Drizzle unterstützt **PostgreSQL Schemas über die `schema` Option** in Tabelle
 
 ```typescript
 // Drizzle mit expliziten Schemas
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 256 }),
-}, { schema: 'client_tenant1' });
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 256 }),
+  },
+  { schema: "client_tenant1" },
+)
 
 // Oder dynamisch über connection options
-const db = drizzle(connection, { schema: 'client_tenant1' });
+const db = drizzle(connection, { schema: "client_tenant1" })
 ```
 
 **Herausforderung**: Das Hybrid Prefix-Schema Pattern erfordert **dynamisches Schema-Switching**, was bei Drizzle komplexer ist, da Schemas zur Compile-Zeit definiert werden müssen.
@@ -825,11 +823,10 @@ npx prisma migrate dev --name add_user_role
 
 **Vorteile für dein Setup**:
 
-* **Ein Befehl** generiert und führt Migrations aus[^4_9]
-* **Automatische Rollback-Unterstützung**
-* **Schema-spezifische Migrations** möglich[^4_6]
-* **LLMs verstehen den Workflow** gut aufgrund der Popularität
-
+- **Ein Befehl** generiert und führt Migrations aus[^4_9]
+- **Automatische Rollback-Unterstützung**
+- **Schema-spezifische Migrations** möglich[^4_6]
+- **LLMs verstehen den Workflow** gut aufgrund der Popularität
 
 ### Drizzle Kit: Code-first, aber komplexer
 
@@ -843,10 +840,9 @@ npx drizzle-kit push      # SQL ausführen
 
 **Nachteile für Solo-Entwicklung**:
 
-* Mehr manuelle Schritte
-* Schema-Drift kann auftreten[^4_10]
-* Weniger LLM-Support für komplexe Migration-Workflows
-
+- Mehr manuelle Schritte
+- Schema-Drift kann auftreten[^4_10]
+- Weniger LLM-Support für komplexe Migration-Workflows
 
 ## Effect-Integration ohne offizielle Pakete
 
@@ -858,15 +854,14 @@ Es gibt **etablierte Community-Patterns** für Prisma + Effect Integration:[^4_1
 // Prisma Effect Wrapper (Community Pattern)
 const prismaEffect = {
   user: {
-    create: (data: UserCreateInput) => 
+    create: (data: UserCreateInput) =>
       Effect.tryPromise({
         try: () => prisma.user.create({ data }),
-        catch: (error) => new DatabaseError(error)
-      })
-  }
-};
+        catch: (error) => new DatabaseError(error),
+      }),
+  },
+}
 ```
-
 
 ### Drizzle + Effect: Manuelle Integration
 
@@ -878,9 +873,9 @@ const drizzleEffect = {
   insertUser: (userData: typeof users.$inferInsert) =>
     Effect.tryPromise({
       try: () => db.insert(users).values(userData).returning(),
-      catch: (error) => new DatabaseError(error)
-    })
-};
+      catch: (error) => new DatabaseError(error),
+    }),
+}
 ```
 
 **Gleichstand**: Beide erfordern ähnlichen Boilerplate ohne offizielle Effect-Integration.
@@ -908,10 +903,9 @@ email: string;
 
 Deine Wahl von **Bun für bessere Test-Performance** ist berechtigt. Bun Test ist **dramatisch schneller** als Jest/Vitest:[^4_14]
 
-* **Bun Test**: ~2.15s durchschnittlich[^4_14]
-* **Vitest**: ~5.3s durchschnittlich[^4_14]
-* **Jest**: ~9.8s durchschnittlich[^4_14]
-
+- **Bun Test**: ~2.15s durchschnittlich[^4_14]
+- **Vitest**: ~5.3s durchschnittlich[^4_14]
+- **Jest**: ~9.8s durchschnittlich[^4_14]
 
 ### Integration Tests mit ORMs
 
@@ -920,11 +914,11 @@ Deine Wahl von **Bun für bessere Test-Performance** ist berechtigt. Bun Test is
 ```typescript
 // Prisma Test Setup (etabliertes Pattern)
 const testDb = new PrismaClient({
-  datasources: { db: { url: process.env.TEST_DATABASE_URL } }
-});
+  datasources: { db: { url: process.env.TEST_DATABASE_URL } },
+})
 
 // Schema-spezifische Tests
-await testDb.$queryRaw`SET search_path TO test_${uuid()}`;
+await testDb.$queryRaw`SET search_path TO test_${uuid()}`
 ```
 
 **Vorteile**: Etablierte Patterns für Integration Testing mit PostgreSQL Schemas.[^4_6]
@@ -933,8 +927,8 @@ await testDb.$queryRaw`SET search_path TO test_${uuid()}`;
 
 ### Bundle Size
 
-* **Prisma**: ~2-3MB Client + Query Engine[^4_2]
-* **Drizzle**: ~15-20KB minimal[^4_2]
+- **Prisma**: ~2-3MB Client + Query Engine[^4_2]
+- **Drizzle**: ~15-20KB minimal[^4_2]
 
 Für deine **privaten Projekte** ist der Bundle-Size-Unterschied wahrscheinlich irrelevant, da Backend-Performance wichtiger ist als Client-Bundle-Size.
 
@@ -952,12 +946,11 @@ Prisma's **abstrakte API** passt gut zum Functional Core Pattern:
 // Functional Core mit Prisma
 const createUserWithPosts = (userData: UserData) =>
   Effect.gen(function* (_) {
-    const user = yield* _(createUser(userData));
-    const posts = yield* _(createPosts(user.id, userData.posts));
-    return { user, posts };
-  });
+    const user = yield* _(createUser(userData))
+    const posts = yield* _(createPosts(user.id, userData.posts))
+    return { user, posts }
+  })
 ```
-
 
 ### Drizzle's SQL-Nähe
 
@@ -969,19 +962,17 @@ Für deine Priorität **"schnelle Entwicklung ist priorisiert"** ist Prisma der 
 
 ### Prisma Vorteile:
 
-* **Ein Befehl** für Migrations[^4_9]
-* **Bessere LLM-Unterstützung** für Code-Generierung
-* **Etablierte Multi-Tenant-Patterns**[^4_6]
-* **Umfangreiches Tooling** (Prisma Studio, etc.)
-* **Weniger Boilerplate** für CRUD-Operationen
-
+- **Ein Befehl** für Migrations[^4_9]
+- **Bessere LLM-Unterstützung** für Code-Generierung
+- **Etablierte Multi-Tenant-Patterns**[^4_6]
+- **Umfangreiches Tooling** (Prisma Studio, etc.)
+- **Weniger Boilerplate** für CRUD-Operationen
 
 ### Drizzle Nachteile:
 
-* **Mehr manuelle Arbeit** bei Migrations[^4_9]
-* **Weniger LLM-Training-Data**
-* **Mehr Setup-Overhead** für Multi-Tenant-Szenarien
-
+- **Mehr manuelle Arbeit** bei Migrations[^4_9]
+- **Weniger LLM-Training-Data**
+- **Mehr Setup-Overhead** für Multi-Tenant-Szenarien
 
 ## Empfehlung: Prisma
 
@@ -1000,7 +991,7 @@ Basierend auf deinen Anforderungen empfehle ich **Prisma** aus folgenden Gründe
 // Tech Stack für deine Anforderungen:
 - Prisma ORM + PostgreSQL
 - Hono/Fastify + tRPC für API
-- Effect für funktionale Programmierung  
+- Effect für funktionale Programmierung
 - Bun für Testing
 - OpenAPI Generator für API Documentation
 - Community Prisma + Effect Wrapper
@@ -1091,7 +1082,6 @@ Diese Kombination maximiert **Entwicklungsgeschwindigkeit** bei minimaler Komple
 
 [^4_40]: https://github.com/openapi-ts/openapi-typescript
 
-
 ---
 
 # Dann verwende ich Bun als Laufzeit , Prisma als ORM und Effect als Plattform. Welche Optionen habe ich zur Erstellung der REST API mit automatisch generierter Doku?
@@ -1110,50 +1100,44 @@ Bei deiner Technologie-Kombination hast du mehrere bewährte Ansätze zur Verfü
 
 ```typescript
 // Hono mit Zod Validation
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
+import { Hono } from "hono"
+import { zValidator } from "@hono/zod-validator"
+import { z } from "zod"
 
-const app = new Hono();
+const app = new Hono()
 
 const createUserSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  age: z.number().min(18)
-});
+  age: z.number().min(18),
+})
 
-app.post('/users', 
-  zValidator('json', createUserSchema),
-  async (c) => {
-    const userData = c.req.valid('json');
-    // Hier würdest du Effect + Prisma verwenden
-    const result = await Effect.runPromise(
-      createUserWithEffect(userData)
-    );
-    return c.json(result, 201);
-  }
-);
+app.post("/users", zValidator("json", createUserSchema), async (c) => {
+  const userData = c.req.valid("json")
+  // Hier würdest du Effect + Prisma verwenden
+  const result = await Effect.runPromise(createUserWithEffect(userData))
+  return c.json(result, 201)
+})
 
-export type AppType = typeof app;
+export type AppType = typeof app
 ```
-
 
 ### OpenAPI Integration mit Hono
 
 **Für die Dokumentation**: Nutze `@hono/zod-openapi` für automatische OpenAPI-Generierung[^5_3]:
 
 ```typescript
-import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi"
 
-const app = new OpenAPIHono();
+const app = new OpenAPIHono()
 
 const createUserRoute = createRoute({
-  method: 'post',
-  path: '/users',
+  method: "post",
+  path: "/users",
   request: {
     body: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: createUserSchema,
         },
       },
@@ -1162,7 +1146,7 @@ const createUserRoute = createRoute({
   responses: {
     201: {
       content: {
-        'application/json': {
+        "application/json": {
           schema: z.object({
             id: z.string(),
             name: z.string(),
@@ -1172,31 +1156,29 @@ const createUserRoute = createRoute({
       },
     },
   },
-});
+})
 
 app.openapi(createUserRoute, async (c) => {
   // Handler implementation
-});
+})
 
 // OpenAPI Spec generieren
-app.doc('/doc', {
-  openapi: '3.0.0',
+app.doc("/doc", {
+  openapi: "3.0.0",
   info: {
-    version: '1.0.0',
-    title: 'YouTube Transcripts API',
+    version: "1.0.0",
+    title: "YouTube Transcripts API",
   },
-});
+})
 ```
-
 
 ### Vorteile für deine Anforderungen:
 
-* **LLM-freundlich**: Hono ist gut in LLM-Training-Data vertreten[^5_4][^5_5]
-* **Bun-optimiert**: Native Unterstützung, beste Performance[^5_1][^5_6]
-* **Effect-kompatibel**: Async/await Pattern funktioniert nahtlos mit Effect
-* **Schema-basiert**: Zod-Integration für type-sichere Validierung
-* **Python KI-Agents**: OpenAPI Spec wird automatisch generiert[^5_3]
-
+- **LLM-freundlich**: Hono ist gut in LLM-Training-Data vertreten[^5_4][^5_5]
+- **Bun-optimiert**: Native Unterstützung, beste Performance[^5_1][^5_6]
+- **Effect-kompatibel**: Async/await Pattern funktioniert nahtlos mit Effect
+- **Schema-basiert**: Zod-Integration für type-sichere Validierung
+- **Python KI-Agents**: OpenAPI Spec wird automatisch generiert[^5_3]
 
 ## Option 2: ElysiaJS mit Swagger Integration
 
@@ -1205,59 +1187,62 @@ app.doc('/doc', {
 **ElysiaJS wurde speziell für Bun entwickelt** und bietet eine Express-ähnliche API mit besserer Performance[^5_7][^5_8][^5_9]:
 
 ```typescript
-import { Elysia, t } from 'elysia';
-import { swagger } from '@elysiajs/swagger';
+import { Elysia, t } from "elysia"
+import { swagger } from "@elysiajs/swagger"
 
 const app = new Elysia()
-  .use(swagger({
-    documentation: {
-      info: {
-        title: 'YouTube Transcripts API',
-        version: '1.0.0'
-      }
-    }
-  }))
-  .post('/users', async ({ body, set }) => {
-    // Effect + Prisma Integration
-    const result = await Effect.runPromise(
-      pipe(
-        validateUser(body),
-        Effect.flatMap(createUserInDB),
-        Effect.mapError(handleDatabaseError)
-      )
-    );
-    
-    set.status = 201;
-    return result;
-  }, {
-    body: t.Object({
-      name: t.String(),
-      email: t.String({ format: 'email' }),
-      age: t.Number({ minimum: 18 })
+  .use(
+    swagger({
+      documentation: {
+        info: {
+          title: "YouTube Transcripts API",
+          version: "1.0.0",
+        },
+      },
     }),
-    response: t.Object({
-      id: t.String(),
-      name: t.String(),
-      email: t.String()
-    })
-  })
-  .listen(3000);
-```
+  )
+  .post(
+    "/users",
+    async ({ body, set }) => {
+      // Effect + Prisma Integration
+      const result = await Effect.runPromise(
+        pipe(
+          validateUser(body),
+          Effect.flatMap(createUserInDB),
+          Effect.mapError(handleDatabaseError),
+        ),
+      )
 
+      set.status = 201
+      return result
+    },
+    {
+      body: t.Object({
+        name: t.String(),
+        email: t.String({ format: "email" }),
+        age: t.Number({ minimum: 18 }),
+      }),
+      response: t.Object({
+        id: t.String(),
+        name: t.String(),
+        email: t.String(),
+      }),
+    },
+  )
+  .listen(3000)
+```
 
 ### Vorteile von ElysiaJS:
 
-* **Native Swagger Integration**: Automatische OpenAPI-Generierung[^5_10]
-* **Type-Safe**: End-to-End Type Safety mit TypeScript[^5_8][^5_9]
-* **Bun-Performance**: Optimiert für Bun Runtime[^5_7][^5_11]
-* **Einfache Syntax**: Weniger Boilerplate als andere Frameworks
-
+- **Native Swagger Integration**: Automatische OpenAPI-Generierung[^5_10]
+- **Type-Safe**: End-to-End Type Safety mit TypeScript[^5_8][^5_9]
+- **Bun-Performance**: Optimiert für Bun Runtime[^5_7][^5_11]
+- **Einfache Syntax**: Weniger Boilerplate als andere Frameworks
 
 ### Nachteile:
 
-* **Weniger LLM-Training**: Neuer als Hono, weniger Community-Content[^5_7]
-* **Schema-System**: Eigenes `t.*` Schema-System statt Standard Zod
-
+- **Weniger LLM-Training**: Neuer als Hono, weniger Community-Content[^5_7]
+- **Schema-System**: Eigenes `t.*` Schema-System statt Standard Zod
 
 ## Option 3: tsoa + Express/Fastify (Etablierter Ansatz)
 
@@ -1266,45 +1251,42 @@ const app = new Elysia()
 **tsoa generiert automatisch OpenAPI-Specs aus TypeScript-Decorators**[^5_12][^5_13][^5_14]:
 
 ```typescript
-import { Controller, Post, Body, Route, Response } from 'tsoa';
+import { Controller, Post, Body, Route, Response } from "tsoa"
 
 interface CreateUserRequest {
-  name: string;
-  email: string;
-  age: number;
+  name: string
+  email: string
+  age: number
 }
 
 interface CreateUserResponse {
-  id: string;
-  name: string;
-  email: string;
+  id: string
+  name: string
+  email: string
 }
 
-@Route('users')
+@Route("users")
 export class UserController extends Controller {
-  
   @Post()
-  @Response<CreateUserResponse>(201, 'User created')
+  @Response<CreateUserResponse>(201, "User created")
   public async createUser(
-    @Body() requestBody: CreateUserRequest
+    @Body() requestBody: CreateUserRequest,
   ): Promise<CreateUserResponse> {
-    
     // Effect + Prisma Integration
     const result = await Effect.runPromise(
       pipe(
         Effect.succeed(requestBody),
         Effect.flatMap(validateUserData),
         Effect.flatMap(createUserWithPrisma),
-        Effect.mapError(this.handleError)
-      )
-    );
-    
-    this.setStatus(201);
-    return result;
+        Effect.mapError(this.handleError),
+      ),
+    )
+
+    this.setStatus(201)
+    return result
   }
 }
 ```
-
 
 ### tsoa Konfiguration:
 
@@ -1324,19 +1306,16 @@ export class UserController extends Controller {
 }
 ```
 
-
 ### Vorteile:
 
-* **Beste LLM-Unterstützung**: Decorator-Pattern ist gut trainiert[^5_15][^5_12]
-* **Mature**: Seit Jahren in Produktion bewährt[^5_13][^5_14]
-* **Framework-agnostisch**: Funktioniert mit Express, Fastify, Koa[^5_13]
-
+- **Beste LLM-Unterstützung**: Decorator-Pattern ist gut trainiert[^5_15][^5_12]
+- **Mature**: Seit Jahren in Produktion bewährt[^5_13][^5_14]
+- **Framework-agnostisch**: Funktioniert mit Express, Fastify, Koa[^5_13]
 
 ### Nachteile:
 
-* **Decorator-Overhead**: Mehr Boilerplate-Code
-* **Nicht Bun-optimiert**: Läuft auf Bun, aber nicht speziell dafür entwickelt
-
+- **Decorator-Overhead**: Mehr Boilerplate-Code
+- **Nicht Bun-optimiert**: Läuft auf Bun, aber nicht speziell dafür entwickelt
 
 ## Option 4: tRPC vs Hono RPC für Type-Safety
 
@@ -1348,30 +1327,31 @@ export class UserController extends Controller {
 // Server
 const appRouter = router({
   createUser: publicProcedure
-    .input(z.object({
-      name: z.string(),
-      email: z.string().email(),
-      age: z.number().min(18),
-    }))
+    .input(
+      z.object({
+        name: z.string(),
+        email: z.string().email(),
+        age: z.number().min(18),
+      }),
+    )
     .mutation(async ({ input }) => {
       return await Effect.runPromise(
         pipe(
           Effect.succeed(input),
           Effect.flatMap(createUserWithPrisma),
-          Effect.mapError(handleDatabaseError)
-        )
-      );
+          Effect.mapError(handleDatabaseError),
+        ),
+      )
     }),
-});
+})
 
 // Client (automatische TypeScript-Types)
 const user = await trpc.createUser.mutate({
   name: "John",
-  email: "john@example.com", 
-  age: 25
-});
+  email: "john@example.com",
+  age: 25,
+})
 ```
-
 
 ### Hono RPC: Leichtgewichtige Alternative
 
@@ -1379,25 +1359,25 @@ const user = await trpc.createUser.mutate({
 
 ```typescript
 // Server
-const route = app.post('/users',
-  zValidator('json', createUserSchema),
+const route = app.post(
+  "/users",
+  zValidator("json", createUserSchema),
   async (c) => {
-    const userData = c.req.valid('json');
+    const userData = c.req.valid("json")
     // Effect + Prisma logic
-    return c.json(result, 201);
-  }
-);
+    return c.json(result, 201)
+  },
+)
 
-export type AppType = typeof route;
+export type AppType = typeof route
 
 // Client
-import { hc } from 'hono/client';
-const client = hc<AppType>('http://localhost:3000');
+import { hc } from "hono/client"
+const client = hc<AppType>("http://localhost:3000")
 const res = await client.users.$post({
-  json: { name: "John", email: "john@example.com", age: 25 }
-});
+  json: { name: "John", email: "john@example.com", age: 25 },
+})
 ```
-
 
 ## Empfehlung für deine Anforderungen
 
@@ -1424,16 +1404,15 @@ bun add -d @types/bun typescript
 bun add -d @hono/swagger-ui  # Für Swagger UI
 ```
 
-
 ### Tech Stack:
 
-* **Runtime**: Bun
-* **Framework**: Hono + Zod OpenAPI
-* **ORM**: Prisma (mit Effect Wrappern)
-* **FP**: Effect für functional core
-* **Testing**: Bun Test (native, schnellste Option[^5_19])
-* **Documentation**: Automatische OpenAPI 3.0 Generierung
-* **Validation**: Zod (funktioniert client/server-side)
+- **Runtime**: Bun
+- **Framework**: Hono + Zod OpenAPI
+- **ORM**: Prisma (mit Effect Wrappern)
+- **FP**: Effect für functional core
+- **Testing**: Bun Test (native, schnellste Option[^5_19])
+- **Documentation**: Automatische OpenAPI 3.0 Generierung
+- **Validation**: Zod (funktioniert client/server-side)
 
 Diese Kombination maximiert **Entwicklungsgeschwindigkeit** bei minimaler Komplexität und bietet die beste **Balance zwischen Performance, LLM-Support und funktionaler Programmierung** für deine Solo-Entwicklung mit KI-Unterstützung.
 <span style="display:none">[^5_20][^5_21][^5_22][^5_23][^5_24][^5_25][^5_26][^5_27][^5_28][^5_29][^5_30][^5_31][^5_32][^5_33][^5_34][^5_35][^5_36][^5_37][^5_38][^5_39][^5_40][^5_41]</span>
@@ -1522,7 +1501,6 @@ Diese Kombination maximiert **Entwicklungsgeschwindigkeit** bei minimaler Komple
 
 [^5_41]: https://dev.to/rockfire/best-three-open-source-json-rpc-projects-easier-to-dev-client-json-code-32j7
 
-
 ---
 
 # Dann entscheide ich mich für Prisma als ORM und Migration Tool.
@@ -1537,14 +1515,13 @@ Das ist eine sehr fundierte Entscheidung! Prisma passt perfekt zu deinen Anforde
 
 Mit Prisma als ORM hast du jetzt einen sehr kohärenten und praxiserprobten Stack:
 
-* **Runtime**: Bun (Performance + TypeScript)
-* **ORM + Migrations**: Prisma (Bewährt, LLM-freundlich)
-* **API Framework**: Hono + Zod OpenAPI (Moderne, Bun-optimiert)
-* **Functional Programming**: Effect (Lazy evaluation, functional core)
-* **Database**: PostgreSQL mit Hybrid Schema Pattern
-* **Testing**: Bun Test (Schnellste Performance)
-* **Documentation**: Automatische OpenAPI-Generierung
-
+- **Runtime**: Bun (Performance + TypeScript)
+- **ORM + Migrations**: Prisma (Bewährt, LLM-freundlich)
+- **API Framework**: Hono + Zod OpenAPI (Moderne, Bun-optimiert)
+- **Functional Programming**: Effect (Lazy evaluation, functional core)
+- **Database**: PostgreSQL mit Hybrid Schema Pattern
+- **Testing**: Bun Test (Schnellste Performance)
+- **Documentation**: Automatische OpenAPI-Generierung
 
 ## Warum diese Entscheidung strategisch klug ist
 
@@ -1564,9 +1541,9 @@ Die Kombination Bun + Prisma + Effect + Hono wird dir eine sehr produktive und z
 
 # Zu dem API Code für die REST Schnittstelle habe ich noch Fragen:
 
-* Was verwende ich hier am besten das meinen Anforderungen gerecht wird ein Framework oder Effect selbst, hier details zur Effect Platform https://effect.website/llms-full.txt
-* Wichtig ist mir das ich auf dem Client im Frontend oder anderen Projekten die mit dem gleichen Stack gebaut sind die Effect Schemata die auf dem Server verwendet werden, weiter benutzen kann
-* Außerdem ist mir für nicht TypeScript Clients wichtig eine generierte Dokumentation der Schnittstellen zu haben
+- Was verwende ich hier am besten das meinen Anforderungen gerecht wird ein Framework oder Effect selbst, hier details zur Effect Platform https://effect.website/llms-full.txt
+- Wichtig ist mir das ich auf dem Client im Frontend oder anderen Projekten die mit dem gleichen Stack gebaut sind die Effect Schemata die auf dem Server verwendet werden, weiter benutzen kann
+- Außerdem ist mir für nicht TypeScript Clients wichtig eine generierte Dokumentation der Schnittstellen zu haben
 
 **Deine Frage war:** Du möchtest wissen, ob du für REST APIs ein Framework oder Effect selbst verwenden solltest, wobei Schema-Sharing zwischen Effect-Clients wichtig ist und OpenAPI-Dokumentation für nicht-TypeScript-Clients benötigt wird.
 
@@ -1582,103 +1559,111 @@ Basierend auf deinen spezifischen Anforderungen - Schema-Sharing zwischen Effect
 
 ```typescript
 // Shared API Definition (separates Package/Monorepo)
-import { HttpApi, HttpApiGroup, HttpApiEndpoint } from "@effect/platform";
-import { Schema } from "effect";
+import { HttpApi, HttpApiGroup, HttpApiEndpoint } from "@effect/platform"
+import { Schema } from "effect"
 
 // Schema-Definitionen, die client/server geteilt werden
 const CreateUserSchema = Schema.Struct({
   name: Schema.String,
   email: Schema.String.pipe(Schema.pattern(/^.+@.+$/)),
-  age: Schema.Number.pipe(Schema.greaterThanOrEqualTo(18))
-});
+  age: Schema.Number.pipe(Schema.greaterThanOrEqualTo(18)),
+})
 
 const UserResponseSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   email: Schema.String,
-  createdAt: Schema.DateFromSelf
-});
+  createdAt: Schema.DateFromSelf,
+})
 
 // API Group Definition
-class UserGroup extends HttpApiGroup.make("users")
-  .add(
-    HttpApiEndpoint.post("createUser", "/users")
-      .addSuccess(UserResponseSchema)
-      .setPayload(CreateUserSchema)
-  ) {}
+class UserGroup extends HttpApiGroup.make("users").add(
+  HttpApiEndpoint.post("createUser", "/users")
+    .addSuccess(UserResponseSchema)
+    .setPayload(CreateUserSchema),
+) {}
 
 // Haupt-API
-class YoutubeTranscriptsApi extends HttpApi.make("youtube-api")
-  .add(UserGroup) {}
+class YoutubeTranscriptsApi extends HttpApi.make("youtube-api").add(
+  UserGroup,
+) {}
 ```
-
 
 ### Server Implementation mit Effect Platform
 
 ```typescript
 // Server Implementation
-import { HttpApiBuilder } from "@effect/platform";
-import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
+import { HttpApiBuilder } from "@effect/platform"
+import { NodeHttpServer, NodeRuntime } from "@effect/platform-node"
 
 const UserGroupLive = HttpApiGroup.makeHandler(UserGroup)({
   createUser: ({ payload }) =>
     Effect.gen(function* (_) {
       // Hier kommt deine Prisma + Effect Integration
-      const prisma = yield* _(PrismaService);
-      
-      const userData = yield* _(validateUserData(payload));
-      const user = yield* _(prisma.user.create({ 
-        data: userData 
-      }).pipe(
-        Effect.tryPromise({
-          try: (promise) => promise,
-          catch: (error) => new DatabaseError(error)
-        })
-      ));
-      
+      const prisma = yield* _(PrismaService)
+
+      const userData = yield* _(validateUserData(payload))
+      const user = yield* _(
+        prisma.user
+          .create({
+            data: userData,
+          })
+          .pipe(
+            Effect.tryPromise({
+              try: (promise) => promise,
+              catch: (error) => new DatabaseError(error),
+            }),
+          ),
+      )
+
       return UserResponseSchema.make({
         id: user.id,
         name: user.name,
         email: user.email,
-        createdAt: user.createdAt
-      });
-    })
-});
+        createdAt: user.createdAt,
+      })
+    }),
+})
 
 // Server Setup
-const HttpApiLive = HttpApiBuilder.api(YoutubeTranscriptsApi)
-  .pipe(Layer.provide(UserGroupLive));
+const HttpApiLive = HttpApiBuilder.api(YoutubeTranscriptsApi).pipe(
+  Layer.provide(UserGroupLive),
+)
 
 const HttpLive = HttpApiBuilder.serve()
   .pipe(Layer.provide(HttpApiLive))
-  .pipe(Layer.provide(NodeHttpServer.layer({ port: 3000 })));
+  .pipe(Layer.provide(NodeHttpServer.layer({ port: 3000 })))
 ```
-
 
 ### Client-Seite mit geteilten Schemas
 
 ```typescript
 // Client in anderem Effect-Projekt
-import { HttpApiClient } from "@effect/platform";
-import { YoutubeTranscriptsApi, CreateUserSchema, UserResponseSchema } from "@shared/api";
+import { HttpApiClient } from "@effect/platform"
+import {
+  YoutubeTranscriptsApi,
+  CreateUserSchema,
+  UserResponseSchema,
+} from "@shared/api"
 
 const client = HttpApiClient.make(YoutubeTranscriptsApi, {
-  baseUrl: "http://localhost:3000"
-});
+  baseUrl: "http://localhost:3000",
+})
 
 // Vollständig type-safe Client-Calls
 const program = Effect.gen(function* (_) {
-  const newUser = yield* _(client.users.createUser({
-    name: "John Doe",
-    email: "john@example.com", 
-    age: 25
-  }));
-  
-  // newUser ist automatisch typed als UserResponseSchema
-  Console.log(`Created user: ${newUser.name}`);
-});
-```
+  const newUser = yield* _(
+    client.users.createUser({
+      name: "John Doe",
+      email: "john@example.com",
+      age: 25,
+    }),
+  )
 
+  // newUser ist automatisch typed als UserResponseSchema
+  Console.log(`Created user: ${newUser.name}`)
+})
+```
 
 ## OpenAPI-Generierung mit Effect Platform
 
@@ -1687,23 +1672,21 @@ const program = Effect.gen(function* (_) {
 Effect Platform unterstützt **automatische OpenAPI-Generierung** aus Schema-Definitionen:[^7_3][^7_1]
 
 ```typescript
-import { HttpApiBuilder, OpenApi } from "@effect/platform";
+import { HttpApiBuilder, OpenApi } from "@effect/platform"
 
 // OpenAPI Dokumentation generieren
 const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
   title: "YouTube Transcripts API",
   version: "1.0.0",
-  description: "API for managing YouTube video transcripts"
-});
+  description: "API for managing YouTube video transcripts",
+})
 
 // Als HTTP Endpoint zur Verfügung stellen
-const HttpApiWithDocs = HttpApiBuilder.api(YoutubeTranscriptsApi)
-  .pipe(
-    HttpApiBuilder.addOpenApiEndpoint("/docs", openApiSpec),
-    HttpApiBuilder.addSwaggerUI("/swagger", openApiSpec)
-  );
+const HttpApiWithDocs = HttpApiBuilder.api(YoutubeTranscriptsApi).pipe(
+  HttpApiBuilder.addOpenApiEndpoint("/docs", openApiSpec),
+  HttpApiBuilder.addSwaggerUI("/swagger", openApiSpec),
+)
 ```
-
 
 ### Vorteile für Python KI-Agents
 
@@ -1713,23 +1696,22 @@ Das generierte OpenAPI-Schema kann direkt mit Python-Clients genutzt werden:[^7_
 # OpenAPI TypeScript Generierung (für andere TS-Projekte ohne Effect)
 npx openapi-typescript http://localhost:3000/docs > api-types.ts
 
-# Python Client Generation  
+# Python Client Generation
 openapi-generator generate -i http://localhost:3000/docs -g python -o python-client/
 ```
 
-
 ## Vergleich: Effect Platform vs. Hono
 
-| Aspekt | Effect Platform | Hono + Effect Wrapper |
-| :-- | :-- | :-- |
-| **Schema Sharing** | ✅ Nativ unterstützt | ❌ Manueller Wrapper nötig |
-| **OpenAPI Generation** | ✅ Automatisch aus Schemas | ⚠️ Zusätzliche Tools nötig |
-| **Type Safety** | ✅ End-to-End | ⚠️ Breaks zwischen Framework und Effect |
-| **Effect Integration** | ✅ Nahtlos | ⚠️ Adapter-Pattern nötig |
-| **Performance** | ⚠️ Overhead durch Effect Runtime | ✅ Native Hono Performance |
-| **Bundle Size** | ⚠️ Größer (~30KB Effect) | ✅ Kleiner (~14KB Hono) |
-| **LLM Support** | ❌ Wenig Training-Data | ✅ Gute Hono-Unterstützung |
-| **Ecosystem** | ⚠️ Effect-only | ✅ Standard Web Ecosystem |
+| Aspekt                 | Effect Platform                  | Hono + Effect Wrapper                   |
+| :--------------------- | :------------------------------- | :-------------------------------------- |
+| **Schema Sharing**     | ✅ Nativ unterstützt             | ❌ Manueller Wrapper nötig              |
+| **OpenAPI Generation** | ✅ Automatisch aus Schemas       | ⚠️ Zusätzliche Tools nötig              |
+| **Type Safety**        | ✅ End-to-End                    | ⚠️ Breaks zwischen Framework und Effect |
+| **Effect Integration** | ✅ Nahtlos                       | ⚠️ Adapter-Pattern nötig                |
+| **Performance**        | ⚠️ Overhead durch Effect Runtime | ✅ Native Hono Performance              |
+| **Bundle Size**        | ⚠️ Größer (~30KB Effect)         | ✅ Kleiner (~14KB Hono)                 |
+| **LLM Support**        | ❌ Wenig Training-Data           | ✅ Gute Hono-Unterstützung              |
+| **Ecosystem**          | ⚠️ Effect-only                   | ✅ Standard Web Ecosystem               |
 
 ## Empfehlung: Effect Platform
 
@@ -1743,9 +1725,8 @@ Die Möglichkeit, **dieselben Schema-Definitionen** zwischen Effect-basierten Cl
 
 Effect Platform folgt genau diesem Pattern:[^7_2]
 
-* **Functional Core**: Alle Business-Logic in Effect-Funktionen
-* **Imperative Shell**: HTTP-Layer als dünne Schicht darüber
-
+- **Functional Core**: Alle Business-Logic in Effect-Funktionen
+- **Imperative Shell**: HTTP-Layer als dünne Schicht darüber
 
 ### 3. OpenAPI für externe Clients
 
@@ -1756,23 +1737,22 @@ Die automatische OpenAPI-Generierung aus Effect-Schemas eliminiert Code-Duplikat
 ```typescript
 // Effect Platform macht Prisma-Integration elegant
 const PrismaService = Effect.Service.create("Prisma")({
-  succeed: Effect.sync(() => new PrismaClient())
-});
+  succeed: Effect.sync(() => new PrismaClient()),
+})
 
 // In HttpApiEndpoint Handlers
 const createUser = ({ payload }) =>
   Effect.gen(function* (_) {
-    const prisma = yield* _(PrismaService);
+    const prisma = yield* _(PrismaService)
     const user = yield* _(
       Effect.tryPromise({
         try: () => prisma.user.create({ data: payload }),
-        catch: (error) => new DatabaseError(error)
-      })
-    );
-    return UserResponseSchema.make(user);
-  });
+        catch: (error) => new DatabaseError(error),
+      }),
+    )
+    return UserResponseSchema.make(user)
+  })
 ```
-
 
 ## Setup-Empfehlung für deinen Stack
 
@@ -1790,12 +1770,11 @@ packages/
 
 // Dependencies
 "@effect/platform": "^0.63.0"
-"@effect/platform-node": "^0.56.0"  
+"@effect/platform-node": "^0.56.0"
 "@effect/schema": "^0.71.0"
 "effect": "^3.7.0"
 "prisma": "^5.0.0"
 ```
-
 
 ## Nachteile von Effect Platform
 
@@ -1880,7 +1859,6 @@ Du erhältst eine vollständig typsichere, funktionale API-Lösung, die **"einfa
 
 [^7_33]: https://transform.tools/json-schema-to-openapi-schema
 
-
 ---
 
 # Dann verwenden wir die Effect Platform für die API. Wie werden hier DTOs bei unserem aktuell gewählten Bibliotheken unterstützt?
@@ -1898,16 +1876,16 @@ Mit deinem gewählten Stack (Bun + Prisma + Effect Platform + @effect/schema) ha
 **Effect verwendet Schemas statt traditioneller DTO-Klassen**. Diese bieten zur Compile- und Runtime type-safety:[^8_1][^8_2]
 
 ```typescript
-import { Schema } from "effect";
+import { Schema } from "effect"
 
 // Input/Request Schema (DTO Input)
 const CreateUserRequest = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(2)),
   email: Schema.String.pipe(Schema.pattern(/^.+@.+$/)),
-  age: Schema.Number.pipe(Schema.greaterThanOrEqualTo(18))
-});
+  age: Schema.Number.pipe(Schema.greaterThanOrEqualTo(18)),
+})
 
-// Output/Response Schema (DTO Output)  
+// Output/Response Schema (DTO Output)
 const UserResponse = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
@@ -1915,7 +1893,7 @@ const UserResponse = Schema.Struct({
   createdAt: Schema.DateFromSelf,
   // Sensible Felder werden weggelassen
   // password: nicht enthalten
-});
+})
 
 // Domain/Prisma Schema (intern)
 const UserEntity = Schema.Struct({
@@ -1924,10 +1902,9 @@ const UserEntity = Schema.Struct({
   email: Schema.String,
   password: Schema.String, // Nur intern verfügbar
   createdAt: Schema.DateFromSelf,
-  updatedAt: Schema.DateFromSelf
-});
+  updatedAt: Schema.DateFromSelf,
+})
 ```
-
 
 ### Schema-Transformationen als DTO-Mappings
 
@@ -1936,26 +1913,25 @@ const UserEntity = Schema.Struct({
 ```typescript
 // Prisma Entity -> Response DTO Transform
 const EntityToResponseTransform = Schema.transform(
-  UserEntity,     // Source: Prisma Entity
-  UserResponse,   // Target: Response DTO
+  UserEntity, // Source: Prisma Entity
+  UserResponse, // Target: Response DTO
   {
     decode: (entity) => ({
       id: entity.id,
       name: entity.name,
       email: entity.email,
-      createdAt: entity.createdAt
+      createdAt: entity.createdAt,
       // password wird weggelassen
     }),
     encode: (response) => ({
       // Nur für den umgekehrten Fall
       ...response,
       password: "", // Dummy, da nicht verfügbar
-      updatedAt: new Date()
-    })
-  }
-);
+      updatedAt: new Date(),
+    }),
+  },
+)
 ```
-
 
 ## Integration mit Effect Platform HttpApi
 
@@ -1964,39 +1940,37 @@ const EntityToResponseTransform = Schema.transform(
 **Effect Platform handhabt DTOs automatisch über Schemas**:[^8_4][^8_5]
 
 ```typescript
-import { HttpApi, HttpApiGroup, HttpApiEndpoint } from "@effect/platform";
+import { HttpApi, HttpApiGroup, HttpApiEndpoint } from "@effect/platform"
 
 // API Endpoint mit automatischem DTO-Handling
-class UserGroup extends HttpApiGroup.make("users")
-  .add(
-    HttpApiEndpoint.post("createUser", "/users")
-      .setPayload(CreateUserRequest)     // Input DTO Schema
-      .addSuccess(UserResponse)          // Output DTO Schema  
-      .addError(ValidationError)         // Error DTO Schema
-  ) {}
+class UserGroup extends HttpApiGroup.make("users").add(
+  HttpApiEndpoint.post("createUser", "/users")
+    .setPayload(CreateUserRequest) // Input DTO Schema
+    .addSuccess(UserResponse) // Output DTO Schema
+    .addError(ValidationError), // Error DTO Schema
+) {}
 
 // Handler mit automatischer DTO-Transformation
 const UserGroupLive = HttpApiGroup.makeHandler(UserGroup)({
   createUser: ({ payload }) =>
     Effect.gen(function* (_) {
       // payload ist bereits validiert als CreateUserRequest
-      const prisma = yield* _(PrismaService);
-      
+      const prisma = yield* _(PrismaService)
+
       // Domain Logic
-      const entityData = yield* _(transformToEntity(payload));
+      const entityData = yield* _(transformToEntity(payload))
       const createdUser = yield* _(
         Effect.tryPromise({
           try: () => prisma.user.create({ data: entityData }),
-          catch: (error) => new DatabaseError(error)
-        })
-      );
-      
-      // Automatische Transformation zu Response DTO
-      return yield* _(transformToResponse(createdUser));
-    })
-});
-```
+          catch: (error) => new DatabaseError(error),
+        }),
+      )
 
+      // Automatische Transformation zu Response DTO
+      return yield* _(transformToResponse(createdUser))
+    }),
+})
+```
 
 ## Prisma Integration mit Schema-Mappings
 
@@ -2022,14 +1996,13 @@ const PrismaUserSchema = Schema.Struct({
   email: Schema.String,
   password: Schema.String,
   createdAt: Schema.DateFromSelf,
-  updatedAt: Schema.DateFromSelf
-});
+  updatedAt: Schema.DateFromSelf,
+})
 
 // Prisma Type validation
 const validatePrismaUser = (user: unknown) =>
-  Schema.decodeUnknown(PrismaUserSchema)(user);
+  Schema.decodeUnknown(PrismaUserSchema)(user)
 ```
-
 
 ### Automatische Prisma Schema Generierung
 
@@ -2046,7 +2019,6 @@ generator dto {
 }
 ```
 
-
 ## Mehrschichtige DTO-Architektur
 
 ### Input -> Domain -> Output Pipeline
@@ -2058,17 +2030,17 @@ generator dto {
 const CreatePostRequest = Schema.Struct({
   title: Schema.String,
   content: Schema.String,
-  authorEmail: Schema.String
-});
+  authorEmail: Schema.String,
+})
 
 // Domain DTO (interne Verarbeitung)
 const PostDomain = Schema.Struct({
   title: Schema.String,
   content: Schema.String,
-  authorId: Schema.String,    // Aufgelöst von authorEmail
-  slug: Schema.String,        // Generiert aus title
-  createdAt: Schema.DateFromSelf
-});
+  authorId: Schema.String, // Aufgelöst von authorEmail
+  slug: Schema.String, // Generiert aus title
+  createdAt: Schema.DateFromSelf,
+})
 
 // Output DTO (an Client)
 const PostResponse = Schema.Struct({
@@ -2076,51 +2048,55 @@ const PostResponse = Schema.Struct({
   title: Schema.String,
   content: Schema.String,
   slug: Schema.String,
-  author: Schema.Struct({     // Populiert mit Autor-Daten
+  author: Schema.Struct({
+    // Populiert mit Autor-Daten
     name: Schema.String,
-    email: Schema.String
+    email: Schema.String,
   }),
-  createdAt: Schema.DateFromSelf
-});
+  createdAt: Schema.DateFromSelf,
+})
 
 // Pipeline: Input -> Domain -> Output
 const createPostPipeline = (request: typeof CreatePostRequest.Type) =>
   Effect.gen(function* (_) {
     // Input DTO Validation
     const validatedInput = yield* _(
-      Schema.decodeUnknown(CreatePostRequest)(request)
-    );
-    
-    // Transform zu Domain DTO
-    const author = yield* _(getUserByEmail(validatedInput.authorEmail));
-    const domainPost = yield* _(Schema.decode(PostDomain)({
-      title: validatedInput.title,
-      content: validatedInput.content,
-      authorId: author.id,
-      slug: generateSlug(validatedInput.title),
-      createdAt: new Date()
-    }));
-    
-    // Persistierung
-    const savedPost = yield* _(savePost(domainPost));
-    
-    // Transform zu Output DTO
-    const responsePost = yield* _(Schema.decode(PostResponse)({
-      id: savedPost.id,
-      title: savedPost.title,
-      content: savedPost.content,
-      slug: savedPost.slug,
-      author: {
-        name: author.name,
-        email: author.email
-      },
-      createdAt: savedPost.createdAt
-    }));
-    
-    return responsePost;
-  });
-```
+      Schema.decodeUnknown(CreatePostRequest)(request),
+    )
 
+    // Transform zu Domain DTO
+    const author = yield* _(getUserByEmail(validatedInput.authorEmail))
+    const domainPost = yield* _(
+      Schema.decode(PostDomain)({
+        title: validatedInput.title,
+        content: validatedInput.content,
+        authorId: author.id,
+        slug: generateSlug(validatedInput.title),
+        createdAt: new Date(),
+      }),
+    )
+
+    // Persistierung
+    const savedPost = yield* _(savePost(domainPost))
+
+    // Transform zu Output DTO
+    const responsePost = yield* _(
+      Schema.decode(PostResponse)({
+        id: savedPost.id,
+        title: savedPost.title,
+        content: savedPost.content,
+        slug: savedPost.slug,
+        author: {
+          name: author.name,
+          email: author.email,
+        },
+        createdAt: savedPost.createdAt,
+      }),
+    )
+
+    return responsePost
+  })
+```
 
 ## Validierung und Transformation
 
@@ -2132,20 +2108,22 @@ const createPostPipeline = (request: typeof CreatePostRequest.Type) =>
 const CreateUserRequest = Schema.Struct({
   name: Schema.String.pipe(
     Schema.minLength(2, "Name must be at least 2 characters"),
-    Schema.maxLength(50, "Name must not exceed 50 characters")
+    Schema.maxLength(50, "Name must not exceed 50 characters"),
   ),
   email: Schema.String.pipe(
-    Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
+    Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format"),
   ),
   age: Schema.Number.pipe(
     Schema.int("Age must be an integer"),
-    Schema.between(18, 120, "Age must be between 18 and 120")
+    Schema.between(18, 120, "Age must be between 18 and 120"),
   ),
-  preferences: Schema.optional(Schema.Struct({
-    newsletter: Schema.Boolean,
-    notifications: Schema.Boolean
-  }))
-});
+  preferences: Schema.optional(
+    Schema.Struct({
+      newsletter: Schema.Boolean,
+      notifications: Schema.Boolean,
+    }),
+  ),
+})
 
 // Verwendung im Handler
 const validateAndCreateUser = (rawInput: unknown) =>
@@ -2153,18 +2131,20 @@ const validateAndCreateUser = (rawInput: unknown) =>
     // Automatische Validierung mit detaillierten Fehlern
     const validatedInput = yield* _(
       Schema.decodeUnknown(CreateUserRequest)(rawInput).pipe(
-        Effect.mapError(error => new ValidationError(
-          "Invalid user data",
-          ParseResult.ArrayFormatter.formatError(error)
-        ))
-      )
-    );
-    
-    // Hier ist validatedInput vollständig typisiert
-    return yield* _(createUser(validatedInput));
-  });
-```
+        Effect.mapError(
+          (error) =>
+            new ValidationError(
+              "Invalid user data",
+              ParseResult.ArrayFormatter.formatError(error),
+            ),
+        ),
+      ),
+    )
 
+    // Hier ist validatedInput vollständig typisiert
+    return yield* _(createUser(validatedInput))
+  })
+```
 
 ## OpenAPI Integration
 
@@ -2176,8 +2156,8 @@ const validateAndCreateUser = (rawInput: unknown) =>
 // Schemas werden automatisch zu OpenAPI-Definitionen
 const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
   title: "YouTube Transcripts API",
-  version: "1.0.0"
-});
+  version: "1.0.0",
+})
 
 // Resultierende OpenAPI für CreateUserRequest:
 // {
@@ -2187,7 +2167,7 @@ const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
 //     "email": { "type": "string", "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" },
 //     "age": { "type": "integer", "minimum": 18, "maximum": 120 },
 //     "preferences": {
-//       "type": "object", 
+//       "type": "object",
 //       "properties": {
 //         "newsletter": { "type": "boolean" },
 //         "notifications": { "type": "boolean" }
@@ -2197,7 +2177,6 @@ const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
 //   "required": ["name", "email", "age"]
 // }
 ```
-
 
 ## Vorteile der Effect Schema-DTOs
 
@@ -2214,10 +2193,9 @@ const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
 
 **Effect Schemas sind besonders LLM-freundlich**, da:
 
-* **Deklarative Syntax**: Ähnlich zu JSON Schema, gut in Training-Data vertreten
-* **Composable Patterns**: Wiederverwendbare Schema-Blöcke
-* **Self-Documenting**: Schema-Definition ist gleichzeitig Dokumentation
-
+- **Deklarative Syntax**: Ähnlich zu JSON Schema, gut in Training-Data vertreten
+- **Composable Patterns**: Wiederverwendbare Schema-Blöcke
+- **Self-Documenting**: Schema-Definition ist gleichzeitig Dokumentation
 
 ## Setup-Empfehlung für deinen Stack
 
@@ -2226,7 +2204,7 @@ const openApiSpec = HttpApiBuilder.toOpenApi(YoutubeTranscriptsApi, {
 src/
 ├── schemas/
 │   ├── request/          # Input DTOs
-│   ├── response/         # Output DTOs  
+│   ├── response/         # Output DTOs
 │   ├── domain/           # Domain DTOs
 │   └── prisma/           # Prisma Schema Mappings
 ├── api/
@@ -2320,7 +2298,6 @@ src/
 
 [^8_39]: https://www.youtube.com/watch?v=5yquJa2x3Ko
 
-
 ---
 
 # Haskell hat ja keine Klassen oder Vererbung. State muss ich aber irgendwo speichern und ändern können. Wie setzt man dies mit unserem aktuellem Stand um?
@@ -2338,48 +2315,46 @@ Du hast einen wichtigen Punkt erkannt - **Haskell hat keine Klassen, aber trotzd
 **Effect's `Ref` entspricht Haskell's `IORef`** - ein mutable reference innerhalb des Effect-Systems:[^9_1][^9_2]
 
 ```typescript
-import { Effect, Ref, Console } from "effect";
+import { Effect, Ref, Console } from "effect"
 
 // Erstelle eine mutable Reference (wie IORef in Haskell)
-const createCounter = Ref.make(0);
+const createCounter = Ref.make(0)
 
 // Haskell-ähnliche Operationen
 const program = Effect.gen(function* (_) {
-  const counter = yield* _(createCounter);
-  
+  const counter = yield* _(createCounter)
+
   // Lesen (wie readIORef)
-  const current = yield* _(Ref.get(counter));
-  yield* _(Console.log(`Current: ${current}`));
-  
+  const current = yield* _(Ref.get(counter))
+  yield* _(Console.log(`Current: ${current}`))
+
   // Schreiben (wie writeIORef)
-  yield* _(Ref.set(counter, 42));
-  
+  yield* _(Ref.set(counter, 42))
+
   // Modifizieren (wie modifyIORef)
-  yield* _(Ref.update(counter, (n) => n + 1));
-  
-  const final = yield* _(Ref.get(counter));
-  yield* _(Console.log(`Final: ${final}`));
-});
+  yield* _(Ref.update(counter, (n) => n + 1))
 
-Effect.runSync(program); // Current: 0, Final: 43
+  const final = yield* _(Ref.get(counter))
+  yield* _(Console.log(`Final: ${final}`))
+})
+
+Effect.runSync(program) // Current: 0, Final: 43
 ```
-
 
 ### Atomic Operations wie in Haskell
 
 ```typescript
 // Haskell: atomicModifyIORef
 const atomicIncrement = (counter: Ref.Ref<number>) =>
-  Ref.modify(counter, (n) => [n, n + 1]); // [oldValue, newValue]
+  Ref.modify(counter, (n) => [n, n + 1]) // [oldValue, newValue]
 
 // Verwendung
 const program = Effect.gen(function* (_) {
-  const counter = yield* _(Ref.make(0));
-  const oldValue = yield* _(atomicIncrement(counter));
-  Console.log(`Previous: ${oldValue}`);
-});
+  const counter = yield* _(Ref.make(0))
+  const oldValue = yield* _(atomicIncrement(counter))
+  Console.log(`Previous: ${oldValue}`)
+})
 ```
-
 
 ## SynchronizedRef: Haskell's MVar/STM-Äquivalent
 
@@ -2388,42 +2363,41 @@ const program = Effect.gen(function* (_) {
 **`SynchronizedRef` entspricht Haskell's `MVar` oder `STM`** - ermöglicht effectful State-Änderungen mit Concurrency-Safety:[^9_3]
 
 ```typescript
-import { Effect, SynchronizedRef, Console } from "effect";
+import { Effect, SynchronizedRef, Console } from "effect"
 
 // Simuliere Datenbank-Zugriff (effectful operation)
 const fetchUserAge = (userId: string) =>
   Effect.gen(function* (_) {
-    yield* _(Effect.sleep("100 millis")); // Simuliere Network-Delay
-    return Math.floor(Math.random() * 50) + 18; // Random age
-  });
+    yield* _(Effect.sleep("100 millis")) // Simuliere Network-Delay
+    return Math.floor(Math.random() * 50) + 18 // Random age
+  })
 
 // SynchronizedRef für concurrent effectful updates
 const meanAgeProgram = Effect.gen(function* (_) {
-  const ageSum = yield* _(SynchronizedRef.make(0));
-  const userIds = ["user1", "user2", "user3", "user4"];
-  
+  const ageSum = yield* _(SynchronizedRef.make(0))
+  const userIds = ["user1", "user2", "user3", "user4"]
+
   // Concurrent effectful updates (wie Haskell's forkIO + MVar)
   yield* _(
     Effect.all(
-      userIds.map(userId =>
-        SynchronizedRef.updateEffect(ageSum, currentSum =>
+      userIds.map((userId) =>
+        SynchronizedRef.updateEffect(ageSum, (currentSum) =>
           Effect.gen(function* (_) {
-            const age = yield* _(fetchUserAge(userId));
-            yield* _(Console.log(`User ${userId}: age ${age}`));
-            return currentSum + age;
-          })
-        )
+            const age = yield* _(fetchUserAge(userId))
+            yield* _(Console.log(`User ${userId}: age ${age}`))
+            return currentSum + age
+          }),
+        ),
       ),
-      { concurrency: "unbounded" }
-    )
-  );
-  
-  const totalSum = yield* _(SynchronizedRef.get(ageSum));
-  const meanAge = totalSum / userIds.length;
-  yield* _(Console.log(`Mean age: ${meanAge}`));
-});
-```
+      { concurrency: "unbounded" },
+    ),
+  )
 
+  const totalSum = yield* _(SynchronizedRef.get(ageSum))
+  const meanAge = totalSum / userIds.length
+  yield* _(Console.log(`Mean age: ${meanAge}`))
+})
+```
 
 ## Context: Dependency Injection ohne Klassen
 
@@ -2432,60 +2406,59 @@ const meanAgeProgram = Effect.gen(function* (_) {
 **Effect's Context entspricht Haskell's Reader-Monad** für dependency injection:[^9_4][^9_5]
 
 ```typescript
-import { Effect, Context, Layer } from "effect";
+import { Effect, Context, Layer } from "effect"
 
 // Service Definition (wie Haskell's type class)
 class DatabaseService extends Context.Tag("DatabaseService")<
   DatabaseService,
   {
-    getUser: (id: string) => Effect.Effect<User, DatabaseError>;
-    updateUser: (user: User) => Effect.Effect<void, DatabaseError>;
+    getUser: (id: string) => Effect.Effect<User, DatabaseError>
+    updateUser: (user: User) => Effect.Effect<void, DatabaseError>
   }
 >() {}
 
 class CacheService extends Context.Tag("CacheService")<
   CacheService,
   {
-    get: (key: string) => Effect.Effect<Option<string>, never>;
-    set: (key: string, value: string) => Effect.Effect<void, never>;
+    get: (key: string) => Effect.Effect<Option<string>, never>
+    set: (key: string, value: string) => Effect.Effect<void, never>
   }
 >() {}
 
 // Composable Services (wie Haskell's Reader kombinationen)
 const getUserWithCache = (userId: string) =>
   Effect.gen(function* (_) {
-    const cache = yield* _(CacheService);
-    const database = yield* _(DatabaseService);
-    
+    const cache = yield* _(CacheService)
+    const database = yield* _(DatabaseService)
+
     // Try cache first
-    const cached = yield* _(cache.get(`user:${userId}`));
-    
+    const cached = yield* _(cache.get(`user:${userId}`))
+
     if (Option.isSome(cached)) {
-      return JSON.parse(cached.value);
+      return JSON.parse(cached.value)
     }
-    
+
     // Fallback to database
-    const user = yield* _(database.getUser(userId));
-    yield* _(cache.set(`user:${userId}`, JSON.stringify(user)));
-    
-    return user;
-  });
+    const user = yield* _(database.getUser(userId))
+    yield* _(cache.set(`user:${userId}`, JSON.stringify(user)))
+
+    return user
+  })
 
 // Layer-basierte Implementierung (dependency graph)
 const DatabaseLive = Layer.succeed(DatabaseService, {
   getUser: (id) => Effect.succeed({ id, name: "John" }),
-  updateUser: (user) => Effect.unit
-});
+  updateUser: (user) => Effect.unit,
+})
 
 const CacheLive = Layer.succeed(CacheService, {
   get: (key) => Effect.succeed(Option.none()),
-  set: (key, value) => Effect.unit
-});
+  set: (key, value) => Effect.unit,
+})
 
 // Kombiniere Services (wie Haskell's ReaderT-Stack)
-const AppLayer = Layer.merge(DatabaseLive, CacheLive);
+const AppLayer = Layer.merge(DatabaseLive, CacheLive)
 ```
-
 
 ## State Patterns für verschiedene Use Cases
 
@@ -2494,19 +2467,22 @@ const AppLayer = Layer.merge(DatabaseLive, CacheLive);
 ```typescript
 // Entspricht Haskell's State Monad für lokalen State
 const statefulComputation = Effect.gen(function* (_) {
-  const localState = yield* _(Ref.make({ count: 0, name: "initial" }));
-  
-  // State-Transformationen
-  const increment = Ref.update(localState, s => ({ ...s, count: s.count + 1 }));
-  const setName = (name: string) => Ref.update(localState, s => ({ ...s, name }));
-  
-  yield* _(increment);
-  yield* _(setName("updated"));
-  
-  return yield* _(Ref.get(localState));
-});
-```
+  const localState = yield* _(Ref.make({ count: 0, name: "initial" }))
 
+  // State-Transformationen
+  const increment = Ref.update(localState, (s) => ({
+    ...s,
+    count: s.count + 1,
+  }))
+  const setName = (name: string) =>
+    Ref.update(localState, (s) => ({ ...s, name }))
+
+  yield* _(increment)
+  yield* _(setName("updated"))
+
+  return yield* _(Ref.get(localState))
+})
+```
 
 ### 2. Shared Application State (wie IORef in IO)
 
@@ -2515,30 +2491,29 @@ const statefulComputation = Effect.gen(function* (_) {
 class AppStateService extends Context.Tag("AppState")<
   AppStateService,
   {
-    userSession: Ref.Ref<Option<UserSession>>;
-    globalConfig: Ref.Ref<AppConfig>;
+    userSession: Ref.Ref<Option<UserSession>>
+    globalConfig: Ref.Ref<AppConfig>
   }
 >() {}
 
 const AppStateLive = Layer.effect(
   AppStateService,
   Effect.gen(function* (_) {
-    const userSession = yield* _(Ref.make(Option.none<UserSession>()));
-    const globalConfig = yield* _(Ref.make(defaultConfig));
-    
-    return { userSession, globalConfig };
-  })
-);
+    const userSession = yield* _(Ref.make(Option.none<UserSession>()))
+    const globalConfig = yield* _(Ref.make(defaultConfig))
+
+    return { userSession, globalConfig }
+  }),
+)
 
 // State-Management-Funktionen
 const login = (credentials: LoginCredentials) =>
   Effect.gen(function* (_) {
-    const appState = yield* _(AppStateService);
-    const session = yield* _(authenticateUser(credentials));
-    yield* _(Ref.set(appState.userSession, Option.some(session)));
-  });
+    const appState = yield* _(AppStateService)
+    const session = yield* _(authenticateUser(credentials))
+    yield* _(Ref.set(appState.userSession, Option.some(session)))
+  })
 ```
-
 
 ### 3. Concurrent State (wie STM)
 
@@ -2547,31 +2522,30 @@ const login = (credentials: LoginCredentials) =>
 const bankTransfer = (
   from: SynchronizedRef.SynchronizedRef<number>,
   to: SynchronizedRef.SynchronizedRef<number>,
-  amount: number
+  amount: number,
 ) =>
   Effect.gen(function* (_) {
     // Atomische Transaktion über mehrere Refs
     yield* _(
-      SynchronizedRef.updateEffect(from, fromBalance =>
+      SynchronizedRef.updateEffect(from, (fromBalance) =>
         Effect.gen(function* (_) {
           if (fromBalance < amount) {
-            return yield* _(Effect.fail(new InsufficientFunds()));
+            return yield* _(Effect.fail(new InsufficientFunds()))
           }
-          
+
           // Update zweiter Ref innerhalb der ersten Transaktion
           yield* _(
-            SynchronizedRef.updateEffect(to, toBalance =>
-              Effect.succeed(toBalance + amount)
-            )
-          );
-          
-          return fromBalance - amount;
-        })
-      )
-    );
-  });
-```
+            SynchronizedRef.updateEffect(to, (toBalance) =>
+              Effect.succeed(toBalance + amount),
+            ),
+          )
 
+          return fromBalance - amount
+        }),
+      ),
+    )
+  })
+```
 
 ## Integration mit deinem Stack
 
@@ -2582,68 +2556,68 @@ const bankTransfer = (
 class UserRepositoryService extends Context.Tag("UserRepository")<
   UserRepositoryService,
   {
-    getUser: (id: string) => Effect.Effect<User, RepositoryError>;
-    updateUser: (user: User) => Effect.Effect<void, RepositoryError>;
+    getUser: (id: string) => Effect.Effect<User, RepositoryError>
+    updateUser: (user: User) => Effect.Effect<void, RepositoryError>
   }
 >() {}
 
 const UserRepositoryLive = Layer.effect(
   UserRepositoryService,
   Effect.gen(function* (_) {
-    const prisma = yield* _(PrismaService);
-    const cache = yield* _(Ref.make(new Map<string, User>())); // Local cache
-    
+    const prisma = yield* _(PrismaService)
+    const cache = yield* _(Ref.make(new Map<string, User>())) // Local cache
+
     return {
       getUser: (id: string) =>
         Effect.gen(function* (_) {
           // Check cache first
           const cached = yield* _(
-            Ref.get(cache).pipe(
-              Effect.map(m => m.get(id))
-            )
-          );
-          
-          if (cached) return cached;
-          
+            Ref.get(cache).pipe(Effect.map((m) => m.get(id))),
+          )
+
+          if (cached) return cached
+
           // Fetch from database
           const user = yield* _(
             Effect.tryPromise({
               try: () => prisma.user.findUnique({ where: { id } }),
-              catch: (error) => new RepositoryError(error)
-            })
-          );
-          
-          if (!user) return yield* _(Effect.fail(new UserNotFound(id)));
-          
+              catch: (error) => new RepositoryError(error),
+            }),
+          )
+
+          if (!user) return yield* _(Effect.fail(new UserNotFound(id)))
+
           // Update cache
-          yield* _(Ref.update(cache, m => m.set(id, user)));
-          
-          return user;
+          yield* _(Ref.update(cache, (m) => m.set(id, user)))
+
+          return user
         }),
-      
+
       updateUser: (user: User) =>
         Effect.gen(function* (_) {
           yield* _(
             Effect.tryPromise({
-              try: () => prisma.user.update({
-                where: { id: user.id },
-                data: user
-              }),
-              catch: (error) => new RepositoryError(error)
-            })
-          );
-          
-          // Invalidate cache
-          yield* _(Ref.update(cache, m => {
-            m.delete(user.id);
-            return m;
-          }));
-        })
-    };
-  })
-);
-```
+              try: () =>
+                prisma.user.update({
+                  where: { id: user.id },
+                  data: user,
+                }),
+              catch: (error) => new RepositoryError(error),
+            }),
+          )
 
+          // Invalidate cache
+          yield* _(
+            Ref.update(cache, (m) => {
+              m.delete(user.id)
+              return m
+            }),
+          )
+        }),
+    }
+  }),
+)
+```
 
 ## Functional Core, Imperative Shell
 
@@ -2654,42 +2628,40 @@ const UserRepositoryLive = Layer.effect(
 const calculateUserStats = (users: Array<User>) => ({
   totalUsers: users.length,
   averageAge: users.reduce((sum, u) => sum + u.age, 0) / users.length,
-  activeUsers: users.filter(u => u.isActive).length
-});
+  activeUsers: users.filter((u) => u.isActive).length,
+})
 
 // Imperative Shell: Effect-basierte I/O
-const updateUserStatsEndpoint = HttpApiEndpoint
-  .get("userStats", "/stats")
+const updateUserStatsEndpoint = HttpApiEndpoint.get("userStats", "/stats")
   .addSuccess(UserStatsSchema)
   .pipe(
     HttpApiBuilder.handler(() =>
       Effect.gen(function* (_) {
         // Imperative Shell: Daten laden
-        const repository = yield* _(UserRepositoryService);
-        const users = yield* _(repository.getAllUsers());
-        
-        // Functional Core: Pure Berechnung
-        const stats = calculateUserStats(users);
-        
-        // Imperative Shell: Cache updaten
-        const statsCache = yield* _(StatsService);
-        yield* _(statsCache.updateStats(stats));
-        
-        return stats;
-      })
-    )
-  );
-```
+        const repository = yield* _(UserRepositoryService)
+        const users = yield* _(repository.getAllUsers())
 
+        // Functional Core: Pure Berechnung
+        const stats = calculateUserStats(users)
+
+        // Imperative Shell: Cache updaten
+        const statsCache = yield* _(StatsService)
+        yield* _(statsCache.updateStats(stats))
+
+        return stats
+      }),
+    ),
+  )
+```
 
 ## Zusammenfassung für deinen Haskell-Hintergrund
 
 Effect bietet dir **alle Haskell State-Patterns** in TypeScript:
 
-* **`Ref`** = `IORef` für einfache mutable references
-* **`SynchronizedRef`** = `MVar`/`STM` für concurrent effectful state
-* **`Context`** = `ReaderT` für dependency injection
-* **`Layer`** = Dependency-Graph-Management (wie Haskell's service pattern)
+- **`Ref`** = `IORef` für einfache mutable references
+- **`SynchronizedRef`** = `MVar`/`STM` für concurrent effectful state
+- **`Context`** = `ReaderT` für dependency injection
+- **`Layer`** = Dependency-Graph-Management (wie Haskell's service pattern)
 
 Diese Patterns ermöglichen **"Haskell Code in TypeScript"** für State-Management, ohne Klassen oder Vererbung zu benötigen. Du bekommst die gleiche composable, typsichere funktionale Architektur, die du aus Haskell kennst.
 <span style="display:none">[^9_10][^9_11][^9_12][^9_13][^9_14][^9_15][^9_16][^9_17][^9_18][^9_19][^9_20][^9_21][^9_22][^9_23][^9_24][^9_25][^9_26][^9_27][^9_28][^9_29][^9_30][^9_31][^9_32][^9_33][^9_6][^9_7][^9_8][^9_9]</span>
@@ -2762,7 +2734,6 @@ Diese Patterns ermöglichen **"Haskell Code in TypeScript"** für State-Manageme
 
 [^9_33]: https://blog.isquaredsoftware.com/2021/01/blogged-answers-why-react-context-is-not-a-state-management-tool-and-why-it-doesnt-replace-redux/
 
-
 ---
 
 # Gehe näher auf den use case ein DTOs bzw Schema Instanzen wie User, Posts eines Users usw zu ändern wie `calculateUserStats` aus deinem Beispiel.
@@ -2780,7 +2751,7 @@ Du sprichst einen zentralen Punkt der funktionalen Programmierung an - **Datenst
 **Effect nutzt `@effect/schema` für typsichere, immutable Datenstrukturen**:[^10_1][^10_2]
 
 ```typescript
-import { Schema } from "effect";
+import { Schema } from "effect"
 
 // User Schema Definition (wie Haskell data types)
 const User = Schema.Struct({
@@ -2790,13 +2761,15 @@ const User = Schema.Struct({
   age: Schema.Number,
   isActive: Schema.Boolean,
   posts: Schema.Array(Schema.String), // Post IDs
-  profile: Schema.optional(Schema.Struct({
-    bio: Schema.String,
-    website: Schema.optional(Schema.String)
-  }))
-});
+  profile: Schema.optional(
+    Schema.Struct({
+      bio: Schema.String,
+      website: Schema.optional(Schema.String),
+    }),
+  ),
+})
 
-type User = Schema.Schema.Type<typeof User>;
+type User = Schema.Schema.Type<typeof User>
 
 // Post Schema
 const Post = Schema.Struct({
@@ -2806,12 +2779,11 @@ const Post = Schema.Struct({
   content: Schema.String,
   tags: Schema.Array(Schema.String),
   publishedAt: Schema.DateFromSelf,
-  viewCount: Schema.Number.pipe(Schema.nonNegative())
-});
+  viewCount: Schema.Number.pipe(Schema.nonNegative()),
+})
 
-type Post = Schema.Schema.Type<typeof Post>;
+type Post = Schema.Schema.Type<typeof Post>
 ```
-
 
 ## Funktionale Data Transformations
 
@@ -2826,66 +2798,61 @@ const UserStats = Schema.Struct({
   averageAge: Schema.Number,
   activeUsers: Schema.Number,
   averagePostsPerUser: Schema.Number,
-  topAuthors: Schema.Array(Schema.Struct({
-    userId: Schema.String,
-    name: Schema.String,
-    postCount: Schema.Number
-  }))
-});
+  topAuthors: Schema.Array(
+    Schema.Struct({
+      userId: Schema.String,
+      name: Schema.String,
+      postCount: Schema.Number,
+    }),
+  ),
+})
 
 // Pure transformation function (functional core)
 const calculateUserStats = (users: Array<User>, posts: Array<Post>) => {
-  const activeUsers = users.filter(u => u.isActive);
-  const postsByUser = new Map<string, number>();
-  
+  const activeUsers = users.filter((u) => u.isActive)
+  const postsByUser = new Map<string, number>()
+
   // Count posts per user
-  posts.forEach(post => {
-    const current = postsByUser.get(post.authorId) ?? 0;
-    postsByUser.set(post.authorId, current + 1);
-  });
-  
+  posts.forEach((post) => {
+    const current = postsByUser.get(post.authorId) ?? 0
+    postsByUser.set(post.authorId, current + 1)
+  })
+
   // Calculate top authors
   const topAuthors = users
-    .map(user => ({
+    .map((user) => ({
       userId: user.id,
       name: user.name,
-      postCount: postsByUser.get(user.id) ?? 0
+      postCount: postsByUser.get(user.id) ?? 0,
     }))
     .sort((a, b) => b.postCount - a.postCount)
-    .slice(0, 5);
+    .slice(0, 5)
 
   return {
     totalUsers: users.length,
     averageAge: users.reduce((sum, u) => sum + u.age, 0) / users.length,
     activeUsers: activeUsers.length,
     averagePostsPerUser: posts.length / users.length,
-    topAuthors
-  };
-};
+    topAuthors,
+  }
+}
 
 // Schema-validated transformation
 const validateAndCalculateStats = (users: unknown, posts: unknown) =>
   Effect.gen(function* (_) {
     // Validate input data
-    const validUsers = yield* _(
-      Schema.decodeUnknown(Schema.Array(User))(users)
-    );
-    const validPosts = yield* _(
-      Schema.decodeUnknown(Schema.Array(Post))(posts)
-    );
-    
-    // Pure calculation
-    const rawStats = calculateUserStats(validUsers, validPosts);
-    
-    // Validate output
-    const validatedStats = yield* _(
-      Schema.decodeUnknown(UserStats)(rawStats)
-    );
-    
-    return validatedStats;
-  });
-```
+    const validUsers = yield* _(Schema.decodeUnknown(Schema.Array(User))(users))
+    const validPosts = yield* _(Schema.decodeUnknown(Schema.Array(Post))(posts))
 
+    // Pure calculation
+    const rawStats = calculateUserStats(validUsers, validPosts)
+
+    // Validate output
+    const validatedStats = yield* _(Schema.decodeUnknown(UserStats)(rawStats))
+
+    return validatedStats
+  })
+```
 
 ### 2. Immutable Updates mit Schema.transform
 
@@ -2895,55 +2862,60 @@ const validateAndCalculateStats = (users: unknown, posts: unknown) =>
 // User Update Schemas (Input DTOs)
 const UpdateUserProfile = Schema.Struct({
   bio: Schema.optional(Schema.String),
-  website: Schema.optional(Schema.String)
-});
+  website: Schema.optional(Schema.String),
+})
 
 const UpdateUserBasic = Schema.Struct({
   name: Schema.optional(Schema.String),
   email: Schema.optional(Schema.String),
-  age: Schema.optional(Schema.Number)
-});
+  age: Schema.optional(Schema.Number),
+})
 
 // Immutable update functions (wie Haskell's record updates)
-const updateUserProfile = (user: User, updates: Schema.Schema.Type<typeof UpdateUserProfile>) => {
+const updateUserProfile = (
+  user: User,
+  updates: Schema.Schema.Type<typeof UpdateUserProfile>,
+) => {
   // Haskell: user { profile = user.profile { bio = newBio } }
   return {
     ...user,
-    profile: user.profile ? {
-      ...user.profile,
-      ...updates
-    } : updates
-  };
-};
+    profile: user.profile
+      ? {
+          ...user.profile,
+          ...updates,
+        }
+      : updates,
+  }
+}
 
-const updateUserBasic = (user: User, updates: Schema.Schema.Type<typeof UpdateUserBasic>) => {
+const updateUserBasic = (
+  user: User,
+  updates: Schema.Schema.Type<typeof UpdateUserBasic>,
+) => {
   // Functional update with validation
   return {
     ...user,
-    ...updates
-  };
-};
+    ...updates,
+  }
+}
 
 // Effect-wrapped update with validation
 const safeUpdateUser = (user: User, updates: unknown) =>
   Effect.gen(function* (_) {
     // Validate update payload
     const validUpdates = yield* _(
-      Schema.decodeUnknown(UpdateUserBasic)(updates)
-    );
-    
-    // Apply immutable update
-    const updatedUser = updateUserBasic(user, validUpdates);
-    
-    // Validate result
-    const validatedUser = yield* _(
-      Schema.decodeUnknown(User)(updatedUser)
-    );
-    
-    return validatedUser;
-  });
-```
+      Schema.decodeUnknown(UpdateUserBasic)(updates),
+    )
 
+    // Apply immutable update
+    const updatedUser = updateUserBasic(user, validUpdates)
+
+    // Validate result
+    const validatedUser = yield* _(Schema.decodeUnknown(User)(updatedUser))
+
+    return validatedUser
+  })
+```
 
 ### 3. Complex Nested Updates
 
@@ -2953,44 +2925,47 @@ const safeUpdateUser = (user: User, updates: unknown) =>
 // Post mit User-Daten (Joined Data)
 const PostWithAuthor = Schema.Struct({
   post: Post,
-  author: User
-});
+  author: User,
+})
 
 // Nested Update: Increment view count and update author stats
 const incrementPostViewAndUpdateAuthor = (
   postWithAuthor: Schema.Schema.Type<typeof PostWithAuthor>,
-  viewIncrement: number = 1
+  viewIncrement: number = 1,
 ) => {
   // Haskell-ähnliche nested updates
   return {
     ...postWithAuthor,
     post: {
       ...postWithAuthor.post,
-      viewCount: postWithAuthor.post.viewCount + viewIncrement
+      viewCount: postWithAuthor.post.viewCount + viewIncrement,
     },
     author: {
       ...postWithAuthor.author,
       // Assume we track total views in user profile
-      profile: postWithAuthor.author.profile ? {
-        ...postWithAuthor.author.profile,
-        // Add total view count tracking
-      } : undefined
-    }
-  };
-};
+      profile: postWithAuthor.author.profile
+        ? {
+            ...postWithAuthor.author.profile,
+            // Add total view count tracking
+          }
+        : undefined,
+    },
+  }
+}
 
 // Batch updates für Arrays (wie Haskell's map)
 const batchUpdatePosts = (posts: Array<Post>, updateFn: (post: Post) => Post) =>
-  posts.map(updateFn);
+  posts.map(updateFn)
 
-const addTagToPosts = (posts: Array<Post>, tag: string, postIds: Array<string>) =>
-  batchUpdatePosts(posts, post => 
-    postIds.includes(post.id) 
-      ? { ...post, tags: [...post.tags, tag] }
-      : post
-  );
+const addTagToPosts = (
+  posts: Array<Post>,
+  tag: string,
+  postIds: Array<string>,
+) =>
+  batchUpdatePosts(posts, (post) =>
+    postIds.includes(post.id) ? { ...post, tags: [...post.tags, tag] } : post,
+  )
 ```
-
 
 ## Aggregation Patterns: MapReduce-Style
 
@@ -3005,18 +2980,20 @@ const UserActivity = Schema.Struct({
   totalPosts: Schema.Number,
   totalViews: Schema.Number,
   averageViewsPerPost: Schema.Number,
-  mostPopularPost: Schema.optional(Schema.Struct({
-    id: Schema.String,
-    title: Schema.String,
-    views: Schema.Number
-  })),
-  tagFrequency: Schema.Record(Schema.String, Schema.Number) // tag -> count
-});
+  mostPopularPost: Schema.optional(
+    Schema.Struct({
+      id: Schema.String,
+      title: Schema.String,
+      views: Schema.Number,
+    }),
+  ),
+  tagFrequency: Schema.Record(Schema.String, Schema.Number), // tag -> count
+})
 
 // Pure aggregation function (functional style)
 const aggregateUserActivity = (userId: string, posts: Array<Post>) => {
-  const userPosts = posts.filter(p => p.authorId === userId);
-  
+  const userPosts = posts.filter((p) => p.authorId === userId)
+
   if (userPosts.length === 0) {
     return {
       userId,
@@ -3024,39 +3001,44 @@ const aggregateUserActivity = (userId: string, posts: Array<Post>) => {
       totalViews: 0,
       averageViewsPerPost: 0,
       mostPopularPost: undefined,
-      tagFrequency: {}
-    };
+      tagFrequency: {},
+    }
   }
 
   // Fold-style aggregation
-  const totalViews = userPosts.reduce((sum, post) => sum + post.viewCount, 0);
-  
+  const totalViews = userPosts.reduce((sum, post) => sum + post.viewCount, 0)
+
   // Tag frequency (wie Haskell's groupBy + length)
   const tagFrequency = userPosts
-    .flatMap(post => post.tags)
-    .reduce((freq, tag) => ({
-      ...freq,
-      [tag]: (freq[tag] ?? 0) + 1
-    }), {} as Record<string, number>);
+    .flatMap((post) => post.tags)
+    .reduce(
+      (freq, tag) => ({
+        ...freq,
+        [tag]: (freq[tag] ?? 0) + 1,
+      }),
+      {} as Record<string, number>,
+    )
 
   // Most popular post (maxBy equivalent)
-  const mostPopularPost = userPosts.reduce((max, post) => 
-    post.viewCount > (max?.viewCount ?? 0) ? post : max
-  );
+  const mostPopularPost = userPosts.reduce((max, post) =>
+    post.viewCount > (max?.viewCount ?? 0) ? post : max,
+  )
 
   return {
     userId,
     totalPosts: userPosts.length,
     totalViews,
     averageViewsPerPost: totalViews / userPosts.length,
-    mostPopularPost: mostPopularPost ? {
-      id: mostPopularPost.id,
-      title: mostPopularPost.title,
-      views: mostPopularPost.viewCount
-    } : undefined,
-    tagFrequency
-  };
-};
+    mostPopularPost: mostPopularPost
+      ? {
+          id: mostPopularPost.id,
+          title: mostPopularPost.title,
+          views: mostPopularPost.viewCount,
+        }
+      : undefined,
+    tagFrequency,
+  }
+}
 
 // Effect-wrapped aggregation with multiple users
 const aggregateAllUserActivity = (users: Array<User>, posts: Array<Post>) =>
@@ -3064,26 +3046,25 @@ const aggregateAllUserActivity = (users: Array<User>, posts: Array<Post>) =>
     // Parallel aggregation (wie Haskell's parMap)
     const activities = yield* _(
       Effect.all(
-        users.map(user => 
-          Effect.sync(() => aggregateUserActivity(user.id, posts))
+        users.map((user) =>
+          Effect.sync(() => aggregateUserActivity(user.id, posts)),
         ),
-        { concurrency: "unbounded" }
-      )
-    );
+        { concurrency: "unbounded" },
+      ),
+    )
 
     // Validate all results
     const validatedActivities = yield* _(
       Effect.all(
-        activities.map(activity =>
-          Schema.decodeUnknown(UserActivity)(activity)
-        )
-      )
-    );
+        activities.map((activity) =>
+          Schema.decodeUnknown(UserActivity)(activity),
+        ),
+      ),
+    )
 
-    return validatedActivities;
-  });
+    return validatedActivities
+  })
 ```
-
 
 ## Pipeline-basierte Transformations
 
@@ -3092,50 +3073,56 @@ const aggregateAllUserActivity = (users: Array<User>, posts: Array<Post>) =>
 **Wie Haskell's Composition (.) und Pipe (|>)**:
 
 ```typescript
-import { pipe } from "effect";
+import { pipe } from "effect"
 
 // Content Processing Pipeline
 const ContentProcessingResult = Schema.Struct({
   processedPosts: Schema.Array(Post),
   statistics: UserStats,
-  topTags: Schema.Array(Schema.Struct({
-    tag: Schema.String,
-    count: Schema.Number,
-    posts: Schema.Array(Schema.String) // post IDs
-  }))
-});
+  topTags: Schema.Array(
+    Schema.Struct({
+      tag: Schema.String,
+      count: Schema.Number,
+      posts: Schema.Array(Schema.String), // post IDs
+    }),
+  ),
+})
 
 // Pipeline functions (pure, composable)
 const filterActivePosts = (posts: Array<Post>) =>
-  posts.filter(post => post.publishedAt.getTime() < Date.now());
+  posts.filter((post) => post.publishedAt.getTime() < Date.now())
 
 const addViewBonus = (posts: Array<Post>, bonusViews: number) =>
-  posts.map(post => ({
+  posts.map((post) => ({
     ...post,
-    viewCount: post.viewCount + bonusViews
-  }));
+    viewCount: post.viewCount + bonusViews,
+  }))
 
 const extractTopTags = (posts: Array<Post>, limit: number = 10) => {
-  const tagCounts = new Map<string, { count: number; posts: Array<string> }>();
-  
-  posts.forEach(post => {
-    post.tags.forEach(tag => {
-      const current = tagCounts.get(tag) ?? { count: 0, posts: [] };
+  const tagCounts = new Map<string, { count: number; posts: Array<string> }>()
+
+  posts.forEach((post) => {
+    post.tags.forEach((tag) => {
+      const current = tagCounts.get(tag) ?? { count: 0, posts: [] }
       tagCounts.set(tag, {
         count: current.count + 1,
-        posts: [...current.posts, post.id]
-      });
-    });
-  });
+        posts: [...current.posts, post.id],
+      })
+    })
+  })
 
   return Array.from(tagCounts.entries())
     .sort(([, a], [, b]) => b.count - a.count)
     .slice(0, limit)
-    .map(([tag, { count, posts }]) => ({ tag, count, posts }));
-};
+    .map(([tag, { count, posts }]) => ({ tag, count, posts }))
+}
 
 // Functional pipeline (Haskell-style composition)
-const processContent = (users: Array<User>, posts: Array<Post>, bonusViews: number = 0) =>
+const processContent = (
+  users: Array<User>,
+  posts: Array<Post>,
+  bonusViews: number = 0,
+) =>
   pipe(
     posts,
     // Step 1: Filter active posts
@@ -3146,37 +3133,32 @@ const processContent = (users: Array<User>, posts: Array<Post>, bonusViews: numb
     (processedPosts) => ({
       processedPosts,
       statistics: calculateUserStats(users, processedPosts),
-      topTags: extractTopTags(processedPosts)
-    })
-  );
+      topTags: extractTopTags(processedPosts),
+    }),
+  )
 
 // Effect-wrapped pipeline with validation
 const safeProcessContent = (
-  rawUsers: unknown, 
-  rawPosts: unknown, 
-  bonusViews: number = 0
+  rawUsers: unknown,
+  rawPosts: unknown,
+  bonusViews: number = 0,
 ) =>
   Effect.gen(function* (_) {
     // Input validation
-    const users = yield* _(
-      Schema.decodeUnknown(Schema.Array(User))(rawUsers)
-    );
-    const posts = yield* _(
-      Schema.decodeUnknown(Schema.Array(Post))(rawPosts)
-    );
+    const users = yield* _(Schema.decodeUnknown(Schema.Array(User))(rawUsers))
+    const posts = yield* _(Schema.decodeUnknown(Schema.Array(Post))(rawPosts))
 
     // Apply functional pipeline
-    const result = processContent(users, posts, bonusViews);
+    const result = processContent(users, posts, bonusViews)
 
     // Output validation
     const validatedResult = yield* _(
-      Schema.decodeUnknown(ContentProcessingResult)(result)
-    );
+      Schema.decodeUnknown(ContentProcessingResult)(result),
+    )
 
-    return validatedResult;
-  });
+    return validatedResult
+  })
 ```
-
 
 ## Real-World Integration: Prisma + Effect
 
@@ -3187,16 +3169,21 @@ const safeProcessContent = (
 class ContentService extends Context.Tag("ContentService")<
   ContentService,
   {
-    getUsersWithStats: () => Effect.Effect<Array<UserStats>, DatabaseError>;
-    updateUserActivity: (userId: string) => Effect.Effect<UserActivity, DatabaseError>;
-    processContentPipeline: () => Effect.Effect<ContentProcessingResult, DatabaseError>;
+    getUsersWithStats: () => Effect.Effect<Array<UserStats>, DatabaseError>
+    updateUserActivity: (
+      userId: string,
+    ) => Effect.Effect<UserActivity, DatabaseError>
+    processContentPipeline: () => Effect.Effect<
+      ContentProcessingResult,
+      DatabaseError
+    >
   }
 >() {}
 
 const ContentServiceLive = Layer.effect(
   ContentService,
   Effect.gen(function* (_) {
-    const prisma = yield* _(PrismaService);
+    const prisma = yield* _(PrismaService)
 
     return {
       getUsersWithStats: () =>
@@ -3205,23 +3192,21 @@ const ContentServiceLive = Layer.effect(
           const rawUsers = yield* _(
             Effect.tryPromise({
               try: () => prisma.user.findMany(),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
-          
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
+
           const rawPosts = yield* _(
             Effect.tryPromise({
               try: () => prisma.post.findMany(),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
 
           // Apply functional transformations
-          const stats = yield* _(
-            validateAndCalculateStats(rawUsers, rawPosts)
-          );
+          const stats = yield* _(validateAndCalculateStats(rawUsers, rawPosts))
 
-          return [stats]; // Return as array for consistency
+          return [stats] // Return as array for consistency
         }),
 
       updateUserActivity: (userId: string) =>
@@ -3229,20 +3214,19 @@ const ContentServiceLive = Layer.effect(
           // Fetch user's posts
           const userPosts = yield* _(
             Effect.tryPromise({
-              try: () => prisma.post.findMany({
-                where: { authorId: userId }
-              }),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
+              try: () =>
+                prisma.post.findMany({
+                  where: { authorId: userId },
+                }),
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
 
           // Apply pure aggregation
-          const activity = aggregateUserActivity(userId, userPosts);
+          const activity = aggregateUserActivity(userId, userPosts)
 
           // Validate and return
-          return yield* _(
-            Schema.decodeUnknown(UserActivity)(activity)
-          );
+          return yield* _(Schema.decodeUnknown(UserActivity)(activity))
         }),
 
       processContentPipeline: () =>
@@ -3252,25 +3236,24 @@ const ContentServiceLive = Layer.effect(
             Effect.all([
               Effect.tryPromise({
                 try: () => prisma.user.findMany(),
-                catch: (error) => new DatabaseError(error)
+                catch: (error) => new DatabaseError(error),
               }),
               Effect.tryPromise({
                 try: () => prisma.post.findMany(),
-                catch: (error) => new DatabaseError(error)
-              })
-            ])
-          );
+                catch: (error) => new DatabaseError(error),
+              }),
+            ]),
+          )
 
           // Apply content processing pipeline
           return yield* _(
-            safeProcessContent(rawUsers, rawPosts, 10) // 10 bonus views
-          );
-        })
-    };
-  })
-);
+            safeProcessContent(rawUsers, rawPosts, 10), // 10 bonus views
+          )
+        }),
+    }
+  }),
+)
 ```
-
 
 ## Vorteile des Effect Schema Ansatzes
 
@@ -3285,11 +3268,11 @@ const ContentServiceLive = Layer.effect(
 
 ### Haskell-Familiar Patterns
 
-* **Record Updates**: Immutable field updates ohne Boilerplate
-* **Fold/Reduce**: Aggregation-Patterns aus Haskell
-* **Map/Filter**: Array-Transformationen
-* **Pipe/Compose**: Funktionale Komposition
-* **Validation**: Type-sichere Ein-/Ausgabe-Validierung
+- **Record Updates**: Immutable field updates ohne Boilerplate
+- **Fold/Reduce**: Aggregation-Patterns aus Haskell
+- **Map/Filter**: Array-Transformationen
+- **Pipe/Compose**: Funktionale Komposition
+- **Validation**: Type-sichere Ein-/Ausgabe-Validierung
 
 Dieses Pattern ermöglicht es dir, **"Haskell in TypeScript"** zu schreiben - immutable, typsicher und funktional, während gleichzeitig die JavaScript/TypeScript-Ökosystem-Vorteile genutzt werden.
 <span style="display:none">[^10_10][^10_11][^10_12][^10_13][^10_14][^10_15][^10_16][^10_17][^10_18][^10_19][^10_20][^10_5][^10_6][^10_7][^10_8][^10_9]</span>
@@ -3336,7 +3319,6 @@ Dieses Pattern ermöglicht es dir, **"Haskell in TypeScript"** zu schreiben - im
 
 [^10_20]: https://estuary.dev/blog/why-typescript-for-real-time-data-transformation/
 
-
 ---
 
 # Vorgehen 1 und 2 sehen sehr ausführlich aus mit viel Boilerplate. Wenn ich das richtig sehe muss ich mit `decodeUnknown` immer wieder nach Änderungen validieren das die neue Instanz generiert von einer Funktion noch dem Schema entspricht?! Ich merke also erst ganz am Schluss ob bei den ganzen Änderungen etwas schief gegangen ist!
@@ -3353,84 +3335,84 @@ Dieses Pattern ermöglicht es dir, **"Haskell in TypeScript"** zu schreiben - im
 // SCHLECHT: Zu viel Boilerplate + späte Fehlerkennung
 const safeUpdateUser = (user: User, updates: unknown) =>
   Effect.gen(function* (_) {
-    const validUpdates = yield* _(Schema.decodeUnknown(UpdateUserBasic)(updates)); // Boundary
-    const updatedUser = updateUserBasic(user, validUpdates); // Pure function
-    const validatedUser = yield* _(Schema.decodeUnknown(User)(updatedUser)); // Unnötig!
-    return validatedUser;
-  });
+    const validUpdates = yield* _(
+      Schema.decodeUnknown(UpdateUserBasic)(updates),
+    ) // Boundary
+    const updatedUser = updateUserBasic(user, validUpdates) // Pure function
+    const validatedUser = yield* _(Schema.decodeUnknown(User)(updatedUser)) // Unnötig!
+    return validatedUser
+  })
 ```
-
 
 ## Lösung 1: Type-Safety zur Compile-Time
 
 ### Direkte Schema-Types nutzen
 
 ```typescript
-import { Schema } from "effect";
+import { Schema } from "effect"
 
 const User = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   email: Schema.String,
   age: Schema.Number,
-  isActive: Schema.Boolean
-});
+  isActive: Schema.Boolean,
+})
 
 // Type extrahieren (zur Compile-Time typisiert)
-type User = Schema.Schema.Type<typeof User>;
+type User = Schema.Schema.Type<typeof User>
 
 // VIEL BESSER: Pure functions mit TypeScript-Types
 const updateUserBasic = (
-  user: User,                                    // Bereits validiert
-  updates: Partial<Pick<User, 'name' | 'email' | 'age'>>  // Type-safe zur Compile-Time
+  user: User, // Bereits validiert
+  updates: Partial<Pick<User, "name" | "email" | "age">>, // Type-safe zur Compile-Time
 ): User => ({
   ...user,
-  ...updates
-});
+  ...updates,
+})
 
 // Nur an Boundaries validieren
 const apiUpdateUser = (user: User, rawUpdates: unknown) =>
   Effect.gen(function* (_) {
     // Nur einmal validieren (an der Boundary)
     const updates = yield* _(
-      Schema.decodeUnknown(Schema.partial(
-        Schema.pick(User, "name", "email", "age")
-      ))(rawUpdates)
-    );
-    
-    // Pure function - keine weitere Validierung nötig
-    return updateUserBasic(user, updates);
-  });
-```
+      Schema.decodeUnknown(
+        Schema.partial(Schema.pick(User, "name", "email", "age")),
+      )(rawUpdates),
+    )
 
+    // Pure function - keine weitere Validierung nötig
+    return updateUserBasic(user, updates)
+  })
+```
 
 ## Lösung 2: Effect's Data für DTOs
 
 ### @effect/schema Data - Immutable Records
 
 ```typescript
-import { Data, Schema } from "effect";
+import { Data, Schema } from "effect"
 
 // Data.Class für immutable DTOs (wie Haskell records)
 class User extends Data.Class<{
-  id: string;
-  name: string;
-  email: string;
-  age: number;
-  isActive: boolean;
+  id: string
+  name: string
+  email: string
+  age: number
+  isActive: boolean
 }> {
   // Functional updates (wie Haskell record syntax)
-  updateBasicInfo(updates: Partial<Pick<User, 'name' | 'email' | 'age'>>) {
-    return new User({ ...this, ...updates });
+  updateBasicInfo(updates: Partial<Pick<User, "name" | "email" | "age">>) {
+    return new User({ ...this, ...updates })
   }
-  
+
   toggleActive() {
-    return new User({ ...this, isActive: !this.isActive });
+    return new User({ ...this, isActive: !this.isActive })
   }
-  
+
   // Computed properties (wie Haskell's derived instances)
   get isAdult() {
-    return this.age >= 18;
+    return this.age >= 18
   }
 }
 
@@ -3438,58 +3420,60 @@ class User extends Data.Class<{
 const user = new User({
   id: "123",
   name: "John",
-  email: "john@example.com", 
+  email: "john@example.com",
   age: 25,
-  isActive: true
-});
+  isActive: true,
+})
 
 // Type-safe updates zur Compile-Time
 const updatedUser = user
   .updateBasicInfo({ name: "John Doe", age: 26 })
-  .toggleActive();
+  .toggleActive()
 
 // Automatisch immutable + type-safe
-console.log(user.name);        // "John" (original unchanged)
-console.log(updatedUser.name); // "John Doe" (new instance)
+console.log(user.name) // "John" (original unchanged)
+console.log(updatedUser.name) // "John Doe" (new instance)
 ```
-
 
 ## Lösung 3: Lens-Pattern für Nested Updates
 
 ### Functional Optics (wie Haskell)
 
 ```typescript
-import { Data } from "effect";
+import { Data } from "effect"
 
 class UserProfile extends Data.Class<{
-  bio: string;
-  website?: string;
+  bio: string
+  website?: string
   settings: {
-    newsletter: boolean;
-    notifications: boolean;
-  };
+    newsletter: boolean
+    notifications: boolean
+  }
 }> {}
 
 class User extends Data.Class<{
-  id: string;
-  name: string;
-  email: string;
-  age: number;
-  profile?: UserProfile;
+  id: string
+  name: string
+  email: string
+  age: number
+  profile?: UserProfile
 }> {
   // Lens-ähnliche Updates für nested structures
   updateProfile(updateFn: (profile: UserProfile) => UserProfile) {
-    if (!this.profile) return this;
-    return new User({ ...this, profile: updateFn(this.profile) });
+    if (!this.profile) return this
+    return new User({ ...this, profile: updateFn(this.profile) })
   }
-  
-  updateProfileSettings(updateFn: (settings: UserProfile['settings']) => UserProfile['settings']) {
-    return this.updateProfile(profile => 
-      new UserProfile({ 
-        ...profile, 
-        settings: updateFn(profile.settings) 
-      })
-    );
+
+  updateProfileSettings(
+    updateFn: (settings: UserProfile["settings"]) => UserProfile["settings"],
+  ) {
+    return this.updateProfile(
+      (profile) =>
+        new UserProfile({
+          ...profile,
+          settings: updateFn(profile.settings),
+        }),
+    )
   }
 }
 
@@ -3501,17 +3485,16 @@ const user = new User({
   age: 25,
   profile: new UserProfile({
     bio: "Developer",
-    settings: { newsletter: true, notifications: false }
-  })
-});
+    settings: { newsletter: true, notifications: false },
+  }),
+})
 
 // Nested update - type-safe + immutable
-const updatedUser = user.updateProfileSettings(settings => ({
+const updatedUser = user.updateProfileSettings((settings) => ({
   ...settings,
-  notifications: true
-}));
+  notifications: true,
+}))
 ```
-
 
 ## Lösung 4: Functional Transformations ohne Validation
 
@@ -3522,34 +3505,27 @@ const updatedUser = user.updateProfileSettings(settings => ({
 const calculateUserStats = (users: Array<User>) => ({
   totalUsers: users.length,
   averageAge: users.reduce((sum, u) => sum + u.age, 0) / users.length,
-  activeUsers: users.filter(u => u.isActive).length
-});
+  activeUsers: users.filter((u) => u.isActive).length,
+})
 
 // Batch updates ohne Schema-Validierung
 const batchUpdateUsers = (
   users: Array<User>,
-  updateFn: (user: User) => User
-): Array<User> => users.map(updateFn);
+  updateFn: (user: User) => User,
+): Array<User> => users.map(updateFn)
 
 // Practical example
 const activateAllAdults = (users: Array<User>) =>
-  batchUpdateUsers(users, user => 
-    user.age >= 18 
-      ? user.updateBasicInfo({ isActive: true })
-      : user
-  );
+  batchUpdateUsers(users, (user) =>
+    user.age >= 18 ? user.updateBasicInfo({ isActive: true }) : user,
+  )
 
 // Functional pipeline ohne Boilerplate
-import { pipe } from "effect";
+import { pipe } from "effect"
 
 const processUsers = (users: Array<User>) =>
-  pipe(
-    users,
-    activateAllAdults,
-    calculateUserStats
-  );
+  pipe(users, activateAllAdults, calculateUserStats)
 ```
-
 
 ## Boundary-Pattern: Validierung nur wo nötig
 
@@ -3560,16 +3536,22 @@ const processUsers = (users: Array<User>) =>
 class UserService extends Context.Tag("UserService")<
   UserService,
   {
-    getUser: (id: string) => Effect.Effect<User, UserNotFound>;
-    updateUser: (id: string, updates: unknown) => Effect.Effect<User, ValidationError | UserNotFound>;
-    batchProcessUsers: () => Effect.Effect<{ totalUsers: number; averageAge: number; activeUsers: number }, DatabaseError>;
+    getUser: (id: string) => Effect.Effect<User, UserNotFound>
+    updateUser: (
+      id: string,
+      updates: unknown,
+    ) => Effect.Effect<User, ValidationError | UserNotFound>
+    batchProcessUsers: () => Effect.Effect<
+      { totalUsers: number; averageAge: number; activeUsers: number },
+      DatabaseError
+    >
   }
 >() {}
 
 const UserServiceLive = Layer.effect(
   UserService,
   Effect.gen(function* (_) {
-    const prisma = yield* _(PrismaService);
+    const prisma = yield* _(PrismaService)
 
     return {
       // Einmal validieren beim Laden aus DB
@@ -3578,68 +3560,68 @@ const UserServiceLive = Layer.effect(
           const rawUser = yield* _(
             Effect.tryPromise({
               try: () => prisma.user.findUnique({ where: { id } }),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
-          
-          if (!rawUser) return yield* _(Effect.fail(new UserNotFound(id)));
-          
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
+
+          if (!rawUser) return yield* _(Effect.fail(new UserNotFound(id)))
+
           // Boundary: Validierung nur hier
-          return yield* _(Schema.decodeUnknown(UserSchema)(rawUser));
+          return yield* _(Schema.decodeUnknown(UserSchema)(rawUser))
         }),
 
       // Einmal validieren bei API-Input
       updateUser: (id: string, rawUpdates: unknown) =>
         Effect.gen(function* (_) {
-          const user = yield* _(UserService.getUser(id));
-          
+          const user = yield* _(UserService.getUser(id))
+
           // Boundary: Input validieren
           const updates = yield* _(
-            Schema.decodeUnknown(UserUpdatesSchema)(rawUpdates)
-          );
-          
+            Schema.decodeUnknown(UserUpdatesSchema)(rawUpdates),
+          )
+
           // Core: Pure function - keine weitere Validierung
-          const updatedUser = user.updateBasicInfo(updates);
-          
+          const updatedUser = user.updateBasicInfo(updates)
+
           // Boundary: Save to DB
           yield* _(
             Effect.tryPromise({
-              try: () => prisma.user.update({
-                where: { id },
-                data: updatedUser
-              }),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
-          
-          return updatedUser;
+              try: () =>
+                prisma.user.update({
+                  where: { id },
+                  data: updatedUser,
+                }),
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
+
+          return updatedUser
         }),
 
-      // Core: Pure business logic ohne Schema-Overhead  
+      // Core: Pure business logic ohne Schema-Overhead
       batchProcessUsers: () =>
         Effect.gen(function* (_) {
           const rawUsers = yield* _(
             Effect.tryPromise({
               try: () => prisma.user.findMany(),
-              catch: (error) => new DatabaseError(error)
-            })
-          );
-          
+              catch: (error) => new DatabaseError(error),
+            }),
+          )
+
           // Boundary: Einmal validieren
           const users = yield* _(
             Effect.all(
-              rawUsers.map(user => Schema.decodeUnknown(UserSchema)(user))
-            )
-          );
-          
-          // Core: Pure business logic
-          return processUsers(users);
-        })
-    };
-  })
-);
-```
+              rawUsers.map((user) => Schema.decodeUnknown(UserSchema)(user)),
+            ),
+          )
 
+          // Core: Pure business logic
+          return processUsers(users)
+        }),
+    }
+  }),
+)
+```
 
 ## Das richtige Pattern für deinen Use Case
 
@@ -3648,53 +3630,50 @@ const UserServiceLive = Layer.effect(
 ```typescript
 // ✅ RICHTIG: Data.Class für DTOs
 class YouTubeVideo extends Data.Class<{
-  id: string;
-  title: string;
-  transcript: string;
-  publishedAt: Date;
-  tags: Array<string>;
-  processed: boolean;
+  id: string
+  title: string
+  transcript: string
+  publishedAt: Date
+  tags: Array<string>
+  processed: boolean
 }> {
   markAsProcessed() {
-    return new YouTubeVideo({ ...this, processed: true });
+    return new YouTubeVideo({ ...this, processed: true })
   }
-  
+
   addTags(newTags: Array<string>) {
-    return new YouTubeVideo({ 
-      ...this, 
-      tags: [...this.tags, ...newTags] 
-    });
+    return new YouTubeVideo({
+      ...this,
+      tags: [...this.tags, ...newTags],
+    })
   }
 }
 
 // ✅ RICHTIG: Pure functions für Business Logic
 const processTranscripts = (videos: Array<YouTubeVideo>) =>
-  videos.map(video => 
-    video.transcript.length > 0 
-      ? video.markAsProcessed()
-      : video
-  );
+  videos.map((video) =>
+    video.transcript.length > 0 ? video.markAsProcessed() : video,
+  )
 
 // ❌ FALSCH: Schema validation für interne Transforms
 const unnecessaryValidation = (video: YouTubeVideo) =>
   Effect.gen(function* (_) {
-    const processed = video.markAsProcessed();
+    const processed = video.markAsProcessed()
     // Unnötig - TypeScript garantiert bereits Type Safety
-    return yield* _(Schema.decodeUnknown(YouTubeVideoSchema)(processed));
-  });
+    return yield* _(Schema.decodeUnknown(YouTubeVideoSchema)(processed))
+  })
 ```
-
 
 ## Fazit: Validation nur an Boundaries
 
 **Schema-Validierung gehört nur an System-Boundaries:**
 
-* ✅ API Input/Output
-* ✅ Database Ein-/Ausgabe
-* ✅ External Service Calls
-* ❌ Interne DTO-Transformationen
-* ❌ Business Logic Functions
-* ❌ Pure Calculations
+- ✅ API Input/Output
+- ✅ Database Ein-/Ausgabe
+- ✅ External Service Calls
+- ❌ Interne DTO-Transformationen
+- ❌ Business Logic Functions
+- ❌ Pure Calculations
 
 **Für interne Logik**: `Data.Class` + Pure Functions + TypeScript's Type System reichen völlig aus. Du erhältst **Compile-Time Safety** ohne Runtime-Overhead und Boilerplate.
 
@@ -3711,9 +3690,9 @@ Genau so ist es.
 # Functional Core, Imperative Shell mit Effect Platform
 
 1. **Pure Core-Funktionen**
-    * Arbeiten ausschließlich mit bereits validierten Typs (`User`, `Post`, etc.).
-    * Nehmen Datensätze entgegen, führen immutable Updates oder Berechnungen aus und geben neue Instanzen zurück.
-    * Keine Runtime-Validierung, kein Effect-Overhead – nur TypeScript-Typen und reine JavaScript-Logik.
+   - Arbeiten ausschließlich mit bereits validierten Typs (`User`, `Post`, etc.).
+   - Nehmen Datensätze entgegen, führen immutable Updates oder Berechnungen aus und geben neue Instanzen zurück.
+   - Keine Runtime-Validierung, kein Effect-Overhead – nur TypeScript-Typen und reine JavaScript-Logik.
 
 Beispiel für ein Core-Update:
 
@@ -3721,16 +3700,16 @@ Beispiel für ein Core-Update:
 // Core-Funktion: erwartet bereits typisierten User
 function deactivateInactiveUser(user: User): User {
   if (user.age < 18) {
-    return user.updateBasicInfo({ isActive: false });
+    return user.updateBasicInfo({ isActive: false })
   }
-  return user;
+  return user
 }
 ```
 
 2. **Imperative Shell**
-    * Sitzt an den **Boundaries** (API-Handler, Datenbank-Zugriff).
-    * Führt genau dort einmalig **Schema-Validierung** durch (`Schema.decodeUnknown`).
-    * Nutzt Effect für Async/I-O, Fehlerbehandlung und Dependency Injection.
+   - Sitzt an den **Boundaries** (API-Handler, Datenbank-Zugriff).
+   - Führt genau dort einmalig **Schema-Validierung** durch (`Schema.decodeUnknown`).
+   - Nutzt Effect für Async/I-O, Fehlerbehandlung und Dependency Injection.
 
 Beispiel für einen API-Handler in Effect Platform:
 
@@ -3740,34 +3719,33 @@ const UserGroupLive = HttpApiGroup.makeHandler(UserGroup)({
     Effect.gen(function* (_) {
       // 1. Boundary: Rohdaten validieren
       const updates = yield* _(
-        Schema.decodeUnknown(UpdateUserBasicSchema)(payload)
-      );
-      
+        Schema.decodeUnknown(UpdateUserBasicSchema)(payload),
+      )
+
       // 2. Core: reiner, typisierter Update
-      const user = yield* _(UserService.getUser(userId));
-      const updated = deactivateInactiveUser(user).updateBasicInfo(updates);
-      
+      const user = yield* _(UserService.getUser(userId))
+      const updated = deactivateInactiveUser(user).updateBasicInfo(updates)
+
       // 3. Boundary: Persistierung und Rückgabe
-      yield* _(UserService.saveUser(updated));
-      
+      yield* _(UserService.saveUser(updated))
+
       // 4. Boundary: Ausgabe-Validierung
-      return yield* _(
-        Schema.decodeUnknown(UserResponseSchema)(updated)
-      );
-    })
-});
+      return yield* _(Schema.decodeUnknown(UserResponseSchema)(updated))
+    }),
+})
 ```
 
 3. **Vorteile dieser Trennung**
-    * **Klarer Fokus**: Core bleibt frei von Schema-Logik und Effect-Details.
-    * **Minimales Boilerplate**: Validierung nur an den Übergängen, nicht in jedem Core-Schritt.
-    * **Maximale Type-Safety**: Core-Funktionen arbeiten mit typsicheren Instanzen dank `Data.Class` oder `Schema.Type`.
-    * **Einfache Tests**: Pure Funktionen sind isoliert und leicht zu unit-testen ohne Mocks.
+   - **Klarer Fokus**: Core bleibt frei von Schema-Logik und Effect-Details.
+   - **Minimales Boilerplate**: Validierung nur an den Übergängen, nicht in jedem Core-Schritt.
+   - **Maximale Type-Safety**: Core-Funktionen arbeiten mit typsicheren Instanzen dank `Data.Class` oder `Schema.Type`.
+   - **Einfache Tests**: Pure Funktionen sind isoliert und leicht zu unit-testen ohne Mocks.
 
 > **Zusammenfassung:**
-> *  *Core*: reine Funktionen, immutable Updates, keine Runtime-Validierung.
-> *  *Shell*: Effect-gestützte I/O und Exception-Handling, einmalige Schema-Validierung an Ein- und Ausgängen.
-> Diese Architektur folgt exakt dem *Functional Core, Imperative Shell*-Pattern und nutzt die Stärken von Effect Platform optimal aus.
+>
+> - _Core_: reine Funktionen, immutable Updates, keine Runtime-Validierung.
+> - _Shell_: Effect-gestützte I/O und Exception-Handling, einmalige Schema-Validierung an Ein- und Ausgängen.
+>   Diese Architektur folgt exakt dem _Functional Core, Imperative Shell_-Pattern und nutzt die Stärken von Effect Platform optimal aus.
 
 ---
 
@@ -3787,12 +3765,11 @@ Installiere
 bun add @effect/data
 ```
 
-
 ### 1.1. Optionale und Prädikate
 
-* `Effect.data.Function.pipe` – wie Ramda’s `pipe`
-* `Effect.data.Predicate.every` / `.allPass`
-* `Effect.data.Predicate.any` / `.anyPass`
+- `Effect.data.Function.pipe` – wie Ramda’s `pipe`
+- `Effect.data.Predicate.every` / `.allPass`
+- `Effect.data.Predicate.any` / `.anyPass`
 
 ```ts
 import * as P from "@effect/data/Predicate"
@@ -3800,42 +3777,39 @@ const isEven = (n: number) => n % 2 === 0
 const isPositive = (n: number) => n > 0
 
 const allCheck = P.every([isEven, isPositive])
-allCheck(4)  // true
+allCheck(4) // true
 allCheck(-2) // false
 ```
 
-
 ### 1.2. ReadonlyArray Utilities
 
-* `ReadonlyArray.head` / `ReadonlyArray.tail`
-* `ReadonlyArray.dropWhile` / `dropLeftWhile`
-* `ReadonlyArray.partition`
-* `ReadonlyArray.zipWith` / `zip`
+- `ReadonlyArray.head` / `ReadonlyArray.tail`
+- `ReadonlyArray.dropWhile` / `dropLeftWhile`
+- `ReadonlyArray.partition`
+- `ReadonlyArray.zipWith` / `zip`
 
 ```ts
 import * as A from "@effect/data/ReadonlyArray"
 
-const nums = [1,2,3,4] as const
-A.head(nums)         // Option.some(1)
-A.dropWhile(nums, n => n < 3) // [3,4]
-A.partition(nums, n => n % 2 === 0) // { left: [1,3], right: [2,4] }
-A.zip([1,2], ['a','b'])          // [(1,'a'),(2,'b')]
+const nums = [1, 2, 3, 4] as const
+A.head(nums) // Option.some(1)
+A.dropWhile(nums, (n) => n < 3) // [3,4]
+A.partition(nums, (n) => n % 2 === 0) // { left: [1,3], right: [2,4] }
+A.zip([1, 2], ["a", "b"]) // [(1,'a'),(2,'b')]
 ```
-
 
 ### 1.3. Record Utilities
 
-* `Record.zipKeys`
-* `Record.filter` / `filterMap` / `map`
+- `Record.zipKeys`
+- `Record.filter` / `filterMap` / `map`
 
 ```ts
 import * as R from "@effect/data/Record"
 
-const keys = ["a","b"] as const
-const values = [1,2] as const
+const keys = ["a", "b"] as const
+const values = [1, 2] as const
 R.zipKeys(keys, values) // { a:1, b:2 }
 ```
-
 
 ### 1.4. Lenses und Optics
 
@@ -3850,29 +3824,26 @@ const updated = O.set(nameLens, "Bob")(user)
 // updated.profile.name === "Bob"
 ```
 
-
 ### 1.5. Weitere Helfer
 
-* `List.flatten`, `concat`, `adjust`
-* `String`-Utilities: `startsWith`, `endsWith`, `trim`
+- `List.flatten`, `concat`, `adjust`
+- `String`-Utilities: `startsWith`, `endsWith`, `trim`
 
 Alle Funktionen sind im Namespace `@effect/data`, aufgeteilt auf Module:
 
-* `@effect/data/Function`
-* `@effect/data/Predicate`
-* `@effect/data/Option`
-* `@effect/data/ReadonlyArray`
-* `@effect/data/Record`
-* `@effect/data/Optic`
-* u.v.m.
-
+- `@effect/data/Function`
+- `@effect/data/Predicate`
+- `@effect/data/Option`
+- `@effect/data/ReadonlyArray`
+- `@effect/data/Record`
+- `@effect/data/Optic`
+- u.v.m.
 
 ## 2. Warum nicht Ramda direkt verwenden?
 
-* **Konsistentes Ökosystem**: `@effect/data` verwendet dieselben Typen (`ReadonlyArray`, `Option`, etc.) und ist perfekt mit Effect kombatibel.
-* **Tree-Shakeable**: Nur die genutzten Module landen im Bundle.
-* **Type-Safe**: Komplett in TypeScript geschrieben, mit präzisen Typsignaturen.
-
+- **Konsistentes Ökosystem**: `@effect/data` verwendet dieselben Typen (`ReadonlyArray`, `Option`, etc.) und ist perfekt mit Effect kombatibel.
+- **Tree-Shakeable**: Nur die genutzten Module landen im Bundle.
+- **Type-Safe**: Komplett in TypeScript geschrieben, mit präzisen Typsignaturen.
 
 ## 3. Beispiel: allPass, head, dropWhile, partition
 
@@ -3882,18 +3853,18 @@ import * as A from "@effect/data/ReadonlyArray"
 import * as O from "@effect/data/Option"
 
 // allPass
-const isNonZeroEven = P.every([n => n !== 0, n => n % 2 === 0])
-isNonZeroEven(4)  // true
+const isNonZeroEven = P.every([(n) => n !== 0, (n) => n % 2 === 0])
+isNonZeroEven(4) // true
 
 // head
-A.head([10,20,30])   // Option.some(10)
-A.head([])           // Option.none()
+A.head([10, 20, 30]) // Option.some(10)
+A.head([]) // Option.none()
 
 // dropWhile
-A.dropLeftWhile([1,2,3,4], n => n < 3) // [3,4]
+A.dropLeftWhile([1, 2, 3, 4], (n) => n < 3) // [3,4]
 
 // partition
-A.partition([1,2,3,4], n => n % 2 === 0)
+A.partition([1, 2, 3, 4], (n) => n % 2 === 0)
 // → { left: [1,3], right: [2,4] }
 ```
 
@@ -3903,7 +3874,6 @@ Mit **@effect/data** hast du alle gängigen Ramda-Patterns in einem typ­sichere
 <div align="center">⁂</div>
 
 [^13_1]: https://ramdajs.com/docs/
-
 
 ---
 
@@ -3915,7 +3885,7 @@ Mit **@effect/data** hast du alle gängigen Ramda-Patterns in einem typ­sichere
 
 Um sowohl **Monorepos** als auch **separate Repos** für Server und Clients zu unterstützen, bietet sich folgendes Muster an:
 
-***
+---
 
 ## 1. Shared-Package für API-Definitionen und Schemas
 
@@ -3927,7 +3897,7 @@ Lege in beiden Fällen (Mono- oder Multi-Repo) ein **zentrales Package** an, das
 │  ├─ schemas/
 │  │   ├─ User.ts
 │  │   ├─ Post.ts
-│  │   └─ …  
+│  │   └─ …
 │  ├─ api/
 │  │   └─ YoutubeTranscriptsApi.ts
 │  └─ index.ts         // exportiert alle Schemas und HttpApi-Gruppen
@@ -3935,10 +3905,10 @@ Lege in beiden Fällen (Mono- oder Multi-Repo) ein **zentrales Package** an, das
 └─ README.md
 ```
 
-* **Im Monorepo**: wird `shared-api` als lokal verlinktes Package genutzt.
-* **In separaten Repos**: veröffentlicht ihr `@your-org/shared-api` im eigenen Registry (npm/Git) und bindet es via `bun add @your-org/shared-api`.
+- **Im Monorepo**: wird `shared-api` als lokal verlinktes Package genutzt.
+- **In separaten Repos**: veröffentlicht ihr `@your-org/shared-api` im eigenen Registry (npm/Git) und bindet es via `bun add @your-org/shared-api`.
 
-***
+---
 
 ## 2. Server-Repo
 
@@ -3955,15 +3925,19 @@ backend/
 └─ README.md
 ```
 
-* **Import aus Shared-API**:
+- **Import aus Shared-API**:
 
 ```ts
-import { YoutubeTranscriptsApi, CreateUserRequest, UserResponse } from "@your-org/shared-api";
+import {
+  YoutubeTranscriptsApi,
+  CreateUserRequest,
+  UserResponse,
+} from "@your-org/shared-api"
 ```
 
-* **Effect Platform**: Nutzt die API-Definitionen für Handler-Registrierung und OpenAPI-Gen.
+- **Effect Platform**: Nutzt die API-Definitionen für Handler-Registrierung und OpenAPI-Gen.
 
-***
+---
 
 ## 3. Client-Repo
 
@@ -3977,7 +3951,7 @@ frontend/
 └─ README.md
 ```
 
-* **HttpApiClient**:
+- **HttpApiClient**:
 
 ```ts
 import { HttpApiClient } from "@effect/platform";
@@ -3986,8 +3960,7 @@ import { YoutubeTranscriptsApi } from "@your-org/shared-api";
 export const client = HttpApiClient.make(YoutubeTranscriptsApi, { baseUrl: … });
 ```
 
-
-***
+---
 
 ## 4. Monorepo-Setup (optional)
 
@@ -4001,24 +3974,24 @@ repo-root/
 └─ turborepo.json or pnpm-workspace.yaml
 ```
 
-* Gemeinsame Tool-Konfiguration, einheitliches Linting/Formatting, zentrale `tsconfig.json`.
+- Gemeinsame Tool-Konfiguration, einheitliches Linting/Formatting, zentrale `tsconfig.json`.
 
-***
+---
 
 ## 5. Deployment und Versionierung
 
-* `shared-api` versionieren eigenständig.
-* Backend- und Frontend-Repos pinnen die Version von `@your-org/shared-api`.
-* Änderungen an Schemas nur über Minor-Releases freigeben, damit bestehende Clients nicht brechen.
+- `shared-api` versionieren eigenständig.
+- Backend- und Frontend-Repos pinnen die Version von `@your-org/shared-api`.
+- Änderungen an Schemas nur über Minor-Releases freigeben, damit bestehende Clients nicht brechen.
 
-***
+---
 
 ## 6. Vorteile dieses Ansatzes
 
-* **Doppelter Nutzen**: Monorepo-Wünsche und separierte Repos werden gleichermaßen unterstützt.
-* **Schema-Konsistenz**: Alle Clients und Server nutzen exakt dieselben DTOs und API-Definitionen.
-* **Automatische Doku**: OpenAPI-Spec wird im Server aus `shared-api` generiert und kann Clients bereitgestellt werden.
-* **Unabhängige Entwicklung**: Server- und Client-Teams können autonom arbeiten, solange die `shared-api`-Schnittstelle eingehalten wird.
+- **Doppelter Nutzen**: Monorepo-Wünsche und separierte Repos werden gleichermaßen unterstützt.
+- **Schema-Konsistenz**: Alle Clients und Server nutzen exakt dieselben DTOs und API-Definitionen.
+- **Automatische Doku**: OpenAPI-Spec wird im Server aus `shared-api` generiert und kann Clients bereitgestellt werden.
+- **Unabhängige Entwicklung**: Server- und Client-Teams können autonom arbeiten, solange die `shared-api`-Schnittstelle eingehalten wird.
 
 Mit dieser Struktur erreichst du maximale **Wiederverwendbarkeit**, **Typ-Sicherheit** und **Developer Experience** in allen von dir beschriebenen Szenarien.
 
@@ -4031,30 +4004,30 @@ Mit dieser Struktur erreichst du maximale **Wiederverwendbarkeit**, **Typ-Sicher
 # VS Code Extensions für ein besseres Developer Experience mit Bun + Prisma + Effect Platform
 
 1. **Prisma**
-    * *Prisma* – Offizielle Extension von Prisma für Autocomplete in `schema.prisma`, Migrations-Commands, und integriertes Prisma Studio im Editor.
-    * Prisma-Lens – Zeigt automatische Lenses und Tipps für Model-Fields.
+   - _Prisma_ – Offizielle Extension von Prisma für Autocomplete in `schema.prisma`, Migrations-Commands, und integriertes Prisma Studio im Editor.
+   - Prisma-Lens – Zeigt automatische Lenses und Tipps für Model-Fields.
 2. **Effect \& @effect/schema**
-    * *TypeScript Data Class Snippets* – Community-Snippets für `Data.Class`, `Schema.Struct` und `Schema.transform`, um Core-Patterns schnell einzufügen.
-    * *effect-schema-intellisense* – Fügt Inline-Dokumentation für `@effect/schema` Typen und Validierungs-Pipes hinzu.
+   - _TypeScript Data Class Snippets_ – Community-Snippets für `Data.Class`, `Schema.Struct` und `Schema.transform`, um Core-Patterns schnell einzufügen.
+   - _effect-schema-intellisense_ – Fügt Inline-Dokumentation für `@effect/schema` Typen und Validierungs-Pipes hinzu.
 3. **OpenAPI \& HTTP Clients**
-    * *OpenAPI (Swagger) Viewer* – Live-Preview deiner generierten Spec im Editor (z. B. „Swagger Viewer“).
-    * *REST Client* – `.http`-Dateien mit Autocomplete der Pfade aus deiner `shared-api` OpenAPI-Spec.
+   - _OpenAPI (Swagger) Viewer_ – Live-Preview deiner generierten Spec im Editor (z. B. „Swagger Viewer“).
+   - _REST Client_ – `.http`-Dateien mit Autocomplete der Pfade aus deiner `shared-api` OpenAPI-Spec.
 4. **Zod \& Validation**
-    * *Zod Snippets* – Schnell­snippets für Zod-Schemas, etwa `z.object({...})`, `z.string().email()`, usw.
-    * *zod-error-formatter* – Zeigt Typos und ungültige Schema-Methoden bereits beim Tippen an.
+   - _Zod Snippets_ – Schnell­snippets für Zod-Schemas, etwa `z.object({...})`, `z.string().email()`, usw.
+   - _zod-error-formatter_ – Zeigt Typos und ungültige Schema-Methoden bereits beim Tippen an.
 5. **Bun \& Monorepo**
-    * *Bun Runner* – Extension, um `bun run`, `bun test`, `bun dev` direkt aus dem Editor auszuführen.
-    * *TurboRepo* / *Nx Console* – GUI für Monorepo-Task-Ausführung, Caching, und Dependency-Graph.
+   - _Bun Runner_ – Extension, um `bun run`, `bun test`, `bun dev` direkt aus dem Editor auszuführen.
+   - _TurboRepo_ / _Nx Console_ – GUI für Monorepo-Task-Ausführung, Caching, und Dependency-Graph.
 6. **General Purpose**
-    * *ESLint* + *Prettier* – Achte auf `@effect/data` Immutability-Lint-Regeln, z. B. keine Mutation von DTOs.
-    * *Import Cost* – Zeigt Bundle-Size-Kosten jeder importierten Extension (z. B. `@effect/data` vs. Ramda).
-    * *Path IntelliSense* – Schnelles Autocomplete für Monorepo-Aliases (`@shared-api/*`).
-    * *GitLens* – Sorgt für bessere Code-History-Einblicke in deinem Multi-Repo Setup.
+   - _ESLint_ + _Prettier_ – Achte auf `@effect/data` Immutability-Lint-Regeln, z. B. keine Mutation von DTOs.
+   - _Import Cost_ – Zeigt Bundle-Size-Kosten jeder importierten Extension (z. B. `@effect/data` vs. Ramda).
+   - _Path IntelliSense_ – Schnelles Autocomplete für Monorepo-Aliases (`@shared-api/*`).
+   - _GitLens_ – Sorgt für bessere Code-History-Einblicke in deinem Multi-Repo Setup.
 7. **Optional: Functional Patterns**
-    * *Ramda-Re-imports* – Falls du neben `@effect/data` auch Ramda nutzt, kannst du mit einer Ramda-Extension schnell `R.map`, `R.filter` importieren.
-    * *Prelude-Snippets* – Boilerplate-freie Einfügehilfen für häufige functional core Patterns (`pipe`, `flow`, `Option.match`).
+   - _Ramda-Re-imports_ – Falls du neben `@effect/data` auch Ramda nutzt, kannst du mit einer Ramda-Extension schnell `R.map`, `R.filter` importieren.
+   - _Prelude-Snippets_ – Boilerplate-freie Einfügehilfen für häufige functional core Patterns (`pipe`, `flow`, `Option.match`).
 
-***
+---
 
 **Empfehlung**
 Installiere in VS Code:
@@ -4087,42 +4060,40 @@ Diese Kombination ergänzt das TypeScript LSP um **spezielles Wissen** zu deinem
 Da ihr ausschließlich **Effect** (und **Prisma**) verwendet, empfiehlt es sich, den VS Code-Editor mit folgenden Extensions zu optimieren:
 
 1. **TypeScript + Effect Schema**
-    * **effect-schema-intellisense**
-– Autocomplete und Inlay-Hints für `@effect/schema`-APIs (z. B. `Schema.struct`, `Schema.transform`).
-    * **@effect/data Snippets**
-– Code-Snippets für `Data.Class`, `Ref.make`, `SynchronizedRef`, `Optic.lens` etc.
+   _ **effect-schema-intellisense**
+   – Autocomplete und Inlay-Hints für `@effect/schema`-APIs (z. B. `Schema.struct`, `Schema.transform`).
+   _ **@effect/data Snippets**
+   – Code-Snippets für `Data.Class`, `Ref.make`, `SynchronizedRef`, `Optic.lens` etc.
 2. **Prisma**
-    * **Prisma** (offiziell)
-– Schema-Prisma-Autocomplete, Migrations-Runner, Prisma Studio Launch.
-    * **Prisma-Lens**
-– Inline-Hinweise zu Model-Feldern und Relations im Prisma-Schema.
+   _ **Prisma** (offiziell)
+   – Schema-Prisma-Autocomplete, Migrations-Runner, Prisma Studio Launch.
+   _ **Prisma-Lens**
+   – Inline-Hinweise zu Model-Feldern und Relations im Prisma-Schema.
 3. **OpenAPI \& REST Client**
-    * **Swagger Viewer**
-– Live-Preview eurer automatisch aus `@effect/platform` generierten OpenAPI-Spec.
-    * **REST Client**
-– `.http`-Dateien mit Autocomplete der Endpunkte aus eurer OpenAPI-Spec.
+   _ **Swagger Viewer**
+   – Live-Preview eurer automatisch aus `@effect/platform` generierten OpenAPI-Spec.
+   _ **REST Client**
+   – `.http`-Dateien mit Autocomplete der Endpunkte aus eurer OpenAPI-Spec.
 4. **Bun**
-    * **Bun Runner**
-– Direkt im Editor mit `bun run`, `bun test`, `bun dev` starten und Fehler anzeigen.
-    * **Path IntelliSense**
-– Schnellimporte für Monorepo-Aliases wie `@your-org/shared-api`.
-5. **Monorepo-Unterstützung**
-    * **TurboRepo** oder **Nx Console**
-– GUI-Interface zum Ausführen von Tasks, Caching und Visualisierung eures Package-Graphen.
+   _ **Bun Runner**
+   – Direkt im Editor mit `bun run`, `bun test`, `bun dev` starten und Fehler anzeigen.
+   _ **Path IntelliSense**
+   – Schnellimporte für Monorepo-Aliases wie `@your-org/shared-api`.
+5. **Monorepo-Unterstützung** \* **TurboRepo** oder **Nx Console**
+   – GUI-Interface zum Ausführen von Tasks, Caching und Visualisierung eures Package-Graphen.
 6. **Code Quality \& Formatting**
-    * **ESLint** (mit TypeScript-Konfiguration)
-– Sorgt für konsistente Code-Qualität, z. B. Verbot von Mutationen im Core.
-    * **Prettier**
-– Einheitliches Code-Formatting.
-    * **Import Cost**
-– Zeigt beim Import die Größe von `@effect/data` oder anderen Paketen an.
+   _ **ESLint** (mit TypeScript-Konfiguration)
+   – Sorgt für konsistente Code-Qualität, z. B. Verbot von Mutationen im Core.
+   _ **Prettier**
+   – Einheitliches Code-Formatting. \* **Import Cost**
+   – Zeigt beim Import die Größe von `@effect/data` oder anderen Paketen an.
 7. **Git \& Projektmanagement**
-    * **GitLens**
-– Detaillierte Git-History und Blame-Infos im Editor.
-    * **Project Dashboard**
-– Übersicht aller Workspaces/Repos in eurem Monorepo.
+   _ **GitLens**
+   – Detaillierte Git-History und Blame-Infos im Editor.
+   _ **Project Dashboard**
+   – Übersicht aller Workspaces/Repos in eurem Monorepo.
 
-***
+---
 
 Mit dieser Auswahl fokussierst du dich auf **Effect**, **Prisma** und **Bun** und vermeidest Extensions für Zod oder Ramda. Die Dev-Experience in VS Code wird so optimal an euren Stack angepasst.
 
@@ -4135,7 +4106,7 @@ Mit dieser Auswahl fokussierst du dich auf **Effect**, **Prisma** und **Bun** un
 Ja, du kannst beliebig viele Shared-Packages anlegen, um APIs und Schemas modular zu organisieren.
 
 1. **Domain-spezifische Packages**
-Lege für jede fachliche Domäne ein eigenes Package an:
+   Lege für jede fachliche Domäne ein eigenes Package an:
 
 ```
 /packages/
@@ -4144,19 +4115,17 @@ Lege für jede fachliche Domäne ein eigenes Package an:
 └─ shared-api-transcripts/
 ```
 
-Jedes enthält nur Schemas, DTOs und HttpApi-Definitionen für seine Domäne.
-2. **Haupt-API-Aggregator**
+Jedes enthält nur Schemas, DTOs und HttpApi-Definitionen für seine Domäne. 2. **Haupt-API-Aggregator**
 Erstelle ein weiteres Package, das nur die benötigten Sub-APIs kombiniert:
 
 ```ts
-import { UserApi } from "@your-org/shared-api-users";
-import { PostApi } from "@your-org/shared-api-posts";
+import { UserApi } from "@your-org/shared-api-users"
+import { PostApi } from "@your-org/shared-api-posts"
 
-export const MainApi = HttpApi.combine(UserApi, PostApi);
+export const MainApi = HttpApi.combine(UserApi, PostApi)
 ```
 
-So können Monorepo-Projekte alles importieren, während Einzel-Apps nur ihr Domain-Package nutzen.
-3. **Versionierung \& Abhängigkeiten**
+So können Monorepo-Projekte alles importieren, während Einzel-Apps nur ihr Domain-Package nutzen. 3. **Versionierung \& Abhängigkeiten**
 Jedes Package versionierst du eigenständig (z. B. `1.0.0`, `1.1.0`).
 Projekte importieren genau die Pakete, die sie brauchen:
 
@@ -4165,10 +4134,10 @@ bun add @your-org/shared-api-users @your-org/shared-api-transcripts
 ```
 
 4. **Vorteile**
-    * **Kohäsion**: Jede Domäne pflegt nur ihre Schemas.
-    * **Loose Coupling**: Änderungen in einem Domain-Paket betreffen nur Abonnenten dieses Pakets.
-    * **Flexibilität**: Einzelne Micro-Frontends oder spezialisierte Services können nur die für sie relevanten APIs importieren.
-    * **Einfache CI/CD**: Du kannst Domain-Packages unabhängig deployen und versionieren.
+   - **Kohäsion**: Jede Domäne pflegt nur ihre Schemas.
+   - **Loose Coupling**: Änderungen in einem Domain-Paket betreffen nur Abonnenten dieses Pakets.
+   - **Flexibilität**: Einzelne Micro-Frontends oder spezialisierte Services können nur die für sie relevanten APIs importieren.
+   - **Einfache CI/CD**: Du kannst Domain-Packages unabhängig deployen und versionieren.
 
 **Fazit:** Mehrere Schema-/API-Packages ermöglichen dir, dein Monorepo oder Multi-Repo sauber zu strukturieren, Domänen klar zu trennen und unnötige Abhängigkeiten zu vermeiden.
 
@@ -4182,44 +4151,41 @@ bun add @your-org/shared-api-users @your-org/shared-api-transcripts
 
 ## 1. Ganzen Code im Monorepo verwalten
 
-* **Alle internen Pakete** (Shared-API, Backend, Clients, Utilities) liegen in einem Monorepo und nutzen Workspaces (pnpm, Yarn, Bun Workspaces).
-* **Gemeinsame Abhängigkeiten** werden jeweils automatisch auf dieselbe Version gelinkt – kein `npm install shared-api@^1.2.3` in jedem Repo nötig, sondern einfach `import "@your-org/shared-api"`.
+- **Alle internen Pakete** (Shared-API, Backend, Clients, Utilities) liegen in einem Monorepo und nutzen Workspaces (pnpm, Yarn, Bun Workspaces).
+- **Gemeinsame Abhängigkeiten** werden jeweils automatisch auf dieselbe Version gelinkt – kein `npm install shared-api@^1.2.3` in jedem Repo nötig, sondern einfach `import "@your-org/shared-api"`.
 
 **Vorteile**
 
-* **Schnelleres Refactoring**: Änderungen an Shared-API sofort in allen Projekten wirksam.
-* **Keine Version-Pinning-Probleme**: Workspaces lösen auf lokale Packages ohne Version-Lock.
-* **Einheitliches Setup**: gemeinsame Lint-, Test- und Build-Konfiguration.
-
+- **Schnelleres Refactoring**: Änderungen an Shared-API sofort in allen Projekten wirksam.
+- **Keine Version-Pinning-Probleme**: Workspaces lösen auf lokale Packages ohne Version-Lock.
+- **Einheitliches Setup**: gemeinsame Lint-, Test- und Build-Konfiguration.
 
 ## 2. Open-Source auslagern
 
-* **Selective Publishing**: Für Pakete, die du extern teilen möchtest (z. B. Shared-API), verwendest du einen getrennten CI-Job, der nur diese Packages aus dem Monorepo an npm/GitHub veröffentlicht.
-* **Quell-Code**: Der Source-Code bleibt im Monorepo, du teilst nur das Package-Verzeichnis als npm-Package.
+- **Selective Publishing**: Für Pakete, die du extern teilen möchtest (z. B. Shared-API), verwendest du einen getrennten CI-Job, der nur diese Packages aus dem Monorepo an npm/GitHub veröffentlicht.
+- **Quell-Code**: Der Source-Code bleibt im Monorepo, du teilst nur das Package-Verzeichnis als npm-Package.
 
 **Vorteile**
 
-* Intern bleibende Komponenten sind nicht öffentlich.
-* Externe Nutzer erhalten nur das API-Package, inklusive Dokumentation und Schema-Definitionen.
-* Versions- und Change-Management passiert zentral im Monorepo, aber nur ausgewählte Pakete bekommen Releases.
-
+- Intern bleibende Komponenten sind nicht öffentlich.
+- Externe Nutzer erhalten nur das API-Package, inklusive Dokumentation und Schema-Definitionen.
+- Versions- und Change-Management passiert zentral im Monorepo, aber nur ausgewählte Pakete bekommen Releases.
 
 ## 3. Automatisches Version-Bumping
 
-* **Conventional Commits** + **Changesets**: Automatisiere Versionsverwaltung im Monorepo. Einem Pull Request wird automatisch eine neue Version für das Shared-API-Package zugewiesen und veröffentlicht.
-* **Floating Dependencies**: Intern verweist dein Backend- und Frontend-Code auf `"@your-org/shared-api": "*"` oder `"workspace:*"`, sodass bei jedem Commit automatisch die aktuelle Version verwendet wird.
-
+- **Conventional Commits** + **Changesets**: Automatisiere Versionsverwaltung im Monorepo. Einem Pull Request wird automatisch eine neue Version für das Shared-API-Package zugewiesen und veröffentlicht.
+- **Floating Dependencies**: Intern verweist dein Backend- und Frontend-Code auf `"@your-org/shared-api": "*"` oder `"workspace:*"`, sodass bei jedem Commit automatisch die aktuelle Version verwendet wird.
 
 ## 4. Alternative: Repos nur für Open-Source-Pakete
 
-* Monorepo bleibt alleiniger Source of Truth.
-* Für jedes veröffentlichte Open-Source-Paket (z. B. Shared-API) erzeugst du ein **Mirror-Repo** mit leerem Code direkt aus dem Monorepo (z. B. via GitHub Actions), das als öffentliches Repo dient.
+- Monorepo bleibt alleiniger Source of Truth.
+- Für jedes veröffentlichte Open-Source-Paket (z. B. Shared-API) erzeugst du ein **Mirror-Repo** mit leerem Code direkt aus dem Monorepo (z. B. via GitHub Actions), das als öffentliches Repo dient.
 
 **Fazit**
 
-* **Monorepo + Workspaces** löst dein Sync-Problem vollständig.
-* **Selective Publishing** oder **Mirror-Repos** gestatten dir, nur bestimmte Pakete öffentlich zu stellen.
-* **Automatisierte Versionierung** via Changesets sorgt dafür, dass interne und externe Projekte stets auf die neueste Version des Shared-API zugreifen, ohne manuelles Pinnen.
+- **Monorepo + Workspaces** löst dein Sync-Problem vollständig.
+- **Selective Publishing** oder **Mirror-Repos** gestatten dir, nur bestimmte Pakete öffentlich zu stellen.
+- **Automatisierte Versionierung** via Changesets sorgt dafür, dass interne und externe Projekte stets auf die neueste Version des Shared-API zugreifen, ohne manuelles Pinnen.
 
 ---
 
@@ -4245,11 +4211,10 @@ public-monorepo/  (GitHub öffentlich)
 
 **Vorteile:**
 
-* **Community Development**: Andere können beitragen, Issues erstellen, PRs einreichen
-* **Automatische Synchronisation**: Alle öffentlichen Pakete bleiben automatisch auf derselben Version
-* **Einheitliche CI/CD**: Tests, Linting, Builds für alle öffentlichen Pakete
-* **Transparenz**: API-Änderungen sind für alle Nutzer sichtbar
-
+- **Community Development**: Andere können beitragen, Issues erstellen, PRs einreichen
+- **Automatische Synchronisation**: Alle öffentlichen Pakete bleiben automatisch auf derselben Version
+- **Einheitliche CI/CD**: Tests, Linting, Builds für alle öffentlichen Pakete
+- **Transparenz**: API-Änderungen sind für alle Nutzer sichtbar
 
 ## 2. Private Repos verwenden Published Packages
 
@@ -4269,22 +4234,21 @@ private-notes-app/  (Private Repo)
 
 ```typescript
 // Private Projekt
-import { HttpApiClient } from "@effect/platform";
-import { YouTubeTranscriptsApi, TranscriptSchema } from "@your-org/shared-api";
+import { HttpApiClient } from "@effect/platform"
+import { YouTubeTranscriptsApi, TranscriptSchema } from "@your-org/shared-api"
 
 const youtubeClient = HttpApiClient.make(YouTubeTranscriptsApi, {
-  baseUrl: "https://your-public-api.com"
-});
+  baseUrl: "https://your-public-api.com",
+})
 
 // Private Business Logic
 const integrateTranscriptIntoNotes = (transcript: TranscriptSchema) =>
   Effect.gen(function* (_) {
     // Private Logik für Notizen-Integration
-    const formattedNote = formatTranscriptAsNote(transcript);
-    yield* _(saveToPrivateDatabase(formattedNote));
-  });
+    const formattedNote = formatTranscriptAsNote(transcript)
+    yield* _(saveToPrivateDatabase(formattedNote))
+  })
 ```
-
 
 ## 3. Publishing Strategy
 
@@ -4303,11 +4267,10 @@ jobs:
       - uses: actions/checkout@v3
       - run: bun install
       - run: bun run build
-      - run: bun run changeset publish  # Veröffentlicht nur veränderte Pakete
+      - run: bun run changeset publish # Veröffentlicht nur veränderte Pakete
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
-
 
 ### Scoped Packages
 
@@ -4326,7 +4289,6 @@ jobs:
 }
 ```
 
-
 ## 4. Development Workflow
 
 ### Öffentliche Entwicklung
@@ -4343,7 +4305,6 @@ git commit -m "feat: add video duration to transcript schema"
 git push       # Triggert automatisches Publishing
 ```
 
-
 ### Private Entwicklung
 
 ```bash
@@ -4357,30 +4318,26 @@ git commit -m "feat: integrate new transcript duration field"
 git push origin main  # Bleibt privat
 ```
 
-
 ## 5. Vorteile dieser Architektur
 
 ### Für öffentliche Entwicklung:
 
-* **Community-Driven**: Andere können beitragen und das Ökosystem erweitern
-* **Monorepo-Vorteile**: Schnelle Refactoring, einheitliche Standards
-* **Automatisierung**: CI/CD für alle Pakete gleichzeitig
-
+- **Community-Driven**: Andere können beitragen und das Ökosystem erweitern
+- **Monorepo-Vorteile**: Schnelle Refactoring, einheitliche Standards
+- **Automatisierung**: CI/CD für alle Pakete gleichzeitig
 
 ### Für private Projekte:
 
-* **Stabile APIs**: Nutzt versionierte, getestete Packages
-* **Flexibilität**: Kann eigene Release-Zyklen haben
-* **Sicherheit**: Private Business Logic bleibt geheim
-* **Simplicity**: Normale npm-Dependencies, kein komplexes Setup
-
+- **Stabile APIs**: Nutzt versionierte, getestete Packages
+- **Flexibilität**: Kann eigene Release-Zyklen haben
+- **Sicherheit**: Private Business Logic bleibt geheim
+- **Simplicity**: Normale npm-Dependencies, kein komplexes Setup
 
 ### Für beide:
 
-* **Type Safety**: Shared Schemas garantieren Kompatibilität
-* **Documentation**: OpenAPI-Specs werden automatisch generiert und veröffentlicht
-* **Versioning**: Semantic Versioning für backward compatibility
-
+- **Type Safety**: Shared Schemas garantieren Kompatibilität
+- **Documentation**: OpenAPI-Specs werden automatisch generiert und veröffentlicht
+- **Versioning**: Semantic Versioning für backward compatibility
 
 ## 6. Migration Path
 
@@ -4410,7 +4367,7 @@ Du hast völlig recht - der Publish-Zyklus ist unbrauchbar für aktive Entwicklu
 cd public-monorepo/packages/shared-api
 bun link
 
-cd public-monorepo/packages/youtube-client-sdk  
+cd public-monorepo/packages/youtube-client-sdk
 bun link
 
 # Im privaten Repo
@@ -4418,7 +4375,6 @@ cd private-notes-app
 bun link @your-org/shared-api
 bun link @your-org/youtube-client-sdk
 ```
-
 
 ### Development Workflow:
 
@@ -4428,12 +4384,11 @@ cd public-monorepo
 bun run dev --watch  # Rebuilt automatisch bei Änderungen
 
 # Terminal 2: Privates Projekt
-cd private-notes-app  
+cd private-notes-app
 bun run dev  # Verwendet automatisch die lokalen Links
 
 # Änderungen im öffentlichen Code sind sofort im privaten Projekt verfügbar!
 ```
-
 
 ## 2. Noch besser: Monorepo mit Private Workspace
 
@@ -4451,7 +4406,6 @@ public-monorepo/
 └─ package.json
 ```
 
-
 ### .gitignore:
 
 ```gitignore
@@ -4459,18 +4413,13 @@ public-monorepo/
 /private/
 ```
 
-
 ### package.json (Root):
 
 ```json
 {
-  "workspaces": [
-    "packages/*",
-    "private/*"
-  ]
+  "workspaces": ["packages/*", "private/*"]
 }
 ```
-
 
 ### Development:
 
@@ -4483,7 +4432,6 @@ bun run dev  # Startet öffentliche UND private Services
 
 # Änderungen in shared-api sind sofort in notes-app verfügbar!
 ```
-
 
 ## 3. Alternative: Separate Repos + Development Scripts
 
@@ -4502,7 +4450,6 @@ fswatch -o $PUBLIC_REPO/packages/shared-api/dist | while read f; do
 done
 ```
 
-
 ### package.json im privaten Repo:
 
 ```json
@@ -4514,7 +4461,6 @@ done
 }
 ```
 
-
 ## 4. Moderne Lösung: Path Mapping für Development
 
 ### tsconfig.json im privaten Repo:
@@ -4525,45 +4471,39 @@ done
     "baseUrl": ".",
     "paths": {
       "@your-org/shared-api": [
-        "../public-monorepo/packages/shared-api/src"  // Direkt auf Source!
+        "../public-monorepo/packages/shared-api/src" // Direkt auf Source!
       ],
-      "@your-org/shared-api/*": [
-        "../public-monorepo/packages/shared-api/src/*"
-      ]
+      "@your-org/shared-api/*": ["../public-monorepo/packages/shared-api/src/*"]
     }
   }
 }
 ```
-
 
 ### package.json für unterschiedliche Environments:
 
 ```json
 {
   "scripts": {
-    "dev": "NODE_ENV=development bun run start",     // Nutzt Path-Mapping
-    "build": "NODE_ENV=production bun run build",   // Nutzt echte npm-Packages
+    "dev": "NODE_ENV=development bun run start", // Nutzt Path-Mapping
+    "build": "NODE_ENV=production bun run build", // Nutzt echte npm-Packages
     "dev:linked": "bun link @your-org/shared-api && bun run dev"
   }
 }
 ```
 
-
 ## 5. Empfehlung: Hybrid-Ansatz
 
 ### Für tägliche Entwicklung:
 
-* **Option 2**: Private Workspace im öffentlichen Monorepo
-    * Schnellste Entwicklung, sofortiges Feedback
-    * Private Code wird nicht committed (git-ignored)
-
+- **Option 2**: Private Workspace im öffentlichen Monorepo
+  - Schnellste Entwicklung, sofortiges Feedback
+  - Private Code wird nicht committed (git-ignored)
 
 ### Für Deployment/CI:
 
-* **Option 1**: Bun link für lokale Entwicklung + normale npm-Packages für Production
-    * `package.json` zeigt auf normale Versionen
-    * Lokale Links nur für Development
-
+- **Option 1**: Bun link für lokale Entwicklung + normale npm-Packages für Production
+  - `package.json` zeigt auf normale Versionen
+  - Lokale Links nur für Development
 
 ### Development Script:
 
@@ -4576,7 +4516,6 @@ done
   }
 }
 ```
-
 
 ## 6. Automatisierung mit VS Code
 
@@ -4593,7 +4532,7 @@ done
       "group": "build"
     },
     {
-      "label": "Start Development with Links", 
+      "label": "Start Development with Links",
       "dependsOrder": "sequence",
       "dependsOn": ["Link Development Packages"],
       "command": "bun run dev"
@@ -4638,20 +4577,17 @@ git submodule add git@github.com:dein-org/private-notes-app.git private/notes-ap
 git commit -m "Add private notes-app as submodule"
 ```
 
-
 **Vorteile:**
 
-* Private-Repo hat eigene Historie und Zugriffsrechte.
-* Öffentlicher Code bleibt sauber getrennt.
-
+- Private-Repo hat eigene Historie und Zugriffsrechte.
+- Öffentlicher Code bleibt sauber getrennt.
 
 ### b) Git Sparse Checkout
 
 Du führst zwei getrennte Repos, lädst aber per Sparse-Checkout nur den öffentlichen Teil:
 
-* Öffentliche Repo enthält nur `packages/`, keine `private/`.
-* Separates Repo für private Projekte, das auf das öffentliche per Git-Remote verweist oder über Subtree eingebunden wird.
-
+- Öffentliche Repo enthält nur `packages/`, keine `private/`.
+- Separates Repo für private Projekte, das auf das öffentliche per Git-Remote verweist oder über Subtree eingebunden wird.
 
 ## 2. Rolle von Bun Workspaces
 
@@ -4664,15 +4600,14 @@ Auch wenn dein private Projekt ein eigenes Git-Repo ist, profitierst du von **Bu
   "private": true,
   "workspaces": [
     "packages/*",
-    "private/*" // Auch private Projekte werden als Workspace registriert
-  ]
+    "private/*", // Auch private Projekte werden als Workspace registriert
+  ],
 }
 ```
 
-* **Automatisches Linking**: Durch `workspaces` weiß `bun install`, dass `@your-org/shared-api` in `packages/shared-api` liegt und verwendet automatisch die lokale Version.
-* **Ein einziger `bun install`** lädt alle Abhängigkeiten, sowohl für öffentliche als auch private Pakete.
-* **Kein `bun link` mehr nötig**: Die Workspaces sorgen dafür, dass alle Pakete bestenfalls sofort aktualisiert werden.
-
+- **Automatisches Linking**: Durch `workspaces` weiß `bun install`, dass `@your-org/shared-api` in `packages/shared-api` liegt und verwendet automatisch die lokale Version.
+- **Ein einziger `bun install`** lädt alle Abhängigkeiten, sowohl für öffentliche als auch private Pakete.
+- **Kein `bun link` mehr nötig**: Die Workspaces sorgen dafür, dass alle Pakete bestenfalls sofort aktualisiert werden.
 
 ## 3. Git- und Workspace-Integration kombiniert
 
@@ -4682,7 +4617,7 @@ Auch wenn dein private Projekt ein eigenes Git-Repo ist, profitierst du von **Bu
 
 ## 4. Workflow zusammengefasst
 
-* **Entwicklung**:
+- **Entwicklung**:
 
 ```bash
 # Im Monorepo-Root
@@ -4690,17 +4625,16 @@ bun install
 bun dev       # startet alle öffentlichen UND private Projekte
 ```
 
-* **Git**:
-    * Öffentlicher Teil: `cd public-monorepo && git push`
-    * Private Teil: `cd public-monorepo/private/notes-app && git push`
-
+- **Git**:
+  - Öffentlicher Teil: `cd public-monorepo && git push`
+  - Private Teil: `cd public-monorepo/private/notes-app && git push`
 
 ## 5. Vorteile dieser Kombination
 
-* **Volle Git-Kontrolle**: Jeder Teil hat sein eigenes Git-Repo oder Submodule.
-* **Einfache lokale Verlinkung**: Bun Workspaces lösen alle lokalen Abhängigkeiten ohne manuelle Links.
-* **Konsistenter Dev-Flow**: Ein `bun install` für alle Packages, automatische Updates beim Coden.
-* **Getrennte CI/CD**: Öffentliche Pakete und private Projekte können eigene Pipelines haben.
+- **Volle Git-Kontrolle**: Jeder Teil hat sein eigenes Git-Repo oder Submodule.
+- **Einfache lokale Verlinkung**: Bun Workspaces lösen alle lokalen Abhängigkeiten ohne manuelle Links.
+- **Konsistenter Dev-Flow**: Ein `bun install` für alle Packages, automatische Updates beim Coden.
+- **Getrennte CI/CD**: Öffentliche Pakete und private Projekte können eigene Pipelines haben.
 
 So kannst du dein privates Projekt komplett mit Git verwalten und gleichzeitig weiterhin die Vorteile von Bun Workspaces für nahtloses Linking und Development-Flow nutzen.
 
@@ -4711,10 +4645,10 @@ So kannst du dein privates Projekt komplett mit Git verwalten und gleichzeitig w
 Das ist ein sinnvoller Pragmatismus für den Einstieg. Zusammengefasst:
 
 1. **Getrennte Repositories**
-    * Ein **öffentliches Repo** für all deinen Open-Source-Code (shared-API, youtube-server, gemeinsame Utilities).
-    * Ein oder mehrere **private Repos** für deine proprietären Projekte (z. B. private Notes-App).
+   - Ein **öffentliches Repo** für all deinen Open-Source-Code (shared-API, youtube-server, gemeinsame Utilities).
+   - Ein oder mehrere **private Repos** für deine proprietären Projekte (z. B. private Notes-App).
 2. **Lokale Entwicklung mit `bun link`**
-    * In deinem öffentlichen Repo:
+   - In deinem öffentlichen Repo:
 
 ```bash
 cd shared-api
@@ -4728,14 +4662,7 @@ bun link @your-org/shared-api
 bun run dev
 ```
 
-
-So nutzt dein privates Projekt automatisch alle lokalen Änderungen im `shared-api`, ohne jedes Mal neu zu veröffentlichen.
-3. **CI/CD und Veröffentlichung**
-    - Für Production veröffentlichst du das `shared-api` mit `bun publish` (oder `npm publish`).
-    - Private Repos installieren in Production die veröffentlichte Version (`bun add @your-org/shared-api@^x.y.z`).
-4. **Zukünftige Optimierung**
-    - Wenn du später mit vielen Paketen oder einem Team arbeitest, kannst du auf ein **Monorepo** mit Workspaces umsteigen und Submodule/Sparse-Checkouts verwenden.
-    - Workspaces (pnpm, Yarn oder Bun) lösen dann das lokale Linking und Version-Pinning eleganter.
+So nutzt dein privates Projekt automatisch alle lokalen Änderungen im `shared-api`, ohne jedes Mal neu zu veröffentlichen. 3. **CI/CD und Veröffentlichung** - Für Production veröffentlichst du das `shared-api` mit `bun publish` (oder `npm publish`). - Private Repos installieren in Production die veröffentlichte Version (`bun add @your-org/shared-api@^x.y.z`). 4. **Zukünftige Optimierung** - Wenn du später mit vielen Paketen oder einem Team arbeitest, kannst du auf ein **Monorepo** mit Workspaces umsteigen und Submodule/Sparse-Checkouts verwenden. - Workspaces (pnpm, Yarn oder Bun) lösen dann das lokale Linking und Version-Pinning eleganter.
 
 Mit diesem Setup startest du schnell, behältst volle Git-Kontrolle und kannst bei Bedarf später auf eine robustere Monorepo-Architektur wechseln.
 
@@ -4762,14 +4689,12 @@ bun add -d husky
 npx husky install
 ```
 
-
 ### Hook definieren
 
 ```bash
 npx husky add .husky/pre-push "bash scripts/pre-push.sh"
 chmod +x .husky/pre-push
 ```
-
 
 ### scripts/pre-push.sh
 
@@ -4794,19 +4719,17 @@ echo "🧪 Running private tests..."
 bun test
 ```
 
-* Wechselt kurz ins **Shared-Repo**, baut und verlinkt es lokal.
-* Dann führt es im Private-Repo `bun test` aus.
-* Bricht ab, wenn im Shared- oder Private-Repo Fehler auftreten.
-
+- Wechselt kurz ins **Shared-Repo**, baut und verlinkt es lokal.
+- Dann führt es im Private-Repo `bun test` aus.
+- Bricht ab, wenn im Shared- oder Private-Repo Fehler auftreten.
 
 ## 2. GitHub Actions: Integration Workflow
 
 Ergänze im **Private-Repo** einen Workflow, der bei jedem Push
 
-* das **Shared-Repo** als Subtree oder via Checkout Action einbindet,
-* dort auf `main` oder dem aktuellen PR-Branch testet,
-* anschließend deine Private-Tests ausführt.
-
+- das **Shared-Repo** als Subtree oder via Checkout Action einbindet,
+- dort auf `main` oder dem aktuellen PR-Branch testet,
+- anschließend deine Private-Tests ausführt.
 
 ### .github/workflows/integration.yml
 
@@ -4850,13 +4773,12 @@ jobs:
           bun test
 ```
 
-
 ## 3. Vorteile dieser Lösung
 
-* **Frühes Feedback**: Lokaler Hook vermeidet verspätete CI-Fehler.
-* **Automatisierte CI**: Integration-Workflow prüft immer die aktuelle Public-Version gegen Private-Code.
-* **Keine Manual Steps**: Alles automatisiert, du musst nur `git push` ausführen.
-* **Pragmatisch**: Keine komplexen Monorepo-Umstellungen nötig, funktioniert mit getrennten Repos.
+- **Frühes Feedback**: Lokaler Hook vermeidet verspätete CI-Fehler.
+- **Automatisierte CI**: Integration-Workflow prüft immer die aktuelle Public-Version gegen Private-Code.
+- **Keine Manual Steps**: Alles automatisiert, du musst nur `git push` ausführen.
+- **Pragmatisch**: Keine komplexen Monorepo-Umstellungen nötig, funktioniert mit getrennten Repos.
 
 ---
 
@@ -4869,7 +4791,7 @@ jobs:
 Folge diesen Schritten, um in deinem privaten Projekt einen Pre-Push Hook zu installieren, der das Shared-Repo baut, verlinkt und deine Tests ausführt:
 
 1. **Husky installieren**
-Im Root deines privaten Repos:
+   Im Root deines privaten Repos:
 
 ```bash
 bun add -d husky
@@ -4877,7 +4799,7 @@ npx husky install
 ```
 
 2. **Hook anlegen**
-Erstelle den Hook:
+   Erstelle den Hook:
 
 ```bash
 npx husky add .husky/pre-push "bash scripts/pre-push.sh"
@@ -4885,7 +4807,7 @@ chmod +x .husky/pre-push.sh
 ```
 
 3. **Script schreiben**
-Lege die Datei `scripts/pre-push.sh` an und füge folgenden Inhalt ein (passe ggf. Pfade an):
+   Lege die Datei `scripts/pre-push.sh` an und füge folgenden Inhalt ein (passe ggf. Pfade an):
 
 ```bash
 #!/usr/bin/env bash
@@ -4907,17 +4829,17 @@ bun test
 ```
 
 4. **Git Hook aktivieren**
-Führe im Projekt einmal aus:
+   Führe im Projekt einmal aus:
 
 ```bash
 npx husky install
 ```
 
 5. **Fertig**
-Ab sofort wird bei jedem `git push` automatisch:
-    * das Shared-Repo gebaut und verlinkt
-    * dein privates Projekt mit der neuesten Shared-Version getestet
-und der Push bricht ab, falls ein Fehler auftritt.
+   Ab sofort wird bei jedem `git push` automatisch:
+   _ das Shared-Repo gebaut und verlinkt
+   _ dein privates Projekt mit der neuesten Shared-Version getestet
+   und der Push bricht ab, falls ein Fehler auftritt.
 
 So gehst du sicher, dass Shared-Änderungen und dein privater Code synchron funktionieren, ohne ständig manuell verlinken oder veröffentlichen zu müssen.
 
@@ -4931,18 +4853,17 @@ So gehst du sicher, dass Shared-Änderungen und dein privater Code synchron funk
 
 ## 1. Grundlegend: Bun Workspaces
 
-* `bun` unterstützt nativ Workspaces via `package.json` → `"workspaces": ["packages/*","private/*"]`.
-* Vorteile: schnell, kein extra Layer, automatisches Linking, ideal für kleine bis mittlere Teams.
-* Nachteile: kein Task Caching, eingeschränkte Orchestrierung komplexer Workflows.
-
+- `bun` unterstützt nativ Workspaces via `package.json` → `"workspaces": ["packages/*","private/*"]`.
+- Vorteile: schnell, kein extra Layer, automatisches Linking, ideal für kleine bis mittlere Teams.
+- Nachteile: kein Task Caching, eingeschränkte Orchestrierung komplexer Workflows.
 
 ## 2. Zusätzliche Tools
 
 ### Turborepo
 
-* **Task-Orchestrierung \& Caching**: Nur veränderte Pakete werden neu gebaut/getestet.
-* **Remote Caching** (Optional): CI-Ergebnisse wiederverwenden.
-* **Zero-Config** für Bun, Node, TypeScript.
+- **Task-Orchestrierung \& Caching**: Nur veränderte Pakete werden neu gebaut/getestet.
+- **Remote Caching** (Optional): CI-Ergebnisse wiederverwenden.
+- **Zero-Config** für Bun, Node, TypeScript.
 
 ```json
 // turbo.json
@@ -4963,40 +4884,38 @@ So gehst du sicher, dass Shared-Änderungen und dein privater Code synchron funk
 }
 ```
 
-
 ### Nx
 
-* **Erweiterte Features**: Graph-Visualisierung, Code-Generierung, integrierte Dev-GUI.
-* **Plugins**: Viele Off-the-Shelf-Plugins für Frontend, Backend, Testing.
-* **Cons**: höhere Lernkurve, mehr Konfiguration.
-
+- **Erweiterte Features**: Graph-Visualisierung, Code-Generierung, integrierte Dev-GUI.
+- **Plugins**: Viele Off-the-Shelf-Plugins für Frontend, Backend, Testing.
+- **Cons**: höhere Lernkurve, mehr Konfiguration.
 
 ### Vergleich
 
-| Feature | Bun Workspaces | Turborepo | Nx |
-| :-- | :-- | :-- | :-- |
-| Setup-Aufwand | minimal | gering | mittel |
-| Task Caching | nein | ja | ja |
-| Remote Caching | nein | ja | ja |
-| Dependency Graph | nein | einfach | umfangreich |
-| GUI / Dev Console | nein | nein | ja (Nx Console) |
-| Plugin-Ökosystem | n/a | begrenzt | groß |
-| Learning Curve | sehr flach | flach | steil |
+| Feature           | Bun Workspaces | Turborepo | Nx              |
+| :---------------- | :------------- | :-------- | :-------------- |
+| Setup-Aufwand     | minimal        | gering    | mittel          |
+| Task Caching      | nein           | ja        | ja              |
+| Remote Caching    | nein           | ja        | ja              |
+| Dependency Graph  | nein           | einfach   | umfangreich     |
+| GUI / Dev Console | nein           | nein      | ja (Nx Console) |
+| Plugin-Ökosystem  | n/a            | begrenzt  | groß            |
+| Learning Curve    | sehr flach     | flach     | steil           |
 
 ## 3. Empfehlung
 
-* **Solo- oder kleines Team**
-→ **Bun Workspaces** + einfache `package.json`-Scripts.
-    * Vorteil: schnell, keine zusätzliche Abhängigkeit.
-    * Workflow: `bun install`, `bun run dev`, `bun run build`, `bun run test`.
-* **Wächst zu mittlerem Team/Komplexität**
-→ **Turborepo**
-    * Behält Bun Workspaces, ergänzt Task Caching und Orchestrierung.
-    * Minimaler Overhead, unkomplizierte Integration in bestehende `package.json`-Script-Architektur.
-* **Großes Team / viele Projektarten**
-→ **Nx**
-    * Nutzt GUI, Extensibilität, strukturierte Plugins.
-    * Ideal für heterogene Stacks (Mobile, Web, Backend) und viele Bibliotheken.
+- **Solo- oder kleines Team**
+  → **Bun Workspaces** + einfache `package.json`-Scripts.
+  _ Vorteil: schnell, keine zusätzliche Abhängigkeit.
+  _ Workflow: `bun install`, `bun run dev`, `bun run build`, `bun run test`.
+- **Wächst zu mittlerem Team/Komplexität**
+  → **Turborepo**
+  _ Behält Bun Workspaces, ergänzt Task Caching und Orchestrierung.
+  _ Minimaler Overhead, unkomplizierte Integration in bestehende `package.json`-Script-Architektur.
+- **Großes Team / viele Projektarten**
+  → **Nx**
+  _ Nutzt GUI, Extensibilität, strukturierte Plugins.
+  _ Ideal für heterogene Stacks (Mobile, Web, Backend) und viele Bibliotheken.
 
 Mit Bun Workspaces startest du sofort ohne zusätzliche Tools. Sobald du Build-/Test-Zeiten optimieren oder komplexe Pipeline-Abhängigkeiten managen möchtest, integriere Turborepo. Nx bietet den größten Funktionsumfang, ist aber für den Einstieg meist overkill.
 
@@ -5009,7 +4928,7 @@ Mit Bun Workspaces startest du sofort ohne zusätzliche Tools. Sobald du Build-/
 Ja, mit Bun Workspaces werden Änderungen an lokal verlinkten Paketen **sofort** und **ohne weiteres Publish-/Link-Management** in deiner App sichtbar.
 
 1. **Monorepo mit Workspaces**
-In deiner Root-`package.json` definierst du:
+   In deiner Root-`package.json` definierst du:
 
 ```json
 {
@@ -5023,16 +4942,9 @@ In deiner Root-`package.json` definierst du:
 }
 ```
 
-Bun installiert alle Dependencies und verlinkt lokal die Workspace-Pakete automatisch.
-2. **Änderungen an einem Paket**
-Wenn du in `packages/shared-api/src/index.ts` einen neuen Type exportierst, speicherst du einfach die Datei ab.
-3. **App-Neustart oder Watch-Mode**
-    - In deiner App führst du `bun run dev` (oder deine Watch-Task) aus, die nebeneinander die Services und App startet.
-    - Bun erkennt beim nächsten Import-Refresh den geänderten Typ und kompiliert deine App neu.
-    - So bekommst du sofortige TypeScript-Fehlermeldungen, Autocomplete und kannst den neuen Type direkt verwenden.
-4. **VS Code IntelliSense**
-VS Codes LSP nutzt dieselben Workspaces und lädt die aktualisierten Typdefinitionen ohne Neustart.
-5. **Kein manuelles Linking nötig**
+Bun installiert alle Dependencies und verlinkt lokal die Workspace-Pakete automatisch. 2. **Änderungen an einem Paket**
+Wenn du in `packages/shared-api/src/index.ts` einen neuen Type exportierst, speicherst du einfach die Datei ab. 3. **App-Neustart oder Watch-Mode** - In deiner App führst du `bun run dev` (oder deine Watch-Task) aus, die nebeneinander die Services und App startet. - Bun erkennt beim nächsten Import-Refresh den geänderten Typ und kompiliert deine App neu. - So bekommst du sofortige TypeScript-Fehlermeldungen, Autocomplete und kannst den neuen Type direkt verwenden. 4. **VS Code IntelliSense**
+VS Codes LSP nutzt dieselben Workspaces und lädt die aktualisierten Typdefinitionen ohne Neustart. 5. **Kein manuelles Linking nötig**
 Anders als mit `npm link` oder `bun link` brauchst du nur `bun install` im Monorepo-Root. Alle Workspace-Pakete sind automatisch verknüpft.
 
 **Fazit:** Solange alle Pakete über Bun Workspaces eingerichtet sind, siehst du Änderungen in geteilten Paketen umgehend in deiner App, ohne extra Schritte. Entwickler-Experience und Continuous Feedback bleiben dadurch maximal agil.
@@ -5045,7 +4957,7 @@ Anders als mit `npm link` oder `bun link` brauchst du nur `bun install` im Monor
 
 Du hast zwei gängige Möglichkeiten:
 
-***
+---
 
 ## 1. Einzelne Dev-Skripte pro Paket
 
@@ -5070,7 +4982,7 @@ Jedes Paket (shared-api, service-one, service-two, my-app) definiert in seiner `
 
 Dann öffnest du vier Terminals und führst in jedem Paket `bun run dev` aus. So werden Änderungen in allen Paketen unabhängig überwacht.
 
-***
+---
 
 ## 2. Ein root-dev-Skript mit Parallel-Start (empfohlen)
 
@@ -5083,8 +4995,8 @@ Definiere im Monorepo-Root eine `dev`-Task, die alle Paket-Dev-Skripte parallel 
 }
 ```
 
-* **`-w`** (oder `--workspace`) weist Bun an, ein Skript in einem bestimmten Workspace auszuführen.
-* Mit `&` laufen alle vier Prozesse **parallel** in einem Terminal.
+- **`-w`** (oder `--workspace`) weist Bun an, ein Skript in einem bestimmten Workspace auszuführen.
+- Mit `&` laufen alle vier Prozesse **parallel** in einem Terminal.
 
 Dann genügt im Monorepo-Root:
 
@@ -5094,14 +5006,14 @@ bun run dev
 
 Alle Pakete starten ihre Watch-Tasks, und Änderungen werden automatisch in allen Workspaces kompiliert.
 
-***
+---
 
 ### Warum Option 2?
 
-* **Ein einziger Befehl** für alle Paket-Watcher
-* **Zentralisierte Steuerung** im Monorepo-Root
-* **Skalierbar**: weitere Pakete einfach zur `dev`-Task hinzufügen
-* **Keine zusätzlichen Tools** nötig
+- **Ein einziger Befehl** für alle Paket-Watcher
+- **Zentralisierte Steuerung** im Monorepo-Root
+- **Skalierbar**: weitere Pakete einfach zur `dev`-Task hinzufügen
+- **Keine zusätzlichen Tools** nötig
 
 So behältst du maximale Agilität und musst nur **einmal** `bun run dev` ausführen, um dein gesamtes Monorepo im Entwicklungsmodus live zu halten.
 
@@ -5130,29 +5042,29 @@ bun add -D turbo
     "dev": {
       "dependsOn": ["^dev"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
     },
     "test": {
-      "dependsOn": ["build"]
-    }
-  }
+      "dependsOn": ["build"],
+    },
+  },
 }
 ```
 
 3. **Paket-`package.json`**
-Jedes Paket braucht nur noch:
+   Jedes Paket braucht nur noch:
 
 ```jsonc
 {
   "scripts": {
-    "dev": "bun watch src --outdir dist",  
-    "build": "bun run build-src",  
-    "test": "bun test"
-  }
+    "dev": "bun watch src --outdir dist",
+    "build": "bun run build-src",
+    "test": "bun test",
+  },
 }
 ```
 
@@ -5175,7 +5087,7 @@ npx nx init
 ```
 
 2. **Project Graph**
-Nx scannt deine Workspaces und baut einen Abhängigkeitsgraph.
+   Nx scannt deine Workspaces und baut einen Abhängigkeitsgraph.
 3. **Affected Commands**
 
 ```bash
@@ -5188,12 +5100,11 @@ oder bei Änderungen
 npx nx affected:run --target=dev
 ```
 
-
 # Warum diese Tools?
 
-* **Keine manuelle Task-Orchestrierung**: `turbo run dev` oder `nx run-many` leitet alle `dev`-Skripte automatisch aus den Paket-Abhängigkeiten ab.
-* **Caching \& Performance**: Turborepo cachet Builds/Tests, Nx führt nur betroffene Projekte erneut aus.
-* **Skalierbar**: Bei vielen Paketen und komplexen Dependencys sparst du erheblich Zeit.
+- **Keine manuelle Task-Orchestrierung**: `turbo run dev` oder `nx run-many` leitet alle `dev`-Skripte automatisch aus den Paket-Abhängigkeiten ab.
+- **Caching \& Performance**: Turborepo cachet Builds/Tests, Nx führt nur betroffene Projekte erneut aus.
+- **Skalierbar**: Bei vielen Paketen und komplexen Dependencys sparst du erheblich Zeit.
 
 > **Fazit:** Wenn du nicht jeden Task selbst parallelisieren oder mit `&` verknüpfen willst, ist **Turborepo** die leichtgewichtigste Lösung. Nx bietet ähnliche Features mit zusätzlich grafischem Dashboard. Beide ermöglichen dir, einfach `npx turbo run dev` oder `npx nx run-many --target=dev --all` zu verwenden, ohne manuelle Scripts in der Root-`package.json`.
 
@@ -5209,11 +5120,10 @@ npx nx affected:run --target=dev
 
 ### Warum Turborepo?
 
-* **Zero-Config für Next.js**: Turborepo erkennt Next.js-Apps automatisch, führt `next build` und `next test` aus.
-* **Pipeline-Orchestrierung**: Definiere einen `build`- und `test`-Step pro Paket, Turborepo leitet Abhängigkeiten automatisch ab.
-* **Caching**: Erneute Builds/Tests nur für geänderte Pakete.
-* **Remote Cache** für CI: Verhindert unnötige Workflows.
-
+- **Zero-Config für Next.js**: Turborepo erkennt Next.js-Apps automatisch, führt `next build` und `next test` aus.
+- **Pipeline-Orchestrierung**: Definiere einen `build`- und `test`-Step pro Paket, Turborepo leitet Abhängigkeiten automatisch ab.
+- **Caching**: Erneute Builds/Tests nur für geänderte Pakete.
+- **Remote Cache** für CI: Verhindert unnötige Workflows.
 
 ### Beispiel-Konfiguration
 
@@ -5223,17 +5133,17 @@ npx nx affected:run --target=dev
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**"],
     },
     "test": {
       "dependsOn": ["build"],
-      "outputs": []
+      "outputs": [],
     },
     "dev": {
       "cache": false,
-      "persistent": true
-    }
-  }
+      "persistent": true,
+    },
+  },
 }
 ```
 
@@ -5257,16 +5167,14 @@ npx turbo run test
 npx turbo run build
 ```
 
-
 ## 2. Nx
 
 ### Warum Nx?
 
-* **First-Class Next.js Support**: `@nrwl/next` Plugin generiert Apps/Libraries automatisch.
-* **Graph-Visualisierung**: Zeige, welche Frontend-App von welchen API-Libs abhängt.
-* **Affected Commands**: `nx affected:test` und `nx affected:build` führen nur die Schritte für geänderte Projekte aus.
-* **CI-Integration**: Automatische Affected-Erkennung in GitHub Actions.
-
+- **First-Class Next.js Support**: `@nrwl/next` Plugin generiert Apps/Libraries automatisch.
+- **Graph-Visualisierung**: Zeige, welche Frontend-App von welchen API-Libs abhängt.
+- **Affected Commands**: `nx affected:test` und `nx affected:build` führen nur die Schritte für geänderte Projekte aus.
+- **CI-Integration**: Automatische Affected-Erkennung in GitHub Actions.
 
 ### Beispiel-Workflow
 
@@ -5292,7 +5200,6 @@ npx nx affected:build --base=origin/main --head=HEAD
 npx nx affected:test --base=origin/main --head=HEAD
 ```
 
-
 ## 3. CI/CD Integration
 
 ### GitHub Actions mit Turborepo
@@ -5310,7 +5217,6 @@ jobs:
       - run: npx turbo run build test
 ```
 
-
 ### GitHub Actions mit Nx
 
 ```yaml
@@ -5327,13 +5233,12 @@ jobs:
       - run: npx nx affected:test  --base=origin/main --head=HEAD
 ```
 
-
 ## 4. Fazit
 
-* **Turborepo** ist leichtgewichtig, ideal für schnelle Einrichtung und Caching.
-* **Nx** bietet mehr Features (Graph, Affected Commands, Plugins) auf Kosten einer etwas höheren Lernkurve.
-* Beide Tools erkennen Abhängigkeiten zwischen Frontend-Apps und API-Libs und automatisieren Test-Runs \& Builds nur dort, wo nötig.
-* In Kombination mit Bun Workspaces erhältst du einen performanten, skalierbaren Monorepo-Workflow für Next.js + Effect Platform + Prisma.
+- **Turborepo** ist leichtgewichtig, ideal für schnelle Einrichtung und Caching.
+- **Nx** bietet mehr Features (Graph, Affected Commands, Plugins) auf Kosten einer etwas höheren Lernkurve.
+- Beide Tools erkennen Abhängigkeiten zwischen Frontend-Apps und API-Libs und automatisieren Test-Runs \& Builds nur dort, wo nötig.
+- In Kombination mit Bun Workspaces erhältst du einen performanten, skalierbaren Monorepo-Workflow für Next.js + Effect Platform + Prisma.
 
 ---
 
@@ -5342,7 +5247,7 @@ jobs:
 Neben Nx und Turborepo gibt es noch zwei deutlich einfachere Ansätze, die nur die tatsächlich geänderten Pakete neu bauen:
 
 1. Lerna mit `--since`
-    * Installation:
+   - Installation:
 
 ```bash
 bun add -D lerna
@@ -5362,9 +5267,7 @@ npx lerna run build --stream --since origin/main
 npx lerna run test --stream --since origin/main
 ```
 
-Lerna ermittelt automatisch, welche Workspaces seit dem angegebenen Ref geändert wurden, und führt das Script nur dort aus.
-2. pnpm Workspaces mit `--filter`
-    - In deinem Monorepo-Root:
+Lerna ermittelt automatisch, welche Workspaces seit dem angegebenen Ref geändert wurden, und führt das Script nur dort aus. 2. pnpm Workspaces mit `--filter` - In deinem Monorepo-Root:
 
 ```bash
 bun add -D pnpm
@@ -5400,7 +5303,6 @@ Im Monorepo-Root:
 bun add -D turbo
 ```
 
-
 ## 2. Root-Konfiguration
 
 Lege eine Datei `turbo.json` im Repo-Root an:
@@ -5411,19 +5313,18 @@ Lege eine Datei `turbo.json` im Repo-Root an:
   "pipeline": {
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**"],
     },
     "test": {
-      "dependsOn": ["build"]
-    }
-  }
+      "dependsOn": ["build"],
+    },
+  },
 }
 ```
-
 
 ## 3. Paket-Skripte
 
@@ -5437,7 +5338,6 @@ Stelle in jedem Workspace-Paket (z. B. `shared-api`, `service-one`, `apps/my-app
 }
 ```
 
-
 ## 4. Development starten
 
 Im Monorepo-Root genügt:
@@ -5446,10 +5346,9 @@ Im Monorepo-Root genügt:
 npx turbo run dev
 ```
 
-* Turborepo ermittelt automatisch alle `dev`-Tasks der Pakete
-* Führt sie parallel aus und startet Watch-Modi
-* Aktualisierte Workspaces werden live neu kompiliert
-
+- Turborepo ermittelt automatisch alle `dev`-Tasks der Pakete
+- Führt sie parallel aus und startet Watch-Modi
+- Aktualisierte Workspaces werden live neu kompiliert
 
 ## 5. Testen und Bauen
 
@@ -5460,10 +5359,10 @@ npx turbo run test
 npx turbo run build
 ```
 
-* Nur die Pakete, die von Änderungen betroffen sind (oder deren Abhängigkeiten), werden neu getestet/gebaut
-* Ergebnis: schnelle Feedback-Zyklen und minimaler Overhead
+- Nur die Pakete, die von Änderungen betroffen sind (oder deren Abhängigkeiten), werden neu getestet/gebaut
+- Ergebnis: schnelle Feedback-Zyklen und minimaler Overhead
 
-***
+---
 
 Mit dieser **minimalen Turborepo-Konfiguration** erhältst du eine einfache Lernkurve, automatisierte Orchestrierung und nur betroffene Pakete werden neu ausgeführt – perfekt für dein Next.js-Frontend, API-Services und Shared-Packages.
 
@@ -5477,17 +5376,15 @@ Mit dieser **minimalen Turborepo-Konfiguration** erhältst du eine einfache Lern
 
 Das Effect-Ökosystem bietet mit **`@effect/logging`** ein leichtgewichtiges, modulares Logging-Framework, das deinem Bedarf entspricht:
 
-* **Modulbasierte Logger** mit benannten Logger-Tags
-* **Runtime-Konfiguration**, um Tags selektiv zu aktivieren oder zu deaktivieren
-* Kein Overhead einer Enterprise-Lösung
-
+- **Modulbasierte Logger** mit benannten Logger-Tags
+- **Runtime-Konfiguration**, um Tags selektiv zu aktivieren oder zu deaktivieren
+- Kein Overhead einer Enterprise-Lösung
 
 ## 1. Installation
 
 ```bash
 bun add @effect/logging @effect/logging-backend-console
 ```
-
 
 ## 2. Grundlegende Einrichtung
 
@@ -5500,9 +5397,8 @@ import * as Backend from "@effect/logging-backend-console"
 
 // Shared Logger-Tags
 export const UserServiceLogger = Tag<L.Logger, L.Logger>("UserService")
-export const ApiLogger         = Tag<L.Logger, L.Logger>("Api")
+export const ApiLogger = Tag<L.Logger, L.Logger>("Api")
 ```
-
 
 ### Logger-Layer für die App
 
@@ -5519,11 +5415,10 @@ export const LoggingLayer = Layer.succeed(
     // Standard-Backend: Console mit Levels
     backend: Backend.make(),
     // Initial tags, später anpassbar
-    defaultLogLevel: L.LogLevel.Info
-  })
+    defaultLogLevel: L.LogLevel.Info,
+  }),
 )
 ```
-
 
 ## 3. Modulbasiertes Logging
 
@@ -5538,15 +5433,12 @@ import { UserServiceLogger } from "./logging"
 export const createUser = (user: User) =>
   Effect.gen(function* ($) {
     const logger = yield* $(UserServiceLogger)
-    yield* $(
-      logger.info(`Creating user ${user.name}`, { userId: user.id })
-    )
+    yield* $(logger.info(`Creating user ${user.name}`, { userId: user.id }))
     // Business Logic...
     yield* $(logger.debug("User payload", { user }))
     // ...
   })
 ```
-
 
 ### In deiner API-Handler-Logik
 
@@ -5563,7 +5455,6 @@ export const getTranscript = (videoId: string) =>
     // ...
   })
 ```
-
 
 ## 4. Runtime-Konfiguration: Tags ein- und ausschalten
 
@@ -5582,26 +5473,25 @@ const main = pipe(
       // Nur UserService-Logs auf Info+, Api-Logs nur auf Error+
       loggers: new Map([
         [UserServiceLogger.key, { level: L.LogLevel.Info }],
-        [ApiLogger.key, { level: L.LogLevel.Error }]
-      ])
-    })
+        [ApiLogger.key, { level: L.LogLevel.Error }],
+      ]),
+    }),
   ),
-  Layer.use(NodeRuntime.default)
+  Layer.use(NodeRuntime.default),
 )
 
 Effect.provideLayer(main)(yourAppProgram)
 ```
 
-* **`loggers` Map**: pro Tag das minimale LogLevel
-* Du kannst beliebig Tags definieren und konfigurieren, statt gesamte Bibliothek stummzuschalten
-
+- **`loggers` Map**: pro Tag das minimale LogLevel
+- Du kannst beliebig Tags definieren und konfigurieren, statt gesamte Bibliothek stummzuschalten
 
 ## 5. Vorteile gegenüber `debug`
 
-* **TypeScript-native**: Typsichere Metadata-Parameter (Object statt Format-Strings)
-* **Effect-kompatibel**: Kontextsensitive Logger via Layers/Contexts
-* **Feinjustierung**: LogLevel pro Modul/Tag (Info, Debug, Warn, Error)
-* **Kein externes Setup**: Einfaches Console-Backend out of the box, erweiterbar zu File- oder Network-Backends
+- **TypeScript-native**: Typsichere Metadata-Parameter (Object statt Format-Strings)
+- **Effect-kompatibel**: Kontextsensitive Logger via Layers/Contexts
+- **Feinjustierung**: LogLevel pro Modul/Tag (Info, Debug, Warn, Error)
+- **Kein externes Setup**: Einfaches Console-Backend out of the box, erweiterbar zu File- oder Network-Backends
 
 Damit hast du ein **modulares**, **konfigurierbares** Logging, das deinem Bedarf einer einfachen, aber mächtigen Logging-Lösung entspricht, ohne Enterprise-Overhead oder externe Abhängigkeiten.
 
@@ -5614,24 +5504,24 @@ Damit hast du ein **modulares**, **konfigurierbares** Logging, das deinem Bedarf
 Genau. Mit `@effect/logging` definierst du Logger-Tags für beliebige **Dimensionen**:
 
 1. **Horizontale Domains** (cross-cutting concerns)
-    * z. B. `ApiLogger`, `DatabaseLogger`, `AuthLogger`
-    * dienen dazu, Logging-Level und Sinks global für technische Schichten zu konfigurieren
+   - z. B. `ApiLogger`, `DatabaseLogger`, `AuthLogger`
+   - dienen dazu, Logging-Level und Sinks global für technische Schichten zu konfigurieren
 2. **Vertikale Domains** (fahrspezifische Module)
-    * z. B. `UserServiceLogger`, `YoutubeVideoLogger`, `TranscriptLogger`
-    * erlauben feinkörniges Ein- und Ausschalten pro fachlichem Bereich
+   - z. B. `UserServiceLogger`, `YoutubeVideoLogger`, `TranscriptLogger`
+   - erlauben feinkörniges Ein- und Ausschalten pro fachlichem Bereich
+
 ```ts
 import { Tag } from "@effect/data/Context"
 import * as L from "@effect/logging"
 
 // Horizontale Tags
-export const ApiLogger      = Tag<L.Logger, L.Logger>("Api")
+export const ApiLogger = Tag<L.Logger, L.Logger>("Api")
 export const DatabaseLogger = Tag<L.Logger, L.Logger>("DB")
 
 // Vertikale Tags
-export const UserLogger         = Tag<L.Logger, L.Logger>("User")
+export const UserLogger = Tag<L.Logger, L.Logger>("User")
 export const YoutubeVideoLogger = Tag<L.Logger, L.Logger>("YoutubeVideo")
 ```
-
 
 ### Beispiel-Konfiguration
 
@@ -5643,19 +5533,16 @@ import { Layer } from "effect"
 const LoggingConfig = L.loggerConfig({
   loggers: new Map([
     [ApiLogger.key, { level: L.LogLevel.Info }],
-    [YoutubeVideoLogger.key, { level: L.LogLevel.Debug }]
-  ])
+    [YoutubeVideoLogger.key, { level: L.LogLevel.Debug }],
+  ]),
 })
 
-const AppLayer = pipe(
-  LoggingLayer,
-  Layer.useLoggerConfig(LoggingConfig)
-)
+const AppLayer = pipe(LoggingLayer, Layer.useLoggerConfig(LoggingConfig))
 ```
 
-* **`ApiLogger`**: zeigt alle `info`, `warn`, `error`-Logs
-* **`YoutubeVideoLogger`**: zeigt auch `debug`-Logs für interne YouTube-Video-Details
-* **andere Tags** bleiben auf Default-Level oder werden stummgeschaltet
+- **`ApiLogger`**: zeigt alle `info`, `warn`, `error`-Logs
+- **`YoutubeVideoLogger`**: zeigt auch `debug`-Logs für interne YouTube-Video-Details
+- **andere Tags** bleiben auf Default-Level oder werden stummgeschaltet
 
 Damit kannst du sowohl **horizontale** (technische) als auch **vertikale** (fachliche) Logger-Tags kombinieren und gezielt steuern, welche Logs in welcher Situation erscheinen.
 
@@ -5678,14 +5565,18 @@ import * as L from "@effect/logging"
 
 export function createFileLogger(path: string) {
   // Extrahiere Dateinamen ohne Extension
-  const name = path.split("/").pop()?.replace(/\.[tj]s$/, "") ?? "unknown"
+  const name =
+    path
+      .split("/")
+      .pop()
+      ?.replace(/\.[tj]s$/, "") ?? "unknown"
   return Tag<L.Logger, L.Logger>(`Logger:${name}`)
 }
 
 // Default-Logger-Layer
 export const LoggingLayer = L.loggerLayer({
   backend: L.consoleLoggerBackend,
-  defaultLogLevel: L.LogLevel.Info
+  defaultLogLevel: L.LogLevel.Info,
 })
 ```
 
@@ -5705,7 +5596,6 @@ export const program = Effect.gen(function* ($) {
 })
 ```
 
-
 ## 2. Konfiguration per Wildcard
 
 In deinem Start-Layer definierst du eine Konfigurationsfunktion, die Tags nach Namensmuster aktiviert/deaktiviert:
@@ -5718,24 +5608,23 @@ export const FileLoggerConfig = L.loggerConfig({
   // Aktiviert alle Logger, deren Name mit 'Logger:userService' beginnt
   include: [/Logger:userService/],
   // Deaktiviert alle anderen File-Logger
-  exclude: [/Logger:/]
+  exclude: [/Logger:/],
 })
 
 export const AppLayer = Layer.pipe(
   LoggingLayer,
-  Layer.useLoggerConfig(FileLoggerConfig)
+  Layer.useLoggerConfig(FileLoggerConfig),
 )
 ```
 
-* **include** und **exclude** nehmen Regex-Pattern auf
-* So lässt sich das Logging für einzelne Dateien gezielt ein- oder ausschalten
-
+- **include** und **exclude** nehmen Regex-Pattern auf
+- So lässt sich das Logging für einzelne Dateien gezielt ein- oder ausschalten
 
 ## 3. Vorteile
 
-* **Kein manuelles Tag-Pflegen**: Jeder Modul-Logger wird aus dem Dateinamen abgeleitet
-* **Granulare Kontrolle**: Regex-Filter in der Konfiguration
-* **Bagging-Support**: Du kannst während der Fehlersuche nur bestimmte Dienste aktivieren
+- **Kein manuelles Tag-Pflegen**: Jeder Modul-Logger wird aus dem Dateinamen abgeleitet
+- **Granulare Kontrolle**: Regex-Filter in der Konfiguration
+- **Bagging-Support**: Du kannst während der Fehlersuche nur bestimmte Dienste aktivieren
 
 Damit erhältst du einen pragmatischen Automatismus, der das Tagging und die Aktivierung von Loggern pro Datei ohne manuelle Tag-Definition ermöglicht.
 
@@ -5760,7 +5649,6 @@ packages/
    └─ package.json
 ```
 
-
 ### packages/logging-config/src/logger.ts
 
 ```typescript
@@ -5770,7 +5658,7 @@ import { Tag } from "@effect/data/Context"
 import { Layer } from "effect"
 
 // Gemeinsame Tags (optional)
-export const ApiLogger      = Tag<L.Logger, L.Logger>("Api")
+export const ApiLogger = Tag<L.Logger, L.Logger>("Api")
 export const DatabaseLogger = Tag<L.Logger, L.Logger>("DB")
 
 // Gemeinsamer Logging-Layer mit Konfiguration
@@ -5780,13 +5668,12 @@ export const LoggingLayer = Layer.succeed(
     backend: Backend.make({ format: Backend.Format.Simple }),
     defaultLogLevel: L.LogLevel.Info,
     loggers: new Map([
-      [ApiLogger.key,      { level: L.LogLevel.Info }],
-      [DatabaseLogger.key, { level: L.LogLevel.Warn }]
-    ])
-  })
+      [ApiLogger.key, { level: L.LogLevel.Info }],
+      [DatabaseLogger.key, { level: L.LogLevel.Warn }],
+    ]),
+  }),
 )
 ```
-
 
 ### packages/logging-config/package.json
 
@@ -5807,7 +5694,6 @@ export const LoggingLayer = Layer.succeed(
 }
 ```
 
-
 ## 2. Konsume den gemeinsamen Layer in allen Paketen
 
 In jedem Service oder Frontend-App importierst du nur `LoggingLayer`:
@@ -5819,14 +5705,9 @@ import { NodeRuntime } from "@effect/platform-node"
 import * as Effect from "effect"
 import { appProgram } from "./appProgram"
 
-const mainLayer = Layer.merge(
-  LoggingLayer,
-  NodeRuntime.default
-)
+const mainLayer = Layer.merge(LoggingLayer, NodeRuntime.default)
 
-Effect.runPromise(
-  Effect.provideLayer(mainLayer)(appProgram)
-)
+Effect.runPromise(Effect.provideLayer(mainLayer)(appProgram))
 ```
 
 ```typescript
@@ -5846,13 +5727,12 @@ const main = Layer.merge(LoggingLayer, NodeRuntime.default)
 Effect.runPromise(Effect.provideLayer(main)(program))
 ```
 
-
 ## 3. Vorteile
 
-* **Single Source of Truth**: Logging-Backend, Levels und globale Tags werden nur einmal definiert.
-* **Wiederverwendbar**: Alle Pakete importieren dasselbe `@your-org/logging-config`.
-* **Konsistente Log-Ausgaben**: Einheitliches Format und Level über das gesamte Monorepo.
-* **Einfache Anpassung**: Änderst du `LoggingLayer` in `logging-config`, gilt das sofort für alle Konsumenten nach dem nächsten Build.
+- **Single Source of Truth**: Logging-Backend, Levels und globale Tags werden nur einmal definiert.
+- **Wiederverwendbar**: Alle Pakete importieren dasselbe `@your-org/logging-config`.
+- **Konsistente Log-Ausgaben**: Einheitliches Format und Level über das gesamte Monorepo.
+- **Einfache Anpassung**: Änderst du `LoggingLayer` in `logging-config`, gilt das sofort für alle Konsumenten nach dem nächsten Build.
 
 So musst du das Logging **nicht in jedem Paket separat** konfigurieren, sondern zentral über das Shared-Package steuern.
 
@@ -5867,7 +5747,7 @@ So musst du das Logging **nicht in jedem Paket separat** konfigurieren, sondern 
 Für verlässliche Typsicherheit nutzt du hauptsächlich den **TypeScript-Compiler** in Kombination mit ein paar ergänzenden Tools:
 
 1. **TypeScript Compiler (tsc)**
-    * Führt vollständige Typprüfung ohne Ausgabe aus:
+   - Führt vollständige Typprüfung ohne Ausgabe aus:
 
 ```bash
 npx tsc --noEmit
@@ -5888,14 +5768,14 @@ npx tsc --noEmit
     // Pfad-Aliases für Monorepo-Workspaces
     "baseUrl": ".",
     "paths": {
-      "@your-org/*": ["packages/*/src"]
-    }
-  }
+      "@your-org/*": ["packages/*/src"],
+    },
+  },
 }
 ```
 
 2. **Bun Type-Check**
-    * Bun integriert `tsc` und kann ebenfalls Type-Errors erkennen:
+   - Bun integriert `tsc` und kann ebenfalls Type-Errors erkennen:
 
 ```bash
 bun run tsc --noEmit
@@ -5910,7 +5790,7 @@ bun run tsc --noEmit
 ```
 
 3. **ESLint mit TypeScript-Plugin**
-    * Nutzt `@typescript-eslint` für statische Analysen, z. B. ungenutzte Variablen, unsichere Typen:
+   - Nutzt `@typescript-eslint` für statische Analysen, z. B. ungenutzte Variablen, unsichere Typen:
 
 ```bash
 bun add -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
@@ -5922,28 +5802,24 @@ bun add -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 {
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/strict-boolean-expressions": "warn"
-  }
+    "@typescript-eslint/strict-boolean-expressions": "warn",
+  },
 }
 ```
 
 4. **Editor-Integration (VS Code)**
-    * VS Code’s **TypeScript Language Server** zeigt dir während des Tippens sofort Typ-Fehler.
-    * Installiere Extensions wie „TypeScript ESLint“ für Inline-Linting und „Path IntelliSense“ für Aliases.
+   - VS Code’s **TypeScript Language Server** zeigt dir während des Tippens sofort Typ-Fehler.
+   - Installiere Extensions wie „TypeScript ESLint“ für Inline-Linting und „Path IntelliSense“ für Aliases.
 5. **CI/CD Checks**
-Füge in deinem CI-Workflow einen Job hinzu:
+   Füge in deinem CI-Workflow einen Job hinzu:
 
 ```yaml
 - name: Type-Check
   run: bun run type-check
 ```
-
 
 Mit diesem Setup stellst du sicher, dass alle **DTOs**, **Schema-Definitionen** und **Core-Funktionen** vollständig **type-safe** sind, und du erkennst Typfehler bereits beim Schreiben und im CI, bevor ein Build ausgelöst wird.
 
@@ -5955,15 +5831,15 @@ Mit diesem Setup stellst du sicher, dass alle **DTOs**, **Schema-Definitionen** 
 
 Bun liegt in vielen Benchmarks vorne, vor allem bei:
 
-* Paketinstallation („bun install“ signifikant schneller als npm/yarn/pnpm)
-* Startzeiten von Skripten und Servern
-* Transpilation und Bundling (Bun’s integrierter JavaScript-Compiler und -Runner nutzt native APIs)
+- Paketinstallation („bun install“ signifikant schneller als npm/yarn/pnpm)
+- Startzeiten von Skripten und Servern
+- Transpilation und Bundling (Bun’s integrierter JavaScript-Compiler und -Runner nutzt native APIs)
 
 In realen Projekten bedeutet das:
 
-* **Schnellere CI/CD**: Kürzere Build- und Testläufe
-* **Flüssigere Dev-Experience**: Instant-Feedback beim `bun run dev` oder `bun test`
-* **Geringerer Ressourcenverbrauch**: Weniger CPU-Last im Vergleich zu Node-basierten Tools
+- **Schnellere CI/CD**: Kürzere Build- und Testläufe
+- **Flüssigere Dev-Experience**: Instant-Feedback beim `bun run dev` oder `bun test`
+- **Geringerer Ressourcenverbrauch**: Weniger CPU-Last im Vergleich zu Node-basierten Tools
 
 Allerdings können spezifische Workflows (z. B. komplexe Turborepo-Pipelines) weiterhin von etablierten Tools profitieren. In deinem Monorepo-Setup bietet Bun jedoch meist die beste Performance für Installation, Laufzeit und Bundling.
 
@@ -5976,7 +5852,7 @@ Allerdings können spezifische Workflows (z. B. komplexe Turborepo-Pipelines) we
 Nein, im Grunde profitierst du von Bun automatisch, sobald du deine Scripts und Tasks auf Bun umstellst. Ein paar Tipps aber, um die Bun-Perf-Vorteile auch in VS Code voll auszuspielen:
 
 1. **Launch-Config mit Bun**
-In deiner `.vscode/launch.json` legst du Bun als Runtime fest:
+   In deiner `.vscode/launch.json` legst du Bun als Runtime fest:
 
 ```json
 {
@@ -5997,7 +5873,7 @@ In deiner `.vscode/launch.json` legst du Bun als Runtime fest:
 ```
 
 2. **Tasks für Bun**
-In `.vscode/tasks.json` definierst du Tasks, die Bun-Befehle verwenden:
+   In `.vscode/tasks.json` definierst du Tasks, die Bun-Befehle verwenden:
 
 ```json
 {
@@ -6021,7 +5897,7 @@ In `.vscode/tasks.json` definierst du Tasks, die Bun-Befehle verwenden:
 ```
 
 3. **Terminal Profile**
-In den VS Code Settings (`settings.json`) kannst du ein eigenes Terminal-Profil für Bun anlegen, damit neue Terminals automatisch Bun verwenden:
+   In den VS Code Settings (`settings.json`) kannst du ein eigenes Terminal-Profil für Bun anlegen, damit neue Terminals automatisch Bun verwenden:
 
 ```json
 {
@@ -6036,11 +5912,11 @@ In den VS Code Settings (`settings.json`) kannst du ein eigenes Terminal-Profil 
 ```
 
 4. **ESLint \& Prettier**
-Stelle sicher, dass deine VS Code Extensions `ESLint` und `Prettier` so konfiguriert sind, dass sie die in deinem Projekt installierte Version nutzen. Das geschieht automatisch, wenn deine `package.json`‐Scripte auf Bun verweisen und du ein entsprechendes Workspace‐Environment verwendest.
+   Stelle sicher, dass deine VS Code Extensions `ESLint` und `Prettier` so konfiguriert sind, dass sie die in deinem Projekt installierte Version nutzen. Das geschieht automatisch, wenn deine `package.json`‐Scripte auf Bun verweisen und du ein entsprechendes Workspace‐Environment verwendest.
 5. **Devcontainer (optional)**
-Wenn du mit Devcontainers arbeitest, installiere Bun im Container und lege in `.devcontainer/Dockerfile` und `devcontainer.json` fest, dass das VS Code Remote diese Runtime nutzt.
+   Wenn du mit Devcontainers arbeitest, installiere Bun im Container und lege in `.devcontainer/Dockerfile` und `devcontainer.json` fest, dass das VS Code Remote diese Runtime nutzt.
 
-***
+---
 
 Damit läuft in VS Code alles über Bun: Debugging, Tasks, Terminal und CI-Skripte. Du musst nichts weiter tun, als deine Commands auf `bun` umzustellen – die Performance-Vorteile kommen automatisch.
 
@@ -6053,7 +5929,7 @@ Damit läuft in VS Code alles über Bun: Debugging, Tasks, Terminal und CI-Skrip
 VS Code’s **TypeScript Language Server (tsserver)** ist unabhängig von Bun und wird standardmäßig verwendet, um Echtzeit-Fehler im Editor anzuzeigen. Bun ersetzt nicht den LSP, sondern ergänzt deine Toolchain. So stellst du sicher, dass du Bun-Skripte nutzt und trotzdem die „Problems“-Sektion gefüllt bekommst:
 
 1. **Workspace‐TypeScript‐Version nutzen**
-Damit VS Code genau die TypeScript‐Version verwendet, die in deinem Monorepo installiert ist (z. B. durch `bun install`), setzt du in der `settings.json` deines Workspaces:
+   Damit VS Code genau die TypeScript‐Version verwendet, die in deinem Monorepo installiert ist (z. B. durch `bun install`), setzt du in der `settings.json` deines Workspaces:
 
 ```json
 {
@@ -6062,10 +5938,8 @@ Damit VS Code genau die TypeScript‐Version verwendet, die in deinem Monorepo i
 }
 ```
 
-Dadurch verwendet der LSP exakt deine Project-TS-Version und nicht die in VS Code eingebaute.
-2. **`tsc --noEmit` als Pre-Commit oder Task**
-Da der LSP nur tsserver-Checks macht, empfiehlt es sich, im CI oder als Git-Hook zusätzlich `tsc --noEmit` (oder `bun run tsc --noEmit`) auszuführen. So erwischst du alle Typfehler, die der LSP anzeigt, bevor du pushst.
-3. **ESLint für ergänzende Checks**
+Dadurch verwendet der LSP exakt deine Project-TS-Version und nicht die in VS Code eingebaute. 2. **`tsc --noEmit` als Pre-Commit oder Task**
+Da der LSP nur tsserver-Checks macht, empfiehlt es sich, im CI oder als Git-Hook zusätzlich `tsc --noEmit` (oder `bun run tsc --noEmit`) auszuführen. So erwischst du alle Typfehler, die der LSP anzeigt, bevor du pushst. 3. **ESLint für ergänzende Checks**
 Installiere und konfiguriere ESLint mit `@typescript-eslint/parser`. VS Code zeigt dir dann im „Problems“-Panel auch Lint-Fehler an:
 
 ```json
@@ -6084,16 +5958,16 @@ und in deinen Scripts:
 ```
 
 4. **Tasks für Bun‐Commands**
-Du kannst VS Code-Tasks definieren, die bei Bedarf `bun run dev`, `bun run tsc` oder `bun run lint` ausführen. So startest du im Quick-Pick oder per Pre-Save-Hook die gleichen Checks, die auch CI nutzt.
+   Du kannst VS Code-Tasks definieren, die bei Bedarf `bun run dev`, `bun run tsc` oder `bun run lint` ausführen. So startest du im Quick-Pick oder per Pre-Save-Hook die gleichen Checks, die auch CI nutzt.
 5. **Kein spezieller Bun-LSP nötig**
-Bun bietet keinen eigenen Language Server. Die IntelliSense- und Fehleranzeige-Engine bleibt tsserver. Deine Bun-Performance und dein Monorepo-Setup wirken sich auf Install- und Build-Geschwindigkeit aus, nicht auf den tsserver-Lauf im Editor.
+   Bun bietet keinen eigenen Language Server. Die IntelliSense- und Fehleranzeige-Engine bleibt tsserver. Deine Bun-Performance und dein Monorepo-Setup wirken sich auf Install- und Build-Geschwindigkeit aus, nicht auf den tsserver-Lauf im Editor.
 
 **Zusammenfassung:**
 
-* **Problems-Panel** füllt VS Code mit tsserver- und ESLint-Ergebnissen.
-* **Bun** ist deine Runtime und Paketmanager, ersetzt aber nicht den LSP.
-* Sämtliche Type-Checks laufen über tsserver bzw. `tsc --noEmit`, im CI oder als Task über `bun run tsc`.
-* Stelle in VS Code ein, dass der Workspace-TypeScript-SDK-Pfad auf deine Projekt-TS-Installation zeigt.
+- **Problems-Panel** füllt VS Code mit tsserver- und ESLint-Ergebnissen.
+- **Bun** ist deine Runtime und Paketmanager, ersetzt aber nicht den LSP.
+- Sämtliche Type-Checks laufen über tsserver bzw. `tsc --noEmit`, im CI oder als Task über `bun run tsc`.
+- Stelle in VS Code ein, dass der Workspace-TypeScript-SDK-Pfad auf deine Projekt-TS-Installation zeigt.
 
 ---
 
@@ -6103,9 +5977,9 @@ Bun bietet keinen eigenen Language Server. Die IntelliSense- und Fehleranzeige-E
 
 Der offizielle **TypeScript Language Server** (tsserver) bleibt aktuell die beste Option für TypeScript-IntelliSense in VS Code. Es gibt keine weit verbreiteten, stabilen Alternativen, die in puncto Performance und Feature-Set spürbar besser wären.
 
-* **typescript-language-server**: Ein generischer LSP-Wrapper um tsserver, bietet dieselbe Performance, aber keinen echten Mehrwert gegenüber der eingebetteten VS Code-Integration.
-* **Sourcegraph’s LSIF**: Liefert präzisere Code-Navigation und IDE-Features über statische Indizes, aber erfordert komplexe Index-Builds und ist für die meisten Projekte Overkill.
-* **Volar**: Speziell für Vue, nicht für reines TypeScript.
+- **typescript-language-server**: Ein generischer LSP-Wrapper um tsserver, bietet dieselbe Performance, aber keinen echten Mehrwert gegenüber der eingebetteten VS Code-Integration.
+- **Sourcegraph’s LSIF**: Liefert präzisere Code-Navigation und IDE-Features über statische Indizes, aber erfordert komplexe Index-Builds und ist für die meisten Projekte Overkill.
+- **Volar**: Speziell für Vue, nicht für reines TypeScript.
 
 Für reine TypeScript-Projekte ist **tsserver** daher weiterhin der de-facto-Standard. Um die Performance von tsserver zu optimieren, kannst du:
 
@@ -6143,7 +6017,7 @@ Lege eine Konfigurationsdatei `.prettierrc` an:
   "singleQuote": true,
   "trailingComma": "es5",
   "bracketSpacing": true,
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
 }
 ```
 
@@ -6161,10 +6035,9 @@ In VS Code aktivierst du Prettier als **Default Formatter** (ohne ESLint-Integra
 // .vscode/settings.json
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
 }
 ```
-
 
 ## 2. Linter: ESLint
 
@@ -6181,17 +6054,14 @@ Erstelle eine `.eslintrc.json`:
   "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.json",
   },
   "plugins": ["@typescript-eslint"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
     "@typescript-eslint/no-unused-vars": ["error"],
-    "@typescript-eslint/explicit-function-return-type": "off"
-  }
+    "@typescript-eslint/explicit-function-return-type": "off",
+  },
 }
 ```
 
@@ -6211,11 +6081,10 @@ In VS Code erlaubst du ESLint nur für Lint-Fehler, nicht fürs Formatieren:
   "eslint.enable": true,
   "eslint.format.enable": false,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  }
+    "source.fixAll.eslint": true,
+  },
 }
 ```
-
 
 ## 3. Git-Hooks mit Husky
 
@@ -6239,13 +6108,12 @@ npx husky add .husky/pre-commit "npx lint-staged"
 }
 ```
 
-
 ## 4. Zusammenfassung
 
-* **Prettier** kümmert sich ausschließlich um Code-Formatierung.
-* **ESLint** übernimmt alle Code-Qualitäts- und Stil-Regeln (ohne Formatierung).
-* **VS Code** ist so konfiguriert, dass Formatierung on-save via Prettier erfolgt, Lint-Fehler via ESLint angezeigt und ggf. gefixt werden.
-* **Git-Hooks** sorgen dafür, dass vor jedem Commit sowohl Formattierung als auch Linting automatisiert ablaufen.
+- **Prettier** kümmert sich ausschließlich um Code-Formatierung.
+- **ESLint** übernimmt alle Code-Qualitäts- und Stil-Regeln (ohne Formatierung).
+- **VS Code** ist so konfiguriert, dass Formatierung on-save via Prettier erfolgt, Lint-Fehler via ESLint angezeigt und ggf. gefixt werden.
+- **Git-Hooks** sorgen dafür, dass vor jedem Commit sowohl Formattierung als auch Linting automatisiert ablaufen.
 
 So bleiben **Formatting** und **Linting** klar getrennt, du profitierst von präziser Code-Formatierung und strikter Code-Qualität.
 
@@ -6258,29 +6126,27 @@ So bleiben **Formatting** und **Linting** klar getrennt, du profitierst von prä
 Für moderne TypeScript-Projekte mit Effect, Bun, Next.js und funktionalem Stil bieten sich vier beliebte ESLint-Konfigurationen (oder Kombinationen daraus) an:
 
 1. **@typescript-eslint/recommended + strict-settings**
-– Die Basis für alle TS-Projekte:
-    * `plugin:@typescript-eslint/recommended`
-    * Ergänzend hartes `noImplicitAny`, `strictNullChecks`, `noUnusedLocals` und `noUnusedParameters`
-– Vorteil: minimal, fokussiert auf Typsicherheit
+   – Die Basis für alle TS-Projekte:
+   _ `plugin:@typescript-eslint/recommended`
+   _ Ergänzend hartes `noImplicitAny`, `strictNullChecks`, `noUnusedLocals` und `noUnusedParameters`
+   – Vorteil: minimal, fokussiert auf Typsicherheit
 2. **Airbnb-TypeScript**
-– „de facto“ Standard mit hohem Opinion-Level:
-    * `eslint-config-airbnb` + `eslint-config-airbnb-typescript`
-    * Inkl. Preview von React-/JSX-Regeln
-– Vorteil: sehr ausgereift, viele Best Practices out of the box
+   – „de facto“ Standard mit hohem Opinion-Level:
+   _ `eslint-config-airbnb` + `eslint-config-airbnb-typescript`
+   _ Inkl. Preview von React-/JSX-Regeln
+   – Vorteil: sehr ausgereift, viele Best Practices out of the box
 3. **StandardJS mit TypeScript-Plugin**
-– Fokus auf minimalistische Regeln, keine Konfigurationsdateien notwendig:
-    * `eslint-config-standard-with-typescript`
-– Vorteil: Zero-Config, zwingt zu sauberem Stil ohne viel Overhead
+   – Fokus auf minimalistische Regeln, keine Konfigurationsdateien notwendig: \* `eslint-config-standard-with-typescript`
+   – Vorteil: Zero-Config, zwingt zu sauberem Stil ohne viel Overhead
 4. **Unicorn + Import + Functional-Plugin**
-– Sammlung spezialisierter Plugins, die du zusätzlich zu einer Baseline einsetzt:
-    * `eslint-plugin-unicorn` (Modern JS-Idiome, Sicherheitschecks)
-    * `eslint-plugin-import` (Saubere Imports, no-cycle)
-    * `eslint-plugin-functional` (rein funktionaler Stil: keine Mutationen, Immutability-Enforcement)
-– Vorteil: maßgeschneiderte Regeln für Performanz, Code-Qualität und funktionalen Stil
+   – Sammlung spezialisierter Plugins, die du zusätzlich zu einer Baseline einsetzt:
+   _ `eslint-plugin-unicorn` (Modern JS-Idiome, Sicherheitschecks)
+   _ `eslint-plugin-import` (Saubere Imports, no-cycle) \* `eslint-plugin-functional` (rein funktionaler Stil: keine Mutationen, Immutability-Enforcement)
+   – Vorteil: maßgeschneiderte Regeln für Performanz, Code-Qualität und funktionalen Stil
 
 Empfohlener Mix für deinen Stack:
 
-* Basis:
+- Basis:
 
 ```json
 "extends": [
@@ -6289,7 +6155,7 @@ Empfohlener Mix für deinen Stack:
 ]
 ```
 
-* Ergänzen mit:
+- Ergänzen mit:
 
 ```json
 "plugins": ["import","unicorn","functional"],
@@ -6302,7 +6168,7 @@ Empfohlener Mix für deinen Stack:
 ]
 ```
 
-* Für Next.js-Frontends zusätzlich:
+- Für Next.js-Frontends zusätzlich:
 
 ```json
 "extends": ["plugin:@next/next/recommended"]
@@ -6310,10 +6176,10 @@ Empfohlener Mix für deinen Stack:
 
 Dieser Ansatz liefert dir
 
-* strikte Typsicherheit
-* umfassende Best Practices
-* funktionale Immutability-Regeln
-* sowie Next.js-spezifische Linting-Regeln, ohne in zwei getrennte Konfigurationen zu driften.
+- strikte Typsicherheit
+- umfassende Best Practices
+- funktionale Immutability-Regeln
+- sowie Next.js-spezifische Linting-Regeln, ohne in zwei getrennte Konfigurationen zu driften.
 
 ---
 
@@ -6325,6 +6191,7 @@ Um Regeln **in der IDE** anders zu behandeln als in CI, kannst du in deiner Work
 
 1. Öffne oder erstelle `.vscode/settings.json` im Root deines Projekts.
 2. Füge folgenden Block hinzu:
+
 ```jsonc
 {
   // Nutzt deine lokale ESLint-Extension
@@ -6333,22 +6200,22 @@ Um Regeln **in der IDE** anders zu behandeln als in CI, kannst du in deiner Work
   // Linter-Regeln lokal modifizieren
   "eslint.rules.customizations": [
     {
-      "rule": "no-console",     // Regel-Name aus deiner .eslintrc
-      "severity": "warning"     // Oder "off", wenn gar keine Anzeige gewünscht
-    }
+      "rule": "no-console", // Regel-Name aus deiner .eslintrc
+      "severity": "warning", // Oder "off", wenn gar keine Anzeige gewünscht
+    },
   ],
 
   // Falls nur für Editor-Fehler gelten soll; Präfix „editor“ für Problems
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  }
+    "source.fixAll.eslint": true,
+  },
 }
 ```
 
 Erläuterung:
 
-* `no-console` bleibt in deiner `.eslintrc.json` auf `"error"`, sodass CI und Pre-Commit Hooks weiterhin fehlschlagen.
-* VS Code zeigt es dir jedoch nur als *Warning* (gelbe Wellenlinie) oder gar nicht an, je nach eingestellter `severity`.
+- `no-console` bleibt in deiner `.eslintrc.json` auf `"error"`, sodass CI und Pre-Commit Hooks weiterhin fehlschlagen.
+- VS Code zeigt es dir jedoch nur als _Warning_ (gelbe Wellenlinie) oder gar nicht an, je nach eingestellter `severity`.
 
 Alternativ kannst du in `.eslintrc.json` Workbench-Overrides definieren, aber die `eslint.rules.customizations` in `.vscode/settings.json` ist die **idiomatische** Methode, um **nur in der IDE** die Schwere einer Regel abzusenken, ohne deine Projekt-Lint-Policy zu verändern.
 
@@ -6361,23 +6228,22 @@ Alternativ kannst du in `.eslintrc.json` Workbench-Overrides definieren, aber di
 Wenn du das **Effect-Ökosystem** intensiv nutzt, gibt es ein paar besondere Aspekte bei Linting und Type Checking, auf die du achten solltest:
 
 1. Typprüfung von Effekten
-– **Keine unbehandelten Effects**: Vermeide es, Effekte wie `Effect.async` oder `Effect.gen` aufzurufen, ohne sie mit `Effect.runPromise`, `Effect.runSync` o. Ä. abzuschließen.
-– **Lint-Regel**: Mit `@typescript-eslint/no-floating-promises` stellst du sicher, dass jeder Effekt „awaited“ oder zurückgegeben wird:
+   – **Keine unbehandelten Effects**: Vermeide es, Effekte wie `Effect.async` oder `Effect.gen` aufzurufen, ohne sie mit `Effect.runPromise`, `Effect.runSync` o. Ä. abzuschließen.
+   – **Lint-Regel**: Mit `@typescript-eslint/no-floating-promises` stellst du sicher, dass jeder Effekt „awaited“ oder zurückgegeben wird:
 
 ```jsonc
 {
   "rules": {
-    "@typescript-eslint/no-floating-promises": "error"
-  }
+    "@typescript-eslint/no-floating-promises": "error",
+  },
 }
 ```
 
 2. Strikte Schema-Typen
-– Wenn du `@effect/schema` einsetzt, prüfe zwingend die Output-Typen:
-    * Nutze `Schema.parse` oder `Schema.decode` kombiniert mit `Effect.mapError`, statt `Schema.parseSync`.
-– **Typ-Safe-Lint**: Es gibt zwar kein offizielles ESLint-Plugin, aber du kannst mittels einer **Custom Rule** sicherstellen, dass überall `Schema.parse` statt der synchronen Variante verwendet wird.
+   – Wenn du `@effect/schema` einsetzt, prüfe zwingend die Output-Typen: \* Nutze `Schema.parse` oder `Schema.decode` kombiniert mit `Effect.mapError`, statt `Schema.parseSync`.
+   – **Typ-Safe-Lint**: Es gibt zwar kein offizielles ESLint-Plugin, aber du kannst mittels einer **Custom Rule** sicherstellen, dass überall `Schema.parse` statt der synchronen Variante verwendet wird.
 3. Keine Mutation
-– **Functional-Plugin**: Mit `eslint-plugin-functional` verhinderst du unbeabsichtigte Objek­t- oder Array-Mutationen, was zu Konflikten mit Effect-Datenklassen führen kann:
+   – **Functional-Plugin**: Mit `eslint-plugin-functional` verhinderst du unbeabsichtigte Objek­t- oder Array-Mutationen, was zu Konflikten mit Effect-Datenklassen führen kann:
 
 ```jsonc
 {
@@ -6385,39 +6251,39 @@ Wenn du das **Effect-Ökosystem** intensiv nutzt, gibt es ein paar besondere Asp
   "extends": ["plugin:functional/recommended"],
   "rules": {
     "functional/no-let": "error",
-    "functional/prefer-readonly-type": "warn"
-  }
+    "functional/prefer-readonly-type": "warn",
+  },
 }
 ```
 
 4. Erzwungene Error-Typen
-– Um **typed failures** zu garantieren, verzichte auf `Effect.catchAll` ohne Error Typ:
-– Statt
-```ts     effect.catchAll((err) => Effect.succeed(handle(err)))     ```
-nutze
-```ts     effect.catchAll((err: MyError) => Effect.succeed(handle(err)))     ```
-– **TS-Config**: Aktiviere `noImplicitAny` und `strictBindCallApply`, damit fehlende Error-Typen sofort auffallen.
+   – Um **typed failures** zu garantieren, verzichte auf `Effect.catchAll` ohne Error Typ:
+   – Statt
+   `ts     effect.catchAll((err) => Effect.succeed(handle(err)))     `
+   nutze
+   `ts     effect.catchAll((err: MyError) => Effect.succeed(handle(err)))     `
+   – **TS-Config**: Aktiviere `noImplicitAny` und `strictBindCallApply`, damit fehlende Error-Typen sofort auffallen.
 5. Exhaustive Pattern Matching
-– Bei Summentypen (z. B. mit `Schema.taggedUnion`) solltest du in `Effect.matchTag` immer alle Fälle behandeln.
-– **Lint-Workaround**: Aktiviere `@typescript-eslint/switch-exhaustiveness-check` (über ein Plugin), um fehlende Cases in `switch`-Statements aufzudecken.
+   – Bei Summentypen (z. B. mit `Schema.taggedUnion`) solltest du in `Effect.matchTag` immer alle Fälle behandeln.
+   – **Lint-Workaround**: Aktiviere `@typescript-eslint/switch-exhaustiveness-check` (über ein Plugin), um fehlende Cases in `switch`-Statements aufzudecken.
 6. Layer-Sicherheit
-– Wenn du `Layer.provideSome`/`provideSomeLayer` benutzt, prüfe mit Typprüfung, dass alle benötigten Dependencies abgedeckt sind.
-– **TS-Config**: Aktiviere `strictFunctionTypes` und `strictNullChecks`, damit falsche Layer-Kombinationen typische Fehler werfen.
+   – Wenn du `Layer.provideSome`/`provideSomeLayer` benutzt, prüfe mit Typprüfung, dass alle benötigten Dependencies abgedeckt sind.
+   – **TS-Config**: Aktiviere `strictFunctionTypes` und `strictNullChecks`, damit falsche Layer-Kombinationen typische Fehler werfen.
 7. Async-Boundary Checks
-– Effekte sollten nicht unbeabsichtigt im Sync-Code ausgeführt werden.
-– Verwende `eslint-plugin-unicorn`-Regel `unicorn/prefer-async-await`, um konsistent `async/await` statt manueller Promises zu erzwingen.
+   – Effekte sollten nicht unbeabsichtigt im Sync-Code ausgeführt werden.
+   – Verwende `eslint-plugin-unicorn`-Regel `unicorn/prefer-async-await`, um konsistent `async/await` statt manueller Promises zu erzwingen.
 8. Abhängigkeiten im Monorepo
-– Achte bei Workspaces darauf, dass **kein Paket** ungewollt auf eine veröffentlichte Version des Shared-APIs statt auf die lokale Quelle referenziert.
-– **TS-Config**: Nutze `"paths"`-Aliase, die in `.vscode/settings.json` als `typescript.tsdk` konfiguriert sind, damit der LSP immer die lokalen Typen lädt.
+   – Achte bei Workspaces darauf, dass **kein Paket** ungewollt auf eine veröffentlichte Version des Shared-APIs statt auf die lokale Quelle referenziert.
+   – **TS-Config**: Nutze `"paths"`-Aliase, die in `.vscode/settings.json` als `typescript.tsdk` konfiguriert sind, damit der LSP immer die lokalen Typen lädt.
 
 **Zusammenfassung:**
 
-* Nutze `no-floating-promises` für Effekte
-* Vermeide synchrone Schema-Parsing-Methoden
-* Setze `eslint-plugin-functional` für Immutability
-* Erzwinge exhaustive Switch-Checks
-* Strikte TS-Flags (`noImplicitAny`, `strictFunctionTypes`)
-* Verwende `unicorn/prefer-async-await` für konsistente async-Syntax
+- Nutze `no-floating-promises` für Effekte
+- Vermeide synchrone Schema-Parsing-Methoden
+- Setze `eslint-plugin-functional` für Immutability
+- Erzwinge exhaustive Switch-Checks
+- Strikte TS-Flags (`noImplicitAny`, `strictFunctionTypes`)
+- Verwende `unicorn/prefer-async-await` für konsistente async-Syntax
 
 Mit diesen Regeln stellst du sicher, dass dein Effect-Code typsicher, funktional und robust bleibt, ohne stillschweigende Fehlerquellen.
 
@@ -6442,23 +6308,23 @@ bun add -D jest @types/jest ts-jest
 2. Konfiguration in `jest.config.ts`:
 
 ```ts
-import type { Config } from '@jest/types';
+import type { Config } from "@jest/types"
 
 const config: Config.InitialOptions = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  preset: "ts-jest",
+  testEnvironment: "node",
   collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['html', 'text'],
+  coverageDirectory: "coverage",
+  coverageReporters: ["html", "text"],
   collectCoverageFrom: [
-    'packages/**/*.{ts,tsx}',
-    'apps/**/*.{ts,tsx}',
-    '!**/node_modules/**',
-    '!**/dist/**'
-  ]
-};
+    "packages/**/*.{ts,tsx}",
+    "apps/**/*.{ts,tsx}",
+    "!**/node_modules/**",
+    "!**/dist/**",
+  ],
+}
 
-export default config;
+export default config
 ```
 
 3. Coverage-Report generieren:
@@ -6466,7 +6332,6 @@ export default config;
 ```bash
 bun run jest --coverage
 ```
-
 
 → Öffne `coverage/index.html` im Browser für eine **interaktive, farbcodierte Übersicht**.
 
@@ -6478,9 +6343,8 @@ Ergänze in `jest.config.ts` einen JSON- oder LCOV-Reporter:
 coverageReporters: ['html', 'json-summary', 'lcov'],
 ```
 
-* **json-summary** erzeugt `coverage/coverage-summary.json` mit kompakten Metriken.
-* **lcov** erzeugt `coverage/lcov.info`, das viele CI-Tools (Codecov, Coveralls) direkt importieren.
-
+- **json-summary** erzeugt `coverage/coverage-summary.json` mit kompakten Metriken.
+- **lcov** erzeugt `coverage/lcov.info`, das viele CI-Tools (Codecov, Coveralls) direkt importieren.
 
 ## 3. CI-Pipeline Integration
 
@@ -6507,9 +6371,8 @@ jobs:
           path: coverage/lcov.info
 ```
 
-* Der **HTML-Report** bleibt lokal im `coverage`-Ordner für Entwickler.
-* Die **JSON- und LCOV-Dateien** werden als Artefakte hochgeladen und können von KI-Assistenten oder CI-Monitoring-Tools ausgewertet werden.
-
+- Der **HTML-Report** bleibt lokal im `coverage`-Ordner für Entwickler.
+- Die **JSON- und LCOV-Dateien** werden als Artefakte hochgeladen und können von KI-Assistenten oder CI-Monitoring-Tools ausgewertet werden.
 
 ## 4. Nutzung durch KI-Assistent
 
@@ -6523,16 +6386,20 @@ Eine KI-Integration liest `coverage-summary.json`, extrahiert Gesamt- und Paket-
     "branches": { "total": 200, "covered": 150, "pct": 75 },
     "statements": { "total": 1300, "covered": 1130, "pct": 86.9 }
   },
-  "packages/shared-api": { /* ... */ },
-  "apps/my-app": { /* ... */ }
+  "packages/shared-api": {
+    /* ... */
+  },
+  "apps/my-app": {
+    /* ... */
+  }
 }
 ```
 
 Damit hast du:
 
-* Einen **anschaulichen HTML-Report** für Entwickler,
-* einen **kompakten JSON-Report** für automatisierte Tools,
-* und eine **LCOV-Datei** für externe Coverage-Services.
+- Einen **anschaulichen HTML-Report** für Entwickler,
+- einen **kompakten JSON-Report** für automatisierte Tools,
+- und eine **LCOV-Datei** für externe Coverage-Services.
 
 ---
 
@@ -6556,10 +6423,9 @@ Füge in deiner `package.json` unter den Scripts Folgendes hinzu:
 }
 ```
 
-* `--coverage` schaltet Coverage grundsätzlich ein.
-* `--coverage-report html` erzeugt ausschließlich den **HTML-Report** (`coverage/index.html`).
-* `--coverage-report json-summary,lcov` erzeugt `coverage/coverage-summary.json` und `coverage/lcov.info`.
-
+- `--coverage` schaltet Coverage grundsätzlich ein.
+- `--coverage-report html` erzeugt ausschließlich den **HTML-Report** (`coverage/index.html`).
+- `--coverage-report json-summary,lcov` erzeugt `coverage/coverage-summary.json` und `coverage/lcov.info`.
 
 ## 2. Coverage-Ordner
 
@@ -6572,9 +6438,8 @@ coverage/
 └─ coverage-summary.json# kompakter JSON-Report
 ```
 
-* Entwickler öffnen `coverage/index.html` im Browser.
-* CI-Pipelines und KI-Tools nutzen die JSON- und LCOV-Dateien.
-
+- Entwickler öffnen `coverage/index.html` im Browser.
+- CI-Pipelines und KI-Tools nutzen die JSON- und LCOV-Dateien.
 
 ## 3. CI-Pipeline Beispiel (GitHub Actions)
 
@@ -6600,23 +6465,21 @@ jobs:
           path: coverage/lcov.info
 ```
 
-
 ## 4. Lokale Nutzung
 
-* **HTML-Report**:
+- **HTML-Report**:
 
 ```bash
 bun run coverage:html
 open coverage/index.html
 ```
 
-* **JSON-Report für KI**:
+- **JSON-Report für KI**:
 
 ```bash
 bun run coverage:ci
 cat coverage/coverage-summary.json
 ```
-
 
 So erhältst du mit **Bun test** ohne zusätzliche Tools sowohl eine anschauliche **HTML-Coverage-Ansicht** für Menschen als auch maschinenlesbare **JSON-** und **LCOV-Reports** für CI und KI-Assistenten.
 
@@ -6632,12 +6495,12 @@ So erhältst du mit **Bun test** ohne zusätzliche Tools sowohl eine anschaulich
 
 Ziel: Jede kleine Funktion oder jeder Effekt wird isoliert und deterministisch geprüft.
 
-* **Framework:** `bun test` mit eingebauter Mock-Unterstützung.
-* **Scope:** Reine Logik, reine Funktionen, Daten-Schemata.
-* **Pattern:**
-    * Arrange–Act–Assert
-    * Nutzung von Test-Doubles für Dependencies (z. B. HTTP-Clients, Datenbank-Layer)
-* **Coverage:** Hoher Anteil an Statements und Branches, schnelle Ausführung.
+- **Framework:** `bun test` mit eingebauter Mock-Unterstützung.
+- **Scope:** Reine Logik, reine Funktionen, Daten-Schemata.
+- **Pattern:**
+  - Arrange–Act–Assert
+  - Nutzung von Test-Doubles für Dependencies (z. B. HTTP-Clients, Datenbank-Layer)
+- **Coverage:** Hoher Anteil an Statements und Branches, schnelle Ausführung.
 
 Beispiel:
 
@@ -6648,26 +6511,22 @@ import { describe, it, expect } from "bun:test"
 describe("parseTranscript", () => {
   it("splits text into sentences", () => {
     const input = "Hello world. This is Bun."
-    expect(parseTranscript(input)).toEqual([
-      "Hello world",
-      "This is Bun"
-    ])
+    expect(parseTranscript(input)).toEqual(["Hello world", "This is Bun"])
   })
 })
 ```
-
 
 ## 2. Property Testing
 
 Ziel: Breitere Validierung von invarianten Eigenschaften über zufällige Eingaben.
 
-* **Tool:** `fast-check` (funktioniert nahtlos mit Bun).
-* **Use Cases:**
-    * Daten-Schema-Roundtrips (Encode–Decode)
-    * Funktionale Invariants (z. B. Idempotenz, Sortierung)
-* **Pattern:**
-    * Definiere Generators für deine Domänenobjekte
-    * Formuliere Invariants als Assertions
+- **Tool:** `fast-check` (funktioniert nahtlos mit Bun).
+- **Use Cases:**
+  - Daten-Schema-Roundtrips (Encode–Decode)
+  - Funktionale Invariants (z. B. Idempotenz, Sortierung)
+- **Pattern:**
+  - Definiere Generators für deine Domänenobjekte
+  - Formuliere Invariants als Assertions
 
 Beispiel:
 
@@ -6679,24 +6538,23 @@ it("normalizeText is idempotent", () => {
   fc.assert(
     fc.property(fc.string(), (s) => {
       expect(normalizeText(normalizeText(s))).toBe(normalizeText(s))
-    })
+    }),
   )
 })
 ```
-
 
 ## 3. Integrationstests
 
 Ziel: Zusammenspiel mehrerer Module oder Services in isolierter Umgebung prüfen.
 
-* **Scope:** API-Handler + Schema-Validierung + Business-Logik
-* **Setup:**
-    * In-Memory-Datenbank (SQLite, Redis-Mock)
-    * HTTP-Testserver via `supertest` oder `undici`
-* **Pattern:**
-    * Starte Service in Testmodus
-    * Führe HTTP-Requests durch, verifiziere Statuscodes \& Payload
-    * Prüfe Side-Effects (z. B. Datenbankeinträge)
+- **Scope:** API-Handler + Schema-Validierung + Business-Logik
+- **Setup:**
+  - In-Memory-Datenbank (SQLite, Redis-Mock)
+  - HTTP-Testserver via `supertest` oder `undici`
+- **Pattern:**
+  - Starte Service in Testmodus
+  - Führe HTTP-Requests durch, verifiziere Statuscodes \& Payload
+  - Prüfe Side-Effects (z. B. Datenbankeinträge)
 
 Beispiel:
 
@@ -6711,39 +6569,35 @@ it("GET /transcripts returns 200 and JSON", async () => {
 })
 ```
 
-
 ## 4. End-to-End (E2E) Tests
 
 Ziel: Vollständige Workflow-Validierung, wie ein Benutzer oder Service es erleben würde.
 
-* **Tool:** Playwright oder Cypress (je nach Präferenz)
-* **Scope:** Web-UI oder API-Flows in realer Umgebung
-* **Pattern:**
-    * Bereitstellung der laufenden Anwendung (z. B. via Docker Compose)
-    * Ausführen von Szenarien (Login, Video abrufen, Notiz erstellen)
-    * Verifikation von UI-Elementen oder API-Responses
-
+- **Tool:** Playwright oder Cypress (je nach Präferenz)
+- **Scope:** Web-UI oder API-Flows in realer Umgebung
+- **Pattern:**
+  - Bereitstellung der laufenden Anwendung (z. B. via Docker Compose)
+  - Ausführen von Szenarien (Login, Video abrufen, Notiz erstellen)
+  - Verifikation von UI-Elementen oder API-Responses
 
 ## 5. Test-Organisation im Monorepo
 
-* **Unit \& Property Tests:** direkt im jeweiligen Paket unter `__tests__` oder `*.spec.ts`.
-* **Integration Tests:** eigenes Verzeichnis `tests/integration` im Service-Paket.
-* **E2E Tests:** zentrales Verzeichnis `e2e/` im Monorepo-Root, mit eigenem Config und Workflow.
-
+- **Unit \& Property Tests:** direkt im jeweiligen Paket unter `__tests__` oder `*.spec.ts`.
+- **Integration Tests:** eigenes Verzeichnis `tests/integration` im Service-Paket.
+- **E2E Tests:** zentrales Verzeichnis `e2e/` im Monorepo-Root, mit eigenem Config und Workflow.
 
 ## 6. Continuous Testing
 
-* **`npx turbo run test`** oder **`bun test --parallel`** für parallele Ausführung.
-* **Affected Tests:** Nur Tests für geänderte Pakete mit Turborepo (`turbo run test`).
-* **CI:** Coverage-Check, Lint-Check und `tsc --noEmit` als separate Schritte.
-
+- **`npx turbo run test`** oder **`bun test --parallel`** für parallele Ausführung.
+- **Affected Tests:** Nur Tests für geänderte Pakete mit Turborepo (`turbo run test`).
+- **CI:** Coverage-Check, Lint-Check und `tsc --noEmit` als separate Schritte.
 
 ## 7. Empfehlungen
 
-* **Trennung klar definieren:** Unit vs. Integration vs. E2E.
-* **Schnelle Feedback-Schleifen:** Unit- \& Property-Tests lokal in <1 Sekunde.
-* **Regelmäßige Integration und E2E:** in GitHub Actions für jeden PR.
-* **Property Tests selektiv:** Perfekt für kritische Kernfunktionen, nicht für jede Utility.
+- **Trennung klar definieren:** Unit vs. Integration vs. E2E.
+- **Schnelle Feedback-Schleifen:** Unit- \& Property-Tests lokal in <1 Sekunde.
+- **Regelmäßige Integration und E2E:** in GitHub Actions für jeden PR.
+- **Property Tests selektiv:** Perfekt für kritische Kernfunktionen, nicht für jede Utility.
 
 Mit dieser **mehrstufigen Strategie** stellst du sicher, dass deine Codebasis robust, typsicher und wartbar bleibt – ohne unnötige Komplexität oder formale Theorem-Proving-Ansätze.
 
@@ -6756,7 +6610,7 @@ Mit dieser **mehrstufigen Strategie** stellst du sicher, dass deine Codebasis ro
 Um ungenutzten Code und Imports zuverlässig zu finden, setze ich eine Kombination aus **TypeScript-Flags**, **ESLint-Plugins** und **Standalone-Tools** ein:
 
 1. TypeScript-Compiler Flags
-In `tsconfig.json` aktivieren:
+   In `tsconfig.json` aktivieren:
 
 ```jsonc
 {
@@ -6765,12 +6619,11 @@ In `tsconfig.json` aktivieren:
     "noUnusedParameters": true,
     "skipLibCheck": true,
     // ... weitere strikte Optionen
-  }
+  },
 }
 ```
 
-– Erkennt lokale Variablen und Parameter, die nie verwendet werden.
-2. ESLint-Plugin: `@typescript-eslint/no-unused-vars`
+– Erkennt lokale Variablen und Parameter, die nie verwendet werden. 2. ESLint-Plugin: `@typescript-eslint/no-unused-vars`
 In `.eslintrc.json`:
 
 ```jsonc
@@ -6778,14 +6631,13 @@ In `.eslintrc.json`:
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "error",
-      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
-    ]
-  }
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" },
+    ],
+  },
 }
 ```
 
-– Markiert ungenutzte Imports, Variablen und Funktionsparameter.
-3. ESLint-Plugin: `eslint-plugin-unused-imports`
+– Markiert ungenutzte Imports, Variablen und Funktionsparameter. 3. ESLint-Plugin: `eslint-plugin-unused-imports`
 Installation:
 
 ```bash
@@ -6801,14 +6653,18 @@ Konfiguration:
     "unused-imports/no-unused-imports-ts": "error",
     "unused-imports/no-unused-vars-ts": [
       "warn",
-      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
-    ]
-  }
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_",
+      },
+    ],
+  },
 }
 ```
 
-– Entfernt ungenutzte Imports automatisch mit `--fix`.
-4. Standalone-Tool: ts-prune
+– Entfernt ungenutzte Imports automatisch mit `--fix`. 4. Standalone-Tool: ts-prune
 Installation:
 
 ```bash
@@ -6821,8 +6677,7 @@ Ausführung:
 npx ts-prune --paths packages/*/src --ignorePaths "tests/*"
 ```
 
-– Findet ungenutzte Export-Funktionen, Typen und Konstanten im gesamten Monorepo.
-5. Standalone-Tool: depcheck
+– Findet ungenutzte Export-Funktionen, Typen und Konstanten im gesamten Monorepo. 5. Standalone-Tool: depcheck
 Installation:
 
 ```bash
@@ -6835,8 +6690,7 @@ Ausführung:
 npx depcheck --dir . --skip-missing
 ```
 
-– Erkennt ungenutzte npm-Abhängigkeiten und fehlende Imports.
-6. CI-Integration
+– Erkennt ungenutzte npm-Abhängigkeiten und fehlende Imports. 6. CI-Integration
 Füge in deinem CI-Workflow einen Schritt hinzu:
 
 ```yaml
@@ -6847,7 +6701,6 @@ Füge in deinem CI-Workflow einen Schritt hinzu:
     npx ts-prune
     npx depcheck --dir . --skip-missing || echo "Depcheck found issues"
 ```
-
 
 Mit dieser Kombination deckst du ungenutzte lokale Variablen, Parameter, Imports, Exporte und Abhängigkeiten ab und hältst deinen Code sauber und wartbar.
 
@@ -6860,7 +6713,7 @@ Mit dieser Kombination deckst du ungenutzte lokale Variablen, Parameter, Imports
 Ja. Mit einer Kombination aus Lint-Regeln und Analyse-Tools lassen sich Zyklen automatisch erkennen und verhindern:
 
 1. ESLint: `import/no-cycle`
-– Installation:
+   – Installation:
 
 ```bash
 bun add -D eslint-plugin-import
@@ -6872,13 +6725,12 @@ bun add -D eslint-plugin-import
 {
   "plugins": ["import"],
   "rules": {
-    "import/no-cycle": ["error", { "maxDepth": 1 }]
-  }
+    "import/no-cycle": ["error", { "maxDepth": 1 }],
+  },
 }
 ```
 
-– Erkennt zyklische `import`-Beziehungen und schlägt beim Linting Alarm.
-2. Madge (Dependency Graph Analyzer)
+– Erkennt zyklische `import`-Beziehungen und schlägt beim Linting Alarm. 2. Madge (Dependency Graph Analyzer)
 – Installation:
 
 ```bash
@@ -6899,7 +6751,7 @@ npx madge --circular packages/
 ```
 
 3. Dependency Cruiser
-– Installation:
+   – Installation:
 
 ```bash
 bun add -D dependency-cruiser
@@ -6910,8 +6762,13 @@ bun add -D dependency-cruiser
 ```js
 module.exports = {
   forbidden: [
-    { name: "no-circular", severity: "error", from: {}, to: { circular: true } }
-  ]
+    {
+      name: "no-circular",
+      severity: "error",
+      from: {},
+      to: { circular: true },
+    },
+  ],
 }
 ```
 
@@ -6922,7 +6779,7 @@ npx depcruise --config .dependency-cruiser.js packages
 ```
 
 4. Turborepo (optional)
-– Turborepo selbst verhindert keine Zyklen, liefert aber einen Projektgraphen, den du visualisieren kannst:
+   – Turborepo selbst verhindert keine Zyklen, liefert aber einen Projektgraphen, den du visualisieren kannst:
 
 ```bash
 npx turbo graph --focus=apps/my-app

@@ -2,10 +2,7 @@
   "mcpServers": {
     "effects-docs": {
       "command": "npx",
-      "args": [
-        "-y",
-        "effect-mcp@latest"
-      ]
+      "args": ["-y", "effect-mcp@latest"]
     }
   }
 }

@@ -2,7 +2,7 @@
 
 ## Init from fresh clone
 
-* see `./packages/db/README.md`
+- see `./packages/db/README.md`
 
 ## Daily Work
 
