@@ -3,7 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-10-15
 
 ## Active Technologies
-- TypeScript 5.x + Effect (Platform, Schema), Bun (not NPM, not Node), Prisma, Next.js 14+, React 18+, Material UI
+- TypeScript 5.x, Bun (not NPM, not Node), Prisma, Next.js 14+, React 19+, Tailwind CSS, ShadCN UI
 
 ## Commands
 Use these commands at the top level to verify your changes:

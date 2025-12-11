@@ -2,20 +2,7 @@
 
 ## Init from fresh clone
 
-Install PostgreSQL 17 and create database users (password is the db name) with databases:
-
-```bash
-createuser all_personal_projects_prod -P --createdb
-createdb all_personal_projects_prod -O all_personal_projects_prod
-createuser all_personal_projects_staging -P --createdb
-createdb all_personal_projects_staging -O all_personal_projects_staging
-createuser all_personal_projects_dev -P --createdb
-createdb all_personal_projects_dev -O all_personal_projects_dev
-cd ./packages/db/
-dotenv -f .env.prod run -- npx prisma migrate deploy
-dotenv -f .env.staging run -- npx prisma migrate deploy
-dotenv -f .env.dev run -- npx prisma migrate deploy
-```
+* see `./packages/db/README.md`
 
 ## Daily Work
 
@@ -48,27 +35,13 @@ This Turborepo has some additional tools already setup for you:
 To build all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
 turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
 ```
 
 You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
 turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
 ```
 
 ## Develop
@@ -76,27 +49,13 @@ pnpm exec turbo build --filter=docs
 To develop all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
 turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
 ```
 
 You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
 turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
 ```
 
 ## Useful Links
