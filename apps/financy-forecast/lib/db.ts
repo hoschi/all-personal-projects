@@ -1,4 +1,5 @@
 import postgres from 'postgres';
+import { Option } from 'effect';
 import {
     Account,
     AccountCategory,
@@ -54,16 +55,16 @@ export async function getAccounts(): Promise<Account[]> {
 }
 
 /**
- * Get account by ID
+ * Get account by ID using Option
  */
-export async function getAccountById(id: string): Promise<Account | null> {
+export async function getAccountById(id: string): Promise<Option.Option<Account>> {
     try {
         const result = await sql<Account[]>`
       SELECT id, name, category, current_balance as "currentBalance"
       FROM accounts
       WHERE id = ${id}
     `;
-        return result[0] || null;
+        return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching account:', error);
         throw new Error('Failed to fetch account');
@@ -187,9 +188,9 @@ export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
 }
 
 /**
- * Get latest asset snapshot
+ * Get latest asset snapshot using Option
  */
-export async function getLatestAssetSnapshot(): Promise<AssetSnapshot | null> {
+export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnapshot>> {
     try {
         const result = await sql<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
@@ -197,7 +198,7 @@ export async function getLatestAssetSnapshot(): Promise<AssetSnapshot | null> {
       ORDER BY date DESC
       LIMIT 1
     `;
-        return result[0] || null;
+        return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching latest asset snapshot:', error);
         throw new Error('Failed to fetch latest asset snapshot');
@@ -638,16 +639,16 @@ export async function deleteScenarioItem(id: string): Promise<boolean> {
 // ============================================================================
 
 /**
- * Get settings (singleton)
+ * Get settings (singleton) using Option
  */
-export async function getSettings(): Promise<Settings | null> {
+export async function getSettings(): Promise<Option.Option<Settings>> {
     try {
         const result = await sql<Settings[]>`
       SELECT estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
       FROM settings
       LIMIT 1
     `;
-        return result[0] || null;
+        return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching settings:', error);
         throw new Error('Failed to fetch settings');
@@ -679,9 +680,9 @@ export async function upsertSettings(estimatedMonthlyVariableCosts: number): Pro
 // ============================================================================
 
 /**
- * Get total liquidity for a specific date
+ * Get total liquidity for a specific date using Option
  */
-export async function getTotalLiquidityAtDate(date: Date): Promise<number> {
+export async function getTotalLiquidityAtDate(date: Date): Promise<Option.Option<number>> {
     try {
         // Find the latest snapshot at or before the given date
         const result = await sql<{ totalLiquidity: number }[]>`
@@ -692,7 +693,7 @@ export async function getTotalLiquidityAtDate(date: Date): Promise<number> {
       LIMIT 1
     `;
 
-        return result[0]?.totalLiquidity || 0;
+        return Option.fromNullable(result[0]?.totalLiquidity);
     } catch (error) {
         console.error('Error calculating total liquidity:', error);
         throw new Error('Failed to calculate total liquidity');
@@ -718,6 +719,112 @@ export async function getRecurringItemsForMonth(month: number, _year: number): P
     } catch (error) {
         console.error('Error fetching recurring items for month:', error);
         throw new Error('Failed to fetch recurring items for month');
+    }
+}
+
+// ============================================================================
+// Option-Based Utility Functions
+// ============================================================================
+
+/**
+ * Convert nullable value to Option
+ */
+export function toOption<T>(value: T | null | undefined): Option.Option<T> {
+    return Option.fromNullable(value);
+}
+
+/**
+ * Get account balance with Option (returns None if account not found)
+ */
+export async function getAccountBalance(id: string): Promise<Option.Option<number>> {
+    const account = await getAccountById(id);
+    return Option.map(account, (acc) => acc.currentBalance);
+}
+
+/**
+ * Filter accounts by category using Option
+ */
+export function filterAccountsByCategory(
+    accounts: Account[],
+    category: AccountCategory
+): Option.Option<Account[]> {
+    const filtered = accounts.filter(acc => acc.category === category);
+    return filtered.length > 0 ? Option.some(filtered) : Option.none();
+}
+
+/**
+ * Get liquid accounts with Option
+ */
+export function getLiquidAccounts(accounts: Account[]): Option.Option<Account[]> {
+    return filterAccountsByCategory(accounts, AccountCategory.LIQUID);
+}
+
+/**
+ * Get retirement accounts with Option
+ */
+export function getRetirementAccounts(accounts: Account[]): Option.Option<Account[]> {
+    return filterAccountsByCategory(accounts, AccountCategory.RETIREMENT);
+}
+
+/**
+ * Calculate total balance of accounts with Option
+ */
+export function calculateTotalBalance(accounts: Account[]): Option.Option<number> {
+    const total = accounts.reduce((sum, acc) => sum + acc.currentBalance, 0);
+    return total > 0 ? Option.some(total) : Option.none();
+}
+
+/**
+ * Get active scenario items by date range with Option
+ */
+export async function getActiveScenarioItemsInRange(
+    startDate: Date,
+    endDate: Date
+): Promise<Option.Option<ScenarioItem[]>> {
+    try {
+        const items = await getScenarioItemsByDateRange(startDate, endDate);
+        const activeItems = items.filter(item => item.isActive);
+        return activeItems.length > 0 ? Option.some(activeItems) : Option.none();
+    } catch (error) {
+        console.error('Error fetching active scenario items in range:', error);
+        return Option.none();
+    }
+}
+
+/**
+ * Safe way to get settings with default value
+ */
+export async function getSettingsWithDefault(defaultValue: number): Promise<number> {
+    const settings = await getSettings();
+    return Option.getOrElse(settings, () => ({ estimatedMonthlyVariableCosts: defaultValue })).estimatedMonthlyVariableCosts;
+}
+
+/**
+ * Get recurring items by interval with Option safety
+ */
+export async function getRecurringItemsByIntervalSafe(interval: RecurringItemInterval): Promise<Option.Option<RecurringItem[]>> {
+    try {
+        const items = await getRecurringItemsByInterval(interval);
+        return items.length > 0 ? Option.some(items) : Option.none();
+    } catch (error) {
+        console.error('Error fetching recurring items by interval:', error);
+        return Option.none();
+    }
+}
+
+/**
+ * Get scenario items with date filtering using Option
+ */
+export async function getScenarioItemsByDateRangeSafe(
+    startDate: Date,
+    endDate: Date
+): Promise<Option.Option<ScenarioItem[]>> {
+    try {
+        const items = await getScenarioItemsByDateRange(startDate, endDate);
+        return items.length > 0 ? Option.some(items) : Option.none();
+    } catch (error) {
+        console.error('Error fetching scenario items by date range:', error);
+        return Option.none();
     }
 }
 
