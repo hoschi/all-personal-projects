@@ -10,6 +10,7 @@
  */
 
 import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
 
 // Load environment variables
 import * as dotenv from 'dotenv';
@@ -28,10 +29,14 @@ if (!DATABASE_URL) {
  */
 function executeSql(sql: string): void {
     try {
-        execSync(`psql "${DATABASE_URL}" -c "${sql}"`, {
+        // Use a temporary SQL file to avoid shell escaping issues
+        const tempSqlFile = '/tmp/temp_seed_sql.sql';
+        writeFileSync(tempSqlFile, `SET search_path TO financy_forecast, public; ${sql}`);
+        execSync(`psql "${DATABASE_URL}" -f "${tempSqlFile}"`, {
             stdio: 'pipe',
             env: process.env
         });
+        unlinkSync(tempSqlFile); // Clean up
     } catch (error) {
         console.error('❌ SQL execution failed:', sql);
         console.error('Error:', error);
@@ -64,7 +69,7 @@ function seedAccounts(): void {
  */
 function getAccountIds(): { [name: string]: string } {
     try {
-        const result = execSync(`psql "${DATABASE_URL}" -t -c "SELECT name, id FROM accounts ORDER BY name;"`, {
+        const result = execSync(`psql "${DATABASE_URL}" -t -c "SET search_path TO financy_forecast, public; SELECT name, id FROM accounts ORDER BY name;"`, {
             encoding: 'utf8',
             env: process.env
         }).trim();
@@ -179,7 +184,7 @@ function seedAssetSnapshots(): void {
         executeSql(snapshotSql);
 
         // Get the snapshot ID
-        const snapshotIdResult = execSync(`psql "${DATABASE_URL}" -t -c "SELECT id FROM asset_snapshots WHERE date = '${month.date}';"`, {
+        const snapshotIdResult = execSync(`psql "${DATABASE_URL}" -t -c "SET search_path TO financy_forecast, public; SELECT id FROM asset_snapshots WHERE date = '${month.date}';"`, {
             encoding: 'utf8',
             env: process.env
         }).trim();
@@ -317,7 +322,7 @@ function updateCurrentBalances(): void {
     `;
 
         try {
-            const balanceResult = execSync(`psql "${DATABASE_URL}" -t -c "${balanceSql}"`, {
+            const balanceResult = execSync(`psql "${DATABASE_URL}" -t -c "SET search_path TO financy_forecast, public; ${balanceSql}"`, {
                 encoding: 'utf8',
                 env: process.env
             }).trim();

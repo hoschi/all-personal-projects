@@ -1,8 +1,8 @@
 -- FinanceForecast Database Schema
 -- This file creates all necessary tables for the FinanceForecast application
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Set schema search path
+SET search_path TO financy_forecast, public;
 
 -- 1. Accounts table (Konten)
 CREATE TABLE IF NOT EXISTS accounts (

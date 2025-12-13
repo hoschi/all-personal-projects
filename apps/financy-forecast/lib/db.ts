@@ -17,9 +17,12 @@ dotenv.config();
 
 // Initialize PostgreSQL connection
 const sql = postgres(process.env.DATABASE_URL!, {
-    ssl: 'require',
+    ssl: false, // Disable SSL for local development
     connect_timeout: 10
 });
+
+// Set schema search path for all queries
+await sql`SET search_path TO financy_forecast, public;`;
 
 // Database connection test
 export async function testConnection(): Promise<boolean> {

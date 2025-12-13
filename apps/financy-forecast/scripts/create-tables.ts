@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { join } from 'path';
 
 // Load environment variables
@@ -29,10 +29,14 @@ function executeSqlFile(): void {
         throw new Error('DATABASE_URL environment variable not set');
     }
 
-    readFileSync(SQL_FILE, 'utf8');
-
     try {
-        // Execute the SQL file using psql
+        // Create schema first
+        execSync(`psql "${process.env.DATABASE_URL}" -c "CREATE SCHEMA IF NOT EXISTS financy_forecast;"`, {
+            stdio: 'inherit',
+            env: process.env
+        });
+
+        // Execute SQL file with search path set in the file itself
         execSync(`psql "${process.env.DATABASE_URL}" -f "${SQL_FILE}"`, {
             stdio: 'inherit',
             env: process.env
@@ -64,12 +68,7 @@ export function dropAllTables(): void {
     }
 
     const dropSql = `
-    DROP TABLE IF EXISTS settings CASCADE;
-    DROP TABLE IF EXISTS scenario_items CASCADE;
-    DROP TABLE IF EXISTS recurring_items CASCADE;
-    DROP TABLE IF EXISTS account_balance_details CASCADE;
-    DROP TABLE IF EXISTS asset_snapshots CASCADE;
-    DROP TABLE IF EXISTS accounts CASCADE;
+    DROP SCHEMA IF EXISTS financy_forecast CASCADE;
   `;
 
     try {
@@ -135,7 +134,7 @@ function main(): void {
                 console.log('  reset   - Drop and recreate all tables');
                 console.log('  drop    - Drop all tables');
                 console.log('\nOr run directly:');
-                console.log('  npx tsx scripts/create-tables.ts create');
+                console.log('  bun run scripts/create-tables.ts create');
                 console.log('  psql $DATABASE_URL -f scripts/create-tables.sql');
                 break;
         }
