@@ -1,0 +1,735 @@
+import postgres from 'postgres';
+import {
+    Account,
+    AccountCategory,
+    AccountBalanceDetail,
+    AssetSnapshot,
+    RecurringItem,
+    RecurringItemInterval,
+    ScenarioItem,
+    Settings
+} from './schemas';
+
+// Load environment variables
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+// Initialize PostgreSQL connection
+const sql = postgres(process.env.DATABASE_URL!, {
+    ssl: 'require',
+    connect_timeout: 10
+});
+
+// Database connection test
+export async function testConnection(): Promise<boolean> {
+    try {
+        await sql`SELECT 1`;
+        console.log('✅ Database connection successful');
+        return true;
+    } catch (error) {
+        console.error('❌ Database connection failed:', error);
+        return false;
+    }
+}
+
+// ============================================================================
+// Account Operations (Kontenverwaltung)
+// ============================================================================
+
+/**
+ * Get all accounts with their current balances
+ */
+export async function getAccounts(): Promise<Account[]> {
+    try {
+        const result = await sql<Account[]>`
+      SELECT id, name, category, current_balance as "currentBalance"
+      FROM accounts
+      ORDER BY name ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching accounts:', error);
+        throw new Error('Failed to fetch accounts');
+    }
+}
+
+/**
+ * Get account by ID
+ */
+export async function getAccountById(id: string): Promise<Account | null> {
+    try {
+        const result = await sql<Account[]>`
+      SELECT id, name, category, current_balance as "currentBalance"
+      FROM accounts
+      WHERE id = ${id}
+    `;
+        return result[0] || null;
+    } catch (error) {
+        console.error('Error fetching account:', error);
+        throw new Error('Failed to fetch account');
+    }
+}
+
+/**
+ * Create new account
+ */
+export async function createAccount(
+    name: string,
+    category: AccountCategory,
+    currentBalance: number
+): Promise<Account> {
+    try {
+        const result = await sql<Account[]>`
+      INSERT INTO accounts (id, name, category, current_balance)
+      VALUES (gen_random_uuid(), ${name}, ${category}, ${currentBalance})
+      RETURNING id, name, category, current_balance as "currentBalance"
+    `;
+        return result[0];
+    } catch (error) {
+        console.error('Error creating account:', error);
+        throw new Error('Failed to create account');
+    }
+}
+
+/**
+ * Update account
+ */
+export async function updateAccount(
+    id: string,
+    name?: string,
+    category?: AccountCategory,
+    currentBalance?: number
+): Promise<Account> {
+    try {
+        const updateFields: string[] = [];
+        const values: (string | number | boolean)[] = [];
+        let paramCount = 1;
+
+        if (name !== undefined) {
+            updateFields.push(`name = $${paramCount++}`);
+            values.push(name);
+        }
+        if (category !== undefined) {
+            updateFields.push(`category = $${paramCount++}`);
+            values.push(category);
+        }
+        if (currentBalance !== undefined) {
+            updateFields.push(`current_balance = $${paramCount++}`);
+            values.push(currentBalance);
+        }
+
+        values.push(id);
+
+        const result = await sql<Account[]>`
+      UPDATE accounts 
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount}
+      RETURNING id, name, category, current_balance as "currentBalance"
+    `;
+
+        if (!result[0]) {
+            throw new Error('Account not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating account:', error);
+        throw new Error('Failed to update account');
+    }
+}
+
+/**
+ * Delete account (only if no balance details exist)
+ */
+export async function deleteAccount(id: string): Promise<boolean> {
+    try {
+        // Check if account has balance details
+        const balanceCount = await sql<{ count: number }[]>`
+      SELECT COUNT(*) as count
+      FROM account_balance_details
+      WHERE account_id = ${id}
+    `;
+
+        if (balanceCount[0].count > 0) {
+            throw new Error('Cannot delete account with existing balance history');
+        }
+
+        const result = await sql`
+      DELETE FROM accounts 
+      WHERE id = ${id}
+    `;
+
+        return result.count > 0;
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        throw error;
+    }
+}
+
+// ============================================================================
+// AssetSnapshot Operations (Monatliche Ist-Stände)
+// ============================================================================
+
+/**
+ * Get all asset snapshots ordered by date
+ */
+export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
+    try {
+        const result = await sql<AssetSnapshot[]>`
+      SELECT id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+      FROM asset_snapshots
+      ORDER BY date ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching asset snapshots:', error);
+        throw new Error('Failed to fetch asset snapshots');
+    }
+}
+
+/**
+ * Get latest asset snapshot
+ */
+export async function getLatestAssetSnapshot(): Promise<AssetSnapshot | null> {
+    try {
+        const result = await sql<AssetSnapshot[]>`
+      SELECT id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+      FROM asset_snapshots
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+        return result[0] || null;
+    } catch (error) {
+        console.error('Error fetching latest asset snapshot:', error);
+        throw new Error('Failed to fetch latest asset snapshot');
+    }
+}
+
+/**
+ * Create new asset snapshot
+ */
+export async function createAssetSnapshot(
+    date: Date,
+    totalLiquidity: number,
+    isProvisional: boolean = false
+): Promise<AssetSnapshot> {
+    try {
+        const result = await sql<AssetSnapshot[]>`
+      INSERT INTO asset_snapshots (id, date, total_liquidity, is_provisional)
+      VALUES (gen_random_uuid(), ${date}, ${totalLiquidity}, ${isProvisional})
+      RETURNING id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+    `;
+        return result[0];
+    } catch (error) {
+        console.error('Error creating asset snapshot:', error);
+        throw new Error('Failed to create asset snapshot');
+    }
+}
+
+/**
+ * Update asset snapshot provisional status
+ */
+export async function updateAssetSnapshotProvisional(
+    id: string,
+    isProvisional: boolean
+): Promise<AssetSnapshot> {
+    try {
+        const result = await sql<AssetSnapshot[]>`
+      UPDATE asset_snapshots 
+      SET is_provisional = ${isProvisional}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+    `;
+
+        if (!result[0]) {
+            throw new Error('Asset snapshot not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating asset snapshot:', error);
+        throw new Error('Failed to update asset snapshot');
+    }
+}
+
+/**
+ * Delete asset snapshot and all associated balance details
+ */
+export async function deleteAssetSnapshot(id: string): Promise<boolean> {
+    try {
+        // Delete associated balance details first
+        await sql`
+      DELETE FROM account_balance_details 
+      WHERE snapshot_id = ${id}
+    `;
+
+        // Delete the snapshot
+        const result = await sql`
+      DELETE FROM asset_snapshots 
+      WHERE id = ${id}
+    `;
+
+        return result.count > 0;
+    } catch (error) {
+        console.error('Error deleting asset snapshot:', error);
+        throw error;
+    }
+}
+
+// ============================================================================
+// AccountBalanceDetail Operations (Verknüpfung zwischen Snapshots und Accounts)
+// ============================================================================
+
+/**
+ * Get balance details for a specific snapshot
+ */
+export async function getBalanceDetailsBySnapshotId(snapshotId: string): Promise<AccountBalanceDetail[]> {
+    try {
+        const result = await sql<AccountBalanceDetail[]>`
+      SELECT id, snapshot_id as "snapshotId", account_id as "accountId", amount
+      FROM account_balance_details
+      WHERE snapshot_id = ${snapshotId}
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching balance details:', error);
+        throw new Error('Failed to fetch balance details');
+    }
+}
+
+/**
+ * Create balance details for all accounts in a snapshot
+ */
+export async function createBalanceDetailsForSnapshot(
+    snapshotId: string,
+    accountBalances: { accountId: string; amount: number }[]
+): Promise<AccountBalanceDetail[]> {
+    try {
+        const details = accountBalances.map(({ accountId, amount }) => ({
+            snapshotId,
+            accountId,
+            amount
+        }));
+
+        // Create bulk insert using individual inserts for better compatibility
+        const results: AccountBalanceDetail[] = [];
+
+        for (const detail of details) {
+            const result = await sql<AccountBalanceDetail[]>`
+                INSERT INTO account_balance_details (id, snapshot_id, account_id, amount)
+                VALUES (gen_random_uuid(), ${detail.snapshotId}::uuid, ${detail.accountId}::uuid, ${detail.amount})
+                RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
+            `;
+            results.push(result[0]);
+        }
+
+        return results;
+    } catch (error) {
+        console.error('Error creating balance details:', error);
+        throw new Error('Failed to create balance details');
+    }
+}
+
+/**
+ * Update balance detail
+ */
+export async function updateBalanceDetail(
+    id: string,
+    amount: number
+): Promise<AccountBalanceDetail> {
+    try {
+        const result = await sql<AccountBalanceDetail[]>`
+      UPDATE account_balance_details 
+      SET amount = ${amount}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
+    `;
+
+        if (!result[0]) {
+            throw new Error('Balance detail not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating balance detail:', error);
+        throw new Error('Failed to update balance detail');
+    }
+}
+
+// ============================================================================
+// RecurringItem Operations (Fixkosten & Regelmäßige Einnahmen)
+// ============================================================================
+
+/**
+ * Get all recurring items
+ */
+export async function getRecurringItems(): Promise<RecurringItem[]> {
+    try {
+        const result = await sql<RecurringItem[]>`
+      SELECT id, name, amount, interval, due_month as "dueMonth"
+      FROM recurring_items
+      ORDER BY name ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching recurring items:', error);
+        throw new Error('Failed to fetch recurring items');
+    }
+}
+
+/**
+ * Get recurring items by interval
+ */
+export async function getRecurringItemsByInterval(interval: RecurringItemInterval): Promise<RecurringItem[]> {
+    try {
+        const result = await sql<RecurringItem[]>`
+      SELECT id, name, amount, interval, due_month as "dueMonth"
+      FROM recurring_items
+      WHERE interval = ${interval}
+      ORDER BY name ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching recurring items by interval:', error);
+        throw new Error('Failed to fetch recurring items by interval');
+    }
+}
+
+/**
+ * Create new recurring item
+ */
+export async function createRecurringItem(
+    name: string,
+    amount: number,
+    interval: RecurringItemInterval,
+    dueMonth?: number
+): Promise<RecurringItem> {
+    try {
+        // Handle undefined dueMonth properly
+        const dueMonthValue = dueMonth ?? null;
+
+        const result = await sql<RecurringItem[]>`
+      INSERT INTO recurring_items (id, name, amount, interval, due_month)
+      VALUES (gen_random_uuid(), ${name}, ${amount}, ${interval}, ${dueMonthValue})
+      RETURNING id, name, amount, interval, due_month as "dueMonth"
+    `;
+        return result[0];
+    } catch (error) {
+        console.error('Error creating recurring item:', error);
+        throw new Error('Failed to create recurring item');
+    }
+}
+
+/**
+ * Update recurring item
+ */
+export async function updateRecurringItem(
+    id: string,
+    name?: string,
+    amount?: number,
+    interval?: RecurringItemInterval,
+    dueMonth?: number
+): Promise<RecurringItem> {
+    try {
+        const updateFields: string[] = [];
+        const values: (string | number | boolean | null)[] = [];
+        let paramCount = 1;
+
+        if (name !== undefined) {
+            updateFields.push(`name = $${paramCount++}`);
+            values.push(name);
+        }
+        if (amount !== undefined) {
+            updateFields.push(`amount = $${paramCount++}`);
+            values.push(amount);
+        }
+        if (interval !== undefined) {
+            updateFields.push(`interval = $${paramCount++}`);
+            values.push(interval);
+        }
+        if (dueMonth !== undefined) {
+            updateFields.push(`due_month = $${paramCount++}`);
+            values.push(dueMonth);
+        }
+
+        values.push(id);
+
+        const result = await sql<RecurringItem[]>`
+      UPDATE recurring_items 
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount}
+      RETURNING id, name, amount, interval, due_month as "dueMonth"
+    `;
+
+        if (!result[0]) {
+            throw new Error('Recurring item not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating recurring item:', error);
+        throw new Error('Failed to update recurring item');
+    }
+}
+
+/**
+ * Delete recurring item
+ */
+export async function deleteRecurringItem(id: string): Promise<boolean> {
+    try {
+        const result = await sql`
+      DELETE FROM recurring_items 
+      WHERE id = ${id}
+    `;
+        return result.count > 0;
+    } catch (error) {
+        console.error('Error deleting recurring item:', error);
+        throw error;
+    }
+}
+
+// ============================================================================
+// ScenarioItem Operations (Szenarien / Einmalzahlungen)
+// ============================================================================
+
+/**
+ * Get all scenario items
+ */
+export async function getScenarioItems(): Promise<ScenarioItem[]> {
+    try {
+        const result = await sql<ScenarioItem[]>`
+      SELECT id, name, amount, date, is_active as "isActive"
+      FROM scenario_items
+      ORDER BY date ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching scenario items:', error);
+        throw new Error('Failed to fetch scenario items');
+    }
+}
+
+/**
+ * Get active scenario items
+ */
+export async function getActiveScenarioItems(): Promise<ScenarioItem[]> {
+    try {
+        const result = await sql<ScenarioItem[]>`
+      SELECT id, name, amount, date, is_active as "isActive"
+      FROM scenario_items
+      WHERE is_active = true
+      ORDER BY date ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching active scenario items:', error);
+        throw new Error('Failed to fetch active scenario items');
+    }
+}
+
+/**
+ * Get scenario items by date range
+ */
+export async function getScenarioItemsByDateRange(
+    startDate: Date,
+    endDate: Date
+): Promise<ScenarioItem[]> {
+    try {
+        const result = await sql<ScenarioItem[]>`
+      SELECT id, name, amount, date, is_active as "isActive"
+      FROM scenario_items
+      WHERE date >= ${startDate} AND date <= ${endDate}
+      ORDER BY date ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching scenario items by date range:', error);
+        throw new Error('Failed to fetch scenario items by date range');
+    }
+}
+
+/**
+ * Create new scenario item
+ */
+export async function createScenarioItem(
+    name: string,
+    amount: number,
+    date: Date,
+    isActive: boolean = true
+): Promise<ScenarioItem> {
+    try {
+        const result = await sql<ScenarioItem[]>`
+      INSERT INTO scenario_items (id, name, amount, date, is_active)
+      VALUES (gen_random_uuid(), ${name}, ${amount}, ${date}, ${isActive})
+      RETURNING id, name, amount, date, is_active as "isActive"
+    `;
+        return result[0];
+    } catch (error) {
+        console.error('Error creating scenario item:', error);
+        throw new Error('Failed to create scenario item');
+    }
+}
+
+/**
+ * Update scenario item
+ */
+export async function updateScenarioItem(
+    id: string,
+    name?: string,
+    amount?: number,
+    date?: Date,
+    isActive?: boolean
+): Promise<ScenarioItem> {
+    try {
+        const updateFields: string[] = [];
+        const values: (string | number | Date | boolean)[] = [];
+        let paramCount = 1;
+
+        if (name !== undefined) {
+            updateFields.push(`name = $${paramCount++}`);
+            values.push(name);
+        }
+        if (amount !== undefined) {
+            updateFields.push(`amount = $${paramCount++}`);
+            values.push(amount);
+        }
+        if (date !== undefined) {
+            updateFields.push(`date = $${paramCount++}`);
+            values.push(date);
+        }
+        if (isActive !== undefined) {
+            updateFields.push(`is_active = $${paramCount++}`);
+            values.push(isActive);
+        }
+
+        values.push(id);
+
+        const result = await sql<ScenarioItem[]>`
+      UPDATE scenario_items 
+      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount}
+      RETURNING id, name, amount, date, is_active as "isActive"
+    `;
+
+        if (!result[0]) {
+            throw new Error('Scenario item not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating scenario item:', error);
+        throw new Error('Failed to update scenario item');
+    }
+}
+
+/**
+ * Delete scenario item
+ */
+export async function deleteScenarioItem(id: string): Promise<boolean> {
+    try {
+        const result = await sql`
+      DELETE FROM scenario_items 
+      WHERE id = ${id}
+    `;
+        return result.count > 0;
+    } catch (error) {
+        console.error('Error deleting scenario item:', error);
+        throw error;
+    }
+}
+
+// ============================================================================
+// Settings Operations (Globale Einstellungen)
+// ============================================================================
+
+/**
+ * Get settings (singleton)
+ */
+export async function getSettings(): Promise<Settings | null> {
+    try {
+        const result = await sql<Settings[]>`
+      SELECT estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
+      FROM settings
+      LIMIT 1
+    `;
+        return result[0] || null;
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        throw new Error('Failed to fetch settings');
+    }
+}
+
+/**
+ * Create or update settings
+ */
+export async function upsertSettings(estimatedMonthlyVariableCosts: number): Promise<Settings> {
+    try {
+        const result = await sql<Settings[]>`
+      INSERT INTO settings (estimated_monthly_variable_costs)
+      VALUES (${estimatedMonthlyVariableCosts})
+      ON CONFLICT (id) 
+      DO UPDATE SET estimated_monthly_variable_costs = EXCLUDED.estimated_monthly_variable_costs,
+                    updated_at = CURRENT_TIMESTAMP
+      RETURNING estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
+    `;
+        return result[0];
+    } catch (error) {
+        console.error('Error upserting settings:', error);
+        throw new Error('Failed to upsert settings');
+    }
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/**
+ * Get total liquidity for a specific date
+ */
+export async function getTotalLiquidityAtDate(date: Date): Promise<number> {
+    try {
+        // Find the latest snapshot at or before the given date
+        const result = await sql<{ totalLiquidity: number }[]>`
+      SELECT total_liquidity as "totalLiquidity"
+      FROM asset_snapshots
+      WHERE date <= ${date}
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+
+        return result[0]?.totalLiquidity || 0;
+    } catch (error) {
+        console.error('Error calculating total liquidity:', error);
+        throw new Error('Failed to calculate total liquidity');
+    }
+}
+
+/**
+ * Get recurring items due in a specific month
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getRecurringItemsForMonth(month: number, _year: number): Promise<RecurringItem[]> {
+    try {
+        const result = await sql<RecurringItem[]>`
+      SELECT id, name, amount, interval, due_month as "dueMonth"
+      FROM recurring_items
+      WHERE 
+        interval = 'MONTHLY' OR
+        (interval = 'QUARTERLY' AND due_month <= ${month} AND ((month - due_month) % 3) = 0) OR
+        (interval = 'YEARLY' AND due_month = ${month})
+      ORDER BY name ASC
+    `;
+        return result;
+    } catch (error) {
+        console.error('Error fetching recurring items for month:', error);
+        throw new Error('Failed to fetch recurring items for month');
+    }
+}
+
+// ============================================================================
+// Close database connection
+// ============================================================================
+
+export async function closeConnection(): Promise<void> {
+    try {
+        await sql.end();
+        console.log('✅ Database connection closed');
+    } catch (error) {
+        console.error('❌ Error closing database connection:', error);
+    }
+}
