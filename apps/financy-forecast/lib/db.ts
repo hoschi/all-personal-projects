@@ -8,7 +8,8 @@ import {
     RecurringItem,
     RecurringItemInterval,
     ScenarioItem,
-    Settings
+    Settings,
+    SnapshotDetails
 } from './schemas';
 
 // Load environment variables
@@ -249,6 +250,55 @@ export async function deleteAssetSnapshot(id: string): Promise<boolean> {
     } catch (error) {
         console.error('Error deleting asset snapshot:', error);
         throw error;
+    }
+}
+
+/**
+ * Get snapshot details with account balances for the last N months
+ * @param limit Number of months to fetch from the current date backwards
+ * @returns Option containing array of SnapshotDetails with snapshot data and account balance mappings
+ */
+export async function getSnapshotDetails(limit: number): Promise<Option.Option<SnapshotDetails[]>> {
+    try {
+        // Get the most recent snapshots with limit
+        const snapshots = await sql<AssetSnapshot[]>`
+      SELECT id, date, total_liquidity as "totalLiquidity"
+      FROM asset_snapshots
+      ORDER BY date DESC
+      LIMIT ${limit}
+    `;
+
+        if (snapshots.length === 0) {
+            return Option.none();
+        }
+
+        // For each snapshot, get its balance details
+        const snapshotDetails: SnapshotDetails[] = [];
+
+        for (const snapshot of snapshots) {
+            const balanceDetails = await sql<AccountBalanceDetail[]>`
+        SELECT id, snapshot_id as "snapshotId", account_id as "accountId", amount
+        FROM account_balance_details
+        WHERE snapshot_id = ${snapshot.id}
+        ORDER BY account_id ASC
+      `;
+
+            // Create account balance mapping for this snapshot
+            const accountBalances: Record<string, number> = {};
+            for (const detail of balanceDetails) {
+                accountBalances[detail.accountId] = detail.amount;
+            }
+
+            snapshotDetails.push({
+                snapshot,
+                accountBalances
+            });
+        }
+
+        return Option.some(snapshotDetails);
+    } catch (error) {
+        console.error('Error fetching snapshot details:', error);
+        throw new Error('Failed to fetch snapshot details');
     }
 }
 
