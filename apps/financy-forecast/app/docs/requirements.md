@@ -27,11 +27,10 @@ Mock: https://aistudio.google.com/apps/drive/1_0_TXcmelH7u4S926JuxcskajHI4LHUI?s
 *   `currentBalance`: Integer (Cents). *Zur Performance-Optimierung.*
 
 ### B. `AssetSnapshot` (Monatliche Ist-Stände)
-Repräsentiert den Status am 1. eines Monats.
+Repräsentiert den Status am 1. eines Monats für vergangene Monate.
 *   `id`: UUID
 *   `date`: Date (Immer der 1. des Monats).
 *   `totalLiquidity`: Integer (Cents, Summe LIQUID).
-*   `isProvisional`: Boolean (True, wenn das Datum in der Zukunft liegt).
 *   *Relation:* 1:n zu `AccountBalanceDetail`.
 
 ### C. `AccountBalanceDetail`
@@ -66,9 +65,13 @@ Repräsentiert den Status am 1. eines Monats.
 *   Tabelle (Zeilen: Accounts, Spalten: Monate).
 *   Zeile "Gesamtvermögen" (Summe der Spalte).
 *   Zeile "Veränderung" (Delta zum Vormonat, farbig codiert).
+*   Provisorischer Monat:
+    *   Statt die Daten aus einem Snaphshot anzuzeigen, werden die aktuellen Daten aus der `account` Tabelle dargestellt, die die  nicht finalen Zahlen repräsentieren.
+    *   "Est." = Label wenn der 1. des derauffolgenden Monats noch nicht erreicht ist, Daten sind provisorisch
+    *   "✅" Emoji Button wenn der 1. des nächsten Monat erreicht ist und der Benutzer die richtigen Zahlen eingetragen hat. Durch den Button click wird ein Snapshot angelegt und die Details in der Entsprechenden Tabelle kopiert und mit dem Snapshot verlinkt. Jetzt kann wieder ein provisorischer Monat angelegt werden
 
 **Interaktion:**
-*   **Klick auf "+":** Öffnet Dialog "Werte für `Monat` eingeben".
+*   **Klick auf "+":** Provisorischen Monat anlegen. Öffnet Dialog "Werte für `Monat` eingeben", falls aktuell kein provisorischer Monat existiert
     *   Kein Datumswähler (Logik: `Letzter Snapshot + 1 Monat`).
     *   Eingabefelder für alle Konten.
 
