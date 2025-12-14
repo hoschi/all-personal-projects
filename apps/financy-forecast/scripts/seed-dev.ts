@@ -173,17 +173,20 @@ function seedAssetSnapshots(): void {
 
         if (snapshotId) {
             // Insert balance details for each account
+            console.log(`💰 Creating balance details for snapshot ${snapshotId} (${month.date})...`);
             Object.entries(month.balances).forEach(([accountName, balance]) => {
                 const accountId = accountIds[accountName];
                 if (accountId) {
                     const detailSql = `
             INSERT INTO account_balance_details (id, snapshot_id, account_id, amount)
             VALUES (gen_random_uuid(), '${snapshotId}', '${accountId}', ${balance})
-            ON CONFLICT (snapshot_id, account_id) DO NOTHING;
           `;
                     executeSql(detailSql);
+                    console.log(`  ✅ ${accountName}: ${balance} cents`);
                 }
             });
+        } else {
+            console.warn(`⚠️  Could not find snapshot ID for date ${month.date}`);
         }
     });
 
