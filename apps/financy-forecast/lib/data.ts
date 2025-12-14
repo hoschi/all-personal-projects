@@ -1,5 +1,6 @@
 import { getAccounts, getSnapshotDetails } from "./db"
 import { Option } from "effect"
+import { format } from "date-fns"
 
 // Matrix Data Structure for React component
 export interface MatrixData {
@@ -46,7 +47,8 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
     }
   })
 
-  const header = details.map(detail => detail.snapshot.date.toString())
+  // Format dates as YYYY-MM using date-fns
+  const header = details.map(detail => format(detail.snapshot.date, "yyyy-MM"))
 
   return Option.some({
     rows,
