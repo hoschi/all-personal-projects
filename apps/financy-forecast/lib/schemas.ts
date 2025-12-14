@@ -139,3 +139,26 @@ export const settingsSchema = z.object({
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
+
+/**
+ * SnapshotAccountBalances
+ * Map von Account ID zu Amount für einen Snapshot.
+ * 
+ */
+export const snapshotAccountBalancesSchema = z.record(
+    accountSchema.shape.id,
+    accountBalanceDetailSchema.shape.amount
+);
+
+export type SnapshotAccountBalances = z.infer<typeof snapshotAccountBalancesSchema>;
+
+
+/**
+ * E. SnapshotDetails
+ */
+export const snapshotDetailsSchema = z.object({
+    snapshot: assetSnapshotSchema,
+    accountBalances: snapshotAccountBalancesSchema,
+});
+
+export type SnapshotDetails = z.infer<typeof snapshotDetailsSchema>;

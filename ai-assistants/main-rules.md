@@ -2,6 +2,11 @@
 
 Lies dir erst `/.specify/memory/constitution.md` durch, dann die zusätzlichen Details dieser Datei.
 
+## Generelles
+
+- Dokumentation von Code und Readmes sind *immer* englisch, deine Antworten auf deutsch.
+- Verwende *immer* den MCP Server nie das CLI um mit `git` zu arbeiten
+
 ## 🔧 Kritische Projekt-Konfiguration
 
 ### Package Manager: Bun statt NPM
