@@ -68,6 +68,8 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
+* server-only package for security
+* move sidebar toggl from contet header to sidebar header and create an icon sidebar in collapsed version. Create a "screen to small" for anything below tablet size, this doesn't make sense!
 * isActive in sidebar isn't working at the monent
 * forward root to dashboard route
 * eslint und typescript configs sind noch vom `bun create next-app@latest` die v15 versionen vom monorepo müssen aktulisiert werden

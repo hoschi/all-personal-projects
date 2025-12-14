@@ -1,3 +1,4 @@
+import { Matrix } from "@/components/matrix"
 import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
@@ -12,10 +13,8 @@ export default function Page() {
           <h2 className="text-muted-foreground">Historical snapshot and asset distribution.</h2>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          content1
-        </div>
+      <div className="p-4">
+        <Matrix />
       </div>
     </>
   )
