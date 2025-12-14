@@ -1,0 +1,1 @@
+Lies dir alle Datein in `<root>/ai-assistants/` durch, bevor du anfängst.
