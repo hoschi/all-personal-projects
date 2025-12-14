@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS asset_snapshots (
         ) = 1
     ),
     total_liquidity BIGINT NOT NULL DEFAULT 0,
-    is_provisional BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -97,8 +96,6 @@ CREATE INDEX IF NOT EXISTS idx_accounts_category ON accounts (category);
 CREATE INDEX IF NOT EXISTS idx_accounts_name ON accounts (name);
 
 CREATE INDEX IF NOT EXISTS idx_asset_snapshots_date ON asset_snapshots (date);
-
-CREATE INDEX IF NOT EXISTS idx_asset_snapshots_provisional ON asset_snapshots (is_provisional);
 
 CREATE INDEX IF NOT EXISTS idx_account_balance_details_snapshot ON account_balance_details (snapshot_id);
 

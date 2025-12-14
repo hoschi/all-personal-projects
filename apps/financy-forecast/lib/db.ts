@@ -179,7 +179,7 @@ export async function deleteAccount(id: string): Promise<boolean> {
 export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
     try {
         const result = await sql<AssetSnapshot[]>`
-      SELECT id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+      SELECT id, date, total_liquidity as "totalLiquidity"
       FROM asset_snapshots
       ORDER BY date ASC
     `;
@@ -196,7 +196,7 @@ export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
 export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnapshot>> {
     try {
         const result = await sql<AssetSnapshot[]>`
-      SELECT id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+      SELECT id, date, total_liquidity as "totalLiquidity"
       FROM asset_snapshots
       ORDER BY date DESC
       LIMIT 1
@@ -213,14 +213,13 @@ export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnaps
  */
 export async function createAssetSnapshot(
     date: Date,
-    totalLiquidity: number,
-    isProvisional: boolean = false
+    totalLiquidity: number
 ): Promise<AssetSnapshot> {
     try {
         const result = await sql<AssetSnapshot[]>`
-      INSERT INTO asset_snapshots (id, date, total_liquidity, is_provisional)
-      VALUES (gen_random_uuid(), ${date}, ${totalLiquidity}, ${isProvisional})
-      RETURNING id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
+      INSERT INTO asset_snapshots (id, date, total_liquidity)
+      VALUES (gen_random_uuid(), ${date}, ${totalLiquidity})
+      RETURNING id, date, total_liquidity as "totalLiquidity"
     `;
         return result[0];
     } catch (error) {
@@ -229,30 +228,7 @@ export async function createAssetSnapshot(
     }
 }
 
-/**
- * Update asset snapshot provisional status
- */
-export async function updateAssetSnapshotProvisional(
-    id: string,
-    isProvisional: boolean
-): Promise<AssetSnapshot> {
-    try {
-        const result = await sql<AssetSnapshot[]>`
-      UPDATE asset_snapshots 
-      SET is_provisional = ${isProvisional}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-      RETURNING id, date, total_liquidity as "totalLiquidity", is_provisional as "isProvisional"
-    `;
 
-        if (!result[0]) {
-            throw new Error('Asset snapshot not found');
-        }
-        return result[0];
-    } catch (error) {
-        console.error('Error updating asset snapshot:', error);
-        throw new Error('Failed to update asset snapshot');
-    }
-}
 
 /**
  * Delete asset snapshot and all associated balance details

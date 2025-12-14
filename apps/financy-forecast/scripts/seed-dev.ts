@@ -92,82 +92,62 @@ function getAccountIds(): { [name: string]: string } {
 }
 
 /**
- * Create sample asset snapshots and balance details for 6 months
+ * Generate date strings for the last 6 months from current date
+ */
+function getLastSixMonthsDates(): string[] {
+    const dates: string[] = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based (0 = January)
+
+    // Generate dates for the last 6 months, ending with current month
+    for (let i = 5; i >= 0; i--) {
+        const targetMonth = currentMonth - i;
+        const targetYear = targetMonth < 0 ? currentYear - 1 : currentYear;
+        const adjustedMonth = targetMonth < 0 ? targetMonth + 12 : targetMonth;
+        const dateStr = `${targetYear}-${String(adjustedMonth + 1).padStart(2, '0')}-01`;
+        dates.push(dateStr);
+    }
+
+    return dates;
+}
+
+/**
+ * Create sample asset snapshots and balance details for the last 6 months
  */
 function seedAssetSnapshots(): void {
     console.log('📅 Creating 6 months of asset snapshots...');
 
     const accountIds = getAccountIds();
+    const dates = getLastSixMonthsDates();
 
-    // Define the monthly balance progression (in cents)
-    const monthlyBalances = [
-        // Juli 2024 (historisch)
-        {
-            date: '2024-07-01',
+    console.log(`🗓️  Generated dates (last 6 months): ${dates.join(', ')}`);
+
+    // Generate realistic balance progression with some variation
+    const baseBalances = {
+        'Sparkasse Girokonto': 125000,    // 1,250.00 € (current)
+        'ING DiBa Tagesgeld': 450000,     // 4,500.00 € (current)
+        'Comdirect Depot': 12500000,      // 125,000.00 € (current)
+        'DAX ETF Fond': 8750000,          // 87,500.00 € (current)
+        'PayPal Guthaben': 8900           // 89.00 € (current)
+    };
+
+    // Generate monthly progression backwards from current month
+    const monthlyBalances = dates.map((date, index) => {
+        const monthsBack = 5 - index;
+        const variation = Math.random() * 0.2 - 0.1; // ±10% variation
+
+        return {
+            date,
             balances: {
-                'Sparkasse Girokonto': 95000,     // 950.00 €
-                'ING DiBa Tagesgeld': 420000,     // 4,200.00 €
-                'Comdirect Depot': 11800000,      // 118,000.00 €
-                'DAX ETF Fond': 8200000,          // 82,000.00 €
-                'PayPal Guthaben': 6700           // 67.00 €
+                'Sparkasse Girokonto': Math.round(baseBalances['Sparkasse Girokonto'] * (1 + variation + (monthsBack * 0.05))),
+                'ING DiBa Tagesgeld': Math.round(baseBalances['ING DiBa Tagesgeld'] * (1 + variation + (monthsBack * 0.02))),
+                'Comdirect Depot': Math.round(baseBalances['Comdirect Depot'] * (1 + variation + (monthsBack * 0.03))),
+                'DAX ETF Fond': Math.round(baseBalances['DAX ETF Fond'] * (1 + variation + (monthsBack * 0.04))),
+                'PayPal Guthaben': Math.round(baseBalances['PayPal Guthaben'] * (1 + variation + (monthsBack * 0.1)))
             }
-        },
-        // August 2024 (historisch)
-        {
-            date: '2024-08-01',
-            balances: {
-                'Sparkasse Girokonto': 112000,    // 1,120.00 €
-                'ING DiBa Tagesgeld': 435000,     // 4,350.00 €
-                'Comdirect Depot': 12200000,      // 122,000.00 €
-                'DAX ETF Fond': 8550000,          // 85,500.00 €
-                'PayPal Guthaben': 12300          // 123.00 €
-            }
-        },
-        // September 2024 (historisch)
-        {
-            date: '2024-09-01',
-            balances: {
-                'Sparkasse Girokonto': 89000,     // 890.00 €
-                'ING DiBa Tagesgeld': 445000,     // 4,450.00 €
-                'Comdirect Depot': 12500000,      // 125,000.00 €
-                'DAX ETF Fond': 8750000,          // 87,500.00 €
-                'PayPal Guthaben': 4500           // 45.00 €
-            }
-        },
-        // Oktober 2024 (historisch)
-        {
-            date: '2024-10-01',
-            balances: {
-                'Sparkasse Girokonto': 134000,    // 1,340.00 €
-                'ING DiBa Tagesgeld': 450000,     // 4,500.00 €
-                'Comdirect Depot': 12800000,      // 128,000.00 €
-                'DAX ETF Fond': 8950000,          // 89,500.00 €
-                'PayPal Guthaben': 15600          // 156.00 €
-            }
-        },
-        // November 2024 (historisch)
-        {
-            date: '2024-11-01',
-            balances: {
-                'Sparkasse Girokonto': 118000,    // 1,180.00 €
-                'ING DiBa Tagesgeld': 455000,     // 4,550.00 €
-                'Comdirect Depot': 12500000,      // 125,000.00 €
-                'DAX ETF Fond': 8750000,          // 87,500.00 €
-                'PayPal Guthaben': 8900           // 89.00 €
-            }
-        },
-        // Dezember 2024 (aktuelle Prognose)
-        {
-            date: '2024-12-01',
-            balances: {
-                'Sparkasse Girokonto': 125000,    // 1,250.00 €
-                'ING DiBa Tagesgeld': 450000,     // 4,500.00 €
-                'Comdirect Depot': 12500000,      // 125,000.00 €
-                'DAX ETF Fond': 8750000,          // 87,500.00 €
-                'PayPal Guthaben': 8900           // 89.00 €
-            }
-        }
-    ];
+        };
+    });
 
     monthlyBalances.forEach(month => {
         const totalLiquidity = Object.entries(month.balances)
@@ -176,8 +156,8 @@ function seedAssetSnapshots(): void {
 
         // Insert asset snapshot
         const snapshotSql = `
-      INSERT INTO asset_snapshots (id, date, total_liquidity, is_provisional)
-      VALUES (gen_random_uuid(), '${month.date}', ${totalLiquidity}, ${month.date >= '2024-12-01'})
+      INSERT INTO asset_snapshots (id, date, total_liquidity)
+      VALUES (gen_random_uuid(), '${month.date}', ${totalLiquidity})
       ON CONFLICT DO NOTHING;
     `;
 
@@ -261,14 +241,14 @@ function seedScenarioItems(): void {
     const currentYear = new Date().getFullYear();
 
     const scenarioItemsSql = `
-    -- 2024 Szenarien
+    -- 2025 Szenarien
     INSERT INTO scenario_items (id, name, amount, date, is_active) VALUES
     (gen_random_uuid(), 'MacBook Pro Kauf', -250000, '${currentYear}-10-15', true),     -- -2,500.00 €
     (gen_random_uuid(), 'Urlaub Spanien', -180000, '${currentYear}-07-20', true),       -- -1,800.00 €
     (gen_random_uuid(), 'Neue Winterreifen', -60000, '${currentYear}-11-01', true),     -- -600.00 €
     (gen_random_uuid(), 'Geschenke Weihnachten', -50000, '${currentYear}-12-20', true), -- -500.00 €
     
-    -- 2025 Szenarien
+    -- 2026 Szenarien
     (gen_random_uuid(), 'Wohnung renovieren', -500000, '${currentYear + 1}-03-01', true), -- -5,000.00 €
     (gen_random_uuid(), 'Urlaub Japan', -350000, '${currentYear + 1}-08-15', true),       -- -3,500.00 €
     (gen_random_uuid(), 'Neues Auto', -3500000, '${currentYear + 1}-09-01', true),        -- -35,000.00 €
@@ -303,6 +283,14 @@ function seedSettings(): void {
 }
 
 /**
+ * Get the latest snapshot date (dynamically generated)
+ */
+function getLatestSnapshotDate(): string {
+    const dates = getLastSixMonthsDates();
+    return dates[dates.length - 1]; // Last date is the most recent
+}
+
+/**
  * Update current balances in accounts table
  */
 function updateCurrentBalances(): void {
@@ -310,8 +298,8 @@ function updateCurrentBalances(): void {
 
     const accountIds = getAccountIds();
 
-    // Get the latest snapshot balances
-    const latestDate = '2024-12-01';
+    // Get the latest snapshot balances dynamically
+    const latestDate = getLatestSnapshotDate();
 
     Object.entries(accountIds).forEach(([accountName, accountId]) => {
         const balanceSql = `

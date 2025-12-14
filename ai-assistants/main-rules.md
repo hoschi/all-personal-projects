@@ -6,7 +6,7 @@ Lies dir erst `/.specify/memory/constitution.md` durch, dann die zusätzlichen D
 
 ### Package Manager: Bun statt NPM
 - **Problem**: Das Repo verwendet `bun` als Package Manager, nicht `npm`
-- **Lösung**: Immer `bun run` statt `npm run` verwenden
+- **Lösung**: Immer `bun run` statt `npm run` verwenden und `bunx` statt `npx`
 
 ### .env.example vs .env
 - **Problem**: dotenv lädt standardmäßig `.env`, nicht `.env.example`
