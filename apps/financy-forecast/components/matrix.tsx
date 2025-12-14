@@ -10,7 +10,8 @@ export async function Matrix() {
         return <div>no data</div>
     }
 
-    console.log(snapshots)
+    const data = Option.getOrThrow(snapshots)
+    console.log(data)
     return (
 
         <Table>
