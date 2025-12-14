@@ -60,7 +60,7 @@ function getAccountIds(): { [name: string]: string } {
         });
 
         return accounts;
-    } catch (_error) {
+    } catch {
         throw new Error('Failed to fetch account IDs');
     }
 }

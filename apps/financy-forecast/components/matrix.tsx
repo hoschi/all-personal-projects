@@ -2,12 +2,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { getMatrixData } from "@/lib/data"
 import { Option } from 'effect';
 import { isNone } from "effect/Option";
-
-const eurFormatter = new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 2
-})
+import { eurFormatter } from "./format";
 
 export async function Matrix() {
     const matrixDataResult = await getMatrixData(4)
