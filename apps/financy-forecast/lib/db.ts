@@ -228,8 +228,6 @@ export async function createAssetSnapshot(
     }
 }
 
-
-
 /**
  * Delete asset snapshot and all associated balance details
  */

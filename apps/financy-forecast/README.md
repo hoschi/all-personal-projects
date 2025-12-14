@@ -68,6 +68,7 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
+* Translate comments shemas
 * server-only package for security
 * move sidebar toggl from contet header to sidebar header and create an icon sidebar in collapsed version. Create a "screen to small" for anything below tablet size, this doesn't make sense!
 * isActive in sidebar isn't working at the monent
