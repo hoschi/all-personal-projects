@@ -3,11 +3,17 @@ import { getMatrixData } from "@/lib/data"
 import { Option } from 'effect';
 import { isNone } from "effect/Option";
 
+const eurFormatter = new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2
+})
+
 export async function Matrix() {
     const matrixDataResult = await getMatrixData(4)
 
     if (isNone(matrixDataResult)) {
-        return <div>no data</div>
+        return <div>No data</div>
     }
 
     const { rows, header } = Option.getOrThrow(matrixDataResult)
@@ -24,7 +30,7 @@ export async function Matrix() {
                     <TableRow key={row.id}>
                         <TableCell className="font-medium">{row.name}</TableCell>
                         {row.cells.map(cell => (
-                            <TableCell key={cell.id}>{(cell.amount / 100).toFixed(2)}</TableCell>
+                            <TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>
                         ))}
                     </TableRow>
                 ))}
