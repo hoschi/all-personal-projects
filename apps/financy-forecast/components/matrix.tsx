@@ -1,37 +1,34 @@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { getSnapshotDetails } from "@/lib/db"
+import { getMatrixData } from "@/lib/data"
 import { Option } from 'effect';
 import { isNone } from "effect/Option";
 
 export async function Matrix() {
-    const snapshots = await getSnapshotDetails(5)
+    const matrixDataResult = await getMatrixData(4)
 
-    if (isNone(snapshots)) {
+    if (isNone(matrixDataResult)) {
         return <div>no data</div>
     }
 
-    const data = Option.getOrThrow(snapshots)
-    console.log(data)
+    const { rows, header } = Option.getOrThrow(matrixDataResult)
     return (
-
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead className="w-[100px]">Konten -- </TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="w-[100px]">Konten</TableHead>
+                    {header.map(dateStr => <TableHead key={dateStr}>{dateStr}</TableHead>)}
                 </TableRow>
             </TableHeader>
             <TableBody>
-                <TableRow>
-                    <TableCell className="font-medium">INV001</TableCell>
-                    <TableCell>Paid</TableCell>
-                    <TableCell>Credit Card</TableCell>
-                    <TableCell className="text-right">$250.00</TableCell>
-                </TableRow>
+                {rows.map(row => (
+                    <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.name}</TableCell>
+                        {row.cells.map(cell => (
+                            <TableCell key={cell.id}>{(cell.amount / 100).toFixed(2)}</TableCell>
+                        ))}
+                    </TableRow>
+                ))}
             </TableBody>
         </Table>
-
     )
 }

@@ -11,19 +11,29 @@ import {
     Settings,
     SnapshotDetails
 } from './schemas';
-
-// Load environment variables
 import * as dotenv from 'dotenv';
-dotenv.config();
 
-// Initialize PostgreSQL connection
-const sql = postgres(process.env.DATABASE_URL!, {
-    ssl: false, // Disable SSL for local development
-    connect_timeout: 10
-});
+let sql: ReturnType<typeof postgres>
+async function getDb() {
+    if (!sql) {
+        dotenv.config({ quiet: true });
+        sql = postgres(process.env.DATABASE_URL!, {
+            connect_timeout: 10,
+            // 🔑 Pool-Konfiguration für Dev-Mode:
+            max: 1,                    // Nur 1 Connection im Dev (reduziert Overhead)
+            idle_timeout: 30,          // Idle Connections nach 30s schließen
+            max_lifetime: 60 * 60,     // Max 1h pro Connection
+            backoff: (attempt) => {    // Retry-Strategie
+                return Math.min(1000 * Math.pow(2, attempt), 30000);
+            },
+        });
+        // Set schema search path for all queries
+        await sql`SET search_path TO financy_forecast;`;
+    }
+    return sql;
+}
 
-// Set schema search path for all queries
-await sql`SET search_path TO financy_forecast, public;`;
+sql = await getDb();
 
 // Database connection test
 export async function testConnection(): Promise<boolean> {
