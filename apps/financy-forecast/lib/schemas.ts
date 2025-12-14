@@ -50,7 +50,7 @@ export type Account = z.infer<typeof accountSchema>;
 
 /**
  * B. AssetSnapshot (Monatliche Ist-Stände)
- * Repräsentiert den Status am 1. eines Monats.
+ * Repräsentiert den Status am 1. eines Monats für vergangene Monate.
  * Dient als Historie und Basis für Prognosen.
  */
 export const assetSnapshotSchema = z.object({
@@ -60,8 +60,6 @@ export const assetSnapshotSchema = z.object({
     date: z.date(),
     /** Gesamte Liquidität in Cents (Summe aller LIQUID Accounts zum Zeitpunkt des Snapshots) */
     totalLiquidity: z.number().int(),
-    /** True, wenn das Datum in der Zukunft liegt (Prognose), False für historische Daten */
-    isProvisional: z.boolean(),
 });
 
 export type AssetSnapshot = z.infer<typeof assetSnapshotSchema>;
