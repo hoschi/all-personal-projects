@@ -1,1 +1,1 @@
-Lies dir `/.specify/memory/constitution.md` und dann alle Datein in `<root>/ai-assistants/` durch, bevor du anfängst.
+Dieses Repo verwendet Bun, nicht NPM! Lies dir `/.specify/memory/constitution.md` und dann alle Datein in `<root>/ai-assistants/` durch, bevor du anfängst.
