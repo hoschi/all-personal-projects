@@ -13,20 +13,20 @@ export async function Matrix() {
 
     const { rows, header } = Option.getOrThrow(matrixDataResult)
     return (
-        <Table>
+        <Table className="table-layout-fixed text-md">
             <TableHeader>
                 <TableRow>
-                    <TableHead className="w-[100px]">Konten</TableHead>
-                    {header.map(dateStr => <TableHead key={dateStr}>{dateStr}</TableHead>)}
+                    {header.map(dateStr => <TableHead key={dateStr} className="w-[150px]">{dateStr}</TableHead>)}
+                    <TableHead className="w-auto">Konten</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {rows.map(row => (
                     <TableRow key={row.id}>
-                        <TableCell className="font-medium">{row.name}</TableCell>
                         {row.cells.map(cell => (
                             <TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>
                         ))}
+                        <TableCell className="font-medium">{row.name}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
