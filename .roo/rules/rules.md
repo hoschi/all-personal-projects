@@ -1,1 +1,1 @@
-Lies dir alle Datein in `<root>/ai-assistants/` durch, bevor du anfängst.
+Lies dir `/.specify/memory/constitution.md` und dann alle Datein in `<root>/ai-assistants/` durch, bevor du anfängst.
