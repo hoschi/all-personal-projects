@@ -1,5 +1,7 @@
 # AI Assistants
 
+Lies dir erst `/.specify/memory/constitution.md` durch, dann die zusätzlichen Details dieser Datei.
+
 ## 🔧 Kritische Projekt-Konfiguration
 
 ### Package Manager: Bun statt NPM
