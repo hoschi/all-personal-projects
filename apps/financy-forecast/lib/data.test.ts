@@ -145,7 +145,7 @@ describe("getMatrixData", () => {
         expect(matrixData.header).toHaveLength(4); // 3 snapshots + "Current"
         expect(matrixData.lastDate).toBeInstanceOf(Date);
 
-        // Verify header contains dates
+        //TODO expect the correct array instead of "contain" 
         expect(matrixData.header).toContain("2023-01");
         expect(matrixData.header).toContain("2023-02");
         expect(matrixData.header).toContain("2023-03");
@@ -213,6 +213,7 @@ describe("getMatrixData", () => {
         expect(Option.isNone(result)).toBe(true);
     });
 
+    // TODO this is a good point! the function should fail with invalid data! we expect data for each account in each snapshot!
     test("should handle missing account balances (null values)", async () => {
         const servicesWithMissingBalances: DatabaseServices = {
             getSnapshotDetails: mock(async () => Option.some([
