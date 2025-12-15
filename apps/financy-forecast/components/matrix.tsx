@@ -53,7 +53,7 @@ export async function Matrix() {
         </div>
     )
 }
-function calculateApprovable(lastDate: Date) {
+export function calculateApprovable(lastDate: Date) {
     const approvableDate = addMonths(lastDate, 2)
     const today = new Date()
     return isAfter(today, approvableDate) || isEqual(today, approvableDate)

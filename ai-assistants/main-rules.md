@@ -1,7 +1,5 @@
 # AI Assistants
 
-Lies dir erst `/.specify/memory/constitution.md` durch, dann die zusätzlichen Details dieser Datei.
-
 ## Generelles
 
 - Dokumentation von Code und Readmes sind *immer* englisch, deine Antworten auf deutsch.
