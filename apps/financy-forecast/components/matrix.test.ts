@@ -1,6 +1,5 @@
 import { describe, test, expect } from "bun:test";
 import { calculateApprovable } from "./matrix";
-import { addMonths, isAfter, isEqual } from "date-fns";
 
 describe("calculateApprovable", () => {
     test("returns true: last snapshot is for january. current month is february and can only be approved when it is march", () => {
@@ -36,12 +35,7 @@ describe("calculateApprovable", () => {
         const today = new Date("2023-01-15"); // 15 days after
 
         // Manually verify the logic:
-        const approvableDate = addMonths(lastDate, 2); // 2023-03-01
-        const isAfterResult = isAfter(today, approvableDate); // false
-        const isEqualResult = isEqual(today, approvableDate); // false
-        const expectedResult = isAfterResult || isEqualResult; // false
-
-        expect(calculateApprovable(lastDate, () => today)).toBe(expectedResult);
+        expect(calculateApprovable(lastDate, () => today)).toBe(false);
     });
 
     test("returns false when lastDate is exactly the same as today's date", () => {

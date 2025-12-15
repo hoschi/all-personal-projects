@@ -6,6 +6,7 @@ import { eurFormatter } from "./format";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { addMonths, isAfter, isEqual } from "date-fns";
+import { now } from "./utils";
 
 export async function Matrix() {
     const matrixDataResult = await getMatrixData(4)
@@ -16,7 +17,7 @@ export async function Matrix() {
 
     const { rows, header, lastDate } = Option.getOrThrow(matrixDataResult)
 
-    const isApprovable = calculateApprovable(lastDate, () => new Date())
+    const isApprovable = calculateApprovable(lastDate)
     return (
         <div>
             <Table className="table-layout-fixed text-md">
@@ -53,7 +54,7 @@ export async function Matrix() {
         </div>
     )
 }
-export function calculateApprovable(lastDate: Date, now: () => Date = () => new Date()) {
+export function calculateApprovable(lastDate: Date) {
     const approvableDate = addMonths(lastDate, 2)
     const today = now()
     return isAfter(today, approvableDate) || isEqual(today, approvableDate)
