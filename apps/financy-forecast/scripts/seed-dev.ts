@@ -75,7 +75,7 @@ function getLastSixMonthsDates(): string[] {
     const currentMonth = now.getMonth(); // 0-based (0 = January)
 
     // Generate dates for the last 6 months, ending with current month
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 6; i > 0; i--) {
         const targetMonth = currentMonth - i;
         const targetYear = targetMonth < 0 ? currentYear - 1 : currentYear;
         const adjustedMonth = targetMonth < 0 ? targetMonth + 12 : targetMonth;

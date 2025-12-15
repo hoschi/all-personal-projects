@@ -8,4 +8,5 @@ export interface MatrixData {
         }>;
     }>;
     header: string[];
+    lastDate: Date
 }
