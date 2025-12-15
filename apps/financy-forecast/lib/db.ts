@@ -19,26 +19,31 @@ async function getDb() {
         dotenv.config({ quiet: true });
         sql = postgres(process.env.DATABASE_URL!, {
             connect_timeout: 10,
-            // 🔑 Pool-Konfiguration für Dev-Mode:
-            max: 1,                    // Nur 1 Connection im Dev (reduziert Overhead)
-            idle_timeout: 30,          // Idle Connections nach 30s schließen
+            max: 10,
+            idle_timeout: 30,          // close idle Connections after 30s schließen
             max_lifetime: 60 * 60,     // Max 1h pro Connection
-            backoff: (attempt) => {    // Retry-Strategie
+            backoff: (attempt) => {    // Retry-Strategy
                 return Math.min(1000 * Math.pow(2, attempt), 30000);
             },
         });
-        // Set schema search path for all queries
-        await sql`SET search_path TO financy_forecast;`;
     }
     return sql;
 }
 
 sql = await getDb();
 
+// Wrapper function to ensure schema is set before each query
+export async function executeWithSchema<T>(queryFn: (sql: ReturnType<typeof postgres>) => Promise<T>): Promise<T> {
+    const db = await getDb();
+    // Set the search path to financy_forecast schema
+    await db`SET search_path TO financy_forecast;`;
+    return queryFn(db);
+}
+
 // Database connection test
 export async function testConnection(): Promise<boolean> {
     try {
-        await sql`SELECT 1`;
+        await executeWithSchema(async (db) => await db`SELECT 1`);
         console.log('✅ Database connection successful');
         return true;
     } catch (error) {
@@ -56,11 +61,11 @@ export async function testConnection(): Promise<boolean> {
  */
 export async function getAccounts(): Promise<Account[]> {
     try {
-        const result = await sql<Account[]>`
+        const result = await executeWithSchema(async (db) => await db<Account[]>`
       SELECT id, name, category, current_balance as "currentBalance"
       FROM accounts
       ORDER BY name ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching accounts:', error);
@@ -73,11 +78,11 @@ export async function getAccounts(): Promise<Account[]> {
  */
 export async function getAccountById(id: string): Promise<Option.Option<Account>> {
     try {
-        const result = await sql<Account[]>`
+        const result = await executeWithSchema(async (db) => await db<Account[]>`
       SELECT id, name, category, current_balance as "currentBalance"
       FROM accounts
       WHERE id = ${id}
-    `;
+    `);
         return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching account:', error);
@@ -94,11 +99,11 @@ export async function createAccount(
     currentBalance: number
 ): Promise<Account> {
     try {
-        const result = await sql<Account[]>`
+        const result = await executeWithSchema(async (db) => await db<Account[]>`
       INSERT INTO accounts (id, name, category, current_balance)
       VALUES (gen_random_uuid(), ${name}, ${category}, ${currentBalance})
       RETURNING id, name, category, current_balance as "currentBalance"
-    `;
+    `);
         return result[0];
     } catch (error) {
         console.error('Error creating account:', error);
@@ -135,12 +140,12 @@ export async function updateAccount(
 
         values.push(id);
 
-        const result = await sql<Account[]>`
+        const result = await executeWithSchema(async (db) => await db<Account[]>`
       UPDATE accounts 
       SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $${paramCount}
+      WHERE id = ${paramCount}
       RETURNING id, name, category, current_balance as "currentBalance"
-    `;
+    `);
 
         if (!result[0]) {
             throw new Error('Account not found');
@@ -158,20 +163,20 @@ export async function updateAccount(
 export async function deleteAccount(id: string): Promise<boolean> {
     try {
         // Check if account has balance details
-        const balanceCount = await sql<{ count: number }[]>`
+        const balanceCount = await executeWithSchema(async (db) => await db<{ count: number }[]>`
       SELECT COUNT(*) as count
       FROM account_balance_details
       WHERE account_id = ${id}
-    `;
+    `);
 
         if (balanceCount[0].count > 0) {
             throw new Error('Cannot delete account with existing balance history');
         }
 
-        const result = await sql`
+        const result = await executeWithSchema(async (db) => await db`
       DELETE FROM accounts 
       WHERE id = ${id}
-    `;
+    `);
 
         return result.count > 0;
     } catch (error) {
@@ -189,11 +194,11 @@ export async function deleteAccount(id: string): Promise<boolean> {
  */
 export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
     try {
-        const result = await sql<AssetSnapshot[]>`
+        const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity"
       FROM asset_snapshots
       ORDER BY date ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching asset snapshots:', error);
@@ -206,12 +211,12 @@ export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
  */
 export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnapshot>> {
     try {
-        const result = await sql<AssetSnapshot[]>`
+        const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity"
       FROM asset_snapshots
       ORDER BY date DESC
       LIMIT 1
-    `;
+    `);
         return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching latest asset snapshot:', error);
@@ -227,11 +232,11 @@ export async function createAssetSnapshot(
     totalLiquidity: number
 ): Promise<AssetSnapshot> {
     try {
-        const result = await sql<AssetSnapshot[]>`
+        const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       INSERT INTO asset_snapshots (id, date, total_liquidity)
       VALUES (gen_random_uuid(), ${date}, ${totalLiquidity})
       RETURNING id, date, total_liquidity as "totalLiquidity"
-    `;
+    `);
         return result[0];
     } catch (error) {
         console.error('Error creating asset snapshot:', error);
@@ -245,16 +250,16 @@ export async function createAssetSnapshot(
 export async function deleteAssetSnapshot(id: string): Promise<boolean> {
     try {
         // Delete associated balance details first
-        await sql`
+        await executeWithSchema(async (db) => await db`
       DELETE FROM account_balance_details 
       WHERE snapshot_id = ${id}
-    `;
+    `);
 
         // Delete the snapshot
-        const result = await sql`
+        const result = await executeWithSchema(async (db) => await db`
       DELETE FROM asset_snapshots 
       WHERE id = ${id}
-    `;
+    `);
 
         return result.count > 0;
     } catch (error) {
@@ -271,12 +276,12 @@ export async function deleteAssetSnapshot(id: string): Promise<boolean> {
 export async function getSnapshotDetails(limit: number): Promise<Option.Option<SnapshotDetails[]>> {
     try {
         // Get the most recent snapshots with limit
-        const snapshots = await sql<AssetSnapshot[]>`
+        const snapshots = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity"
       FROM asset_snapshots
       ORDER BY date DESC
       LIMIT ${limit}
-    `;
+    `);
 
         if (snapshots.length === 0) {
             return Option.none();
@@ -286,12 +291,12 @@ export async function getSnapshotDetails(limit: number): Promise<Option.Option<S
         const snapshotDetails: SnapshotDetails[] = [];
 
         for (const snapshot of snapshots) {
-            const balanceDetails = await sql<AccountBalanceDetail[]>`
+            const balanceDetails = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
         SELECT id, snapshot_id as "snapshotId", account_id as "accountId", amount
         FROM account_balance_details
         WHERE snapshot_id = ${snapshot.id}
         ORDER BY account_id ASC
-      `;
+      `);
 
             // Create account balance mapping for this snapshot
             const accountBalances: Record<string, number> = {};
@@ -321,11 +326,11 @@ export async function getSnapshotDetails(limit: number): Promise<Option.Option<S
  */
 export async function getBalanceDetailsBySnapshotId(snapshotId: string): Promise<AccountBalanceDetail[]> {
     try {
-        const result = await sql<AccountBalanceDetail[]>`
+        const result = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
       SELECT id, snapshot_id as "snapshotId", account_id as "accountId", amount
       FROM account_balance_details
       WHERE snapshot_id = ${snapshotId}
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching balance details:', error);
@@ -351,11 +356,11 @@ export async function createBalanceDetailsForSnapshot(
         const results: AccountBalanceDetail[] = [];
 
         for (const detail of details) {
-            const result = await sql<AccountBalanceDetail[]>`
+            const result = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
                 INSERT INTO account_balance_details (id, snapshot_id, account_id, amount)
                 VALUES (gen_random_uuid(), ${detail.snapshotId}::uuid, ${detail.accountId}::uuid, ${detail.amount})
                 RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
-            `;
+            `);
             results.push(result[0]);
         }
 
@@ -374,12 +379,12 @@ export async function updateBalanceDetail(
     amount: number
 ): Promise<AccountBalanceDetail> {
     try {
-        const result = await sql<AccountBalanceDetail[]>`
+        const result = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
       UPDATE account_balance_details 
       SET amount = ${amount}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
-    `;
+    `);
 
         if (!result[0]) {
             throw new Error('Balance detail not found');
@@ -400,11 +405,11 @@ export async function updateBalanceDetail(
  */
 export async function getRecurringItems(): Promise<RecurringItem[]> {
     try {
-        const result = await sql<RecurringItem[]>`
+        const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       SELECT id, name, amount, interval, due_month as "dueMonth"
       FROM recurring_items
       ORDER BY name ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching recurring items:', error);
@@ -417,12 +422,12 @@ export async function getRecurringItems(): Promise<RecurringItem[]> {
  */
 export async function getRecurringItemsByInterval(interval: RecurringItemInterval): Promise<RecurringItem[]> {
     try {
-        const result = await sql<RecurringItem[]>`
+        const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       SELECT id, name, amount, interval, due_month as "dueMonth"
       FROM recurring_items
       WHERE interval = ${interval}
       ORDER BY name ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching recurring items by interval:', error);
@@ -443,11 +448,11 @@ export async function createRecurringItem(
         // Handle undefined dueMonth properly
         const dueMonthValue = dueMonth ?? null;
 
-        const result = await sql<RecurringItem[]>`
+        const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       INSERT INTO recurring_items (id, name, amount, interval, due_month)
       VALUES (gen_random_uuid(), ${name}, ${amount}, ${interval}, ${dueMonthValue})
       RETURNING id, name, amount, interval, due_month as "dueMonth"
-    `;
+    `);
         return result[0];
     } catch (error) {
         console.error('Error creating recurring item:', error);
@@ -489,12 +494,12 @@ export async function updateRecurringItem(
 
         values.push(id);
 
-        const result = await sql<RecurringItem[]>`
+        const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       UPDATE recurring_items 
       SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $${paramCount}
+      WHERE id = ${paramCount}
       RETURNING id, name, amount, interval, due_month as "dueMonth"
-    `;
+    `);
 
         if (!result[0]) {
             throw new Error('Recurring item not found');
@@ -511,10 +516,10 @@ export async function updateRecurringItem(
  */
 export async function deleteRecurringItem(id: string): Promise<boolean> {
     try {
-        const result = await sql`
+        const result = await executeWithSchema(async (db) => await db`
       DELETE FROM recurring_items 
       WHERE id = ${id}
-    `;
+    `);
         return result.count > 0;
     } catch (error) {
         console.error('Error deleting recurring item:', error);
@@ -531,11 +536,11 @@ export async function deleteRecurringItem(id: string): Promise<boolean> {
  */
 export async function getScenarioItems(): Promise<ScenarioItem[]> {
     try {
-        const result = await sql<ScenarioItem[]>`
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
       FROM scenario_items
       ORDER BY date ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching scenario items:', error);
@@ -548,12 +553,12 @@ export async function getScenarioItems(): Promise<ScenarioItem[]> {
  */
 export async function getActiveScenarioItems(): Promise<ScenarioItem[]> {
     try {
-        const result = await sql<ScenarioItem[]>`
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
       FROM scenario_items
       WHERE is_active = true
       ORDER BY date ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching active scenario items:', error);
@@ -569,12 +574,12 @@ export async function getScenarioItemsByDateRange(
     endDate: Date
 ): Promise<ScenarioItem[]> {
     try {
-        const result = await sql<ScenarioItem[]>`
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
       FROM scenario_items
       WHERE date >= ${startDate} AND date <= ${endDate}
       ORDER BY date ASC
-    `;
+    `);
         return result;
     } catch (error) {
         console.error('Error fetching scenario items by date range:', error);
@@ -592,11 +597,11 @@ export async function createScenarioItem(
     isActive: boolean = true
 ): Promise<ScenarioItem> {
     try {
-        const result = await sql<ScenarioItem[]>`
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       INSERT INTO scenario_items (id, name, amount, date, is_active)
       VALUES (gen_random_uuid(), ${name}, ${amount}, ${date}, ${isActive})
       RETURNING id, name, amount, date, is_active as "isActive"
-    `;
+    `);
         return result[0];
     } catch (error) {
         console.error('Error creating scenario item:', error);
@@ -638,12 +643,12 @@ export async function updateScenarioItem(
 
         values.push(id);
 
-        const result = await sql<ScenarioItem[]>`
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       UPDATE scenario_items 
       SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $${paramCount}
+      WHERE id = ${paramCount}
       RETURNING id, name, amount, date, is_active as "isActive"
-    `;
+    `);
 
         if (!result[0]) {
             throw new Error('Scenario item not found');
@@ -660,10 +665,10 @@ export async function updateScenarioItem(
  */
 export async function deleteScenarioItem(id: string): Promise<boolean> {
     try {
-        const result = await sql`
+        const result = await executeWithSchema(async (db) => await db`
       DELETE FROM scenario_items 
       WHERE id = ${id}
-    `;
+    `);
         return result.count > 0;
     } catch (error) {
         console.error('Error deleting scenario item:', error);
@@ -680,11 +685,11 @@ export async function deleteScenarioItem(id: string): Promise<boolean> {
  */
 export async function getSettings(): Promise<Option.Option<Settings>> {
     try {
-        const result = await sql<Settings[]>`
+        const result = await executeWithSchema(async (db) => await db<Settings[]>`
       SELECT estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
       FROM settings
       LIMIT 1
-    `;
+    `);
         return Option.fromNullable(result[0]);
     } catch (error) {
         console.error('Error fetching settings:', error);
@@ -697,14 +702,14 @@ export async function getSettings(): Promise<Option.Option<Settings>> {
  */
 export async function upsertSettings(estimatedMonthlyVariableCosts: number): Promise<Settings> {
     try {
-        const result = await sql<Settings[]>`
+        const result = await executeWithSchema(async (db) => await db<Settings[]>`
       INSERT INTO settings (estimated_monthly_variable_costs)
       VALUES (${estimatedMonthlyVariableCosts})
       ON CONFLICT (id) 
       DO UPDATE SET estimated_monthly_variable_costs = EXCLUDED.estimated_monthly_variable_costs,
                     updated_at = CURRENT_TIMESTAMP
       RETURNING estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
-    `;
+    `);
         return result[0];
     } catch (error) {
         console.error('Error upserting settings:', error);
