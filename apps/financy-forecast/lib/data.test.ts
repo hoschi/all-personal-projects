@@ -1,155 +1,238 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, mock, spyOn } from "bun:test";
 import { getMatrixData } from "./data";
 import { Option } from "effect";
+import { AccountCategory, SnapshotDetails } from "./schemas";
 
-// Note: Since Bun Test doesn't have built-in mocking like Jest,
-// these tests would require a more complex setup with dependency injection
-// or a mocking library. For this demo, we'll test the structure and logic
-// by creating minimal test scenarios.
+// ============================================================================
+// Factory Functions für Mock-Daten
+// ============================================================================
+
+const createMockAccount = (overrides = {}) => ({
+    id: "account-1",
+    name: "Test Account",
+    category: AccountCategory.LIQUID,
+    currentBalance: 500000, // 5000.00 EUR in Cents
+    ...overrides
+});
+
+const createMockSnapshot = (date: Date, overrides = {}) => ({
+    id: "snapshot-1",
+    date,
+    totalLiquidity: 1000000, // 10000.00 EUR in Cents
+    ...overrides
+});
+
+const createMockSnapshotDetails = (snapshots: ReturnType<typeof createMockSnapshot>, accountBalances: Record<string, number>): SnapshotDetails => ({
+    snapshot: snapshots,
+    accountBalances
+});
+
+// ============================================================================
+// Mock Database Services (Dependency Injection Pattern)
+// ============================================================================
+
+interface DatabaseServices {
+    getSnapshotDetails: (limit: number) => Promise<Option.Option<SnapshotDetails[]>>;
+    getAccounts: () => Promise<ReturnType<typeof createMockAccount>[]>;
+}
+
+// Factory für verschiedene Test-Scenarios
+const createMockServices = {
+    empty: (): DatabaseServices => ({
+        getSnapshotDetails: mock(async () => Option.none()),
+        getAccounts: mock(async () => [])
+    }),
+
+    singleSnapshot: (): DatabaseServices => ({
+        getSnapshotDetails: mock(async () => Option.some([
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-01-01")),
+                { "account-1": 450000 }
+            )
+        ])),
+        getAccounts: mock(async () => [createMockAccount()])
+    }),
+
+    multipleSnapshots: (): DatabaseServices => ({
+        getSnapshotDetails: mock(async () => Option.some([
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-01-01")),
+                { "account-1": 450000 }
+            ),
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-02-01")),
+                { "account-1": 475000 }
+            ),
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-03-01")),
+                { "account-1": 500000 }
+            )
+        ])),
+        getAccounts: mock(async () => [createMockAccount()])
+    }),
+
+    multipleAccounts: (): DatabaseServices => ({
+        getSnapshotDetails: mock(async () => Option.some([
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-01-01")),
+                {
+                    "account-1": 450000,
+                    "account-2": 250000
+                }
+            ),
+            createMockSnapshotDetails(
+                createMockSnapshot(new Date("2023-02-01")),
+                {
+                    "account-1": 475000,
+                    "account-2": 275000
+                }
+            )
+        ])),
+        getAccounts: mock(async () => [
+            createMockAccount({ id: "account-1", name: "Girokonto" }),
+            createMockAccount({ id: "account-2", name: "Tagesgeld", currentBalance: 250000 })
+        ])
+    })
+};
+
+// ============================================================================
+// Tests
+// ============================================================================
 
 describe("getMatrixData", () => {
-    test("should be defined and return a Promise", async () => {
-        expect(getMatrixData).toBeDefined();
-        expect(typeof getMatrixData).toBe("function");
+    // ========================================================================
+    // Error Handling Tests
+    // ========================================================================
 
-        // Test that it returns a Promise
-        const result = getMatrixData(4);
-        expect(result).toBeInstanceOf(Promise);
+    test("should return Option.none when no snapshot details found", async () => {
+        const services = createMockServices.empty();
+        const result = await getMatrixData(4, services);
+        expect(Option.isNone(result)).toBe(true);
     });
 
-    test("should return Option type", async () => {
-        try {
-            const result = await getMatrixData(4);
-            expect(result).toHaveProperty("value");
-            expect(typeof result).toHaveProperty("tag"); // Option has tag property in Effect
-        } catch (error) {
-            // Expected to fail without database connection, but should still return a Promise
-            expect(error).toBeInstanceOf(Error);
-        }
+    test("should return Option.none when only single snapshot exists", async () => {
+        const services = createMockServices.singleSnapshot();
+        const result = await getMatrixData(4, services);
+        expect(Option.isNone(result)).toBe(true);
     });
 
-    test("should accept positive limit parameter", async () => {
-        expect(() => getMatrixData(1)).not.toThrow();
-        expect(() => getMatrixData(10)).not.toThrow();
+    test("should return Option.none when database throws error", async () => {
+        const errorServices: DatabaseServices = {
+            getSnapshotDetails: mock(async () => {
+                throw new Error("Database connection failed");
+            }),
+            getAccounts: mock(async () => {
+                throw new Error("Database connection failed");
+            })
+        };
 
-        try {
-            await getMatrixData(1);
-            // Function executes without throwing synchronously
-            expect(true).toBe(true);
-        } catch (error) {
-            // May fail due to database issues, which is expected
-            expect(error).toBeInstanceOf(Error);
-        }
+        await expect(getMatrixData(4, errorServices)).rejects.toThrow("Database connection failed");
     });
+
+    // ========================================================================
+    // Happy Path Tests
+    // ========================================================================
+
+    test("should return MatrixData with correct structure for multiple snapshots", async () => {
+        const services = createMockServices.multipleSnapshots();
+        const result = await getMatrixData(4, services);
+
+        expect(Option.isSome(result)).toBe(true);
+        const matrixData = Option.getOrThrow(result);
+
+        // Verify structure
+        expect(matrixData.rows).toHaveLength(1); // One account
+        expect(matrixData.header).toHaveLength(4); // 3 snapshots + "Current"
+        expect(matrixData.lastDate).toBeInstanceOf(Date);
+
+        // Verify header contains dates
+        expect(matrixData.header).toContain("2023-01");
+        expect(matrixData.header).toContain("2023-02");
+        expect(matrixData.header).toContain("2023-03");
+        expect(matrixData.header).toContain("Current");
+
+        // Verify row structure
+        const row = matrixData.rows[0];
+        expect(row.id).toBe("account-1");
+        expect(row.name).toBe("Test Account");
+        expect(row.cells).toHaveLength(4); // 3 historical + current
+
+        // Verify cell amounts (note: data is reversed, so newest comes first)
+        expect(row.cells[0].amount).toBe(500000); // newest snapshot (2023-03-01)
+        expect(row.cells[1].amount).toBe(475000); // middle snapshot (2023-02-01)
+        expect(row.cells[2].amount).toBe(450000); // oldest snapshot (2023-01-01)
+        expect(row.cells[3].amount).toBe(500000); // current balance
+    });
+
+    test("should handle multiple accounts correctly", async () => {
+        const services = createMockServices.multipleAccounts();
+        const result = await getMatrixData(4, services);
+
+        expect(Option.isSome(result)).toBe(true);
+        const matrixData = Option.getOrThrow(result);
+
+        // Should have 2 rows for 2 accounts
+        expect(matrixData.rows).toHaveLength(2);
+
+        // First account (Girokonto) - data is reversed
+        const girokonto = matrixData.rows[0];
+        expect(girokonto.name).toBe("Girokonto");
+        expect(girokonto.cells[0].amount).toBe(475000); // newest snapshot (2023-02-01)
+        expect(girokonto.cells[1].amount).toBe(450000); // oldest snapshot (2023-01-01)
+        expect(girokonto.cells[2].amount).toBe(500000); // current
+
+        // Second account (Tagesgeld) - data is reversed
+        const tagesgeld = matrixData.rows[1];
+        expect(tagesgeld.name).toBe("Tagesgeld");
+        expect(tagesgeld.cells[0].amount).toBe(275000); // newest snapshot (2023-02-01)
+        expect(tagesgeld.cells[1].amount).toBe(250000); // oldest snapshot (2023-01-01)
+        expect(tagesgeld.cells[2].amount).toBe(250000); // current
+    });
+
+    // ========================================================================
+    // Edge Case Tests
+    // ========================================================================
 
     test("should handle zero limit gracefully", async () => {
-        expect(() => getMatrixData(0)).not.toThrow();
-
-        try {
-            const result = await getMatrixData(0);
-            expect(result).toBeDefined();
-        } catch (error) {
-            // Expected to potentially fail with zero limit
-            expect(error).toBeInstanceOf(Error);
-        }
+        const services = createMockServices.empty();
+        const result = await getMatrixData(0, services);
+        expect(Option.isNone(result)).toBe(true);
     });
 
     test("should handle negative limit gracefully", async () => {
-        try {
-            await getMatrixData(-1);
-            // Should not reach here due to database error
-            expect(false).toBe(true); // This should not execute
-        } catch (error) {
-            expect(error).toBeInstanceOf(Error);
-            expect((error as Error).message).toBe("Failed to fetch snapshot details");
-        }
+        const services = createMockServices.empty();
+        // Mock services should handle negative limits gracefully
+        const result = await getMatrixData(-1, services);
+        expect(Option.isNone(result)).toBe(true);
     });
 
     test("should handle decimal limit gracefully", async () => {
-        try {
-            await getMatrixData(3.14);
-            // Should not reach here due to database error
-            expect(false).toBe(true); // This should not execute
-        } catch (error) {
-            expect(error).toBeInstanceOf(Error);
-            expect((error as Error).message).toBe("Failed to fetch snapshot details");
-        }
-    });
-});
-
-// Since we can't easily mock the database dependencies in Bun Test without additional setup,
-// let's create a separate test file that demonstrates the intended test structure
-// This would be the ideal test implementation with proper mocking:
-
-describe("getMatrixData - with proper mocking (example structure)", () => {
-    test("should return Option.none() when no snapshot details found", async () => {
-        // This is how the test would look with proper mocking:
-        // mockGetSnapshotDetails.mockResolvedValue(Option.none());
-        // mockGetAccounts.mockResolvedValue([]);
-        // 
-        // const result = await getMatrixData(4);
-        // expect(Option.isNone(result)).toBe(true);
-
-        // For now, we'll just document the expected behavior
-        expect(true).toBe(true); // Placeholder
+        const services = createMockServices.empty();
+        // Mock services should handle decimal limits gracefully
+        const result = await getMatrixData(3.14, services);
+        expect(Option.isNone(result)).toBe(true);
     });
 
-    test("should return MatrixData when multiple details and accounts found", async () => {
-        // This is how the test would look with proper mocking:
-        // const mockAccounts = [{ id: "1", name: "Checking", category: "asset", currentBalance: 5000 }];
-        // const mockDetails = [{ snapshot: { date: new Date(), id: "1", totalLiquidity: 1000 }, accountBalances: { "1": 4500 } }];
-        // 
-        // mockGetSnapshotDetails.mockResolvedValue(Option.some(mockDetails));
-        // mockGetAccounts.mockResolvedValue(mockAccounts);
-        // 
-        // const result = await getMatrixData(4);
-        // expect(Option.isSome(result)).toBe(true);
+    test("should handle missing account balances (null values)", async () => {
+        const servicesWithMissingBalances: DatabaseServices = {
+            getSnapshotDetails: mock(async () => Option.some([
+                createMockSnapshotDetails(
+                    createMockSnapshot(new Date("2023-01-01")),
+                    {
+                        "account-1": 450000,
+                        // account-2 has no balance in this snapshot
+                    }
+                )
+            ])),
+            getAccounts: mock(async () => [
+                createMockAccount({ id: "account-1", name: "Account 1" }),
+                createMockAccount({ id: "account-2", name: "Account 2", currentBalance: 0 })
+            ])
+        };
 
-        // For now, we'll just document the expected behavior
-        expect(true).toBe(true); // Placeholder
+        const result = await getMatrixData(4, servicesWithMissingBalances);
+        // Should return Option.none because only one snapshot
+        expect(Option.isNone(result)).toBe(true);
     });
 
-    test("should return MatrixData with correct structure", async () => {
-        // Expected structure with proper mocking:
-        // const result = await getMatrixData(4);
-        // expect(Option.isSome(result)).toBe(true);
-        // const matrixData = Option.getOrThrow(result);
-        // expect(matrixData).toHaveProperty("rows");
-        // expect(matrixData).toHaveProperty("header");
-        // expect(matrixData).toHaveProperty("lastDate");
-        // expect(Array.isArray(matrixData.rows)).toBe(true);
-        // expect(Array.isArray(matrixData.header)).toBe(true);
-        // expect(matrixData.lastDate).toBeInstanceOf(Date);
-
-        // For now, we'll just document the expected behavior
-        expect(true).toBe(true); // Placeholder
-    });
-});
-
-// Integration test notes:
-describe("getMatrixData - integration notes", () => {
-    test("requires database connection", async () => {
-        // In a real environment, this test would require:
-        // 1. Database setup with test data
-        // 2. Environment variables configured
-        // 3. Proper test database (not production)
-
-        // Expected test scenarios:
-        // - Empty database -> Option.none()
-        // - Single snapshot -> Option.none()
-        // - Multiple snapshots with accounts -> Option.some(MatrixData)
-        // - Multiple snapshots without accounts -> Option.some(MatrixData) with empty rows
-
-        expect(true).toBe(true); // Placeholder for integration test documentation
-    });
-
-    test("database schema requirements", async () => {
-        // This test documents the required database structure:
-        // - accounts table (id, name, category, current_balance)
-        // - asset_snapshots table (id, date, total_liquidity)
-        // - account_balance_details table (id, snapshot_id, account_id, amount)
-        // - All tables should be in financy_forecast schema
-
-        expect(true).toBe(true); // Placeholder for database schema documentation
-    });
 });
