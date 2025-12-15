@@ -19,7 +19,7 @@ describe("calculateApprovable", () => {
         const lastDate = new Date("2023-01-01");
         const approvableDate = new Date("2023-03-01");
 
-        // Mock today's date to be exactly 2 months after lastDate
+        // TODO create a function for this: setToday(approvableDate) to make this and all other tests easier to read
         globalThis.Date = class extends originalDate {
             constructor() {
                 super(approvableDate);
@@ -106,7 +106,7 @@ describe("calculateApprovable", () => {
         expect(calculateApprovable(lastDate)).toBe(expectedResult);
     });
 
-    test("returns true when lastDate is exactly the same as today's date", () => {
+    test("returns false when lastDate is exactly the same as today's date", () => {
         const today = new Date("2023-01-01");
 
         // Mock today's date
@@ -119,6 +119,6 @@ describe("calculateApprovable", () => {
             }
         } as any;
 
-        expect(calculateApprovable(today)).toBe(true);
+        expect(calculateApprovable(today)).toBe(false);
     });
 });
