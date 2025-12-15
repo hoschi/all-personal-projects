@@ -16,7 +16,7 @@ export async function Matrix() {
 
     const { rows, header, lastDate } = Option.getOrThrow(matrixDataResult)
 
-    const isApprovable = calculateApprovable(lastDate)
+    const isApprovable = calculateApprovable(lastDate, () => new Date())
     return (
         <div>
             <Table className="table-layout-fixed text-md">
@@ -53,8 +53,8 @@ export async function Matrix() {
         </div>
     )
 }
-export function calculateApprovable(lastDate: Date) {
+export function calculateApprovable(lastDate: Date, now: () => Date = () => new Date()) {
     const approvableDate = addMonths(lastDate, 2)
-    const today = new Date()
+    const today = now()
     return isAfter(today, approvableDate) || isEqual(today, approvableDate)
 }
