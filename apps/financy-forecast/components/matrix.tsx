@@ -4,18 +4,26 @@ import { Option, Array as EffectArray } from 'effect';
 import { isNone } from "effect/Option";
 import { eurFormatter } from "./format";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { addMonths, isAfter, isEqual } from "date-fns";
 import { now } from "./utils";
+import {MatrixData} from "@/lib/types";
+import {cacheTag} from "next/cache";
 
 export async function Matrix() {
+	'use cache'
+	cacheTag('snapshots', 'accounts')
+
     const matrixDataResult = await getMatrixData(4)
 
     if (isNone(matrixDataResult)) {
         return <div>No data</div>
     }
 
-    const { rows, header, lastDate } = Option.getOrThrow(matrixDataResult)
+	return <TableView data={Option.getOrThrow(matrixDataResult)}/>
+}
+
+async function TableView({data}:{data:MatrixData}) {
+    const { rows, header, lastDate } = data
 
     const isApprovable = calculateApprovable(lastDate)
     return (
@@ -30,11 +38,7 @@ export async function Matrix() {
                 <TableBody>
                     {rows.map(row => (
                         <TableRow key={row.id}>
-                            {row.cells.map((cell, i) => (
-                                i === row.cells.length - 1
-                                    ? <TableCell key={`input-${cell.id}`}><Input defaultValue={cell.amount / 100} /></TableCell>
-                                    : <TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>
-                            ))}
+                            {row.cells.map((cell) => ( <TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>))}
                             <TableCell className="font-medium">{row.name}</TableCell>
                         </TableRow>
                     ))}
@@ -54,6 +58,7 @@ export async function Matrix() {
         </div>
     )
 }
+
 export function calculateApprovable(lastDate: Date) {
     const approvableDate = addMonths(lastDate, 2)
     const today = now()

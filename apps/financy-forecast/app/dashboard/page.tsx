@@ -15,9 +15,7 @@ export default function Page() {
         </div>
       </header>
       <div className="p-4">
-        <Suspense>
-          <Matrix />
-        </Suspense>
+		  <Matrix />
       </div>
     </>
   )
