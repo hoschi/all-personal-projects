@@ -68,8 +68,9 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
-* Translate comments shemas
-* server-only package for security
+* data.ts should only contain data loading and no render logic to easily split data loading into separate backend when needed
+* Translate comments in shemas.ts file
+* use server-only package to not leak DB connection details for security
 * move sidebar toggl from contet header to sidebar header and create an icon sidebar in collapsed version. Create a "screen to small" for anything below tablet size, this doesn't make sense!
 * isActive in sidebar isn't working at the monent
 * forward root to dashboard route
