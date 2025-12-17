@@ -110,7 +110,7 @@ describe("getMatrixData", () => {
         const matrixData = Option.getOrThrow(result);
 
         // Verify structure
-        expect(matrixData.rows).toHaveLength(1); // One account
+        expect(matrixData.rows).toHaveLength(2); // One account + one sum row
         expect(matrixData.header).toHaveLength(4); // 3 snapshots + "Current"
         expect(matrixData.lastDate).toBeInstanceOf(Date);
 
@@ -128,6 +128,19 @@ describe("getMatrixData", () => {
         expect(row.cells[1].amount).toBe(475000); // middle snapshot (2023-02-01)
         expect(row.cells[2].amount).toBe(450000); // oldest snapshot (2023-01-01)
         expect(row.cells[3].amount).toBe(500000); // current balance
+
+        // Verify sum row structure
+        const sumRow = matrixData.rows[1];
+        expect(sumRow.id).toBe("sum");
+        expect(sumRow.name).toBe("");
+        expect(sumRow.cells).toHaveLength(4); // 3 snapshots + current
+
+        // Verify sum calculations (note: data is reversed, so newest comes first)
+        // Sum row uses snapshot.totalLiquidity and current balance sum
+        expect(sumRow.cells[0].amount).toBe(1000000); // newest snapshot (2023-03-01) totalLiquidity
+        expect(sumRow.cells[1].amount).toBe(1000000); // middle snapshot (2023-02-01) totalLiquidity
+        expect(sumRow.cells[2].amount).toBe(1000000); // oldest snapshot (2023-01-01) totalLiquidity
+        expect(sumRow.cells[3].amount).toBe(500000); // current balance sum (one account with 500000)
 
         expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4);
         expect(mockGetAccounts).toHaveBeenCalled();
@@ -161,8 +174,8 @@ describe("getMatrixData", () => {
         expect(Option.isSome(result)).toBe(true);
         const matrixData = Option.getOrThrow(result);
 
-        // Should have 2 rows for 2 accounts
-        expect(matrixData.rows).toHaveLength(2);
+        // Should have 3 rows for 2 accounts + 1 sum row
+        expect(matrixData.rows).toHaveLength(3);
 
         // First account (Girokonto) - data is reversed
         const girokonto = matrixData.rows[0];
@@ -177,6 +190,17 @@ describe("getMatrixData", () => {
         expect(tagesgeld.cells[0].amount).toBe(275000); // newest snapshot (2023-02-01)
         expect(tagesgeld.cells[1].amount).toBe(250000); // oldest snapshot (2023-01-01)
         expect(tagesgeld.cells[2].amount).toBe(250000); // current
+
+        // Verify sum row structure
+        const sumRow = matrixData.rows[2];
+        expect(sumRow.id).toBe("sum");
+        expect(sumRow.name).toBe("");
+        expect(sumRow.cells).toHaveLength(3); // 2 snapshots + current
+
+        // Verify sum calculations (snapshot totalLiquidity + current balance sum)
+        expect(sumRow.cells[0].amount).toBe(1000000); // newest snapshot totalLiquidity
+        expect(sumRow.cells[1].amount).toBe(1000000); // oldest snapshot totalLiquidity
+        expect(sumRow.cells[2].amount).toBe(750000); // current balance sum (500000 + 250000)
 
         expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4);
         expect(mockGetAccounts).toHaveBeenCalled();
@@ -260,6 +284,14 @@ describe("getMatrixData", () => {
             // cells[1] = oldest snapshot (2023-01-01) = 0 (missing balance defaults to 0)
             expect(account2Row?.cells[0].amount).toBe(275000); // Has balance in newest snapshot
             expect(account2Row?.cells[1].amount).toBe(0); // Missing balance in oldest snapshot defaults to 0
+
+            // Verify sum row calculations
+            const sumRow = matrixData.rows.find(row => row.id === "sum");
+            expect(sumRow).toBeDefined();
+            // Sum row should contain snapshot.totalLiquidity values
+            expect(sumRow?.cells[0].amount).toBe(1000000); // newest snapshot totalLiquidity
+            expect(sumRow?.cells[1].amount).toBe(1000000); // oldest snapshot totalLiquidity
+            expect(sumRow?.cells[2].amount).toBe(500000); // current balance sum (500000 + 0)
         }
 
         expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4);
