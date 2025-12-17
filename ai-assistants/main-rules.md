@@ -107,3 +107,8 @@ CREATE TABLE settings (
 ### Factory Functions für Mock-Daten
 - **Problem**: Wiederholter Mock-Daten-Code in Tests
 - **Lösung**: Factory Functions mit flexiblen Overrides verwenden
+
+### Date/Time Dependencies
+- **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
+- **Gefahr**: Tests würden vom aktuellen Datum abhängen und in Zukunft fehlschlagen
+- **Lösung**: `now()` Funktion korrekt mit `mock.module()` mocken
