@@ -25,9 +25,6 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
   }
 
   const details = Option.getOrThrow(snapshotsResult).reverse()
-  if (details.length <= 1) {
-    return Option.none()
-  }
 
   const rows: Row[] = accounts.map(account => {
     const cells = details.map(snapshot => {

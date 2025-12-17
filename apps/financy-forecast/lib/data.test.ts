@@ -70,23 +70,6 @@ describe("getMatrixData", () => {
         expect(mockGetAccounts).toHaveBeenCalled();
     });
 
-    test("should return Option.none when only single snapshot exists", async () => {
-        // Setup mock return values
-        mockGetSnapshotDetails.mockImplementation(async () => Option.some([
-            createMockSnapshotDetails(
-                createMockSnapshot(new Date("2023-01-01")),
-                { "account-1": 450000 }
-            )
-        ]));
-        mockGetAccounts.mockImplementation(async () => [createMockAccount()]);
-
-        const result = await getMatrixData(4);
-
-        expect(Option.isNone(result)).toBe(true);
-        expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4);
-        expect(mockGetAccounts).toHaveBeenCalled();
-    });
-
     test("should return Option.none when database throws error", async () => {
         // Setup mock to throw error
         mockGetSnapshotDetails.mockImplementation(async () => {
