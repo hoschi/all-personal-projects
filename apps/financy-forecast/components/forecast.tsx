@@ -1,28 +1,42 @@
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { getForecastData } from "@/lib/data"
-import { Option, Array as EffectArray, Array, identity } from 'effect';
+import { Option } from 'effect';
 import { isNone } from "effect/Option";
 import { eurFormatter } from "./format";
-import { Button } from "./ui/button";
-import { addMonths, isAfter, isEqual } from "date-fns";
+import { addMonths, isAfter, isEqual, format, startOfMonth } from "date-fns";
 import { now } from "./utils";
 import { cacheTag } from "next/cache";
-import { RecurringItem, ScenarioItem } from "@/lib/schemas";
+import { RecurringItem, ScenarioItem, RecurringItemInterval } from "@/lib/schemas";
+import { ForecastTimelineData, TimelineMonth } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-function calculateTimeline(monthCount: number,
-    // variable kosten, kommt durch input field in UI
+// Hilfsfunktion zum Formatieren von Monaten im Format YY-MM
+function formatMonthNumericYYMM(monthOffset: number): string {
+    const today = now();
+    const targetMonth = addMonths(startOfMonth(today), monthOffset);
+    return format(targetMonth, "yy-MM");
+}
+
+function calculateTimeline(
+    monthCount: number,
     variableCosts: number,
     startBalance: number,
     recurringItems: RecurringItem[],
     scenarios: ScenarioItem[]
-) {
-    const months = [];
+): TimelineMonth[] {
+    const months: TimelineMonth[] = [];
     let runningBalance = startBalance;
 
-    // alle positiven einnahmen in fixkosten
-    const baseIncome: number = 0 // TODO alle positiven einnahmen in reccuringItems die monatlich auftreten
-    const monthlyBurn = variableCosts /* TODO + recurringItems.filter(interval==monthly) weil das die regularCosts quasi sind wo unten nur die irregalurCosts noch berechnet werden */
+    // Alle positiven monatlichen Einnahmen
+    const baseIncome = recurringItems
+        .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount > 0)
+        .reduce((sum, item) => sum + item.amount, 0);
+
+    // Alle negativen monatlichen Ausgaben + variable Kosten
+    const monthlyBurn = variableCosts + Math.abs(
+        recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    );
 
     for (let i = 0; i < monthCount; i++) {
         // 1. Regular Cashflow
@@ -31,9 +45,9 @@ function calculateTimeline(monthCount: number,
 
         // 2. Quarterly & Yearly Fixed Costs
         const irregularCosts = recurringItems.filter(fc => {
-            if (fc.interval === 'Monthly') return false;
-            if (fc.interval === 'Yearly') return (i) % 12 === 0;
-            if (fc.interval === 'Quarterly') return (i) % 3 === 0;
+            if (fc.interval === RecurringItemInterval.MONTHLY) return false;
+            if (fc.interval === RecurringItemInterval.YEARLY) return (i) % 12 === 0;
+            if (fc.interval === RecurringItemInterval.QUARTERLY) return (i) % 3 === 0;
             return false;
         });
 
@@ -41,14 +55,19 @@ function calculateTimeline(monthCount: number,
         const costsTotal = irregularCosts.reduce((sum, c) => sum + c.amount, 0);
         runningBalance -= costsTotal;
 
-        // 3. Scenarios
-        const monthScenarios = [] // TODO filter `scenarios` um die für diesen monat zu bekommen
-        const scenariosTotal = monthScenarios.reduce((sum, s) => s.isActive ? sum + s.amount : sum, 0);
+        // 3. Scenarios - Filter für aktuellen Monat
+        const targetMonth = addMonths(startOfMonth(now()), i);
+        const monthScenarios = scenarios.filter(scenario => {
+            const scenarioMonth = startOfMonth(scenario.date);
+            return isEqual(scenarioMonth, targetMonth) && scenario.isActive;
+        });
+
+        const scenariosTotal = monthScenarios.reduce((sum, s) => sum + s.amount, 0);
         runningBalance += scenariosTotal;
 
         months.push({
             index: i,
-            name: formatMonthNumericYYMM(i + 1), // TODO bentuzen date-fns um den formatter zu eerstleen der den aktuellen Monat im Format YY-MM ausgibt also 2027-02 für den Februar in 2027
+            name: formatMonthNumericYYMM(i),
             balance: runningBalance,
             scenarios: monthScenarios,
             irregularCosts: irregularCosts,
@@ -68,13 +87,19 @@ export async function Forecast({ variableCosts }: { variableCosts: number }) {
         return <div>No data</div>
     }
 
-    return <Timeline data={Option.getOrThrow(forecastDataResult)} variableCosts={variableCosts} />
+    const forecastData = Option.getOrThrow(forecastDataResult);
+    return <Timeline data={forecastData} variableCosts={variableCosts} />
 }
 
-async function Timeline({ data, variableCosts }) {
+async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
     const months = calculateTimeline(
-        24 // die zu berechnenend monate sind fix 24 für den moment
-        /* TODO kombiniere die props um die nötigen Werte raus zu ziehen */)
+        24, // 24 Monate für den Forecast
+        variableCosts,
+        data.startAmount,
+        data.recurringItems,
+        data.scenarios
+    );
+
     return (
         <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden pb-4">
             <div className="flex flex-col flex-wrap content-start h-full gap-4 pr-4">
@@ -116,7 +141,10 @@ async function Timeline({ data, variableCosts }) {
                                         {eurFormatter.format(month.balance)}
                                     </span>
                                     {month.isCritical && (
-                                        'ALERT')}
+                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                            ALERT
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
