@@ -68,6 +68,7 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
+* replace enums in schemas.ts with what TS page suggests instead (objects with `as const`?!)
 * data.ts should only contain data loading and no render logic to easily split data loading into separate backend when needed
 * Translate comments in shemas.ts file
 * use server-only package to not leak DB connection details for security
