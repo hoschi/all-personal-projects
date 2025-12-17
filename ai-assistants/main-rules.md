@@ -78,11 +78,32 @@ CREATE TABLE settings (
 
 ---
 
-## 🧪 Testing und Qualitätskontrolle
+## 🧪 Qualitätskontrolle
 
 ### Obligatorische Qualitätskontrollen
 - **Schritt 1**: `bun lint` - Code-Qualität prüfen
 - **Schritt 2**: `bun check-types` - TypeScript-Typen prüfen
 - **Erkenntnis**: Niemals Aufgabe als abgeschlossen markieren ohne diese Prüfungen
 
----
+## 🧪 Bun Test spezifische Erkenntnisse
+
+### Mock-System
+- **Lösung**: Bun hat vollständig eingebautes `mock()` und `mock.module()` System
+- **Korrekt**: `import { mock } from "bun:test";` verwenden
+
+### Modul-Mocking: Vollständige vs. Selektive Funktionen
+- **Problem**: Anfangs wurden alle Funktionen gemockt (unnötig)
+- **Lösung**: Nur die tatsächlich verwendeten Funktionen mocken
+
+### Import-Struktur für Bun Test
+- **Problem**: `beforeEach` und `afterAll` Hooks müssen importiert werden
+- **Lösung**: `import { describe, test, expect, mock, beforeEach } from "bun:test";`
+
+### Mock-Cleanup in Bun Test
+- **Problem**: Mock-State kann zwischen Tests "lecken"
+- **Lösung**: `beforeEach()` mit `mockClear()` verwenden
+- **Falsch**: `afterAll(() => mock.clearAllMocks())` - existiert nicht in Bun
+
+### Factory Functions für Mock-Daten
+- **Problem**: Wiederholter Mock-Daten-Code in Tests
+- **Lösung**: Factory Functions mit flexiblen Overrides verwenden
