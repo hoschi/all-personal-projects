@@ -3,7 +3,6 @@ import { Option } from "effect"
 import { format } from "date-fns"
 import { MatrixData } from "./types"
 import { last } from 'ramda'
-import { AccountCategory, SnapshotDetails } from "./schemas"
 
 interface Cell {
   id: string;
@@ -15,70 +14,48 @@ interface Row {
   name: string
   cells: Cell[]
 }
+export async function getMatrixData(limit: number): Promise<Option.Option<MatrixData>> {
+  const [snapshotsResult, accounts] = await Promise.all([
+    getSnapshotDetails(limit),
+    getAccounts()
+  ])
 
-// Dependency Injection Interface
-interface DatabaseServices {
-  getSnapshotDetails: (limit: number) => Promise<Option.Option<SnapshotDetails[]>>;
-  getAccounts: () => Promise<{
-    id: string;
-    name: string;
-    category: AccountCategory;
-    currentBalance: number;
-  }[]>;
-}
+  if (Option.isNone(snapshotsResult)) {
+    return Option.none()
+  }
 
-// Default implementation using real database
-const createDefaultDatabaseServices = (): DatabaseServices => ({
-  getSnapshotDetails,
-  getAccounts
-});
+  const details = Option.getOrThrow(snapshotsResult).reverse()
+  if (details.length <= 1) {
+    return Option.none()
+  }
 
-export function getMatrixData(
-  limit: number,
-  services: DatabaseServices = createDefaultDatabaseServices()
-): Promise<Option.Option<MatrixData>> {
-  return Promise.resolve().then(async () => {
-    const [snapshotsResult, accounts] = await Promise.all([
-      services.getSnapshotDetails(limit),
-      services.getAccounts()
-    ])
+  const rows: Row[] = accounts.map(account => {
+    const cells = details.map(snapshot => {
+      const amount = snapshot.accountBalances[account.id] || 0
+      return ({
+        id: `${account.id}-${snapshot.snapshot.date}`,
+        amount: Number(amount)
+      })
+    }).concat([{
+      id: `current-${account.id}`,
+      amount: Number(account.currentBalance) || 0
+    }])
 
-    if (Option.isNone(snapshotsResult)) {
-      return Option.none()
+    return {
+      id: account.id,
+      name: account.name,
+      cells
     }
+  })
 
-    const details = Option.getOrThrow(snapshotsResult).reverse()
-    if (details.length <= 1) {
-      return Option.none()
-    }
+  const header = details.map(detail => format(detail.snapshot.date, "yyyy-MM")).concat(['Current'])
 
-    const rows: Row[] = accounts.map(account => {
-      const cells = details.map(snapshot => {
-        const amount = snapshot.accountBalances[account.id] || 0
-        return ({
-          id: `${account.id}-${snapshot.snapshot.date}`,
-          amount: Number(amount)
-        })
-      }).concat([{
-        id: `current-${account.id}`,
-        amount: Number(account.currentBalance) || 0
-      }])
+  // QUESTION details is checked above that at least one element is in the array. Investigate with the MCP server the docs of this and search the internet for solutions
+  const lastDate = last(details)?.snapshot.date || new Date()
 
-      return {
-        id: account.id,
-        name: account.name,
-        cells
-      }
-    })
-
-    const header = details.map(detail => format(detail.snapshot.date, "yyyy-MM")).concat(['Current'])
-
-    const lastDate = last(details)?.snapshot.date || new Date()
-
-    return Option.some({
-      rows,
-      header,
-      lastDate
-    })
+  return Option.some({
+    rows,
+    header,
+    lastDate
   })
 }
