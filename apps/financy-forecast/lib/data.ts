@@ -1,7 +1,7 @@
 import { getAccounts, getLatestAssetSnapshot, getRecurringItems, getScenarioItems, getSnapshotDetails } from "./db"
 import { Option } from "effect"
 import { format } from "date-fns"
-import { MatrixData } from "./types"
+import { MatrixData, ForecastTimelineData } from "./types"
 import { last } from 'ramda'
 import { sumAll } from "effect/Number"
 
@@ -63,15 +63,14 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
   })
 }
 
-// TODO erstelle einen Type wie MatrixData um in im Frontend in forcast.tsx benutzen zu können
-export async function getForecastData() {
+export async function getForecastData(): Promise<Option.Option<ForecastTimelineData>> {
   const [snapshot, recurringItems, scenarios] = await Promise.all([
     getLatestAssetSnapshot(),
     getRecurringItems(),
     getScenarioItems()
   ])
 
-  if (Option.isNone(snapshot) || recurringItems.length <= 0) return Option.none;
+  if (Option.isNone(snapshot) || recurringItems.length <= 0) return Option.none();
 
   const startAmount = Option.getOrThrow(snapshot).totalLiquidity
 
