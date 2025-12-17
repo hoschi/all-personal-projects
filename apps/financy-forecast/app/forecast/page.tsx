@@ -1,8 +1,10 @@
+import { Forecast } from "@/components/forecast"
 import {
     SidebarTrigger,
 } from "@/components/ui/sidebar"
 
 export default function Page() {
+    // WRANING variableCosts sind fix für jetzt, kommen später aus input field
     return (
         <>
             <header className="flex items-center gap-2 m-3 ml-8">
@@ -15,7 +17,7 @@ export default function Page() {
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    content forecast
+                    <Forecast variableCosts={240000} />
                 </div>
             </div>
         </>
