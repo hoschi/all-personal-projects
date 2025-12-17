@@ -2,7 +2,6 @@ import { Matrix } from "@/components/matrix"
 import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Suspense } from "react"
 
 export default function Page() {
   return (
@@ -15,7 +14,7 @@ export default function Page() {
         </div>
       </header>
       <div className="p-4">
-		  <Matrix />
+        <Matrix />
       </div>
     </>
   )
