@@ -72,11 +72,13 @@ export async function getForecastData(): Promise<Option.Option<ForecastTimelineD
 
   if (Option.isNone(snapshot) || recurringItems.length <= 0) return Option.none();
 
-  const startAmount = Option.getOrThrow(snapshot).totalLiquidity
+  const snapshotData = Option.getOrThrow(snapshot)
+  const startAmount = snapshotData.totalLiquidity
 
   return Option.some({
     startAmount,
     recurringItems,
-    scenarios
+    scenarios,
+    lastSnapshotDate: snapshotData.date
   })
 }

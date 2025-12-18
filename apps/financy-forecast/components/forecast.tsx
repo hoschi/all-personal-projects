@@ -20,12 +20,14 @@ export function calculateTimeline(
     variableCosts: number,
     startBalance: number,
     recurringItems: RecurringItem[],
-    scenarios: ScenarioItem[]
+    scenarios: ScenarioItem[],
+    startDate: Date
 ): TimelineMonth[] {
     console.log({
         monthCount,
         variableCosts,
         startBalance,
+        startDate: format(startDate, 'yyyy-MM-dd')
     })
     const months: TimelineMonth[] = [];
     let runningBalance = startBalance;
@@ -48,10 +50,30 @@ export function calculateTimeline(
         runningBalance -= monthlyBurn;
 
         // 2. Quarterly & Yearly Fixed Costs
+        // Berechne den absoluten Monat im Jahr (1-12) basierend auf dem Startdatum
+        const firstForecastMonth = addMonths(startOfMonth(startDate), 1);
+        const currentForecastMonth = addMonths(firstForecastMonth, i);
+        const currentMonthInYear = currentForecastMonth.getMonth() + 1; // JavaScript getMonth() gibt 0-11 zurück
+
         const irregularCosts = recurringItems.filter(fc => {
             if (fc.interval === RecurringItemInterval.MONTHLY) return false;
-            if (fc.interval === RecurringItemInterval.YEARLY) return (i) % 12 === 0;
-            if (fc.interval === RecurringItemInterval.QUARTERLY) return (i) % 3 === 0;
+
+            const dueMonth = fc.dueMonth ?? 1; // Default zu Januar (1) wenn null/undefined
+
+            if (fc.interval === RecurringItemInterval.YEARLY) {
+                return currentMonthInYear === dueMonth;
+            }
+
+            if (fc.interval === RecurringItemInterval.QUARTERLY) {
+                // Quartalsweise: fällig im dueMonth und dann alle 3 Monate
+                // Wenn dueMonth = 1 (Januar), dann: Jan(1), Apr(4), Jul(7), Okt(10)
+                // Wenn dueMonth = 3 (März), dann: Mär(3), Jun(6), Sep(9), Dez(12)
+                const quarters = [dueMonth, dueMonth + 3, dueMonth + 6, dueMonth + 9];
+                // Stelle sicher, dass die Monate im Bereich 1-12 liegen
+                const validQuarters = quarters.map(month => month > 12 ? month - 12 : month);
+                return validQuarters.includes(currentMonthInYear);
+            }
+
             return false;
         });
 
@@ -60,7 +82,7 @@ export function calculateTimeline(
         runningBalance -= costsTotal;
 
         // 3. Scenarios - Filter für aktuellen Monat
-        const targetMonth = addMonths(startOfMonth(now()), i);
+        const targetMonth = currentForecastMonth;
         const monthScenarios = scenarios.filter(scenario => {
             const scenarioMonth = startOfMonth(scenario.date);
             return isEqual(scenarioMonth, targetMonth) && scenario.isActive;
@@ -71,7 +93,7 @@ export function calculateTimeline(
 
         months.push({
             index: i,
-            name: formatMonthNumericYYMM(i),
+            name: format(currentForecastMonth, "yy-MM"),
             balance: runningBalance,
             scenarios: monthScenarios,
             irregularCosts: irregularCosts,
@@ -101,7 +123,8 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
         variableCosts,
         data.startAmount,
         data.recurringItems,
-        data.scenarios
+        data.scenarios,
+        data.lastSnapshotDate
     );
 
     return (
@@ -165,7 +188,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                                     sc.isActive ? "border-slate-200" : "opacity-60 grayscale border-dashed bg-slate-50",
                                                 )}
                                             >
-                                                {sc.name}
+                                                {sc.name}   {eurFormatter.format(sc.amount)}
                                             </div>
                                         ))}
 
@@ -179,7 +202,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                                     >
                                                         <div className="flex items-center justify-between w-full leading-none">
                                                             <span className="text-[10px] font-medium truncate">{fc.name}</span>
-                                                            <span className="text-[10px] opacity-70 font-mono">-{eurFormatter.format(fc.amount)}</span>
+                                                            <span className="text-[10px] opacity-70 font-mono">{eurFormatter.format(fc.amount)}</span>
                                                         </div>
                                                     </div>
                                                 ))}
