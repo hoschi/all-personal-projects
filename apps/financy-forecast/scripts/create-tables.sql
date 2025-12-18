@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     category VARCHAR(20) NOT NULL CHECK (
         category IN ('LIQUID', 'RETIREMENT')
     ),
-    current_balance BIGINT NOT NULL DEFAULT 0,
+    current_balance INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS asset_snapshots (
             FROM date
         ) = 1
     ),
-    total_liquidity BIGINT NOT NULL DEFAULT 0,
+    total_liquidity INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS account_balance_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     snapshot_id UUID NOT NULL REFERENCES asset_snapshots (id) ON DELETE CASCADE,
     account_id UUID NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
-    amount BIGINT NOT NULL DEFAULT 0,
+    amount INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (snapshot_id, account_id)
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS account_balance_details (
 CREATE TABLE IF NOT EXISTS recurring_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     name VARCHAR(255) NOT NULL,
-    amount BIGINT NOT NULL,
+    amount INTEGER NOT NULL,
     interval VARCHAR(20) NOT NULL CHECK (
         interval IN (
             'MONTHLY',
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS recurring_items (
 CREATE TABLE IF NOT EXISTS scenario_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     name VARCHAR(255) NOT NULL,
-    amount BIGINT NOT NULL,
+    amount INTEGER NOT NULL,
     date DATE NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS scenario_items (
 -- 6. Settings table (Globale Einstellungen - Singleton)
 CREATE TABLE IF NOT EXISTS settings (
     id UUID PRIMARY KEY DEFAULT '00000000-0000-0000-0000-000000000000',
-    estimated_monthly_variable_costs BIGINT NOT NULL DEFAULT 0,
+    estimated_monthly_variable_costs INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
