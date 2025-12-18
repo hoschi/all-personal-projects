@@ -26,8 +26,6 @@ export function calculateTimeline(
         monthCount,
         variableCosts,
         startBalance,
-        recurringItems,
-        scenarios
     })
     const months: TimelineMonth[] = [];
     let runningBalance = startBalance;
@@ -144,8 +142,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                         hasEvents ? "text-lg" : "text-sm",
                                         month.balance < 0 ? "text-red-600" : "text-emerald-700"
                                     )}>
-                                        {`'${month.balance}'`}
-                                    </span>
+                                        {eurFormatter.format(month.balance)}                                    </span>
                                     {month.isCritical && (
                                         <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
                                             ALERT

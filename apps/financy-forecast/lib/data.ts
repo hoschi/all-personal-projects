@@ -34,11 +34,11 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
       const amount = snapshot.accountBalances[account.id] || 0
       return ({
         id: `${account.id}-${snapshot.snapshot.date}`,
-        amount: Number(amount)
+        amount: amount
       })
     }).concat([{
       id: `current-${account.id}`,
-      amount: Number(account.currentBalance) || 0
+      amount: account.currentBalance || 0
     }])
 
     return {
@@ -49,8 +49,8 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
   }).concat([{
     id: 'sum',
     name: '',
-    cells: details.map(detail => ({ id: `sum-${detail.snapshot.id}`, amount: Number(detail.snapshot.totalLiquidity) }))
-      .concat([{ id: 'sum-curent', amount: sumAll(accounts.map(a => Number(a.currentBalance))) }])
+    cells: details.map(detail => ({ id: `sum-${detail.snapshot.id}`, amount: detail.snapshot.totalLiquidity }))
+      .concat([{ id: 'sum-curent', amount: sumAll(accounts.map(a => a.currentBalance)) }])
   }])
 
   const header = details.map(detail => format(detail.snapshot.date, "yyyy-MM")).concat(['Current'])
