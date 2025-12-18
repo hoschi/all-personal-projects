@@ -7,9 +7,13 @@ import { formatMonthNumericYYMM, calculateTimeline, calculateApprovable } from "
 const TEST_DATE = new Date("2025-01-15T10:30:00Z");
 
 // Setup mocks before importing functions
-// Note: Mocks are set up in each test individually for better isolation
+// Note: Mocks are set up once and cleared in beforeEach for proper isolation
+const mockNow = mock(() => TEST_DATE);
 
-
+// Mock the utils module once
+mock.module("./utils", () => ({
+    now: mockNow
+}));
 
 describe("forecast.tsx - Data Processing Functions", () => {
     // Factory Functions for Test Data
@@ -36,9 +40,7 @@ describe("forecast.tsx - Data Processing Functions", () => {
     // =============================================================================
     describe("formatMonthNumericYYMM", () => {
         beforeEach(() => {
-            mock.module("./utils", () => ({
-                now: () => TEST_DATE
-            }));
+            mockNow.mockClear();
         });
 
         test("should return correct format for current month (offset 0)", () => {
@@ -67,9 +69,7 @@ describe("forecast.tsx - Data Processing Functions", () => {
     // =============================================================================
     describe("calculateApprovable", () => {
         beforeEach(() => {
-            mock.module("./utils", () => ({
-                now: () => TEST_DATE
-            }));
+            mockNow.mockClear();
         });
 
         test("should return true when today is after approvable date", () => {
@@ -96,9 +96,7 @@ describe("forecast.tsx - Data Processing Functions", () => {
     // =============================================================================
     describe("calculateTimeline", () => {
         beforeEach(() => {
-            mock.module("./utils", () => ({
-                now: () => TEST_DATE
-            }));
+            mockNow.mockClear();
         });
 
         test("should return empty array when monthCount is 0", () => {
