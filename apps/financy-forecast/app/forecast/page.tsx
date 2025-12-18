@@ -16,7 +16,7 @@ export default function Page() {
                 </div>
             </header>
             <div className="p-4">
-                <Forecast variableCosts={240000} />
+                <Forecast variableCosts={1000} />
             </div>
         </>
     )

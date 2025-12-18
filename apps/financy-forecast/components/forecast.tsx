@@ -165,12 +165,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                         hasEvents ? "text-lg" : "text-sm",
                                         month.balance < 0 ? "text-red-600" : "text-emerald-700"
                                     )}>
-                                        {eurFormatter.format(month.balance)}                                    </span>
-                                    {month.isCritical && (
-                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                                            ALERT
-                                        </span>
-                                    )}
+                                        {eurFormatter.format(month.balance / 100)}                                    </span>
                                 </div>
                             </div>
 
@@ -188,7 +183,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                                     sc.isActive ? "border-slate-200" : "opacity-60 grayscale border-dashed bg-slate-50",
                                                 )}
                                             >
-                                                {sc.name}   {eurFormatter.format(sc.amount)}
+                                                {sc.name}   {eurFormatter.format(sc.amount / 100)}
                                             </div>
                                         ))}
 
@@ -202,7 +197,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
                                                     >
                                                         <div className="flex items-center justify-between w-full leading-none">
                                                             <span className="text-[10px] font-medium truncate">{fc.name}</span>
-                                                            <span className="text-[10px] opacity-70 font-mono">{eurFormatter.format(fc.amount)}</span>
+                                                            <span className="text-[10px] opacity-70 font-mono">{eurFormatter.format(fc.amount / 100)}</span>
                                                         </div>
                                                     </div>
                                                 ))}
