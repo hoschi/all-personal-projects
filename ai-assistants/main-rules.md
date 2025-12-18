@@ -101,8 +101,22 @@ CREATE TABLE settings (
 
 ### Mock-Cleanup in Bun Test
 - **Problem**: Mock-State kann zwischen Tests "lecken"
-- **Lösung**: `beforeEach()` mit `mockClear()` verwenden
+- **Lösung**: `beforeEach()` mit `mockClear()` verwenden, siehe unten
 - **Falsch**: `afterAll(() => mock.clearAllMocks())` - existiert nicht in Bun
+
+```
+// Mock module implementation for `getSnapshotDetails`
+mock.module("./db", () => ({
+    getSnapshotDetails: mockGetSnapshotDetails,
+}));
+
+describe("getMatrixData", () => {
+    beforeEach(() => {
+        // Clear mock state before each test
+        mockGetSnapshotDetails.mockClear();
+    });
+})
+```
 
 ### Factory Functions für Mock-Daten
 - **Problem**: Wiederholter Mock-Daten-Code in Tests
