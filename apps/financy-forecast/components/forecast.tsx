@@ -9,14 +9,13 @@ import { RecurringItem, ScenarioItem, RecurringItemInterval } from "@/lib/schema
 import { ForecastTimelineData, TimelineMonth } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-// Hilfsfunktion zum Formatieren von Monaten im Format YY-MM
-function formatMonthNumericYYMM(monthOffset: number): string {
+export function formatMonthNumericYYMM(monthOffset: number): string {
     const today = now();
     const targetMonth = addMonths(startOfMonth(today), monthOffset);
     return format(targetMonth, "yy-MM");
 }
 
-function calculateTimeline(
+export function calculateTimeline(
     monthCount: number,
     variableCosts: number,
     startBalance: number,
@@ -193,7 +192,7 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
     )
 }
 
-export function calculateApprovable(lastDate: Date) {
+export function calculateApprovable(lastDate: Date): boolean {
     const approvableDate = addMonths(lastDate, 2)
     const today = now()
     return isAfter(today, approvableDate) || isEqual(today, approvableDate)
