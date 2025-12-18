@@ -4,6 +4,7 @@
 
 - Dokumentation von Code und Readmes sind *immer* englisch, deine Antworten auf deutsch.
 - Verwende *immer* den MCP Server nie das CLI um mit `git` zu arbeiten
+- Wenn du Problem angehst überlege ob dir Informationen aus der bestehenden Codebase helfen können. Dier steht in den meisten Roo Modi ein MCP Server zur Verfügung um die Code Base zu durchsuchen. Benutze diesen um mehr Informationen zu bekommen *bevor* du an der Lösung arbeitest.
 
 ## 🔧 Kritische Projekt-Konfiguration
 
