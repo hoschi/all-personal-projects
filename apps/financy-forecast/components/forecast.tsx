@@ -8,6 +8,7 @@ import { cacheTag } from "next/cache";
 import { RecurringItem, ScenarioItem, RecurringItemInterval } from "@/lib/schemas";
 import { ForecastTimelineData, TimelineMonth } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 export function formatMonthNumericYYMM(monthOffset: number): string {
     const today = now();
@@ -103,18 +104,49 @@ export function calculateTimeline(
     return months;
 }
 
-export async function Forecast({ variableCosts }: { variableCosts: number }) {
+export function ForecastHeader({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
+    const startAmount = data.startAmount
+    const recurringCosts = 0// TODO calculate from data.recurringItems
+    const monthlyBurn = recurringCosts + variableCosts// recurring + variable monthly cost
+    return <div className="flex flex-col">
+        <h1 className="text-3xl">Forecast</h1>
+        <h2 className="text-muted-foreground">Where the Future starts</h2>
+        <div>start:{startAmount}</div>
+        <div>monthly burn:{monthlyBurn}</div>
+        <div>recurring: {recurringCosts} + variable:{variableCosts}</div>
+    </div>
+}
+
+export async function Forecast() {
     'use cache'
     cacheTag('snapshots')
 
     const forecastDataResult = await getForecastData()
+    // WRANING variableCosts sind fix für jetzt, kommen später aus input field
+    const variableCosts = 1000
 
-    if (isNone(forecastDataResult)) {
-        return <div>No data</div>
-    }
+    return (
+        <>
+            <header className="flex items-center gap-2 m-3 ml-8">
+                <SidebarTrigger className="-ml-1 mr-3" />
+                return <div className="flex flex-col">
+                    <h1 className="text-3xl">Forecast</h1>
+                    <h2 className="text-muted-foreground">Where the Future starts</h2>
+                    {Option.match(forecastDataResult, {
+                        onNone: () => <div>no data</div>,
+                        onSome: (forecastData) => <ForecastHeader variableCosts={variableCosts} forecastData={forecastData} />
+                    })}
+                </div>
 
-    const forecastData = Option.getOrThrow(forecastDataResult);
-    return <Timeline data={forecastData} variableCosts={variableCosts} />
+            </header>
+            <div className="p-4">
+                {Option.match(forecastDataResult, {
+                    onNone: () => <div>no data</div>,
+                    onSome: (forecastData) => <Timeline variableCosts={variableCosts} forecastData={forecastData} />
+                })}
+            </div>
+        </>
+    )
 }
 
 async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
