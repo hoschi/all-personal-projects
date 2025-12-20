@@ -37,6 +37,7 @@ export interface TimelineMonth {
 
 export interface ForecastTimelineData {
     startAmount: number; // Ausgangssaldo in Cents
+    estimatedMonthlyVariableCosts: number;
     recurringItems: RecurringItem[]; // Alle wiederkehrenden Posten
     scenarios: ScenarioItem[]; // Alle Szenarien
     lastSnapshotDate: Date; // Datum des letzten Snapshots (für Startpunkt der Prognose)

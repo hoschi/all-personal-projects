@@ -1,5 +1,5 @@
 import { getForecastData } from "@/lib/data"
-import { Option } from 'effect';
+import { identity, Option } from 'effect';
 import { eurFormatter } from "./format";
 import { cacheTag } from "next/cache";
 import { ForecastTimelineData } from "@/lib/types";
@@ -10,54 +10,44 @@ import {
 } from "./ui/sidebar";
 // Import domain functions from new domain layer
 import { calculateTimeline, calculateMonthlyBurn } from "../domain/forecast";
-
+import { ForecastState, VariableCosts } from "./forecastState";
 
 export async function Forecast() {
     'use cache'
     cacheTag('snapshots')
 
+    // TODO `forecastDataResult` soll der name sein wenn es vom Typ Option ist, sonst in den forecastXY files mit den React Kopmonenten muss es forecastData heißen wenn es "ausgepackt" wurde, hier habe ich oft nur `data` geschrieben
     const forecastDataResult = await getForecastData()
-    // WARNING: variableCosts sind fix für jetzt, kommen später aus input field
-    const variableCosts = 1000
-
     return (
-        <>
+        <ForecastState data={Option.getOrUndefined(forecastDataResult)}>
             <header className="flex items-center gap-2 m-3 ml-8">
                 <SidebarTrigger className="-ml-1 mr-3" />
-                <div className="flex flex-col">
+                <div className="flex flex-col grow">
                     <h1 className="text-3xl">Forecast</h1>
                     <h2 className="text-muted-foreground">Where the Future starts</h2>
                     {Option.match(forecastDataResult, {
                         onNone: () => <div>no data</div>,
-                        onSome: (data) => <ForecastHeader data={data} variableCosts={variableCosts} />
+                        onSome: (data) => <ForecastHeader data={data} />
                     })}
                 </div>
             </header>
             <div className="p-4">
-                {Option.match(forecastDataResult, {
+                {/*Option.match(forecastDataResult, {
                     onNone: () => <div>no data</div>,
-                    onSome: (data) => <Timeline data={data} variableCosts={variableCosts} />
-                })}
+                    onSome: (data) => <Timeline />
+                })*/}
             </div>
-        </>
+        </ForecastState>
     )
 }
 
 
-export function ForecastHeader({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
+export function ForecastHeader({ data }: { data: ForecastTimelineData; }) {
     const startAmount = data.startAmount
-    const monthlyBurn = calculateMonthlyBurn(data.recurringItems, variableCosts)
-    const recurringCosts = Math.abs(
-        data.recurringItems
-            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
-            .reduce((sum, item) => sum + item.amount, 0)
-    )
+
     return <div className="flex flex-col">
-        <h1 className="text-3xl">Forecast</h1>
-        <h2 className="text-muted-foreground">Where the Future starts</h2>
-        <div>start:{startAmount}</div>
-        <div>monthly burn:{monthlyBurn}</div>
-        <div>recurring: {recurringCosts} + variable:{variableCosts}</div>
+        <div>start:{eurFormatter.format(startAmount)}</div>
+        <VariableCosts recurringItems={data.recurringItems} />
     </div>
 }
 
