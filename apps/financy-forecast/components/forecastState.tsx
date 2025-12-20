@@ -35,7 +35,7 @@ export function ForecastState({ data, children }: { data: ForecastTimelineData |
         setCurrentData: updateCurrentData
     }
 
-    return <CurrentState.Provider value={contextValue}>{children}</CurrentState.Provider>
+    return <CurrentState value={contextValue}>{children}</CurrentState>
 }
 
 export function VariableCosts({ recurringItems }: { recurringItems: ForecastTimelineData['recurringItems'] }) {
