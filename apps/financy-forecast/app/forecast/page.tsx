@@ -1,8 +1,5 @@
-import { Forecast, ForecastHeader } from "@/components/forecast"
-import {
-    SidebarTrigger,
-} from "@/components/ui/sidebar"
+import { Forecast } from "@/components/forecast"
 
 export default function Page() {
-return <Forecast/>
+    return <Forecast />
 }
