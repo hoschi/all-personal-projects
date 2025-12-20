@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -24,17 +25,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive>
-                  <a href='/dashboard'>Dashboard</a>
+                  <Link href='/dashboard'>Dashboard</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href='/forecast'>Forecast</a>
+                  <Link href='/forecast'>Forecast</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href='/settings'>Settings / Fixkosten</a>
+                  <Link href='/settings'>Settings / Fixkosten</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
