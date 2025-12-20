@@ -1,33 +1,41 @@
 'use client'
 import { ForecastTimelineData } from "@/lib/types";
-import { createContext, useContext, useState } from "react";
-import { identity, Option } from 'effect';
+import { ScenarioItem } from "@/lib/schemas";
+import { createContext, useContext, useState, useCallback } from "react";
+
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn } from "@/domain/forecast";
 import { RecurringItemInterval } from "@/lib/schemas";
 import { eurFormatter } from "./format";
 
-// TODO add type, use existing ones
-const CurrentState = createContext({
+// Type for the forecast state context
+type ForecastStateType = {
+    variableCosts: number;
+    scenarios: ScenarioItem[];
+}
+
+const CurrentState = createContext<ForecastStateType & { setCurrentData: (data: Partial<ForecastStateType>) => void }>({
     variableCosts: 0,
     scenarios: [],
     setCurrentData: () => { }
 })
 
-export function ForecastState({ data, children }: { data: ForecastTimelineData | undefined }) {
-    const [currentData, setCurrentData] = useState({
-        variableCosts: data?.estimatedMonthlyVariableCosts,
-        scenarios: data?.scenarios,
-        setCurrentData: () => { }
+export function ForecastState({ data, children }: { data: ForecastTimelineData | undefined, children: React.ReactNode }) {
+    const [currentData, setCurrentData] = useState<ForecastStateType>({
+        variableCosts: data?.estimatedMonthlyVariableCosts ?? 0,
+        scenarios: data?.scenarios ?? []
     })
 
-    return <CurrentState value={data ? { ...currentData, setCurrentData } : {
-        // TODO reuse with above
-        variableCosts: 0,
-        scenarios: [],
-        setCurrentData: () => { }
+    const updateCurrentData = useCallback((newData: Partial<ForecastStateType>) => {
+        setCurrentData(prev => ({ ...prev, ...newData }))
+    }, [])
 
-    }}>{children}</CurrentState>
+    const contextValue = {
+        ...currentData,
+        setCurrentData: updateCurrentData
+    }
+
+    return <CurrentState.Provider value={contextValue}>{children}</CurrentState.Provider>
 }
 
 export function VariableCosts({ recurringItems }: { recurringItems: ForecastTimelineData['recurringItems'] }) {
@@ -42,7 +50,7 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
     return <div className="flex text-nowrap items-center">
         <div>monthly burn: {eurFormatter.format(monthlyBurn)}&nbsp;=&nbsp;</div>
         <div>recurring: {recurringCosts}&nbsp;+&nbsp;</div>
-        <Input type="number" defaultValue={state.variableCosts} onChange={e => state.setCurrentData({ ...state, variableCosts: Number(e.target.value) })} />
+        <Input type="number" defaultValue={state.variableCosts} onChange={e => state.setCurrentData({ variableCosts: Number(e.target.value) })} />
 
     </div>
 }
