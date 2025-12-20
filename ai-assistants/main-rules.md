@@ -111,12 +111,10 @@ mock.module("./db", () => ({
     getSnapshotDetails: mockGetSnapshotDetails,
 }));
 
-describe("getMatrixData", () => {
-    beforeEach(() => {
-        // Clear mock state before each test
-        mockGetSnapshotDetails.mockClear();
-    });
-})
+beforeEach(() => {
+    // Clear mock state before each test
+    mockGetSnapshotDetails.mockClear();
+});
 ```
 
 ### Factory Functions für Mock-Daten
@@ -127,3 +125,7 @@ describe("getMatrixData", () => {
 - **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
 - **Gefahr**: Tests würden vom aktuellen Datum abhängen und in Zukunft fehlschlagen
 - **Lösung**: `now()` Funktion korrekt mit `mock.module()` mocken
+
+### describe Blöcke
+- **Problem**: Durch `describe` Blöcke ensteht nesting und die Einrückung wird größer so das der Code schwerer lesbar ist
+- **Lösung**: Benutze auf dem ersten level nur `test` ohne `describe`, nutze `describe` nur wenn unbedingt nötig, z.B. um mocks die von mehreren Tests benutzt werden mit unterschiedlichen Daten zu initalisieren

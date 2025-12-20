@@ -47,12 +47,6 @@ export function calculateTimeline(
     scenarios: ScenarioItem[],
     startDate: Date
 ): TimelineMonth[] {
-    console.log({
-        monthCount,
-        variableCosts,
-        startBalance,
-        startDate: format(startDate, 'yyyy-MM-dd')
-    })
     const months: TimelineMonth[] = [];
     let runningBalance = startBalance;
 
