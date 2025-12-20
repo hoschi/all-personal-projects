@@ -1,4 +1,4 @@
-import { getAccounts, getLatestAssetSnapshot, getRecurringItems, getScenarioItems, getSnapshotDetails } from "./db"
+import { getAccounts, getLatestAssetSnapshot, getRecurringItems, getScenarioItems, getSettings, getSnapshotDetails } from "./db"
 import { Option } from "effect"
 import { format } from "date-fns"
 import { MatrixData, ForecastTimelineData } from "./types"
@@ -64,13 +64,14 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
 }
 
 export async function getForecastData(): Promise<Option.Option<ForecastTimelineData>> {
-  const [snapshot, recurringItems, scenarios] = await Promise.all([
+  const [snapshot, recurringItems, scenarios, settings] = await Promise.all([
     getLatestAssetSnapshot(),
     getRecurringItems(),
-    getScenarioItems()
+    getScenarioItems(),
+    getSettings()
   ])
 
-  if (Option.isNone(snapshot) || recurringItems.length <= 0) return Option.none();
+  if (Option.isNone(snapshot) || Option.isNone(settings) || recurringItems.length <= 0) return Option.none();
 
   const snapshotData = Option.getOrThrow(snapshot)
   const startAmount = snapshotData.totalLiquidity
@@ -78,6 +79,7 @@ export async function getForecastData(): Promise<Option.Option<ForecastTimelineD
   return Option.some({
     startAmount,
     recurringItems,
+    estimatedMonthlyVariableCosts: Option.getOrThrow(settings).estimatedMonthlyVariableCosts,
     scenarios,
     lastSnapshotDate: snapshotData.date
   })
