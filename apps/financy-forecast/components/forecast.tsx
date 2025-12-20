@@ -1,138 +1,16 @@
 import { getForecastData } from "@/lib/data"
 import { Option } from 'effect';
 import { eurFormatter } from "./format";
-import { addMonths, isAfter, isEqual, format, startOfMonth } from "date-fns";
-import { now } from "./utils";
 import { cacheTag } from "next/cache";
-import { RecurringItem, ScenarioItem, RecurringItemInterval } from "@/lib/schemas";
-import { ForecastTimelineData, TimelineMonth } from "@/lib/types";
+import { ForecastTimelineData } from "@/lib/types";
+import { RecurringItemInterval } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import {
     SidebarTrigger,
 } from "./ui/sidebar";
+// Import domain functions from new domain layer
+import { calculateTimeline, calculateMonthlyBurn } from "../domain/forecast";
 
-export function formatMonthNumericYYMM(monthOffset: number): string {
-    const today = now();
-    const targetMonth = addMonths(startOfMonth(today), monthOffset);
-    return format(targetMonth, "yy-MM");
-}
-
-/**
- * Calculates the monthly burn rate from recurring expenses and variable costs.
- * Only considers MONTHLY recurring items (ignores QUARTERLY/YEARLY).
- * Sum up negative amounts (expenses) from recurring items and add variable costs.
- * 
- * @param recurringItems - Array of recurring items
- * @param variableCosts - Variable monthly costs in cents
- * @returns Monthly burn rate in cents
- */
-export function calculateMonthlyBurn(
-    recurringItems: RecurringItem[],
-    variableCosts: number
-): number {
-    const monthlyExpenses = Math.abs(
-        recurringItems
-            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
-            .reduce((sum, item) => sum + item.amount, 0)
-    );
-
-    return monthlyExpenses + variableCosts;
-}
-
-export function calculateTimeline(
-    monthCount: number,
-    variableCosts: number,
-    startBalance: number,
-    recurringItems: RecurringItem[],
-    scenarios: ScenarioItem[],
-    startDate: Date
-): TimelineMonth[] {
-    const months: TimelineMonth[] = [];
-    let runningBalance = startBalance;
-
-    // Alle positiven monatlichen Einnahmen
-    const baseIncome = recurringItems
-        .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount > 0)
-        .reduce((sum, item) => sum + item.amount, 0);
-
-    // Monthly burn aus wiederkehrenden Ausgaben und variablen Kosten
-    const monthlyBurn = calculateMonthlyBurn(recurringItems, variableCosts);
-
-    for (let i = 0; i < monthCount; i++) {
-        // 1. Regular Cashflow
-        runningBalance += baseIncome;
-        runningBalance -= monthlyBurn;
-
-        // 2. Quarterly & Yearly Fixed Costs
-        // Berechne den absoluten Monat im Jahr (1-12) basierend auf dem Startdatum
-        const firstForecastMonth = addMonths(startOfMonth(startDate), 1);
-        const currentForecastMonth = addMonths(firstForecastMonth, i);
-        const currentMonthInYear = currentForecastMonth.getMonth() + 1; // JavaScript getMonth() gibt 0-11 zurück
-
-        const irregularCosts = recurringItems.filter(fc => {
-            if (fc.interval === RecurringItemInterval.MONTHLY) return false;
-
-            const dueMonth = fc.dueMonth ?? 1; // Default zu Januar (1) wenn null/undefined
-
-            if (fc.interval === RecurringItemInterval.YEARLY) {
-                return currentMonthInYear === dueMonth;
-            }
-
-            if (fc.interval === RecurringItemInterval.QUARTERLY) {
-                // Quartalsweise: fällig im dueMonth und dann alle 3 Monate
-                // Wenn dueMonth = 1 (Januar), dann: Jan(1), Apr(4), Jul(7), Okt(10)
-                // Wenn dueMonth = 3 (März), dann: Mär(3), Jun(6), Sep(9), Dez(12)
-                const quarters = [dueMonth, dueMonth + 3, dueMonth + 6, dueMonth + 9];
-                // Stelle sicher, dass die Monate im Bereich 1-12 liegen
-                const validQuarters = quarters.map(month => month > 12 ? month - 12 : month);
-                return validQuarters.includes(currentMonthInYear);
-            }
-
-            return false;
-        });
-
-        // Apply Irregular Costs
-        const costsTotal = irregularCosts.reduce((sum, c) => sum + c.amount, 0);
-        runningBalance -= costsTotal;
-
-        // 3. Scenarios - Filter für aktuellen Monat
-        const targetMonth = currentForecastMonth;
-        const monthScenarios = scenarios.filter(scenario => {
-            const scenarioMonth = startOfMonth(scenario.date);
-            return isEqual(scenarioMonth, targetMonth) && scenario.isActive;
-        });
-
-        const scenariosTotal = monthScenarios.reduce((sum, s) => sum + s.amount, 0);
-        runningBalance += scenariosTotal;
-
-        months.push({
-            index: i,
-            name: format(currentForecastMonth, "yy-MM"),
-            balance: runningBalance,
-            scenarios: monthScenarios,
-            irregularCosts: irregularCosts,
-            isCritical: runningBalance < 0
-        });
-    }
-    return months;
-}
-
-export function ForecastHeader({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
-    const startAmount = data.startAmount
-    const monthlyBurn = calculateMonthlyBurn(data.recurringItems, variableCosts)
-    const recurringCosts = Math.abs(
-        data.recurringItems
-            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
-            .reduce((sum, item) => sum + item.amount, 0)
-    )
-    return <div className="flex flex-col">
-        <h1 className="text-3xl">Forecast</h1>
-        <h2 className="text-muted-foreground">Where the Future starts</h2>
-        <div>start:{startAmount}</div>
-        <div>monthly burn:{monthlyBurn}</div>
-        <div>recurring: {recurringCosts} + variable:{variableCosts}</div>
-    </div>
-}
 
 export async function Forecast() {
     'use cache'
@@ -163,6 +41,24 @@ export async function Forecast() {
             </div>
         </>
     )
+}
+
+
+export function ForecastHeader({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
+    const startAmount = data.startAmount
+    const monthlyBurn = calculateMonthlyBurn(data.recurringItems, variableCosts)
+    const recurringCosts = Math.abs(
+        data.recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    )
+    return <div className="flex flex-col">
+        <h1 className="text-3xl">Forecast</h1>
+        <h2 className="text-muted-foreground">Where the Future starts</h2>
+        <div>start:{startAmount}</div>
+        <div>monthly burn:{monthlyBurn}</div>
+        <div>recurring: {recurringCosts} + variable:{variableCosts}</div>
+    </div>
 }
 
 async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
@@ -260,10 +156,4 @@ async function Timeline({ data, variableCosts }: { data: ForecastTimelineData; v
             </div>
         </div>
     )
-}
-
-export function calculateApprovable(lastDate: Date): boolean {
-    const approvableDate = addMonths(lastDate, 2)
-    const today = now()
-    return isAfter(today, approvableDate) || isEqual(today, approvableDate)
 }

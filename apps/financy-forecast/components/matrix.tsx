@@ -5,13 +5,13 @@ import { isNone } from "effect/Option";
 import { eurFormatter } from "./format";
 import { Button } from "./ui/button";
 import { addMonths, isAfter, isEqual } from "date-fns";
-import { now } from "./utils";
-import {MatrixData} from "@/lib/types";
-import {cacheTag} from "next/cache";
+import { now } from "@/lib/utils";
+import { MatrixData } from "@/lib/types";
+import { cacheTag } from "next/cache";
 
 export async function Matrix() {
-	'use cache'
-	cacheTag('snapshots', 'accounts')
+    'use cache'
+    cacheTag('snapshots', 'accounts')
 
     const matrixDataResult = await getMatrixData(4)
 
@@ -19,10 +19,10 @@ export async function Matrix() {
         return <div>No data</div>
     }
 
-	return <TableView data={Option.getOrThrow(matrixDataResult)}/>
+    return <TableView data={Option.getOrThrow(matrixDataResult)} />
 }
 
-async function TableView({data}:{data:MatrixData}) {
+async function TableView({ data }: { data: MatrixData }) {
     const { rows, header, lastDate } = data
 
     const isApprovable = calculateApprovable(lastDate)
@@ -38,7 +38,7 @@ async function TableView({data}:{data:MatrixData}) {
                 <TableBody>
                     {rows.map(row => (
                         <TableRow key={row.id}>
-                            {row.cells.map((cell) => ( <TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>))}
+                            {row.cells.map((cell) => (<TableCell key={cell.id}>{eurFormatter.format(cell.amount / 100)}</TableCell>))}
                             <TableCell className="font-medium">{row.name}</TableCell>
                         </TableRow>
                     ))}
