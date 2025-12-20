@@ -1,11 +1,11 @@
 import { describe, test, expect, mock, beforeEach } from "bun:test";
-import { calculateApprovable } from "./matrix";
+import { calculateApprovable } from "../domain/snapshots";
 
 // Mock the now() function to make tests deterministic
 const mockNow = mock();
 
-// Setup mock module for utils.ts
-mock.module("./utils", () => ({
+// Setup mock module for lib/utils.ts
+mock.module("@/lib/utils", () => ({
     now: mockNow
 }));
 

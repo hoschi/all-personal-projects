@@ -124,7 +124,7 @@ beforeEach(() => {
 ### Date/Time Dependencies
 - **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
 - **Gefahr**: Tests würden vom aktuellen Datum abhängen und in Zukunft fehlschlagen
-- **Lösung**: `now()` Funktion korrekt mit `mock.module()` mocken
+- **Lösung**: IMMER `now()` aus utils verwenden, NIE `new Date()` Funktion verwenden. `now()` korrekt mit `mock.module()` mocken für stabile Tests
 
 ### describe Blöcke
 - **Problem**: Durch `describe` Blöcke ensteht nesting und die Einrückung wird größer so das der Code schwerer lesbar ist
