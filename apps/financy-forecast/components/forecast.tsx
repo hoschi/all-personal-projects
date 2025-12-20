@@ -1,6 +1,5 @@
 import { getForecastData } from "@/lib/data"
 import { Option } from 'effect';
-import { isNone } from "effect/Option";
 import { eurFormatter } from "./format";
 import { addMonths, isAfter, isEqual, format, startOfMonth } from "date-fns";
 import { now } from "./utils";
@@ -8,12 +7,36 @@ import { cacheTag } from "next/cache";
 import { RecurringItem, ScenarioItem, RecurringItemInterval } from "@/lib/schemas";
 import { ForecastTimelineData, TimelineMonth } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
+import {
+    SidebarTrigger,
+} from "./ui/sidebar";
 
 export function formatMonthNumericYYMM(monthOffset: number): string {
     const today = now();
     const targetMonth = addMonths(startOfMonth(today), monthOffset);
     return format(targetMonth, "yy-MM");
+}
+
+/**
+ * Calculates the monthly burn rate from recurring expenses and variable costs.
+ * Only considers MONTHLY recurring items (ignores QUARTERLY/YEARLY).
+ * Sum up negative amounts (expenses) from recurring items and add variable costs.
+ * 
+ * @param recurringItems - Array of recurring items
+ * @param variableCosts - Variable monthly costs in cents
+ * @returns Monthly burn rate in cents
+ */
+export function calculateMonthlyBurn(
+    recurringItems: RecurringItem[],
+    variableCosts: number
+): number {
+    const monthlyExpenses = Math.abs(
+        recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    );
+
+    return monthlyExpenses + variableCosts;
 }
 
 export function calculateTimeline(
@@ -38,12 +61,8 @@ export function calculateTimeline(
         .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount > 0)
         .reduce((sum, item) => sum + item.amount, 0);
 
-    // Alle negativen monatlichen Ausgaben + variable Kosten
-    const monthlyBurn = variableCosts + Math.abs(
-        recurringItems
-            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
-            .reduce((sum, item) => sum + item.amount, 0)
-    );
+    // Monthly burn aus wiederkehrenden Ausgaben und variablen Kosten
+    const monthlyBurn = calculateMonthlyBurn(recurringItems, variableCosts);
 
     for (let i = 0; i < monthCount; i++) {
         // 1. Regular Cashflow
@@ -106,8 +125,12 @@ export function calculateTimeline(
 
 export function ForecastHeader({ data, variableCosts }: { data: ForecastTimelineData; variableCosts: number }) {
     const startAmount = data.startAmount
-    const recurringCosts = 0// TODO calculate from data.recurringItems
-    const monthlyBurn = recurringCosts + variableCosts// recurring + variable monthly cost
+    const monthlyBurn = calculateMonthlyBurn(data.recurringItems, variableCosts)
+    const recurringCosts = Math.abs(
+        data.recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    )
     return <div className="flex flex-col">
         <h1 className="text-3xl">Forecast</h1>
         <h2 className="text-muted-foreground">Where the Future starts</h2>
@@ -122,27 +145,26 @@ export async function Forecast() {
     cacheTag('snapshots')
 
     const forecastDataResult = await getForecastData()
-    // WRANING variableCosts sind fix für jetzt, kommen später aus input field
+    // WARNING: variableCosts sind fix für jetzt, kommen später aus input field
     const variableCosts = 1000
 
     return (
         <>
             <header className="flex items-center gap-2 m-3 ml-8">
                 <SidebarTrigger className="-ml-1 mr-3" />
-                return <div className="flex flex-col">
+                <div className="flex flex-col">
                     <h1 className="text-3xl">Forecast</h1>
                     <h2 className="text-muted-foreground">Where the Future starts</h2>
                     {Option.match(forecastDataResult, {
                         onNone: () => <div>no data</div>,
-                        onSome: (forecastData) => <ForecastHeader variableCosts={variableCosts} forecastData={forecastData} />
+                        onSome: (data) => <ForecastHeader data={data} variableCosts={variableCosts} />
                     })}
                 </div>
-
             </header>
             <div className="p-4">
                 {Option.match(forecastDataResult, {
                     onNone: () => <div>no data</div>,
-                    onSome: (forecastData) => <Timeline variableCosts={variableCosts} forecastData={forecastData} />
+                    onSome: (data) => <Timeline data={data} variableCosts={variableCosts} />
                 })}
             </div>
         </>

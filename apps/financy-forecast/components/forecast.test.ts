@@ -1,7 +1,7 @@
 import { describe, test, expect, mock, beforeEach } from "bun:test";
 import { RecurringItemInterval, RecurringItem, ScenarioItem } from "@/lib/schemas";
 import { TimelineMonth } from "@/lib/types";
-import { formatMonthNumericYYMM, calculateTimeline, calculateApprovable } from "./forecast";
+import { formatMonthNumericYYMM, calculateTimeline, calculateApprovable, calculateMonthlyBurn } from "./forecast";
 
 // Test date constant to ensure consistent testing
 const TEST_DATE = new Date("2025-01-15T10:30:00Z");
@@ -409,5 +409,93 @@ describe("forecast.tsx - Data Processing Functions", () => {
             expect(result[2].balance).toBeGreaterThan(result[1].balance);
             expect(result[1].balance).toBeGreaterThan(result[0].balance);
         });
+    });
+});
+
+describe("calculateMonthlyBurn", () => {
+    // Factory function for creating test recurring items
+    const createRecurringItem = (overrides: Partial<RecurringItem> = {}): RecurringItem => ({
+        id: "test-id",
+        name: "Test Item",
+        amount: -50000, // -500.00€ in Cents
+        interval: RecurringItemInterval.MONTHLY,
+        dueMonth: 1,
+        ...overrides
+    });
+
+    test("should return only variable costs when recurringItems is empty", () => {
+        const result = calculateMonthlyBurn([], 100000); // 1000€ variable costs
+        expect(result).toBe(100000);
+    });
+
+    test("should return only variable costs when there are no recurring expenses", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: 300000, interval: RecurringItemInterval.MONTHLY }), // +3000€ income
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 100000); // 1000€ variable costs
+        expect(result).toBe(100000); // Only variable costs
+    });
+
+    test("should handle only negative recurring items correctly", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€
+            createRecurringItem({ amount: -120000, interval: RecurringItemInterval.MONTHLY }), // -1200€
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 100000); // 1000€ variable costs
+        expect(result).toBe(300000); // 800 + 1200 + 1000 = 3000€
+    });
+
+    test("should handle mixed positive and negative recurring items correctly", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: 400000, interval: RecurringItemInterval.MONTHLY }), // +4000€ income
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€ expense
+            createRecurringItem({ amount: -120000, interval: RecurringItemInterval.MONTHLY }), // -1200€ expense
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 50000); // 500€ variable costs
+        expect(result).toBe(250000); // 800 + 1200 + 500 = 2500€
+    });
+
+    test("should ignore QUARTERLY recurring items", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€ (should be counted)
+            createRecurringItem({ amount: -150000, interval: RecurringItemInterval.QUARTERLY }), // -1500€ (should be ignored)
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 100000); // 1000€ variable costs
+        expect(result).toBe(180000); // Only monthly (-800) + variable (1000) = 1800€
+    });
+
+    test("should ignore YEARLY recurring items", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€ (should be counted)
+            createRecurringItem({ amount: -200000, interval: RecurringItemInterval.YEARLY }), // -2000€ (should be ignored)
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 100000); // 1000€ variable costs
+        expect(result).toBe(180000); // Only monthly (-800) + variable (1000) = 1800€
+    });
+
+    test("should ignore all non-MONTHLY intervals", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€ (should be counted)
+            createRecurringItem({ amount: -150000, interval: RecurringItemInterval.QUARTERLY }), // -1500€ (ignored)
+            createRecurringItem({ amount: -200000, interval: RecurringItemInterval.YEARLY }), // -2000€ (ignored)
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 100000); // 1000€ variable costs
+        expect(result).toBe(180000); // Only monthly (-800) + variable (1000) = 1800€
+    });
+
+    test("should handle zero variable costs", () => {
+        const recurringItems = [
+            createRecurringItem({ amount: -80000, interval: RecurringItemInterval.MONTHLY }), // -800€
+            createRecurringItem({ amount: -120000, interval: RecurringItemInterval.MONTHLY }), // -1200€
+        ];
+
+        const result = calculateMonthlyBurn(recurringItems, 0); // 0€ variable costs
+        expect(result).toBe(200000); // 800 + 1200 = 2000€
     });
 });
