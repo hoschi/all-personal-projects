@@ -2,7 +2,7 @@
 import { ForecastTimelineData } from "@/lib/types";
 import { ScenarioItem } from "@/lib/schemas";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import * as R from "ramda";
+import { Array, Option } from "effect";
 
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
@@ -182,16 +182,22 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
         const updatedScenario = { ...scenario, isActive: newValue };
 
         setScenarios(prev => {
-            const existingIndex = R.findIndex((item: ScenarioItem) => item.id === scenario.id, prev)
+            const existingIndexOption = Array.findFirstIndex<ScenarioItem>(
+                (item: ScenarioItem) => item.id === scenario.id
+            )(prev);
 
             if (newValue === scenario.isActive) {
                 // If new value matches server value, remove from jotai state
-                return existingIndex >= 0 ? R.remove(existingIndex, 1, prev) : prev;
+                return Option.match(existingIndexOption, {
+                    onSome: () => Array.filter<ScenarioItem>((item: ScenarioItem) => item.id !== scenario.id)(prev),
+                    onNone: () => prev
+                });
             } else {
                 // If new value differs from server value, add/update in jotai state
-                return existingIndex >= 0
-                    ? R.update(existingIndex, updatedScenario, prev)
-                    : R.append(updatedScenario, prev);
+                return Option.match(existingIndexOption, {
+                    onSome: (index) => Array.replace<ScenarioItem>(index, updatedScenario)(prev),
+                    onNone: () => Array.append<ScenarioItem>(updatedScenario)(prev)
+                });
             }
         });
     };
