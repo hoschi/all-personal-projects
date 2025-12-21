@@ -13,6 +13,7 @@ import {
     Settings,
     SnapshotDetails
 } from './schemas';
+import { calculateNewSnapshotDate } from '../domain/snapshots';
 import * as dotenv from 'dotenv';
 
 let sql: ReturnType<typeof postgres>
@@ -227,7 +228,33 @@ export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnaps
 }
 
 /**
- * Create new asset snapshot
+ * Create new asset snapshot with automatic date calculation
+ * Implements the new logic: uses last day of the previous month
+ */
+export async function createAssetSnapshotWithAutoDate(
+    totalLiquidity: number
+): Promise<AssetSnapshot> {
+    try {
+        // Get the latest snapshot to determine the correct date
+        const latestSnapshot = await getLatestAssetSnapshot();
+        const snapshotDate = calculateNewSnapshotDate(
+            latestSnapshot ? Option.getOrThrow(latestSnapshot).date : undefined
+        );
+
+        const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
+      INSERT INTO asset_snapshots (id, date, total_liquidity)
+      VALUES (gen_random_uuid(), ${snapshotDate}, ${totalLiquidity})
+      RETURNING id, date, total_liquidity as "totalLiquidity"
+    `);
+        return result[0];
+    } catch (error) {
+        console.error('Error creating asset snapshot with auto date:', error);
+        throw new Error('Failed to create asset snapshot with auto date');
+    }
+}
+
+/**
+ * Create new asset snapshot (legacy function - still available for explicit date usage)
  */
 export async function createAssetSnapshot(
     date: Date,
