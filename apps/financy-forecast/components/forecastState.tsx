@@ -27,17 +27,17 @@ export const variableCostsAtom = atom<number>(INITIAL_STATE.variableCosts)
 export const scenariosAtom = atom<ScenarioItem[]>([])
 
 // Hook to initialize atoms with data
-export function useInitializeForecastAtoms(data: ForecastTimelineData | undefined) {
+export function useInitializeForecastAtoms(forecastData: ForecastTimelineData | undefined) {
     const setVariableCosts = useSetAtom(variableCostsAtom);
 
-    if (data) {
-        setVariableCosts(data.estimatedMonthlyVariableCosts ?? INITIAL_STATE.variableCosts);
+    if (forecastData) {
+        setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? INITIAL_STATE.variableCosts);
     }
 }
 
 // Component to initialize Jotai atoms with server data
-export function ForecastDataInitializer({ data }: { data: ForecastTimelineData }) {
-    useInitializeForecastAtoms(data);
+export function ForecastDataInitializer({ forecastData }: { forecastData: ForecastTimelineData }) {
+    useInitializeForecastAtoms(forecastData);
     return null;
 }
 
@@ -66,12 +66,12 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
     </div>
 }
 
-export function Timeline({ data }: { data: ForecastTimelineData; }) {
+export function Timeline({ forecastData }: { forecastData: ForecastTimelineData; }) {
     const variableCosts = useAtomValue(variableCostsAtom);
     const changedScenarios = useAtomValue(scenariosAtom);
 
     // Merge server data with changed scenarios from Jotai atom
-    const mergedScenarios = data.scenarios.map(serverScenario => {
+    const mergedScenarios = forecastData.scenarios.map(serverScenario => {
         const changedScenario = changedScenarios.find(s => s.id === serverScenario.id);
         return changedScenario || serverScenario;
     });
@@ -79,10 +79,10 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
     const months = calculateTimeline(
         24, // 24 Monate für den Forecast
         variableCosts,
-        data.startAmount,
-        data.recurringItems,
+        forecastData.startAmount,
+        forecastData.recurringItems,
         mergedScenarios,
-        data.lastSnapshotDate
+        forecastData.lastSnapshotDate
     );
 
     return (
@@ -222,12 +222,12 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
     </div>;
 }
 
-export function SaveForecast({ data }: { data: ForecastTimelineData }) {
+export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineData }) {
     const variableCosts = useAtomValue(variableCostsAtom);
     const scenarios = useAtomValue(scenariosAtom);
 
     // Check if there are changes compared to server data
-    const hasVariableCostsChanged = variableCosts !== (data.estimatedMonthlyVariableCosts ?? 0);
+    const hasVariableCostsChanged = variableCosts !== (forecastData.estimatedMonthlyVariableCosts ?? 0);
     const hasScenariosChanged = scenarios.length > 0;
     const hasChanges = hasVariableCostsChanged || hasScenariosChanged;
 
