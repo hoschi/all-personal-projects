@@ -6,9 +6,7 @@ import { ForecastTimelineData } from "@/lib/types";
 import {
     SidebarTrigger,
 } from "./ui/sidebar";
-// Import domain functions from new domain layer
-// import { calculateTimeline } from "../domain/forecast"; // Not currently used
-import { VariableCosts, ForecastDataInitializer, Timeline } from "./forecastState";
+import { VariableCosts, ForecastDataInitializer, Timeline, SaveForecast } from "./forecastState";
 
 export async function Forecast() {
     'use cache'
@@ -48,5 +46,6 @@ export function ForecastHeader({ data }: { data: ForecastTimelineData; }) {
     return <div className="flex flex-col">
         <div>start:{eurFormatter.format(startAmount)}</div>
         <VariableCosts recurringItems={data.recurringItems} />
+        <SaveForecast />
     </div>
 }

@@ -8,20 +8,25 @@ import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
 import { RecurringItemInterval } from "@/lib/schemas";
 import { eurFormatter } from "./format";
 import { cn } from "@/lib/utils";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { Button } from "./ui/button";
 
 // Jotai atoms for state management
 export const variableCostsAtom = atom<number>(0)
+
+/**
+ * This Atom tracks only changed scenario items!
+ */
 export const scenariosAtom = atom<ScenarioItem[]>([])
 
 // Hook to initialize atoms with data
 export function useInitializeForecastAtoms(data: ForecastTimelineData | undefined) {
     const setVariableCosts = useSetAtom(variableCostsAtom);
-    const setScenarios = useSetAtom(scenariosAtom);
 
-    // Only set initial values if data is provided
+    // TODO aktuell ist die Logik dupliziert hier und bei der erstellung der Atoms welche werte als initialisierung benutzt werden. Erstelle ein object mit den initialen werten und benutze dieses für die initalisierung an beiden stellen.
     if (data) {
         setVariableCosts(data.estimatedMonthlyVariableCosts ?? 0);
-        setScenarios(data?.scenarios ?? []);
     }
 }
 
@@ -121,7 +126,7 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
                                                     sc.isActive ? "border-slate-200" : "opacity-60 grayscale border-dashed bg-slate-50"
                                                 )}
                                             >
-                                                {sc.name}   {eurFormatter.format(sc.amount / 100)}
+                                                <ScenarioSwtich sc={sc} />
                                             </div>
                                         ))}
 
@@ -150,4 +155,22 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
             </div>
         </div>
     );
+}
+
+
+/**
+ * Switch item for ScenarioItem.
+ */
+// TODO fix den typo
+function ScenarioSwtich({ sc }: { sc: ScenarioItem }) {
+    // TODO passe die beschreibung der Komponente an. Als initialien Wert (defaultValue) bekommt der Swtich den wert aus `data` vom server ob das Szenario aktiv ist oder nicht. Danach wird der state vom client verwaltet. Falls beim onChange event der Wert nicht derselbe ist wie vom server muss dieses scenario item im jotai state gespeichert werden. Ist das item schon im jotai state muss es da raus gelöscht werden. Der jotai state trackt welche Items nicht den wert der server daten haben. Daraus lässt sich dann auch der wert für die Switch komponente unten berechnen. 
+    return <div className="flex items-center space-x-2">
+        <Switch id={sc.id} />
+        <Label htmlFor={sc.id}>{sc.name}   {eurFormatter.format(sc.amount / 100)}</Label>
+    </div>;
+}
+
+export function SaveForecast() {
+    // TODO dieser button ist nur clickbar, wenn die variablen costen im jotai state nicht dem vom server entsprechen oder es element in jotai szenario state gibt. on click wird aktuell über console.log ausgegeben was aktuell im jotai state für beide werte ist
+    return <Button>save</Button>
 }
