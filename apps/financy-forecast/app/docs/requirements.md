@@ -27,9 +27,9 @@ Mock: https://aistudio.google.com/apps/drive/1_0_TXcmelH7u4S926JuxcskajHI4LHUI?s
 *   `currentBalance`: Integer (Cents). *Zur Performance-Optimierung.*
 
 ### B. `AssetSnapshot` (Monatliche Ist-Stände)
-Repräsentiert den Status am 1. eines Monats für vergangene Monate.
+Repräsentiert den Status am Ende eines Monats für vergangene Monate.
 *   `id`: UUID
-*   `date`: Date (Immer der 1. des Monats).
+*   `date`: Date (Immer der letzte Tag des Monats).
 *   `totalLiquidity`: Integer (Cents, Summe LIQUID).
 *   *Relation:* 1:n zu `AccountBalanceDetail`.
 
@@ -61,14 +61,17 @@ Repräsentiert den Status am 1. eines Monats für vergangene Monate.
 ## 3. Funktionale Module
 
 ### 3.1 Dashboard: Die Matrix-Ansicht
+
+Am Anfang existiert kein Snapshot. Man trägt die Werte vom letzten Tag des Vormonats in `Accounts` über die Dashboard Ansicht ein und approved den ersten Snaphsot. Dieser bekommt als `date` den letzten Tag des Vormonats, als Beispiel den 31.3.2024. Ab jetzt läuft der normale Modus weiter. Man kann wann immer man möchte die aktuellen Kontostände in der Dashboard Ansicht eintragen. Ist der erste Tag des übernachsten Monats vom letzten Snapshot erreicht, können die aktuellen Werte approved werden und es wird ein neuer Snapshot angelegt der als Datum den letzten Tag des Vormonats bekommt. In unserem Bespiel kann also frühstens der nächste Snapshot angelegt werden wenn der 1.5.2024 erreicht ist und diese Aktion legt einen Snapshot an der als `date` den 30.4.2024 bekommt.
+
 **Layout:**
 *   Tabelle (Zeilen: Accounts, Spalten: Monate).
 *   Zeile "Gesamtvermögen" (Summe der Spalte).
 *   Zeile "Veränderung" (Delta zum Vormonat, farbig codiert).
 *   Provisorischer Monat:
     *   Statt die Daten aus einem Snaphshot anzuzeigen, werden die aktuellen Daten aus der `account` Tabelle dargestellt, die die  nicht finalen Zahlen repräsentieren.
-    *   "Est." = Label wenn der 1. des derauffolgenden Monats noch nicht erreicht ist, Daten sind provisorisch
-    *   "✅" Emoji Button wenn der 1. des nächsten Monat erreicht ist und der Benutzer die richtigen Zahlen eingetragen hat. Durch den Button click wird ein Snapshot angelegt und die Details in der Entsprechenden Tabelle kopiert und mit dem Snapshot verlinkt. Jetzt kann wieder ein provisorischer Monat angelegt werden
+    *   "Est." = Label wenn Daten provisorisch sind, da der heutige Tag noch zu früh ist um einen neuen Snapshot anzulegen
+    *   "✅" Emoji Button wenn ein Snapshot angelegt werden kann, da das heutige Datum entsprechend weit in der Zukunft liegt. Mit diesem Button click bestätigt ma die aktuellen Zahlen des vergangenen Monats.
 
 **Interaktion:**
 *   **Klick auf "+":** Provisorischen Monat anlegen. Öffnet Dialog "Werte für `Monat` eingeben", falls aktuell kein provisorischer Monat existiert
