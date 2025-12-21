@@ -1,16 +1,16 @@
 import { getForecastData } from "@/lib/data"
-import { identity, Option } from 'effect';
+import { Option } from 'effect';
 import { eurFormatter } from "./format";
 import { cacheTag } from "next/cache";
 import { ForecastTimelineData } from "@/lib/types";
-import { RecurringItemInterval } from "@/lib/schemas";
-import { cn } from "@/lib/utils";
 import {
     SidebarTrigger,
 } from "./ui/sidebar";
 // Import domain functions from new domain layer
-import { calculateTimeline, calculateMonthlyBurn } from "../domain/forecast";
-import { ForecastState, VariableCosts } from "./forecastState";
+// import { calculateTimeline } from "../domain/forecast"; // Not currently used
+import { VariableCosts, ForecastDataInitializer } from "./forecastState";
+import { calculateTimeline } from "@/domain/forecast";
+import { cn } from "@/lib/utils";
 
 export async function Forecast() {
     'use cache'
@@ -18,8 +18,11 @@ export async function Forecast() {
 
     // TODO `forecastDataResult` soll der name sein wenn es vom Typ Option ist, sonst in den forecastXY files mit den React Kopmonenten muss es forecastData heißen wenn es "ausgepackt" wurde, hier habe ich oft nur `data` geschrieben
     const forecastDataResult = await getForecastData()
+    const forecastData = Option.getOrUndefined(forecastDataResult)
+
     return (
-        <ForecastState data={Option.getOrUndefined(forecastDataResult)}>
+        <>
+            {forecastData && <ForecastDataInitializer data={forecastData} />}
             <header className="flex items-center gap-2 m-3 ml-8">
                 <SidebarTrigger className="-ml-1 mr-3" />
                 <div className="flex flex-col grow">
@@ -37,10 +40,9 @@ export async function Forecast() {
                     onSome: (data) => <Timeline />
                 })*/}
             </div>
-        </ForecastState>
+        </>
     )
 }
-
 
 export function ForecastHeader({ data }: { data: ForecastTimelineData; }) {
     const startAmount = data.startAmount
