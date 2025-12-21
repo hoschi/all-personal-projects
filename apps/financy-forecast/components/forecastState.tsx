@@ -2,6 +2,7 @@
 import { ForecastTimelineData } from "@/lib/types";
 import { ScenarioItem } from "@/lib/schemas";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
 
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
@@ -12,8 +13,12 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 
-// Jotai atoms for state management
-export const variableCostsAtom = atom<number>(0)
+const INITIAL_STATE = {
+    variableCosts: 0
+} as const
+
+// Jotai atoms for state management (values stored in cents)
+export const variableCostsAtom = atom<number>(INITIAL_STATE.variableCosts)
 
 /**
  * This Atom tracks only changed scenario items!
@@ -24,9 +29,8 @@ export const scenariosAtom = atom<ScenarioItem[]>([])
 export function useInitializeForecastAtoms(data: ForecastTimelineData | undefined) {
     const setVariableCosts = useSetAtom(variableCostsAtom);
 
-    // TODO aktuell ist die Logik dupliziert hier und bei der erstellung der Atoms welche werte als initialisierung benutzt werden. Erstelle ein object mit den initialen werten und benutze dieses für die initalisierung an beiden stellen.
     if (data) {
-        setVariableCosts(data.estimatedMonthlyVariableCosts ?? 0);
+        setVariableCosts(data.estimatedMonthlyVariableCosts ?? INITIAL_STATE.variableCosts);
     }
 }
 
@@ -39,6 +43,8 @@ export function ForecastDataInitializer({ data }: { data: ForecastTimelineData }
 export function VariableCosts({ recurringItems }: { recurringItems: ForecastTimelineData['recurringItems'] }) {
     const [variableCosts, setVariableCosts] = useAtom(variableCostsAtom);
 
+    // Convert cents to euros for display
+    const variableCostsEuros = variableCosts / 100;
     const monthlyBurn = calculateMonthlyBurn(recurringItems, variableCosts)
     const recurringCosts = Math.abs(
         recurringItems
@@ -46,14 +52,14 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
             .reduce((sum, item) => sum + item.amount, 0)
     )
 
-    // TODO im onChange handler muss der euro wert in cents konvertiert werden, beim anzeigen über `value` muss der cent wert in euro konvertiert werden. 
     return <div className="flex text-nowrap items-center">
         <div>monthly burn: {eurFormatter.format(monthlyBurn)}&nbsp;=&nbsp;</div>
         <div>recurring: {recurringCosts}&nbsp;+&nbsp;</div>
         <Input
             type="number"
-            value={variableCosts}
-            onChange={e => setVariableCosts(Number(e.target.value))}
+            step="0.01"
+            value={variableCostsEuros.toFixed(2)}
+            onChange={e => setVariableCosts(Math.round(Number(e.target.value) * 100))}
         />
 
     </div>
@@ -126,7 +132,7 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
                                                     sc.isActive ? "border-slate-200" : "opacity-60 grayscale border-dashed bg-slate-50"
                                                 )}
                                             >
-                                                <ScenarioSwtich sc={sc} />
+                                                <ScenarioSwitch scenario={sc} />
                                             </div>
                                         ))}
 
@@ -161,16 +167,63 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
 /**
  * Switch item for ScenarioItem.
  */
-// TODO fix den typo
-function ScenarioSwtich({ sc }: { sc: ScenarioItem }) {
-    // TODO passe die beschreibung der Komponente an. Als initialien Wert (defaultValue) bekommt der Swtich den wert aus `data` vom server ob das Szenario aktiv ist oder nicht. Danach wird der state vom client verwaltet. Falls beim onChange event der Wert nicht derselbe ist wie vom server muss dieses scenario item im jotai state gespeichert werden. Ist das item schon im jotai state muss es da raus gelöscht werden. Der jotai state trackt welche Items nicht den wert der server daten haben. Daraus lässt sich dann auch der wert für die Switch komponente unten berechnen. 
+function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
+    const [scenarios, setScenarios] = useAtom(scenariosAtom);
+
+    // Check if this scenario is in the jotai state (means it has been changed)
+    const changedScenario = scenarios.find(s => s.id === scenario.id);
+
+    // If scenario is changed, use the jotai value, otherwise use server value
+    const currentValue = changedScenario ? changedScenario.isActive : scenario.isActive;
+
+    const handleToggle = () => {
+        const newValue = !currentValue;
+
+        if (newValue === scenario.isActive) {
+            // If new value matches server value, remove from jotai state
+            setScenarios(prev => prev.filter(s => s.id !== scenario.id));
+        } else {
+            // If new value differs from server value, add/update in jotai state
+            const updatedScenario = { ...scenario, isActive: newValue };
+            setScenarios(prev => {
+                const existing = prev.findIndex(s => s.id === scenario.id);
+                if (existing >= 0) {
+                    // Update existing
+                    const newState = [...prev];
+                    newState[existing] = updatedScenario;
+                    return newState;
+                } else {
+                    // Add new
+                    return [...prev, updatedScenario];
+                }
+            });
+        }
+    };
+
     return <div className="flex items-center space-x-2">
-        <Switch id={sc.id} />
-        <Label htmlFor={sc.id}>{sc.name}   {eurFormatter.format(sc.amount / 100)}</Label>
+        <Switch
+            id={scenario.id}
+            checked={currentValue}
+            onCheckedChange={handleToggle}
+        />
+        <Label htmlFor={scenario.id}>{scenario.name}   {eurFormatter.format(scenario.amount / 100)}</Label>
     </div>;
 }
 
-export function SaveForecast() {
-    // TODO dieser button ist nur clickbar, wenn die variablen costen im jotai state nicht dem vom server entsprechen oder es element in jotai szenario state gibt. on click wird aktuell über console.log ausgegeben was aktuell im jotai state für beide werte ist
-    return <Button>save</Button>
+export function SaveForecast({ data }: { data: ForecastTimelineData }) {
+    const variableCosts = useAtomValue(variableCostsAtom);
+    const scenarios = useAtomValue(scenariosAtom);
+
+    // Check if there are changes compared to server data
+    const hasVariableCostsChanged = variableCosts !== (data.estimatedMonthlyVariableCosts ?? 0);
+    const hasScenariosChanged = scenarios.length > 0;
+    const hasChanges = hasVariableCostsChanged || hasScenariosChanged;
+
+    const handleSave = () => {
+        console.log('Current Jotai State:');
+        console.log('Variable Costs (cents):', variableCosts);
+        console.log('Scenarios:', scenarios);
+    };
+
+    return <Button disabled={!hasChanges} onClick={handleSave}>save</Button>
 }

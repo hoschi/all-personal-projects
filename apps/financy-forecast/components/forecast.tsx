@@ -40,12 +40,12 @@ export async function Forecast() {
     )
 }
 
-export function ForecastHeader({ data }: { data: ForecastTimelineData; }) {
-    const startAmount = data.startAmount
+export function ForecastHeader({ data: forecastData }: { data: ForecastTimelineData; }) {
+    const startAmount = forecastData.startAmount
 
     return <div className="flex flex-col">
         <div>start:{eurFormatter.format(startAmount)}</div>
-        <VariableCosts recurringItems={data.recurringItems} />
-        <SaveForecast />
+        <VariableCosts recurringItems={forecastData.recurringItems} />
+        <SaveForecast data={forecastData} />
     </div>
 }
