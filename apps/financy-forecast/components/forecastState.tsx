@@ -73,7 +73,7 @@ export function Timeline({ data }: { data: ForecastTimelineData; }) {
         variableCosts,
         data.startAmount,
         data.recurringItems,
-        data.scenarios,
+        data.scenarios, // TODO merge these with `    const scenarios = useAtomValue(scenariosAtom);` to get the *current* state of the scenarios
         data.lastSnapshotDate
     );
 

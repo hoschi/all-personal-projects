@@ -119,7 +119,7 @@ Am Anfang existiert kein Snapshot. Man trägt die Werte vom letzten Tag des Vorm
         *   Textliche Auflistung von *fälligen* Jährlichen/Quartalsweisen Fixkosten.
         *   Monatliche Fixkosten werden ausgeblendet.
     *   **Ebene 2 (Interaktiv - Szenarien):**
-        *   Liste der `ScenarioItems` als Cards/Chips.
+        *   Liste der `ScenarioItems` als Cards/Chips. Es werden *alle* Szenarios für den Monat angezeigt. Aber für die Berechnung werden *nur* die aktiven Szenarion herangezogen.
         *   **Drag & Drop:** Verschieben in sichtbare Nachbarmonate möglich (via `dnd-kit`).
         *   **Klick auf Pencil Icon im Chip:** Öffnet Edit-Modal (siehe B, inkl. Möglichkeit das Datum weit in die Zukunft zu ändern).
 
