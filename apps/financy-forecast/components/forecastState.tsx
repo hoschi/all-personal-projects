@@ -86,7 +86,7 @@ export function Timeline({ forecastData }: { forecastData: ForecastTimelineData;
     );
 
     return (
-        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden pb-4">
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-4">
             <div className="flex flex-col flex-wrap content-start h-full gap-4 pr-4">
                 {months.map((month) => {
                     const hasEvents = month.scenarios.length > 0 || month.irregularCosts.length > 0;
