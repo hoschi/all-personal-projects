@@ -2,7 +2,8 @@
 import { ForecastTimelineData } from "@/lib/types";
 import { ScenarioItem } from "@/lib/schemas";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Array, Option } from "effect";
+import { Array } from "effect";
+import { match, P } from 'ts-pattern';
 
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
@@ -186,19 +187,20 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
                 (item: ScenarioItem) => item.id === scenario.id
             )(prev);
 
-            if (newValue === scenario.isActive) {
-                // If new value matches server value, remove from jotai state
-                return Option.match(existingIndexOption, {
-                    onSome: () => Array.filter<ScenarioItem>((item: ScenarioItem) => item.id !== scenario.id)(prev),
-                    onNone: () => prev
-                });
-            } else {
-                // If new value differs from server value, add/update in jotai state
-                return Option.match(existingIndexOption, {
-                    onSome: (index) => Array.replace<ScenarioItem>(index, updatedScenario)(prev),
-                    onNone: () => Array.append<ScenarioItem>(updatedScenario)(prev)
-                });
-            }
+            const shouldRemove = newValue === scenario.isActive;
+
+            return match([existingIndexOption, shouldRemove])
+                .with([{ _tag: 'Some', value: P.number }, true], () =>
+                    Array.filter<ScenarioItem>((item: ScenarioItem) => item.id !== scenario.id)(prev)
+                )
+                .with([{ _tag: 'Some', value: P.number }, false], ([option]) =>
+                    Array.replace<ScenarioItem>(option.value, updatedScenario)(prev)
+                )
+                .with([{ _tag: 'None' }, true], () => prev)
+                .with([{ _tag: 'None' }, false], () =>
+                    Array.append<ScenarioItem>(updatedScenario)(prev)
+                )
+                .exhaustive();
         });
     };
 
