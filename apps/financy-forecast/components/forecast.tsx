@@ -12,13 +12,12 @@ export async function Forecast() {
     'use cache'
     cacheTag('snapshots')
 
-    // TODO `forecastDataResult` soll der name sein wenn es vom Typ Option ist, sonst in den forecastXY files mit den React Kopmonenten muss es forecastData heißen wenn es "ausgepackt" wurde, hier habe ich oft nur `data` geschrieben
     const forecastDataResult = await getForecastData()
     const forecastData = Option.getOrUndefined(forecastDataResult)
 
     return (
         <>
-            {forecastData && <ForecastDataInitializer data={forecastData} />}
+            {forecastData && <ForecastDataInitializer forecastData={forecastData} />}
             <header className="flex items-center gap-2 m-3 ml-8">
                 <SidebarTrigger className="-ml-1 mr-3" />
                 <div className="flex flex-col grow">
@@ -26,26 +25,26 @@ export async function Forecast() {
                     <h2 className="text-muted-foreground">Where the Future starts</h2>
                     {Option.match(forecastDataResult, {
                         onNone: () => <div>no data</div>,
-                        onSome: (data) => <ForecastHeader data={data} />
+                        onSome: (forecastData) => <ForecastHeader forecastData={forecastData} />
                     })}
                 </div>
             </header>
             <div className="p-4">
                 {Option.match(forecastDataResult, {
                     onNone: () => <div>no data</div>,
-                    onSome: (data) => <Timeline data={data} />
+                    onSome: (forecastData) => <Timeline forecastData={forecastData} />
                 })}
             </div>
         </>
     )
 }
 
-export function ForecastHeader({ data: forecastData }: { data: ForecastTimelineData; }) {
+export function ForecastHeader({ forecastData }: { forecastData: ForecastTimelineData; }) {
     const startAmount = forecastData.startAmount
 
     return <div className="flex flex-col">
         <div>start:{eurFormatter.format(startAmount)}</div>
         <VariableCosts recurringItems={forecastData.recurringItems} />
-        <SaveForecast data={forecastData} />
+        <SaveForecast forecastData={forecastData} />
     </div>
 }
