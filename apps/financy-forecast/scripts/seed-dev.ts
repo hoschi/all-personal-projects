@@ -169,6 +169,56 @@ function seedAssetSnapshots(): void {
 }
 
 /**
+ * Generate future scenarios (max 20 months from today)
+ */
+function generateFutureScenarios(startDate: Date, maxMonths: number): Array<{
+    name: string;
+    amount: number;
+    date: string;
+    is_active: boolean;
+}> {
+    const scenarios = [];
+    const currentYear = startDate.getFullYear();
+    const currentMonth = startDate.getMonth(); // 0-based
+
+    // Generate scenarios spread across the next 20 months
+    const scenarioTemplates = [
+        { name: 'MacBook Pro Kauf', amount: -250000, monthsFromNow: 2, is_active: true },
+        { name: 'Urlaub Spanien', amount: -180000, monthsFromNow: 6, is_active: true },
+        { name: 'Neue Winterreifen', amount: -60000, monthsFromNow: 11, is_active: true },
+        { name: 'Geschenke Weihnachten', amount: -50000, monthsFromNow: 12, is_active: true },
+        { name: 'Wohnung renovieren', amount: -500000, monthsFromNow: 15, is_active: true },
+        { name: 'Urlaub Japan', amount: -350000, monthsFromNow: 18, is_active: true },
+        { name: 'Neues Auto', amount: -3500000, monthsFromNow: 20, is_active: true },
+        { name: 'Aktiengewinn', amount: 150000, monthsFromNow: 8, is_active: true },
+        { name: 'Bonus Zahlung', amount: 200000, monthsFromNow: 4, is_active: true },
+        { name: 'Konzertkarten', amount: -25000, monthsFromNow: 3, is_active: false },
+    ];
+
+    for (const template of scenarioTemplates) {
+        if (template.monthsFromNow <= maxMonths) {
+            const scenarioDate = new Date(startDate);
+            scenarioDate.setMonth(currentMonth + template.monthsFromNow);
+
+            // Add some randomness to the day of month (1-28 to avoid month-end issues)
+            const dayOfMonth = Math.floor(Math.random() * 28) + 1;
+            scenarioDate.setDate(dayOfMonth);
+
+            const dateString = scenarioDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            scenarios.push({
+                name: template.name,
+                amount: template.amount,
+                date: dateString,
+                is_active: template.is_active
+            });
+        }
+    }
+
+    return scenarios;
+}
+
+/**
  * Main seed function
  */
 function seedDatabase(): void {
@@ -228,19 +278,15 @@ function seedDatabase(): void {
         executeSql(recurringItemsSql);
         console.log('✅ Recurring items created\n');
 
-        const currentYear = new Date().getFullYear();
+        // Generate future scenarios only (max 20 months from today)
+        const today = new Date();
+        const scenarios = generateFutureScenarios(today, 20); // 20 months max
+
         const scenarioItemsSql = `
         INSERT INTO scenario_items (id, name, amount, date, is_active) VALUES
-        (gen_random_uuid(), 'MacBook Pro Kauf', -250000, '${currentYear}-10-15', true),
-        (gen_random_uuid(), 'Urlaub Spanien', -180000, '${currentYear}-07-20', true),
-        (gen_random_uuid(), 'Neue Winterreifen', -60000, '${currentYear}-11-01', true),
-        (gen_random_uuid(), 'Geschenke Weihnachten', -50000, '${currentYear}-12-20', true),
-        (gen_random_uuid(), 'Wohnung renovieren', -500000, '${currentYear + 1}-03-01', true),
-        (gen_random_uuid(), 'Urlaub Japan', -350000, '${currentYear + 1}-08-15', true),
-        (gen_random_uuid(), 'Neues Auto', -3500000, '${currentYear + 1}-09-01', true),
-        (gen_random_uuid(), 'Aktiengewinn', 150000, '${currentYear + 1}-12-01', true),
-        (gen_random_uuid(), 'Laptop kaputt (inaktiv)', -80000, '${currentYear}-08-10', false),
-        (gen_random_uuid(), 'Konzertkarten (inaktiv)', -25000, '${currentYear}-11-15', false);
+        ${scenarios.map(scenario =>
+            `(gen_random_uuid(), '${scenario.name}', ${scenario.amount}, '${scenario.date}', ${scenario.is_active})`
+        ).join(',\n        ')};
         `;
         executeSql(scenarioItemsSql);
         console.log('✅ Scenario items created\n');
@@ -256,11 +302,16 @@ function seedDatabase(): void {
         console.log('✅ Settings created\n');
 
         console.log('\n🎉 Development seed completed successfully!');
+        // Count scenarios for summary
+        const scenarioCount = scenarios.length;
+        const activeScenarios = scenarios.filter(s => s.is_active).length;
+        const inactiveScenarios = scenarioCount - activeScenarios;
+
         console.log('\n📊 Summary:');
         console.log('  🏦 5 Accounts (3 liquid, 2 retirement)');
         console.log('  📅 6 Months of historical/projected data');
         console.log('  🔄 16 Recurring items (monthly, quarterly, yearly)');
-        console.log('  🎯 10 Scenario items (active & inactive)');
+        console.log(`  🎯 ${scenarioCount} Future scenario items (${activeScenarios} active, ${inactiveScenarios} inactive)`);
         console.log('  ⚙️  Default settings configured');
         console.log('\n💡 You can now start developing with realistic sample data!');
 
