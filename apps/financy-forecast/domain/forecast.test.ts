@@ -178,7 +178,7 @@ test("calculateTimeline - should handle yearly recurring items correctly", () =>
     expect(result[23].irregularCosts).toHaveLength(0); // Jan 2027
 });
 
-test("calculateTimeline - should filter scenarios by date and isActive status", () => {
+test("calculateTimeline - should show all scenarios but calculate only active ones", () => {
     const scenarios = [
         createScenarioItem({
             date: new Date("2025-02-15"),
@@ -187,7 +187,7 @@ test("calculateTimeline - should filter scenarios by date and isActive status", 
         }),
         createScenarioItem({
             date: new Date("2025-03-15"),
-            isActive: false, // Should be filtered out
+            isActive: false, // Should be shown but not calculated
             amount: -75000
         }),
         createScenarioItem({
@@ -208,11 +208,20 @@ test("calculateTimeline - should filter scenarios by date and isActive status", 
 
     expect(result).toHaveLength(3);
 
-    // Scenarios are filtered by actual date matching (month-level)
-    // Forecast months: Feb, Mar, Apr 2025
+    // ALL scenarios should be shown (new behavior)
     expect(result[0].scenarios).toHaveLength(1); // Feb 2025 matches Feb 15 scenario
-    expect(result[1].scenarios).toHaveLength(0); // Mar 2025 - no active scenario (Mar scenario is inactive)
+    expect(result[1].scenarios).toHaveLength(1); // Mar 2025 shows inactive scenario
     expect(result[2].scenarios).toHaveLength(1); // Apr 2025 matches Apr 15 scenario
+
+    // But calculation should only use active scenarios
+    // Feb: +5000 -1000 -500 = 3500€
+    expect(result[0].balance).toBe(350000);
+
+    // Mar: 3500 -1000 = 2500€ (inactive scenario not calculated)
+    expect(result[1].balance).toBe(250000);
+
+    // Apr: 2500 -1000 -1000 = 500€ (both active scenarios calculated)
+    expect(result[2].balance).toBe(50000);
 });
 
 test("calculateTimeline - should mark months as critical when balance is negative", () => {
@@ -302,8 +311,11 @@ test("calculateTimeline - should calculate complex scenario with all features", 
 
     // Check scenario in month 5 (July 2025)
     expect(result[5].scenarios).toHaveLength(1); // Vacation scenario in July
-    // Just verify the scenario is present and balance is affected
-    expect(result[5].balance).toBeGreaterThan(0); // Should still be positive
+    // Verify the scenario is present and balance is correctly affected
+    // Base calculation up to July: Month 0: 5300€, then subtract monthly burn for 5 months
+    // Monthly burn: +4000 -1200 -500 = +2300€ (net positive)
+    // Month 5 (July): Should have vacation scenario amount deducted
+    expect(result[5].balance).toBeGreaterThan(0); // Should still be positive after vacation
 });
 
 test("calculateTimeline - should handle very long time periods", () => {

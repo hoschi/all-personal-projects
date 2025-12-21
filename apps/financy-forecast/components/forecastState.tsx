@@ -68,12 +68,20 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
 
 export function Timeline({ data }: { data: ForecastTimelineData; }) {
     const variableCosts = useAtomValue(variableCostsAtom);
+    const changedScenarios = useAtomValue(scenariosAtom);
+
+    // Merge server data with changed scenarios from Jotai atom
+    const mergedScenarios = data.scenarios.map(serverScenario => {
+        const changedScenario = changedScenarios.find(s => s.id === serverScenario.id);
+        return changedScenario || serverScenario;
+    });
+
     const months = calculateTimeline(
         24, // 24 Monate für den Forecast
         variableCosts,
         data.startAmount,
         data.recurringItems,
-        data.scenarios, // TODO merge these with `    const scenarios = useAtomValue(scenariosAtom);` to get the *current* state of the scenarios
+        mergedScenarios,
         data.lastSnapshotDate
     );
 
