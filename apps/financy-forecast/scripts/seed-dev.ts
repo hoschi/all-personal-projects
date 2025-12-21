@@ -66,7 +66,7 @@ function getAccountIds(): { [name: string]: string } {
 }
 
 /**
- * Generate date strings for the last 6 months from current date (last day of month)
+ * Generate date strings for the last 6 months from current date (first day of month)
  */
 function getLastSixMonthsDates(): string[] {
     const dates: string[] = [];
@@ -80,9 +80,8 @@ function getLastSixMonthsDates(): string[] {
         const targetYear = targetMonth < 0 ? currentYear - 1 : currentYear;
         const adjustedMonth = targetMonth < 0 ? targetMonth + 12 : targetMonth;
 
-        // Get the last day of the month
-        const lastDay = new Date(targetYear, adjustedMonth + 1, 0).getDate();
-        const dateStr = `${targetYear}-${String(adjustedMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        // Get the first day of the month
+        const dateStr = `${targetYear}-${String(adjustedMonth + 1).padStart(2, '0')}-01`;
         dates.push(dateStr);
     }
 
@@ -178,7 +177,6 @@ function generateFutureScenarios(startDate: Date, maxMonths: number): Array<{
     is_active: boolean;
 }> {
     const scenarios = [];
-    const currentYear = startDate.getFullYear();
     const currentMonth = startDate.getMonth(); // 0-based
 
     // Generate scenarios spread across the next 20 months
