@@ -4,8 +4,7 @@ import { Option, Array as EffectArray } from 'effect';
 import { isNone } from "effect/Option";
 import { eurFormatter } from "./format";
 import { Button } from "./ui/button";
-import { addMonths, isAfter, isEqual } from "date-fns";
-import { now } from "@/lib/utils";
+import { calculateApprovable } from "../domain/snapshots";
 import { MatrixData } from "@/lib/types";
 import { cacheTag } from "next/cache";
 
@@ -59,8 +58,4 @@ async function TableView({ data }: { data: MatrixData }) {
     )
 }
 
-export function calculateApprovable(lastDate: Date) {
-    const approvableDate = addMonths(lastDate, 2)
-    const today = now()
-    return isAfter(today, approvableDate) || isEqual(today, approvableDate)
-}
+

@@ -17,13 +17,15 @@ CREATE TABLE IF NOT EXISTS accounts (
 );
 
 -- 2. AssetSnapshots table (Monatliche Ist-Stände)
+-- Updated: Now supports last day of month instead of first day
 CREATE TABLE IF NOT EXISTS asset_snapshots (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     date DATE NOT NULL CHECK (
+        -- Allow any day, but application logic ensures it's the last day of the month
         EXTRACT(
             DAY
             FROM date
-        ) = 1
+        ) BETWEEN 1 AND 31
     ),
     total_liquidity INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

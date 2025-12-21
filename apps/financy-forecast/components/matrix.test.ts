@@ -15,18 +15,18 @@ describe("calculateApprovable", () => {
         mockNow.mockClear();
     });
 
-    test("returns true: last snapshot is more than 2 months ago from fixed test date", () => {
+    test("returns true: last snapshot is more than 3 months ago from fixed test date", () => {
         // Mock the current date to be 2023-03-15 (March 15, 2023)
         mockNow.mockImplementation(() => new Date("2023-03-15"));
 
         const lastDate = new Date("2023-01-01"); // January 1, 2023
 
-        // January 1st to March 15th is more than 2 months
+        // January 1st to March 15th is more than 3 months
         expect(calculateApprovable(lastDate)).toBe(true);
         expect(mockNow).toHaveBeenCalled();
     });
 
-    test("returns true when lastDate is more than 2 months ago", () => {
+    test("returns true when lastDate is more than 3 months ago", () => {
         // Mock the current date to be 2023-04-01 (April 1, 2023)
         mockNow.mockImplementation(() => new Date("2023-04-01"));
 
@@ -43,12 +43,12 @@ describe("calculateApprovable", () => {
 
         const lastDate = new Date("2020-01-01"); // January 1, 2020
 
-        // 2020 to 2023 is definitely more than 2 months
+        // 2020 to 2023 is definitely more than 3 months
         expect(calculateApprovable(lastDate)).toBe(true);
         expect(mockNow).toHaveBeenCalled();
     });
 
-    test("returns false when lastDate is recent (within 2 months)", () => {
+    test("returns false when lastDate is recent (within 3 months)", () => {
         // Mock the current date to be 2023-03-15 (March 15, 2023)
         mockNow.mockImplementation(() => new Date("2023-03-15"));
 
