@@ -25,6 +25,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "effect": "^3.19.12",
+    "jotai": "^2.16.0",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",
     "postgres": "^3.4.7",
