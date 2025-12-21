@@ -82,14 +82,15 @@ export function calculateTimeline(
         const costsTotal = irregularCosts.reduce((sum, c) => sum + c.amount, 0);
         runningBalance -= costsTotal;
 
-        // 3. Scenarios - Filter für aktuellen Monat
+        // 3. Scenarios - Filter für aktuellen Monat, aber *alle* Szenarios für die Anzeige
         const targetMonth = currentForecastMonth;
         const monthScenarios = scenarios.filter(scenario => {
             const scenarioMonth = startOfMonth(scenario.date);
-            return isEqual(scenarioMonth, targetMonth) && scenario.isActive;
+            return isEqual(scenarioMonth, targetMonth);
         });
 
-        const scenariosTotal = monthScenarios.reduce((sum, s) => sum + s.amount, 0);
+        // für die Berechnungen *nur* die aktiven Szenarios
+        const scenariosTotal = monthScenarios.filter(s => s.isActive).reduce((sum, s) => sum + s.amount, 0);
         runningBalance += scenariosTotal;
 
         months.push({

@@ -30,7 +30,7 @@ export interface TimelineMonth {
     index: number;
     name: string; // Format: YY-MM (z.B. "25-01" für Januar 2025)
     balance: number; // Kontostand in Cents
-    scenarios: ScenarioItem[]; // Aktive Szenarien für diesen Monat
+    scenarios: ScenarioItem[]; // Alle Szenarien für diesen Monat
     irregularCosts: RecurringItem[]; // Unregelmäßige Kosten (quartalsweise/jährlich)
     isCritical: boolean; // Ist true wenn balance < 0
 }
