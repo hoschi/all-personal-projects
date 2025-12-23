@@ -163,3 +163,13 @@ export const snapshotDetailsSchema = z.object({
 });
 
 export type SnapshotDetails = z.infer<typeof snapshotDetailsSchema>;
+
+
+export const forecastScenarioChanges = scenarioItemSchema.pick({ isActive: true, id: true })
+export type ForecastScenarioChanges = z.infer<typeof forecastScenarioChanges>;
+
+export const saveForecastSchema = z.object({
+    variableCosts: settingsSchema.shape.estimatedMonthlyVariableCosts,
+    scenarios: z.array(forecastScenarioChanges).default([])
+})
+export type SaveForecastSchema = z.infer<typeof saveForecastSchema>;

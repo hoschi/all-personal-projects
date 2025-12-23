@@ -225,6 +225,7 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
 }
 
 export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineData }) {
+    // TODO useAtom instead for cleaner access
     const variableCosts = useAtomValue(variableCostsAtom);
     const scenarios = useAtomValue(scenariosAtom);
     const setVariableCosts = useSetAtom(variableCostsAtom);
@@ -245,7 +246,7 @@ export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineD
         setIsLoading(true);
 
         try {
-            const result = await handleSaveForecastDirect(variableCosts, scenarios);
+            const result = await handleSaveForecastDirect({ variableCosts, scenarios });
 
             if (result.success) {
                 // Reset change flags by updating Jotai atoms to server values

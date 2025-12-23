@@ -11,7 +11,8 @@ import {
     RecurringItemInterval,
     ScenarioItem,
     Settings,
-    SnapshotDetails
+    SnapshotDetails,
+    ForecastScenarioChanges
 } from './schemas';
 import * as dotenv from 'dotenv';
 
@@ -110,52 +111,6 @@ export async function createAccount(
     } catch (error) {
         console.error('Error creating account:', error);
         throw new Error('Failed to create account');
-    }
-}
-
-/**
- * Update account
- */
-export async function updateAccount(
-    id: string,
-    name?: string,
-    category?: AccountCategory,
-    currentBalance?: number
-): Promise<Account> {
-    try {
-        const updateFields: string[] = [];
-        const values: (string | number | boolean)[] = [];
-        let paramCount = 1;
-
-        if (name !== undefined) {
-            updateFields.push(`name = $${paramCount++}`);
-            values.push(name);
-        }
-        if (category !== undefined) {
-            updateFields.push(`category = $${paramCount++}`);
-            values.push(category);
-        }
-        if (currentBalance !== undefined) {
-            updateFields.push(`current_balance = $${paramCount++}`);
-            values.push(currentBalance);
-        }
-
-        values.push(id);
-
-        const result = await executeWithSchema(async (db) => await db<Account[]>`
-      UPDATE accounts 
-      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${paramCount}
-      RETURNING id, name, category, current_balance as "currentBalance"
-    `);
-
-        if (!result[0]) {
-            throw new Error('Account not found');
-        }
-        return result[0];
-    } catch (error) {
-        console.error('Error updating account:', error);
-        throw new Error('Failed to update account');
     }
 }
 
@@ -373,31 +328,6 @@ export async function createBalanceDetailsForSnapshot(
     }
 }
 
-/**
- * Update balance detail
- */
-export async function updateBalanceDetail(
-    id: string,
-    amount: number
-): Promise<AccountBalanceDetail> {
-    try {
-        const result = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
-      UPDATE account_balance_details 
-      SET amount = ${amount}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
-      RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
-    `);
-
-        if (!result[0]) {
-            throw new Error('Balance detail not found');
-        }
-        return result[0];
-    } catch (error) {
-        console.error('Error updating balance detail:', error);
-        throw new Error('Failed to update balance detail');
-    }
-}
-
 // ============================================================================
 // RecurringItem Operations (Fixkosten & Regelmäßige Einnahmen)
 // ============================================================================
@@ -459,57 +389,6 @@ export async function createRecurringItem(
     } catch (error) {
         console.error('Error creating recurring item:', error);
         throw new Error('Failed to create recurring item');
-    }
-}
-
-/**
- * Update recurring item
- */
-export async function updateRecurringItem(
-    id: string,
-    name?: string,
-    amount?: number,
-    interval?: RecurringItemInterval,
-    dueMonth?: number
-): Promise<RecurringItem> {
-    try {
-        const updateFields: string[] = [];
-        const values: (string | number | boolean | null)[] = [];
-        let paramCount = 1;
-
-        if (name !== undefined) {
-            updateFields.push(`name = $${paramCount++}`);
-            values.push(name);
-        }
-        if (amount !== undefined) {
-            updateFields.push(`amount = $${paramCount++}`);
-            values.push(amount);
-        }
-        if (interval !== undefined) {
-            updateFields.push(`interval = $${paramCount++}`);
-            values.push(interval);
-        }
-        if (dueMonth !== undefined) {
-            updateFields.push(`due_month = $${paramCount++}`);
-            values.push(dueMonth);
-        }
-
-        values.push(id);
-
-        const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
-      UPDATE recurring_items 
-      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${paramCount}
-      RETURNING id, name, amount, interval, due_month as "dueMonth"
-    `);
-
-        if (!result[0]) {
-            throw new Error('Recurring item not found');
-        }
-        return result[0];
-    } catch (error) {
-        console.error('Error updating recurring item:', error);
-        throw new Error('Failed to update recurring item');
     }
 }
 
@@ -614,48 +493,20 @@ export async function createScenarioItem(
 /**
  * Update scenario item
  */
-export async function updateScenarioItem(
-    id: string,
-    name?: string,
-    amount?: number,
-    date?: Date,
-    isActive?: boolean
-): Promise<ScenarioItem> {
+export async function updateForcastScenario(data: ForecastScenarioChanges): Promise<undefined> {
     try {
-        const updateFields: string[] = [];
-        const values: (string | number | Date | boolean)[] = [];
-        let paramCount = 1;
-
-        if (name !== undefined) {
-            updateFields.push(`name = $${paramCount++}`);
-            values.push(name);
-        }
-        if (amount !== undefined) {
-            updateFields.push(`amount = $${paramCount++}`);
-            values.push(amount);
-        }
-        if (date !== undefined) {
-            updateFields.push(`date = $${paramCount++}`);
-            values.push(date);
-        }
-        if (isActive !== undefined) {
-            updateFields.push(`is_active = $${paramCount++}`);
-            values.push(isActive);
-        }
-
-        values.push(id);
-
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       UPDATE scenario_items 
-      SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${paramCount}
-      RETURNING id, name, amount, date, is_active as "isActive"
+      SET is_active = ${data.isActive},
+      updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${data.id}
+      RETURNING id
     `);
 
         if (!result[0]) {
             throw new Error('Scenario item not found');
         }
-        return result[0];
+        return;
     } catch (error) {
         console.error('Error updating scenario item:', error);
         throw new Error('Failed to update scenario item');
@@ -700,17 +551,17 @@ export async function getSettings(): Promise<Option.Option<Settings>> {
 }
 
 /**
- * Create or update settings
+ * Change settings singleton!
  */
-export async function upsertSettings(estimatedMonthlyVariableCosts: number): Promise<Settings> {
+// TODO passe den parameter an um auch `data` zu heißen und erstelle einen Typen. Beide analog zur Funktion updateForecastScenario
+export async function changeSettings(estimatedMonthlyVariableCosts: number): Promise<Settings> {
     try {
         const result = await executeWithSchema(async (db) => await db<Settings[]>`
-      INSERT INTO settings (estimated_monthly_variable_costs)
-      VALUES (${estimatedMonthlyVariableCosts})
-      ON CONFLICT (id) 
-      DO UPDATE SET estimated_monthly_variable_costs = EXCLUDED.estimated_monthly_variable_costs,
-                    updated_at = CURRENT_TIMESTAMP
-      RETURNING estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
+      UPDATE settings 
+      SET estimated_monthly_variable_costs = ${estimatedMonthlyVariableCosts},
+      updated_at = CURRENT_TIMESTAMP
+      WHERE id = 00000000-0000-0000-0000-000000000000
+      RETURNING id
     `);
         return result[0];
     } catch (error) {
