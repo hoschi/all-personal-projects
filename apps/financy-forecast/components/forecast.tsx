@@ -41,7 +41,7 @@ export function ForecastHeader({ forecastData }: { forecastData: ForecastTimelin
     const startAmount = forecastData.startAmount
 
     return <div className="flex flex-col">
-        <div>start:{eurFormatter.format(startAmount/100)}</div>
+        <div>start:{eurFormatter.format(startAmount / 100)}</div>
         <VariableCosts recurringItems={forecastData.recurringItems} />
         <SaveForecast forecastData={forecastData} />
     </div>
