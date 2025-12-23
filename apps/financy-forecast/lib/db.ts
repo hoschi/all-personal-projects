@@ -553,15 +553,14 @@ export async function getSettings(): Promise<Option.Option<Settings>> {
 /**
  * Change settings singleton!
  */
-// TODO passe den parameter an um auch `data` zu heißen und erstelle einen Typen. Beide analog zur Funktion updateForecastScenario
-export async function changeSettings(estimatedMonthlyVariableCosts: number): Promise<Settings> {
+export async function changeSettings(data: Settings): Promise<Settings> {
     try {
         const result = await executeWithSchema(async (db) => await db<Settings[]>`
       UPDATE settings 
-      SET estimated_monthly_variable_costs = ${estimatedMonthlyVariableCosts},
+      SET estimated_monthly_variable_costs = ${data.estimatedMonthlyVariableCosts},
       updated_at = CURRENT_TIMESTAMP
-      WHERE id = 00000000-0000-0000-0000-000000000000
-      RETURNING id
+      WHERE id = '00000000-0000-0000-0000-000000000000'
+      RETURNING estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
     `);
         return result[0];
     } catch (error) {
