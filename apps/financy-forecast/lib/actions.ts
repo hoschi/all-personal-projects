@@ -36,12 +36,11 @@ export interface ServerActionResult {
  * Updates forecast data atomically (all or nothing)
  */
 async function updateForecastData(data: SaveForecastSchema): Promise<void> {
-    // TODO remove any type and use correct one
-    const operations: any[] = []
+    const operations: Promise<unknown>[] = []
 
     // 1. Update variable costs
     operations.push(
-        changeSettings(data.variableCosts)
+        changeSettings({ estimatedMonthlyVariableCosts: data.variableCosts })
     )
     operations.concat(data.scenarios.map(s => updateForcastScenario(s)))
 
