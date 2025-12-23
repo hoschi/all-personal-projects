@@ -4,6 +4,7 @@ import { ScenarioItem } from "@/lib/schemas";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Array } from "effect";
 import { match, P } from 'ts-pattern';
+import { useState } from "react";
 
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
+import { handleSaveForecastDirect } from "@/lib/actions";
 
 const INITIAL_STATE = {
     variableCosts: 0
@@ -225,17 +227,108 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
 export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineData }) {
     const variableCosts = useAtomValue(variableCostsAtom);
     const scenarios = useAtomValue(scenariosAtom);
+    const setVariableCosts = useSetAtom(variableCostsAtom);
+    const setScenarios = useSetAtom(scenariosAtom);
+
+    // UI State
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Check if there are changes compared to server data
     const hasVariableCostsChanged = variableCosts !== (forecastData.estimatedMonthlyVariableCosts ?? 0);
     const hasScenariosChanged = scenarios.length > 0;
     const hasChanges = hasVariableCostsChanged || hasScenariosChanged;
 
-    const handleSave = () => {
-        console.log('Current Jotai State:');
-        console.log('Variable Costs (cents):', variableCosts);
-        console.log('Scenarios:', scenarios);
+    const handleSave = async () => {
+        // Clear previous messages
+        setMessage(null);
+        setIsLoading(true);
+
+        try {
+            const result = await handleSaveForecastDirect(variableCosts, scenarios);
+
+            if (result.success) {
+                // Reset change flags by updating Jotai atoms to server values
+                setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? 0);
+                setScenarios([]);
+
+                // Show success message
+                const updatedScenarios = result.data?.updatedScenarios || 0;
+                const scenarioText = updatedScenarios > 0 ? ` und ${updatedScenarios} Szenario${updatedScenarios === 1 ? '' : 's'}` : '';
+                setMessage({
+                    type: 'success',
+                    text: `Gespeichert${scenarioText}`
+                });
+            } else {
+                // Show error message
+                setMessage({
+                    type: 'error',
+                    text: result.error || 'Fehler beim Speichern'
+                });
+            }
+        } catch (error) {
+            console.error('Save operation failed:', error);
+            setMessage({
+                type: 'error',
+                text: 'Unerwarteter Fehler beim Speichern'
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    return <Button disabled={!hasChanges} onClick={handleSave}>save</Button>
+    // Auto-clear messages after 3 seconds
+    const clearMessage = () => setMessage(null);
+
+    return (
+        <div className="flex flex-col gap-2">
+            <Button
+                disabled={!hasChanges || isLoading}
+                onClick={handleSave}
+                className={cn(
+                    "transition-all duration-200",
+                    isLoading && "opacity-75 cursor-not-allowed",
+                    message?.type === 'success' && "bg-emerald-600 hover:bg-emerald-700",
+                    message?.type === 'error' && "bg-red-600 hover:bg-red-700"
+                )}
+            >
+                {isLoading ? (
+                    <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Speichere...
+                    </>
+                ) : (
+                    'Speichern'
+                )}
+            </Button>
+
+            {message && (
+                <div
+                    className={cn(
+                        "text-sm p-2 rounded border transition-all duration-200",
+                        message.type === 'success'
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                            : "bg-red-50 border-red-200 text-red-800"
+                    )}
+                    onClick={clearMessage}
+                >
+                    <div className="flex items-center justify-between">
+                        <span>{message.text}</span>
+                        <button
+                            className="ml-2 text-xs opacity-70 hover:opacity-100"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                clearMessage();
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }

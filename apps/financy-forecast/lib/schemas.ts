@@ -138,6 +138,7 @@ export const settingsSchema = z.object({
     estimatedMonthlyVariableCosts: z.number().int(),
 });
 
+// Note: id is handled at database level with fixed UUID 00000000-0000-0000-0000-000000000000
 export type Settings = z.infer<typeof settingsSchema>;
 
 /**
