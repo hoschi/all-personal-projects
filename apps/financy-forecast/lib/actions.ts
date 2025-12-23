@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 import {
 
     changeSettings,
@@ -61,7 +61,7 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema): Promi
         await updateForecastData(inputData)
 
         // 6. Invalidate cache to refresh UI
-        revalidateTag('snapshots', 'max')
+        updateTag('snapshots')
 
         return {
             success: true,
