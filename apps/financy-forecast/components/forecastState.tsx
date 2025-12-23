@@ -252,14 +252,6 @@ export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineD
                 // Reset change flags by updating Jotai atoms to server values
                 setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? 0);
                 setScenarios([]);
-
-                // Show success message
-                const updatedScenarios = result.data?.updatedScenarios || 0;
-                const scenarioText = updatedScenarios > 0 ? ` und ${updatedScenarios} Szenario${updatedScenarios === 1 ? '' : 's'}` : '';
-                setMessage({
-                    type: 'success',
-                    text: `Gespeichert${scenarioText}`
-                });
             } else {
                 // Show error message
                 setMessage({
