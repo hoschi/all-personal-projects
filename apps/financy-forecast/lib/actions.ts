@@ -60,12 +60,13 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema): Promi
         // 5. Execute atomic update
         await updateForecastData(inputData)
 
-        // 6. Invalidate cache to refresh UI
+        // 6. Invalidate cache to refresh UI with immediate effect
+        // Using updateTag for read-your-own-writes scenario
         updateTag('snapshots')
 
         return {
             success: true,
-            message: 'Forecast saved successfully',
+            message: 'Forecast saved successfully'
         }
 
     } catch (error) {
