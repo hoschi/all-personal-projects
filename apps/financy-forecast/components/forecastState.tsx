@@ -4,7 +4,7 @@ import { ScenarioItem } from "@/lib/schemas";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Array } from "effect";
 import { match, P } from 'ts-pattern';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Input } from "./ui/input";
 import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
@@ -31,10 +31,15 @@ export const scenariosAtom = atom<ScenarioItem[]>([])
 // Hook to initialize atoms with data
 export function useInitializeForecastAtoms(forecastData: ForecastTimelineData | undefined) {
     const setVariableCosts = useSetAtom(variableCostsAtom);
+    const setScenarios = useSetAtom(scenariosAtom);
 
-    if (forecastData) {
-        setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? INITIAL_STATE.variableCosts);
-    }
+    // TODO better done with useState, see https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    useEffect(() => {
+        if (forecastData) {
+            setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? INITIAL_STATE.variableCosts);
+        }
+        setScenarios([])
+    }, [forecastData, setVariableCosts, setScenarios])
 }
 
 // Component to initialize Jotai atoms with server data
@@ -225,11 +230,8 @@ function ScenarioSwitch({ scenario }: { scenario: ScenarioItem }) {
 }
 
 export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineData }) {
-    // TODO useAtom instead for cleaner access
     const variableCosts = useAtomValue(variableCostsAtom);
     const scenarios = useAtomValue(scenariosAtom);
-    const setVariableCosts = useSetAtom(variableCostsAtom);
-    const setScenarios = useSetAtom(scenariosAtom);
 
     // UI State
     const [isLoading, setIsLoading] = useState(false);
@@ -249,9 +251,19 @@ export function SaveForecast({ forecastData }: { forecastData: ForecastTimelineD
             const result = await handleSaveForecastDirect({ variableCosts, scenarios });
 
             if (result.success) {
-                // Reset change flags by updating Jotai atoms to server values
-                setVariableCosts(forecastData.estimatedMonthlyVariableCosts ?? 0);
-                setScenarios([]);
+                // FINAL ELEGANT RACE CONDITION SOLUTION
+                //
+                // THE PROBLEM:
+                // handleSaveForecastDirect() resolves BEFORE updateTag('snapshots') 
+                // invalidates the cache. Timeline then renders:
+                // 1. setScenarios([]) clears atom
+                // 2. Timeline merges empty atom with OLD server data
+                // 3. updateTag('snapshots') updates cache
+                // 4. Timeline re-renders with NEW server data
+                // 5. Result: visible flickering
+                //
+                // THE SOLUTION:
+                // Clear scenarios when the server data changes in useInitializeForecastAtoms. To make it complete correct, loading state should be handlede the same. At the moment the loading state is set to false when the promise is ready, which we know is not the time when the data is beeing set. Imo this can be ignored, because there only lies one render cycle between these timings. You can test this wen you throttle your network to e.g. 3G before hitting save.
             } else {
                 // Show error message
                 setMessage({
