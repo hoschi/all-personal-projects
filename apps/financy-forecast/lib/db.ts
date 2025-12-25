@@ -514,6 +514,29 @@ export async function updateForcastScenario(data: ForecastScenarioChanges): Prom
 }
 
 /**
+ * Update scenario item isActive status only
+ */
+export async function updateScenarioIsActive(id: string, isActive: boolean): Promise<ScenarioItem> {
+    try {
+        const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
+      UPDATE scenario_items
+      SET is_active = ${isActive},
+      updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING id, name, amount, date, is_active as "isActive"
+    `);
+
+        if (!result[0]) {
+            throw new Error('Scenario item not found');
+        }
+        return result[0];
+    } catch (error) {
+        console.error('Error updating scenario item isActive:', error);
+        throw new Error('Failed to update scenario item isActive');
+    }
+}
+
+/**
  * Delete scenario item
  */
 export async function deleteScenarioItem(id: string): Promise<boolean> {

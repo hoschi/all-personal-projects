@@ -3,7 +3,6 @@
 import { z } from 'zod'
 import { updateTag } from 'next/cache'
 import {
-
     changeSettings,
     updateForcastScenario
 } from './db'
@@ -23,10 +22,6 @@ export interface ServerActionResult {
         variableCostsUpdated?: boolean
     }
 }
-
-// =============================================================================
-// Zod Validation Schema
-// =============================================================================
 
 // =============================================================================
 // Core Update Logic
@@ -104,5 +99,52 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema): Promi
             success: false,
             error: 'Failed to save forecast. Please try again later.'
         }
+    }
+}
+
+/**
+ * Updates only the isActive status of a single scenario item
+ */
+export async function handleUpdateScenarioIsActive(
+    scenarioId: string,
+    isActive: boolean
+): Promise<ServerActionResult> {
+    try {
+        // 1. Update scenario item using existing function
+        await updateForcastScenario({ id: scenarioId, isActive });
+
+        // 2. Invalidate cache to refresh UI with immediate effect
+        updateTag('snapshots');
+
+        return {
+            success: true,
+            message: 'Scenario status updated successfully'
+        };
+
+    } catch (error) {
+        console.error('Update scenario isActive failed:', error);
+
+        // Handle database errors
+        if (error instanceof Error) {
+            if (error.message.includes('Scenario item not found')) {
+                return {
+                    success: false,
+                    error: 'Scenario could not be found. Please refresh the page and try again.'
+                };
+            }
+
+            if (error.message.includes('Failed to fetch') || error.message.includes('connection')) {
+                return {
+                    success: false,
+                    error: 'Database connection failed. Please check your connection and try again.'
+                };
+            }
+        }
+
+        // Generic error fallback
+        return {
+            success: false,
+            error: 'Failed to update scenario status. Please try again later.'
+        };
     }
 }
