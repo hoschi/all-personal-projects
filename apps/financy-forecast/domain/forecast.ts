@@ -99,7 +99,7 @@ export function calculateTimeline(
             balance: runningBalance,
             scenarios: monthScenarios,
             irregularCosts: irregularCosts,
-            isCritical: runningBalance < 0
+            isCritical: runningBalance <= 0
         });
     }
     return months;
