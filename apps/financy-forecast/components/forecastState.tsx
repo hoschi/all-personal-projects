@@ -62,7 +62,7 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
 
     return <div className="flex text-nowrap items-center">
         <div>monthly burn: {eurFormatter.format(monthlyBurn / 100)}&nbsp;=&nbsp;</div>
-        <div>recurring: {recurringCosts}&nbsp;+&nbsp;</div>
+        <div>recurring: {eurFormatter.format(recurringCosts / 100)}&nbsp;+&nbsp;</div>
         <Input
             type="number"
             step="0.01"

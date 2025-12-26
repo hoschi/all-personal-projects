@@ -6,35 +6,6 @@ import { calculateTimeline, calculateMonthlyBurn } from "./forecast";
 // Test date constant to ensure consistent testing
 const TEST_DATE = new Date("2025-01-15T10:30:00Z");
 
-// Mock date-fns functions for consistent testing
-mock.module("date-fns", () => ({
-    addMonths: (date: Date, months: number) => {
-        const result = new Date(date);
-        result.setMonth(result.getMonth() + months);
-        return result;
-    },
-    startOfMonth: (date: Date) => {
-        const result = new Date(date);
-        result.setDate(1);
-        result.setHours(0, 0, 0, 0);
-        return result;
-    },
-    isAfter: (date1: Date, date2: Date) => date1 > date2,
-    isEqual: (date1: Date, date2: Date) => {
-        return date1.getFullYear() === date2.getFullYear() &&
-            date1.getMonth() === date2.getMonth() &&
-            date1.getDate() === date2.getDate();
-    },
-    format: (date: Date, formatStr: string) => {
-        const year = date.getFullYear().toString().slice(-2);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        if (formatStr === "yy-MM") {
-            return `${year}-${month}`;
-        }
-        return date.toISOString().split('T')[0]; // fallback
-    }
-}));
-
 // Factory Functions for Test Data
 const createRecurringItem = (overrides: Partial<RecurringItem> = {}): RecurringItem => ({
     id: "test-recurring-id",
@@ -117,6 +88,44 @@ test("calculateTimeline - should calculate monthly income and expenses correctly
     // Month 1: 6200 + 3000 - 800 - 1000 = 7400€
     expect(result[1].balance).toBe(740000);
     expect(result[1].isCritical).toBe(false);
+});
+
+test("calculateTimeline - handles only negative recurring items", () => {
+    const recurringItems = [
+        createRecurringItem({ amount: -200000, interval: RecurringItemInterval.MONTHLY }), // -2000€
+        createRecurringItem({
+            amount: -150000, // -1500€
+            interval: RecurringItemInterval.QUARTERLY,
+            dueMonth: 3 // March quarterly (Mar, Jun, Sep, Dec)
+        }),
+    ];
+
+    const result = calculateTimeline(
+        4,
+        100000, // 1000€ variable costs
+        600000, // 5000€ start balance
+        recurringItems,
+        [],
+        TEST_DATE
+    );
+
+    expect(result).toHaveLength(4);
+
+    // Month 0: 6000 -3000 = 30000€
+    expect(result[0].balance).toBe(300000);
+    expect(result[0].isCritical).toBe(false);
+
+    // Month 1: 3000-3000-1500=-1500
+    expect(result[1].balance).toBe(-150000);
+    expect(result[1].isCritical).toBe(true);
+
+    // Month 2: -1500-3000=-4500
+    expect(result[2].balance).toBe(-450000);
+    expect(result[2].isCritical).toBe(true);
+
+    // Month 3: -4500-3000=-7500
+    expect(result[3].balance).toBe(-750000);
+    expect(result[3].isCritical).toBe(true);
 });
 
 test("calculateTimeline - should handle quarterly recurring items correctly", () => {
