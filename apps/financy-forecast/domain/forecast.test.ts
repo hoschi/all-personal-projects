@@ -93,10 +93,15 @@ test("calculateTimeline - should calculate monthly income and expenses correctly
 test("calculateTimeline - handles only negative recurring items", () => {
     const recurringItems = [
         createRecurringItem({ amount: -200000, interval: RecurringItemInterval.MONTHLY }), // -2000€
+        createRecurringItem({
+            amount: -150000, // -1500€
+            interval: RecurringItemInterval.QUARTERLY,
+            dueMonth: 3 // March quarterly (Mar, Jun, Sep, Dec)
+        }),
     ];
 
     const result = calculateTimeline(
-        2,
+        4,
         100000, // 1000€ variable costs
         600000, // 5000€ start balance
         recurringItems,
@@ -104,15 +109,23 @@ test("calculateTimeline - handles only negative recurring items", () => {
         TEST_DATE
     );
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(4);
 
-    // Month 0: 6000 -2000 - 1000 = 30000€
+    // Month 0: 6000 -3000 = 30000€
     expect(result[0].balance).toBe(300000);
     expect(result[0].isCritical).toBe(false);
 
-    // Month 1: 3000-2000-1000=0
-    expect(result[1].balance).toBe(0);
+    // Month 1: 3000-3000-1500=-1500
+    expect(result[1].balance).toBe(-150000);
     expect(result[1].isCritical).toBe(true);
+
+    // Month 2: -1500-3000=-4500
+    expect(result[2].balance).toBe(-450000);
+    expect(result[2].isCritical).toBe(true);
+
+    // Month 3: -4500-3000=-7500
+    expect(result[3].balance).toBe(-750000);
+    expect(result[3].isCritical).toBe(true);
 });
 
 test("calculateTimeline - should handle quarterly recurring items correctly", () => {

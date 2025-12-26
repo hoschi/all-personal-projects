@@ -80,7 +80,7 @@ export function calculateTimeline(
 
         // Apply Irregular Costs
         const costsTotal = irregularCosts.reduce((sum, c) => sum + c.amount, 0);
-        runningBalance -= costsTotal;
+        runningBalance += costsTotal;
 
         // 3. Scenarios - Filter für aktuellen Monat, aber *alle* Szenarios für die Anzeige
         const targetMonth = currentForecastMonth;
