@@ -43,7 +43,11 @@ export function calculateTimeline(
         .reduce((sum, item) => sum + item.amount, 0);
 
     // Monthly burn aus wiederkehrenden Ausgaben und variablen Kosten
-    const monthlyBurn = calculateMonthlyBurn(recurringItems, variableCosts);
+    const monthlyBurn = variableCosts + Math.abs(
+        recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    )
 
     for (let i = 0; i < monthCount; i++) {
         // 1. Regular Cashflow

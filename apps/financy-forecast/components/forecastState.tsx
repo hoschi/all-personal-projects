@@ -53,16 +53,22 @@ export function VariableCosts({ recurringItems }: { recurringItems: ForecastTime
 
     // Convert cents to euros for display
     const variableCostsEuros = variableCosts / 100;
-    const monthlyBurn = calculateMonthlyBurn(recurringItems, variableCosts)
     const recurringCosts = Math.abs(
         recurringItems
             .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
             .reduce((sum, item) => sum + item.amount, 0)
     )
+    const income = Math.abs(
+        recurringItems
+            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount >= 0)
+            .reduce((sum, item) => sum + item.amount, 0)
+    )
+    const monthlyBurn = income - recurringCosts - variableCosts
 
     return <div className="flex text-nowrap items-center">
-        <div>monthly burn: {eurFormatter.format(monthlyBurn / 100)}&nbsp;=&nbsp;</div>
-        <div>recurring: {eurFormatter.format(recurringCosts / 100)}&nbsp;+&nbsp;</div>
+        <div>monthly: {eurFormatter.format(monthlyBurn / 100)}&nbsp;=&nbsp;</div>
+        <div>income: {eurFormatter.format(income / 100)}&nbsp;-&nbsp;</div>
+        <div>recurring: {eurFormatter.format(recurringCosts / 100)}&nbsp;-&nbsp;</div>
         <Input
             type="number"
             step="0.01"
