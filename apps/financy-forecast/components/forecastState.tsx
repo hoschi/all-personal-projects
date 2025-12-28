@@ -7,7 +7,7 @@ import { match, P } from 'ts-pattern';
 import { useEffect, useState } from "react";
 
 import { Input } from "./ui/input";
-import { calculateMonthlyBurn, calculateTimeline } from "@/domain/forecast";
+import { calculateTimeline } from "@/domain/forecast";
 import { RecurringItemInterval } from "@/lib/schemas";
 import { eurFormatter } from "./format";
 import { cn } from "@/lib/utils";

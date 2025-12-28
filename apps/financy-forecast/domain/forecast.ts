@@ -3,28 +3,6 @@ import { RecurringItem, RecurringItemInterval, ScenarioItem } from "../lib/schem
 import { TimelineMonth } from "../lib/types";
 import { addMonths, startOfMonth, isEqual, format } from "date-fns";
 
-/**
- * Calculates the monthly burn rate from recurring expenses and variable costs.
- * Only considers MONTHLY recurring items (ignores QUARTERLY/YEARLY).
- * Sum up negative amounts (expenses) from recurring items and add variable costs.
- * 
- * @param recurringItems - Array of recurring items
- * @param variableCosts - Variable monthly costs in cents
- * @returns Monthly burn rate in cents
- */
-export function calculateMonthlyBurn(
-    recurringItems: RecurringItem[],
-    variableCosts: number
-): number {
-    const monthlyExpenses = Math.abs(
-        recurringItems
-            .filter(item => item.interval === RecurringItemInterval.MONTHLY && item.amount < 0)
-            .reduce((sum, item) => sum + item.amount, 0)
-    );
-
-    return monthlyExpenses + variableCosts;
-}
-
 
 export function calculateTimeline(
     monthCount: number,
