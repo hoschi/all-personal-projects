@@ -1,0 +1,2 @@
+DATABASE_URL="postgresql://all_personal_projects_dev:all_personal_projects_dev@localhost:5432/all_personal_projects_dev?schema=video"
+DB_SCHEMA="video"

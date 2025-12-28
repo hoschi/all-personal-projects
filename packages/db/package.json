@@ -5,6 +5,10 @@
   "exports": {
     "./*": "./src/*.ts"
   },
+  "bin": {
+    "copy": "./src/copy.ts",
+    "copy-env": "./src/copy-env.ts"
+  },
   "scripts": {
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
@@ -24,6 +28,7 @@
   },
   "dependencies": {
     "@prisma/client": "6.17.1",
+    "dotenv": "^16.4.5",
     "dotenv-cli": "^10.0.0"
   }
 }
