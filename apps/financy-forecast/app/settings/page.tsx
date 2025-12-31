@@ -5,7 +5,7 @@ import { ScenariosTable } from "@/components/settings/scenarios-table"
 
 export default async function SettingsPage() {
     'use cache'
-    cacheTag('snapshots')
+    cacheTag('scenarios')
 
     const scenarios = await getScenarioItems()
 
@@ -15,7 +15,7 @@ export default async function SettingsPage() {
                 <SidebarTrigger className="-ml-1 mr-3" />
                 <div className="flex flex-col grow">
                     <h1 className="text-3xl">Settings</h1>
-                    <h2 className="text-muted-foreground">Scenario Management</h2>
+                    <h2 className="text-muted-foreground">Data Management</h2>
                 </div>
             </header>
 

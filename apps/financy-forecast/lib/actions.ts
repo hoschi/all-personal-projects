@@ -57,7 +57,7 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema): Promi
 
         // 6. Invalidate cache to refresh UI with immediate effect
         // Using updateTag for read-your-own-writes scenario
-        updateTag('snapshots')
+        updateTag('scenarios')
 
         return {
             success: true,
@@ -114,7 +114,7 @@ export async function handleUpdateScenarioIsActive(
         await updateForcastScenario({ id: scenarioId, isActive });
 
         // 2. Invalidate cache to refresh UI with immediate effect
-        updateTag('snapshots');
+        updateTag('scenarios');
 
         return {
             success: true,

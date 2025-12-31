@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell, TableCaption } from "@/components/ui/table"
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
 import { ScenarioItem } from "@/lib/schemas"
 import { eurFormatter } from "@/components/format"
@@ -20,27 +19,12 @@ interface ScenariosTableProps {
 export function ScenariosTable({ scenarios }: ScenariosTableProps) {
     const [sortField, setSortField] = useState<SortField>('date')
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-    const [searchTerm, setSearchTerm] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
     // Sortierungsfunktion
     const sortedAndFilteredScenarios = useCallback(() => {
-        let filtered = scenarios
-
-        // Filter nach Suchbegriff
-        if (searchTerm.trim()) {
-            const searchLower = searchTerm.toLowerCase()
-            filtered = scenarios.filter(scenario =>
-                scenario.name.toLowerCase().includes(searchLower) ||
-                eurFormatter.format(scenario.amount / 100).toLowerCase().includes(searchLower) ||
-                format(scenario.date, 'dd.MM.yyyy').includes(searchLower)
-            )
-        }
-
         // Sortierung
-        return [...filtered].sort((a, b) => {
+        return [...scenarios].sort((a, b) => {
             let aValue: string | number | boolean | Date
             let bValue: string | number | boolean | Date
 
@@ -69,7 +53,7 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
             if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
             return 0
         })
-    }, [scenarios, searchTerm, sortField, sortDirection])
+    }, [scenarios, sortField, sortDirection])
 
     // Sortierfunktion für Header
     const handleSort = (field: SortField) => {
@@ -83,25 +67,17 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
 
     // Switch-Handler für isActive
     const handleIsActiveToggle = async (scenario: ScenarioItem) => {
-        setIsLoading(true)
         setError(null)
-        setSuccessMessage(null)
 
         try {
             const result = await handleUpdateScenarioIsActive(scenario.id, !scenario.isActive)
 
-            if (result.success) {
-                setSuccessMessage(`Scenario "${scenario.name}" ${!scenario.isActive ? 'activated' : 'deactivated'}`)
-                // Clear success message after 3 seconds
-                setTimeout(() => setSuccessMessage(null), 3000)
-            } else {
+            if (!result.success) {
                 throw new Error(result.error || 'Failed to update scenario')
             }
         } catch (err) {
             console.error('Error updating scenario:', err)
             setError(err instanceof Error ? err.message : 'Failed to update scenario')
-        } finally {
-            setIsLoading(false)
         }
     }
 
@@ -109,39 +85,6 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
 
     return (
         <div className="space-y-4">
-            {/* Header mit Suchfeld und Nachrichten */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <Input
-                        placeholder="Search scenarios..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-64"
-                    />
-                    <span className="text-sm text-muted-foreground">
-                        {currentScenarios.length} of {scenarios.length} scenarios
-                    </span>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                    Direct save: Switch changes are saved immediately
-                </div>
-            </div>
-
-            {/* Erfolgsmeldung */}
-            {successMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded">
-                    {successMessage}
-                </div>
-            )}
-
-            {/* Fehlermeldung */}
-            {error && (
-                <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded">
-                    {error}
-                </div>
-            )}
-
             {/* Tabelle */}
             <div className="border rounded-lg overflow-hidden">
                 <Table>
@@ -219,7 +162,6 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
                                             id={`switch-${scenario.id}`}
                                             checked={scenario.isActive}
                                             onCheckedChange={() => handleIsActiveToggle(scenario)}
-                                            disabled={isLoading}
                                         />
                                         <Label htmlFor={`switch-${scenario.id}`} className="sr-only">
                                             Toggle {scenario.name}
@@ -229,24 +171,15 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
                             </TableRow>
                         ))}
                     </TableBody>
-                    <TableCaption>
-                        Scenario management: Toggle the switch to activate/deactivate scenarios.
-                        Changes are saved immediately. Only the isActive status can be modified.
-                    </TableCaption>
-                </Table>
-            </div>
 
-            {/* Loading Overlay */}
-            {isLoading && (
-                <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 rounded-lg shadow-lg">
-                        <div className="flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                            <span>Saving changes...</span>
-                        </div>
+                </Table>
+                {/* Fehlermeldung */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg">
+                        {error}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     )
 }
