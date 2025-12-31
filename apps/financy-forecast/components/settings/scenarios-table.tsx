@@ -67,6 +67,7 @@ export function ScenariosTable({ scenarios }: ScenariosTableProps) {
 
     // Switch-Handler für isActive
     const handleIsActiveToggle = async (scenario: ScenarioItem) => {
+        console.log('button click')
         setError(null)
 
         try {

@@ -1,6 +1,7 @@
 'use server'
 
 import postgres from 'postgres';
+import Debug from 'debug';
 import { Option } from 'effect';
 import {
     Account,
@@ -18,7 +19,10 @@ import * as dotenv from 'dotenv';
 
 let sql: ReturnType<typeof postgres>
 async function getDb() {
+    const debug = Debug('app:db:getDb');
+    debug('Getting database connection');
     if (!sql) {
+        debug('Creating new database connection');
         dotenv.config({ quiet: true });
         sql = postgres(process.env.DATABASE_URL!, {
             connect_timeout: 10,
@@ -37,6 +41,8 @@ sql = await getDb();
 
 // Wrapper function to ensure schema is set before each query
 export async function executeWithSchema<T>(queryFn: (sql: ReturnType<typeof postgres>) => Promise<T>): Promise<T> {
+    const debug = Debug('app:db:executeWithSchema');
+    debug('Executing query with schema');
     const db = await getDb();
     // Set the search path to financy_forecast schema
     await db`SET search_path TO financy_forecast;`;
@@ -45,6 +51,8 @@ export async function executeWithSchema<T>(queryFn: (sql: ReturnType<typeof post
 
 // Database connection test
 export async function testConnection(): Promise<boolean> {
+    const debug = Debug('app:db:testConnection');
+    debug('Testing database connection');
     try {
         await executeWithSchema(async (db) => await db`SELECT 1`);
         console.log('✅ Database connection successful');
@@ -63,6 +71,8 @@ export async function testConnection(): Promise<boolean> {
  * Get all accounts with their current balances
  */
 export async function getAccounts(): Promise<Account[]> {
+    const debug = Debug('app:db:getAccounts');
+    debug('Fetching all accounts');
     try {
         const result = await executeWithSchema(async (db) => await db<Account[]>`
       SELECT id, name, category, current_balance as "currentBalance"
@@ -80,6 +90,8 @@ export async function getAccounts(): Promise<Account[]> {
  * Get account by ID using Option
  */
 export async function getAccountById(id: string): Promise<Option.Option<Account>> {
+    const debug = Debug('app:db:getAccountById');
+    debug('Fetching account by id: %s', id);
     try {
         const result = await executeWithSchema(async (db) => await db<Account[]>`
       SELECT id, name, category, current_balance as "currentBalance"
@@ -101,6 +113,8 @@ export async function createAccount(
     category: AccountCategory,
     currentBalance: number
 ): Promise<Account> {
+    const debug = Debug('app:db:createAccount');
+    debug('Creating account: %s, category: %s, balance: %d', name, category, currentBalance);
     try {
         const result = await executeWithSchema(async (db) => await db<Account[]>`
       INSERT INTO accounts (id, name, category, current_balance)
@@ -118,6 +132,8 @@ export async function createAccount(
  * Delete account (only if no balance details exist)
  */
 export async function deleteAccount(id: string): Promise<boolean> {
+    const debug = Debug('app:db:deleteAccount');
+    debug('Deleting account: %s', id);
     try {
         // Check if account has balance details
         const balanceCount = await executeWithSchema(async (db) => await db<{ count: number }[]>`
@@ -150,6 +166,8 @@ export async function deleteAccount(id: string): Promise<boolean> {
  * Get all asset snapshots ordered by date
  */
 export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
+    const debug = Debug('app:db:getAssetSnapshots');
+    debug('Fetching all asset snapshots');
     try {
         const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity"
@@ -167,6 +185,8 @@ export async function getAssetSnapshots(): Promise<AssetSnapshot[]> {
  * Get latest asset snapshot using Option
  */
 export async function getLatestAssetSnapshot(): Promise<Option.Option<AssetSnapshot>> {
+    const debug = Debug('app:db:getLatestAssetSnapshot');
+    debug('Fetching latest asset snapshot');
     try {
         const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       SELECT id, date, total_liquidity as "totalLiquidity"
@@ -188,6 +208,8 @@ export async function createAssetSnapshot(
     date: Date,
     totalLiquidity: number
 ): Promise<AssetSnapshot> {
+    const debug = Debug('app:db:createAssetSnapshot');
+    debug('Creating asset snapshot: date=%s, totalLiquidity=%d', date, totalLiquidity);
     try {
         const result = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
       INSERT INTO asset_snapshots (id, date, total_liquidity)
@@ -205,6 +227,8 @@ export async function createAssetSnapshot(
  * Delete asset snapshot and all associated balance details
  */
 export async function deleteAssetSnapshot(id: string): Promise<boolean> {
+    const debug = Debug('app:db:deleteAssetSnapshot');
+    debug('Deleting asset snapshot: %s', id);
     try {
         // Delete associated balance details first
         await executeWithSchema(async (db) => await db`
@@ -231,6 +255,8 @@ export async function deleteAssetSnapshot(id: string): Promise<boolean> {
  * @returns Option containing array of SnapshotDetails with snapshot data and account balance mappings
  */
 export async function getSnapshotDetails(limit: number): Promise<Option.Option<SnapshotDetails[]>> {
+    const debug = Debug('app:db:getSnapshotDetails');
+    debug('Fetching snapshot details with limit: %d', limit);
     try {
         // Get the most recent snapshots with limit
         const snapshots = await executeWithSchema(async (db) => await db<AssetSnapshot[]>`
@@ -282,6 +308,8 @@ export async function getSnapshotDetails(limit: number): Promise<Option.Option<S
  * Get balance details for a specific snapshot
  */
 export async function getBalanceDetailsBySnapshotId(snapshotId: string): Promise<AccountBalanceDetail[]> {
+    const debug = Debug('app:db:getBalanceDetailsBySnapshotId');
+    debug('Fetching balance details for snapshot: %s', snapshotId);
     try {
         const result = await executeWithSchema(async (db) => await db<AccountBalanceDetail[]>`
       SELECT id, snapshot_id as "snapshotId", account_id as "accountId", amount
@@ -302,6 +330,8 @@ export async function createBalanceDetailsForSnapshot(
     snapshotId: string,
     accountBalances: { accountId: string; amount: number }[]
 ): Promise<AccountBalanceDetail[]> {
+    const debug = Debug('app:db:createBalanceDetailsForSnapshot');
+    debug('Creating balance details for snapshot: %s, accounts: %d', snapshotId, accountBalances.length);
     try {
         const details = accountBalances.map(({ accountId, amount }) => ({
             snapshotId,
@@ -336,6 +366,8 @@ export async function createBalanceDetailsForSnapshot(
  * Get all recurring items
  */
 export async function getRecurringItems(): Promise<RecurringItem[]> {
+    const debug = Debug('app:db:getRecurringItems');
+    debug('Fetching all recurring items');
     try {
         const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       SELECT id, name, amount, interval, due_month as "dueMonth"
@@ -353,6 +385,8 @@ export async function getRecurringItems(): Promise<RecurringItem[]> {
  * Get recurring items by interval
  */
 export async function getRecurringItemsByInterval(interval: RecurringItemInterval): Promise<RecurringItem[]> {
+    const debug = Debug('app:db:getRecurringItemsByInterval');
+    debug('Fetching recurring items by interval: %s', interval);
     try {
         const result = await executeWithSchema(async (db) => await db<RecurringItem[]>`
       SELECT id, name, amount, interval, due_month as "dueMonth"
@@ -376,6 +410,8 @@ export async function createRecurringItem(
     interval: RecurringItemInterval,
     dueMonth?: number
 ): Promise<RecurringItem> {
+    const debug = Debug('app:db:createRecurringItem');
+    debug('Creating recurring item: %s, amount: %d, interval: %s', name, amount, interval);
     try {
         // Handle undefined dueMonth properly
         const dueMonthValue = dueMonth ?? null;
@@ -396,6 +432,8 @@ export async function createRecurringItem(
  * Delete recurring item
  */
 export async function deleteRecurringItem(id: string): Promise<boolean> {
+    const debug = Debug('app:db:deleteRecurringItem');
+    debug('Deleting recurring item: %s', id);
     try {
         const result = await executeWithSchema(async (db) => await db`
       DELETE FROM recurring_items 
@@ -416,6 +454,8 @@ export async function deleteRecurringItem(id: string): Promise<boolean> {
  * Get all scenario items
  */
 export async function getScenarioItems(): Promise<ScenarioItem[]> {
+    const debug = Debug('app:db:getScenarioItems');
+    debug('Fetching all scenario items');
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
@@ -433,6 +473,8 @@ export async function getScenarioItems(): Promise<ScenarioItem[]> {
  * Get active scenario items
  */
 export async function getActiveScenarioItems(): Promise<ScenarioItem[]> {
+    const debug = Debug('app:db:getActiveScenarioItems');
+    debug('Fetching active scenario items');
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
@@ -454,6 +496,8 @@ export async function getScenarioItemsByDateRange(
     startDate: Date,
     endDate: Date
 ): Promise<ScenarioItem[]> {
+    const debug = Debug('app:db:getScenarioItemsByDateRange');
+    debug('Fetching scenario items from %s to %s', startDate, endDate);
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       SELECT id, name, amount, date, is_active as "isActive"
@@ -477,6 +521,8 @@ export async function createScenarioItem(
     date: Date,
     isActive: boolean = true
 ): Promise<ScenarioItem> {
+    const debug = Debug('app:db:createScenarioItem');
+    debug('Creating scenario item: %s, amount: %d, date: %s', name, amount, date);
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       INSERT INTO scenario_items (id, name, amount, date, is_active)
@@ -494,6 +540,8 @@ export async function createScenarioItem(
  * Update scenario item
  */
 export async function updateForcastScenario(data: ForecastScenarioChanges): Promise<undefined> {
+    const debug = Debug('app:db:updateForcastScenario');
+    debug('Updating forecast scenario: %O', data);
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       UPDATE scenario_items 
@@ -517,6 +565,8 @@ export async function updateForcastScenario(data: ForecastScenarioChanges): Prom
  * Update scenario item isActive status only
  */
 export async function updateScenarioIsActive(id: string, isActive: boolean): Promise<ScenarioItem> {
+    const debug = Debug('app:db:updateScenarioIsActive');
+    debug('Updating scenario isActive: id=%s, isActive=%s', id, isActive);
     try {
         const result = await executeWithSchema(async (db) => await db<ScenarioItem[]>`
       UPDATE scenario_items
@@ -540,6 +590,8 @@ export async function updateScenarioIsActive(id: string, isActive: boolean): Pro
  * Delete scenario item
  */
 export async function deleteScenarioItem(id: string): Promise<boolean> {
+    const debug = Debug('app:db:deleteScenarioItem');
+    debug('Deleting scenario item: %s', id);
     try {
         const result = await executeWithSchema(async (db) => await db`
       DELETE FROM scenario_items 
@@ -560,6 +612,8 @@ export async function deleteScenarioItem(id: string): Promise<boolean> {
  * Get settings (singleton) using Option
  */
 export async function getSettings(): Promise<Option.Option<Settings>> {
+    const debug = Debug('app:db:getSettings');
+    debug('Fetching settings');
     try {
         const result = await executeWithSchema(async (db) => await db<Settings[]>`
       SELECT estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
@@ -577,6 +631,8 @@ export async function getSettings(): Promise<Option.Option<Settings>> {
  * Change settings singleton!
  */
 export async function changeSettings(data: Settings): Promise<Settings> {
+    const debug = Debug('app:db:changeSettings');
+    debug('Changing settings: %O', data);
     try {
         const result = await executeWithSchema(async (db) => await db<Settings[]>`
       UPDATE settings 
@@ -597,6 +653,8 @@ export async function changeSettings(data: Settings): Promise<Settings> {
 // ============================================================================
 
 export async function closeConnection(): Promise<void> {
+    const debug = Debug('app:db:closeConnection');
+    debug('Closing database connection');
     try {
         await sql.end();
         console.log('✅ Database connection closed');

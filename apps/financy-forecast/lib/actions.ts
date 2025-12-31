@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import Debug from 'debug'
 import { updateTag } from 'next/cache'
 import {
     changeSettings,
@@ -31,6 +32,8 @@ export interface ServerActionResult {
  * Updates forecast data atomically (all or nothing)
  */
 async function updateForecastData(data: SaveForecastSchema): Promise<void> {
+    const debug = Debug('app:action:updateForecastData')
+    debug('Starting forecast data update: %O', data)
     const operations: Promise<unknown>[] = []
 
     // 1. Update variable costs
@@ -48,12 +51,17 @@ async function updateForecastData(data: SaveForecastSchema): Promise<void> {
 // =============================================================================
 
 export async function handleSaveForecastDirect(input: SaveForecastSchema): Promise<ServerActionResult> {
+    const debug = Debug('app:action:handleSaveForecastDirect')
+    debug('Received save forecast direct request: %O', input)
     // 1. Validate input data
     const inputData = saveForecastSchema.parse(input)
+    debug('Input data validated successfully')
     try {
 
         // 5. Execute atomic update
+        debug('Executing atomic forecast update')
         await updateForecastData(inputData)
+        debug('Atomic forecast update completed successfully')
 
         // 6. Invalidate cache to refresh UI with immediate effect
         // Using updateTag for read-your-own-writes scenario
@@ -109,9 +117,13 @@ export async function handleUpdateScenarioIsActive(
     scenarioId: string,
     isActive: boolean
 ): Promise<ServerActionResult> {
+    const debug = Debug('app:action:handleUpdateScenarioIsActive')
+    debug('Updating scenario isActive: id=%s, isActive=%s', scenarioId, isActive)
     try {
         // 1. Update scenario item using existing function
+        debug('Calling updateForcastScenario function')
         await updateForcastScenario({ id: scenarioId, isActive });
+        debug('updateForcastScenario completed successfully')
 
         // 2. Invalidate cache to refresh UI with immediate effect
         updateTag('scenarios');
