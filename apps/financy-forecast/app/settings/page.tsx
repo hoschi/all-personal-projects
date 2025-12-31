@@ -1,26 +1,3 @@
-import {
-    SidebarTrigger,
-} from "@/components/ui/sidebar"
-
-export default function Page() {
-    return (
-        <>
-            <header className="flex items-center gap-2 m-3 ml-8">
-                <SidebarTrigger className="-ml-1 mr-3" />
-                <div className="flex flex-col">
-                    <h1 className="text-3xl">Settings</h1>
-                    <h2 className="text-muted-foreground">You need it, you know it</h2>
-
-                </div>
-            </header>
-            <div className="flex flex-1 flex-col gap-4 p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    content settings
-                </div>
-            </div>
-        </>
-    )
-}
 import { getScenarioItems } from "@/lib/db"
 import { cacheTag } from "next/cache"
 import { SidebarTrigger } from "@/components/ui/sidebar"
