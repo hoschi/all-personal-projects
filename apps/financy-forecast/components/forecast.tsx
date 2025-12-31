@@ -10,7 +10,7 @@ import { VariableCosts, ForecastDataInitializer, Timeline, SaveForecast } from "
 
 export async function Forecast() {
     'use cache'
-    cacheTag('snapshots')
+    cacheTag('scenarios')
 
     const forecastDataResult = await getForecastData()
     const forecastData = Option.getOrUndefined(forecastDataResult)
