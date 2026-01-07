@@ -79,6 +79,36 @@ CREATE TABLE settings (
 
 ---
 
+## 🔍 Debug Logging mit `debug` Bibliothek
+
+### Anwendung auf Actions und Database Code
+- **Debug-Logger Setup**: `const debug = Debug('app:category:functionName')`
+- **Kategorien**: `db` für Database-Funktionen, `action` für Server Actions
+- **Präfix-Struktur**: `app:category:functionName` (z.B. `app:db:updateScenarioIsActive`, `app:action:handleSaveForecastDirect`)
+- **Variablenname**: Immer `debug` für Konsistenz verwenden
+- **Funktion-lokal**: Debug-Logger am Anfang jeder Funktion erstellen
+- **Aktivierung**: `DEBUG=app:db:*`, `DEBUG=app:action:*`, oder `DEBUG=app:*` für selektives Logging
+- **Zweck**: `app:` Präfix unterscheidet Application-Logs von Third-Party-Logs
+
+### Beispiel Implementation
+```typescript
+// Database Function
+export async function updateScenarioIsActive(id: string, isActive: boolean) {
+    const debug = Debug('app:db:updateScenarioIsActive');
+    debug('Updating scenario isActive: id=%s, isActive=%s', id, isActive);
+    // ... function logic
+}
+
+// Server Action
+export async function handleSaveForecastDirect(input: SaveForecastSchema) {
+    const debug = Debug('app:action:handleSaveForecastDirect');
+    debug('Received save forecast direct request: %O', input);
+    // ... function logic
+}
+```
+
+---
+
 ## 🧪 Qualitätskontrolle
 
 ### Obligatorische Qualitätskontrollen
