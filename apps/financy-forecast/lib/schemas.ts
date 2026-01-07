@@ -5,9 +5,9 @@ import { z } from "zod";
 // -----------------------------------------------------------------------------
 
 /**
- * Kategorie eines Accounts.
- * - LIQUID: Flüssige Mittel (Girokonto, Tagesgeld).
- * - RETIREMENT: Altersvorsorge/Anlagen (Depot, Festgeld), zählen nicht zur unmittelbaren Liquidität.
+ * Category of an account.
+ * - LIQUID: Liquid funds (checking account, savings).
+ * - RETIREMENT: Retirement/investments (deposit, fixed-term), not counted for immediate liquidity.
  */
 export enum AccountCategory {
     LIQUID = "LIQUID",
@@ -15,7 +15,7 @@ export enum AccountCategory {
 }
 
 /**
- * Zahlungsintervall für wiederkehrende Posten.
+ * Payment interval for recurring items.
  */
 export enum RecurringItemInterval {
     MONTHLY = "MONTHLY",
@@ -23,42 +23,42 @@ export enum RecurringItemInterval {
     YEARLY = "YEARLY",
 }
 
-// Zod Schemas für Enums
+// Zod Schemas for Enums
 export const accountCategorySchema = z.enum(Object.values(AccountCategory));
 export const recurringItemIntervalSchema = z.enum(Object.values(RecurringItemInterval));
 
 // -----------------------------------------------------------------------------
-// Datenmodelle
+// Data Models
 // -----------------------------------------------------------------------------
 
 /**
- * A. Account (Konten)
- * Repräsentiert ein Bankkonto oder Depot.
+ * A. Account
+ * Represents a bank account or depot.
  */
 export const accountSchema = z.object({
-    /** Eindeutige ID des Accounts (UUID) */
+    /** Unique ID of the account (UUID) */
     id: z.uuid(),
-    /** Name des Accounts (z.B. "Sparkasse") */
-    name: z.string().min(1, "Name ist erforderlich"),
-    /** Kategorie des Accounts (LIQUID oder RETIREMENT) */
+    /** Name of the account (e.g. "Sparkasse") */
+    name: z.string().min(1, "Name is required"),
+    /** Category of the account (LIQUID or RETIREMENT) */
     category: accountCategorySchema,
-    /** Aktueller Kontostand in Cents (Integer) zur Performance-Optimierung */
+    /** Current account balance in cents (Integer) for performance optimization */
     currentBalance: z.number().int(),
 });
 
 export type Account = z.infer<typeof accountSchema>;
 
 /**
- * B. AssetSnapshot (Monatliche Ist-Stände)
- * Repräsentiert den Status am 1. eines Monats für vergangene Monate.
- * Dient als Historie und Basis für Prognosen.
+ * B. AssetSnapshot (Monthly Actuals)
+ * Represents the status on the 1st of a month for past months.
+ * Serves as history and basis for forecasts.
  */
 export const assetSnapshotSchema = z.object({
-    /** Eindeutige ID des Snapshots (UUID) */
+    /** Unique ID of the snapshot (UUID) */
     id: z.uuid(),
-    /** Datum des Snapshots (Immer der 1. des Monats) */
+    /** Date of the snapshot (Always the 1st of the month) */
     date: z.date(),
-    /** Gesamte Liquidität in Cents (Summe aller LIQUID Accounts zum Zeitpunkt des Snapshots) */
+    /** Total liquidity in cents (Sum of all LIQUID accounts at snapshot time) */
     totalLiquidity: z.number().int(),
 });
 
@@ -66,39 +66,39 @@ export type AssetSnapshot = z.infer<typeof assetSnapshotSchema>;
 
 /**
  * C. AccountBalanceDetail
- * Verknüpfungstabelle für den Kontostand eines Accounts innerhalb eines Snapshots.
- * Ermöglicht die detaillierte Aufschlüsselung der Vermögenswerte pro Monat.
+ * Junction table for the account balance within a snapshot.
+ * Enables detailed breakdown of assets per month.
  */
 export const accountBalanceDetailSchema = z.object({
-    /** Eindeutige ID des Details (UUID) */
+    /** Unique ID of the detail (UUID) */
     id: z.uuid(),
-    /** Referenz auf den Snapshot (FK) */
+    /** Reference to the snapshot (FK) */
     snapshotId: z.uuid(),
-    /** Referenz auf den Account (FK) */
+    /** Reference to the account (FK) */
     accountId: z.uuid(),
-    /** Betrag in Cents (Integer) zu diesem Zeitpunkt */
+    /** Amount in cents (Integer) at that point in time */
     amount: z.number().int(),
 });
 
 export type AccountBalanceDetail = z.infer<typeof accountBalanceDetailSchema>;
 
 /**
- * D. RecurringItem (Fixkosten & Regelmäßige Einnahmen)
- * Definition von wiederkehrenden Zahlungen wie Miete, Gehalt, Abos.
+ * D. RecurringItem (Fixed Costs & Regular Income)
+ * Definition of recurring payments like rent, salary, subscriptions.
  */
 export const recurringItemSchema = z.object({
-    /** Eindeutige ID des Items (UUID) */
+    /** Unique ID of the item (UUID) */
     id: z.uuid(),
-    /** Name der Position (z.B. "Miete", "Gehalt") */
-    name: z.string().min(1, "Name ist erforderlich"),
-    /** Betrag in Cents (Integer). Positiv für Einnahmen, negativ für Ausgaben. */
+    /** Name of the item (e.g. "Rent", "Salary") */
+    name: z.string().min(1, "Name is required"),
+    /** Amount in cents (Integer). Positive for income, negative for expenses. */
     amount: z.number().int(),
-    /** Zahlungsintervall (MONTHLY, QUARTERLY, YEARLY) */
+    /** Payment interval (MONTHLY, QUARTERLY, YEARLY) */
     interval: recurringItemIntervalSchema,
     /**
-     * Fälligkeitsmonat (1-12).
-     * Relevant für QUARTERLY (Startmonat des Quartals) und YEARLY (Monat der Zahlung).
-     * Kann bei MONTHLY ignoriert werden.
+     * Due month (1-12).
+     * Relevant for QUARTERLY (start month of quarter) and YEARLY (month of payment).
+     * Can be ignored for MONTHLY.
      */
     dueMonth: z.number().int().min(1).max(12).optional().nullable(),
 });
@@ -106,22 +106,22 @@ export const recurringItemSchema = z.object({
 export type RecurringItem = z.infer<typeof recurringItemSchema>;
 
 /**
- * E. ScenarioItem (Szenarien / Einmalzahlungen)
- * Einmalige Zahlungen oder geplante Szenarien für die Prognose (z.B. "Urlaub", "Steuerrückzahlung").
+ * E. ScenarioItem (Scenarios / One-time Payments)
+ * One-time payments or planned scenarios for forecasting (e.g. "Vacation", "Tax refund").
  */
 export const scenarioItemSchema = z.object({
-    /** Eindeutige ID des Szenarios (UUID) */
+    /** Unique ID of the scenario (UUID) */
     id: z.uuid(),
-    /** Name des Szenarios (z.B. "Urlaub Sommer") */
-    name: z.string().min(1, "Name ist erforderlich"),
-    /** Betrag in Cents (Integer). Positiv für Einnahmen, negativ für Ausgaben. */
+    /** Name of the scenario (e.g. "Summer Vacation") */
+    name: z.string().min(1, "Name is required"),
+    /** Amount in cents (Integer). Positive for income, negative for expenses. */
     amount: z.number().int(),
-    /** Datum der Zahlung. Szenarien sind immer einem Monat zugeordnet. Pflichtfeld! */
+    /** Payment date. Scenarios are always assigned to a month. Required! */
     date: z.date(),
     /**
-     * Status des Szenarios.
-     * Wenn true, wird es in der Prognose einberechnet.
-     * Wenn false, wird es ignoriert (Szenario inaktiv).
+     * Status of the scenario.
+     * If true, it's included in the forecast.
+     * If false, it's ignored (inactive scenario).
      * Default: true.
      */
     isActive: z.boolean().default(true),
@@ -131,10 +131,10 @@ export type ScenarioItem = z.infer<typeof scenarioItemSchema>;
 
 /**
  * F. Settings
- * Globale Einstellungen für die Anwendung.
+ * Global settings for the application.
  */
 export const settingsSchema = z.object({
-    /** Geschätzte monatliche variable Kosten in Cents (Integer). Wird für die Prognose verwendet. */
+    /** Estimated monthly variable costs in cents (Integer). Used for forecasting. */
     estimatedMonthlyVariableCosts: z.number().int(),
 });
 
@@ -143,7 +143,7 @@ export type Settings = z.infer<typeof settingsSchema>;
 
 /**
  * SnapshotAccountBalances
- * Map von Account ID zu Amount für einen Snapshot.
+ * Map of Account ID to Amount for a snapshot.
  * 
  */
 export const snapshotAccountBalancesSchema = z.record(

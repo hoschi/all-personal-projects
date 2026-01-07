@@ -5,7 +5,7 @@ import { MatrixData, ForecastTimelineData } from "./types"
 import { last } from 'ramda'
 import { sumAll } from "effect/Number"
 
-// TODO diese typen Cell/Row müssen in `types` gepackt werden und in `MatrixData` verwendet werden.
+// TODO these types Cell/Row need to be moved to `types` and used in `MatrixData`.
 interface Cell {
   id: string;
   amount: number;

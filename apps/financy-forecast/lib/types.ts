@@ -1,6 +1,6 @@
 import { RecurringItem, ScenarioItem } from "./schemas";
 
-// Matrix Types (für bestehende MatrixData Komponente)
+// Matrix Types (for existing MatrixData component)
 export interface MatrixData {
     rows: Array<{
         id: string;
@@ -28,18 +28,18 @@ export interface Row {
 
 export interface TimelineMonth {
     index: number;
-    name: string; // Format: YY-MM (z.B. "25-01" für Januar 2025)
-    balance: number; // Kontostand in Cents
-    scenarios: ScenarioItem[]; // Alle Szenarien für diesen Monat
-    irregularCosts: RecurringItem[]; // Unregelmäßige Kosten (quartalsweise/jährlich)
-    isCritical: boolean; // Ist true wenn balance < 0
+    name: string; // Format: YY-MM (e.g. "25-01" for January 2025)
+    balance: number; // Account balance in cents
+    scenarios: ScenarioItem[]; // All scenarios for this month
+    irregularCosts: RecurringItem[]; // Irregular costs (quarterly/yearly)
+    isCritical: boolean; // True if balance < 0
 }
 
 export interface ForecastTimelineData {
-    startAmount: number; // Ausgangssaldo in Cents
+    startAmount: number; // Starting balance in cents
     estimatedMonthlyVariableCosts: number;
-    recurringItems: RecurringItem[]; // Alle wiederkehrenden Posten
-    scenarios: ScenarioItem[]; // Alle Szenarien
-    lastSnapshotDate: Date; // Datum des letzten Snapshots (für Startpunkt der Prognose)
-    months?: TimelineMonth[]; // Berechnete Timeline-Monate (optional, wird berechnet)
+    recurringItems: RecurringItem[]; // All recurring items
+    scenarios: ScenarioItem[]; // All scenarios
+    lastSnapshotDate: Date; // Date of the last snapshot (for forecast start point)
+    months?: TimelineMonth[]; // Calculated timeline months (optional, calculated)
 }
