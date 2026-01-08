@@ -1,0 +1,15 @@
+{
+  "name": "tools",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "lint": "eslint",
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  }
+}
