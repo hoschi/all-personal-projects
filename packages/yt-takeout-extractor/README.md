@@ -1,9 +1,6 @@
-# yt-takeout-extractor
+# Youtube / Note Scripts
 
-Tool zum Importieren von YouTube-History-Daten aus Google Takeout in eine PostgreSQL-Datenbank. Verarbeitet JSON-Daten, extrahiert Video-IDs, validiert Eingaben und vermeidet Duplikate. Unterstützt jetzt auch:
-
-- Verknüpfung von Markdown-Notizen mit YouTube-Videos
-- Automatischen Download von Video-Transkripten
+TODO zusammenfassende Beschreibung der bestehende Skripte.
 
 ## ⚙️ Funktionsweise
 
