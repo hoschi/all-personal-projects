@@ -33,6 +33,7 @@ This monorepo contains various personal projects including financial forecasting
 ## Init from fresh clone
 
 - see `./packages/db/README.md`
+- copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
 
 ## Init new project
 
