@@ -10,7 +10,7 @@
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "test": "turbo run test",
-    "ci": "bun run check-types && bun run lint && bun run format:check && turbo run test"
+    "ci": "turbo run ci"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

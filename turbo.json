@@ -25,10 +25,6 @@
         "^check-types"
       ]
     },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
     "format": {
       "dependsOn": [
         "^format"
@@ -37,11 +33,6 @@
     "format:check": {
       "dependsOn": [
         "^format:check"
-      ]
-    },
-    "test": {
-      "dependsOn": [
-        "^test"
       ]
     },
     "fix": {
@@ -65,7 +56,8 @@
         "lint",
         "format:check",
         "test"
-      ]
+      ],
+      "cache": false
     }
   }
 }
