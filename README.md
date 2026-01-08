@@ -19,6 +19,7 @@ This monorepo contains various personal projects including financial forecasting
   - Environment configuration
   - Data copying scripts (prod → staging → dev)
 - [eslint-config](/packages/eslint-config/README.md) - Shared ESLint configurations
+- [tools](/packages/tools/README.md) - Common tooling scripts for all workspaces
 - [typescript-config](/packages/typescript-config/README.md) - Shared TypeScript configurations
 - [yt-notes-scripts](/packages/yt-notes-scripts/README.md) - YouTube history and transcript import
   - Video details import
@@ -32,6 +33,10 @@ This monorepo contains various personal projects including financial forecasting
 ## Init from fresh clone
 
 - see `./packages/db/README.md`
+
+## Init new project
+
+- `bun run init` - Initialize ESLint and TypeScript configuration
 
 ## Daily Work
 
