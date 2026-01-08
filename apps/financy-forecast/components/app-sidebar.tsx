@@ -16,26 +16,24 @@ import Link from "next/link"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="text-center">
-        Financy Forecast
-      </SidebarHeader>
+      <SidebarHeader className="text-center">Financy Forecast</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive>
-                  <Link href='/dashboard'>Dashboard</Link>
+                  <Link href="/dashboard">Dashboard</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href='/forecast'>Forecast</Link>
+                  <Link href="/forecast">Forecast</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href='/settings'>Settings / Fixkosten</Link>
+                  <Link href="/settings">Settings / Fixkosten</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

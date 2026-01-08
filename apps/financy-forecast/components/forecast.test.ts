@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect } from "bun:test"
 
 // Note: Most business logic tests have been moved to domain/ folder
 // This file should only contain tests specific to React components
@@ -12,8 +12,8 @@ import { test, expect } from "bun:test";
 // Component tests can be added here when needed
 
 test("Forecast component test placeholder", () => {
-    // Basic smoke test to ensure the component can be imported
-    expect(true).toBe(true);
-});
+  // Basic smoke test to ensure the component can be imported
+  expect(true).toBe(true)
+})
 
 // Add more component-specific tests here as needed

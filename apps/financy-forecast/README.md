@@ -5,11 +5,13 @@
 Financy Forecast is a Next.js-based personal finance tracking tool focused on liquidity, burn-rate monitoring, and interactive runway simulation.
 
 **Key Features:**
+
 - **Financial Matrix Dashboard** - Overview of accounts and balances
 - **Forecast Engine** - Scenario planning with timeline visualization
 - **Settings** - Management of recurring items and fixed costs
 
 **Tech Stack:**
+
 - PostgreSQL database with raw SQL queries (no ORM)
 - Next.js 16, React 19, Tailwind CSS 4, ShadCN UI
 
@@ -60,8 +62,8 @@ Financy Forecast is a Next.js-based personal finance tracking tool focused on li
 
 ## Disclaimer
 
-* Styling was only copied from AI-generated mockup and looks a bit wild in places, will stay like this for now, functional features are more important
-* Forms are missing and will remain so for simple things since I can do them directly in the DB
+- Styling was only copied from AI-generated mockup and looks a bit wild in places, will stay like this for now, functional features are more important
+- Forms are missing and will remain so for simple things since I can do them directly in the DB
 
 ## DB
 
@@ -73,12 +75,12 @@ Script linked from @repo/db package to quickly copy/backup/restore the DB.
 
 **Purpose:** SQL schema for all FinanceForecast application tables.
 
-
 ### 3. `scripts/create-tables.ts` - Table Creation Script
 
 **Purpose:** TypeScript wrapper for table creation.
 
 **Commands:**
+
 ```bash
 # Create tables
 bun run scripts/create-tables.ts create
@@ -95,6 +97,7 @@ bun run scripts/create-tables.ts drop
 **Purpose:** Realistic sample data for development and testing.
 
 **Sample data:**
+
 - **5 accounts:** 3 liquid (Sparkasse, ING DiBa, PayPal) + 2 retirement (Comdirect, DAX ETF)
 - **6 months data:** July-December 2024 with realistic balance progressions
 - **15 Recurring Items:** Rent, salary, insurance, etc.
@@ -102,6 +105,7 @@ bun run scripts/create-tables.ts drop
 - **Settings:** Standard variable costs (1,200.00 €)
 
 **Commands:**
+
 ```bash
 # Seed database with sample data
 bun run scripts/seed-dev.ts seed
@@ -112,9 +116,9 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
-* Replace enums in schemas.ts with what TS page suggests instead (objects with `as const`?!)
-* Use server-only package to not leak DB connection details for security
-* Styling
-  * Move sidebar toggle from content header to sidebar header and create an icon sidebar in collapsed version. Create a "screen too small" message for anything below tablet size, this doesn't make sense!
-  * isActive in sidebar isn't working at the moment
-* Forward root to dashboard route
+- Replace enums in schemas.ts with what TS page suggests instead (objects with `as const`?!)
+- Use server-only package to not leak DB connection details for security
+- Styling
+  - Move sidebar toggle from content header to sidebar header and create an icon sidebar in collapsed version. Create a "screen too small" message for anything below tablet size, this doesn't make sense!
+  - isActive in sidebar isn't working at the moment
+- Forward root to dashboard route

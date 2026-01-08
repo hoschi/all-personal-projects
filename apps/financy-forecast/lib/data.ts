@@ -1,14 +1,21 @@
-import { getAccounts, getLatestAssetSnapshot, getRecurringItems, getScenarioItems, getSettings, getSnapshotDetails } from "./db"
+import {
+  getAccounts,
+  getLatestAssetSnapshot,
+  getRecurringItems,
+  getScenarioItems,
+  getSettings,
+  getSnapshotDetails,
+} from "./db"
 import { Option } from "effect"
 import { format } from "date-fns"
 import { MatrixData, ForecastTimelineData } from "./types"
-import { last } from 'ramda'
+import { last } from "ramda"
 import { sumAll } from "effect/Number"
 
 // TODO these types Cell/Row need to be moved to `types` and used in `MatrixData`.
 interface Cell {
-  id: string;
-  amount: number;
+  id: string
+  amount: number
 }
 
 interface Row {
@@ -17,10 +24,12 @@ interface Row {
   cells: Cell[]
 }
 
-export async function getMatrixData(limit: number): Promise<Option.Option<MatrixData>> {
+export async function getMatrixData(
+  limit: number,
+): Promise<Option.Option<MatrixData>> {
   const [snapshotsResult, accounts] = await Promise.all([
     getSnapshotDetails(limit),
-    getAccounts()
+    getAccounts(),
   ])
 
   if (Option.isNone(snapshotsResult)) {
@@ -29,49 +38,75 @@ export async function getMatrixData(limit: number): Promise<Option.Option<Matrix
 
   const details = Option.getOrThrow(snapshotsResult).reverse()
 
-  const rows: Row[] = accounts.map(account => {
-    const cells = details.map(snapshot => {
-      const amount = snapshot.accountBalances[account.id] || 0
-      return ({
-        id: `${account.id}-${snapshot.snapshot.date}`,
-        amount: amount
-      })
-    }).concat([{
-      id: `current-${account.id}`,
-      amount: account.currentBalance || 0
-    }])
+  const rows: Row[] = accounts
+    .map((account) => {
+      const cells = details
+        .map((snapshot) => {
+          const amount = snapshot.accountBalances[account.id] || 0
+          return {
+            id: `${account.id}-${snapshot.snapshot.date}`,
+            amount: amount,
+          }
+        })
+        .concat([
+          {
+            id: `current-${account.id}`,
+            amount: account.currentBalance || 0,
+          },
+        ])
 
-    return {
-      id: account.id,
-      name: account.name,
-      cells
-    }
-  }).concat([{
-    id: 'sum',
-    name: '',
-    cells: details.map(detail => ({ id: `sum-${detail.snapshot.id}`, amount: detail.snapshot.totalLiquidity }))
-      .concat([{ id: 'sum-curent', amount: sumAll(accounts.map(a => a.currentBalance)) }])
-  }])
+      return {
+        id: account.id,
+        name: account.name,
+        cells,
+      }
+    })
+    .concat([
+      {
+        id: "sum",
+        name: "",
+        cells: details
+          .map((detail) => ({
+            id: `sum-${detail.snapshot.id}`,
+            amount: detail.snapshot.totalLiquidity,
+          }))
+          .concat([
+            {
+              id: "sum-curent",
+              amount: sumAll(accounts.map((a) => a.currentBalance)),
+            },
+          ]),
+      },
+    ])
 
-  const header = details.map(detail => format(detail.snapshot.date, "yyyy-MM")).concat(['Current'])
+  const header = details
+    .map((detail) => format(detail.snapshot.date, "yyyy-MM"))
+    .concat(["Current"])
   const lastDate = last(details)?.snapshot.date || new Date()
 
   return Option.some({
     rows,
     header,
-    lastDate
+    lastDate,
   })
 }
 
-export async function getForecastData(): Promise<Option.Option<ForecastTimelineData>> {
+export async function getForecastData(): Promise<
+  Option.Option<ForecastTimelineData>
+> {
   const [snapshot, recurringItems, scenarios, settings] = await Promise.all([
     getLatestAssetSnapshot(),
     getRecurringItems(),
     getScenarioItems(),
-    getSettings()
+    getSettings(),
   ])
 
-  if (Option.isNone(snapshot) || Option.isNone(settings) || recurringItems.length <= 0) return Option.none();
+  if (
+    Option.isNone(snapshot) ||
+    Option.isNone(settings) ||
+    recurringItems.length <= 0
+  )
+    return Option.none()
 
   const snapshotData = Option.getOrThrow(snapshot)
   const startAmount = snapshotData.totalLiquidity
@@ -79,8 +114,9 @@ export async function getForecastData(): Promise<Option.Option<ForecastTimelineD
   return Option.some({
     startAmount,
     recurringItems,
-    estimatedMonthlyVariableCosts: Option.getOrThrow(settings).estimatedMonthlyVariableCosts,
+    estimatedMonthlyVariableCosts:
+      Option.getOrThrow(settings).estimatedMonthlyVariableCosts,
     scenarios,
-    lastSnapshotDate: snapshotData.date
+    lastSnapshotDate: snapshotData.date,
   })
 }
