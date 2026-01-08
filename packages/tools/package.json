@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "lint": "eslint",
-    "check-types": "tsc --noEmit",
-    "fix": "eslint --fix .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "lint": "./src/lint.ts",
+    "check-types": "./src/check-types.ts",
+    "fix": "./src/fix.ts",
+    "format": "./src/format.ts",
+    "format:check": "./src/format-check.ts"
   }
 }
