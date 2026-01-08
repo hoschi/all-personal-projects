@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+
 import { checkEslintConfig, exitWithMessage } from "./utils/config-check.js";
 
 if (!checkEslintConfig()) {

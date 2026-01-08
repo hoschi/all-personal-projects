@@ -8,5 +8,8 @@
     "fix": "./src/fix.ts",
     "format": "./src/format.ts",
     "format:check": "./src/format-check.ts"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
   }
 }
