@@ -12,7 +12,7 @@ import { Effect, Either, Layer, Schema, Option } from "effect"
 class Video extends Schema.Class<Video>("Video")({
   id: Schema.Number,
   title: Schema.NonEmptyString,
-}) { }
+}) {}
 
 const idParam = HttpApiSchema.param("id", Schema.NumberFromString)
 

@@ -1,51 +1,70 @@
-# Youtube / Note Scripts
+# YouTube / Note Scripts
 
-TODO zusammenfassende Beschreibung der bestehende Skripte.
+A collection of TypeScript scripts for importing and processing YouTube data into a PostgreSQL database. Includes history import, note link extraction, transcript downloading, and video details retrieval.
 
-## ⚙️ Funktionsweise
+## ⚙️ How It Works
 
-TODO füge auch `get_video_details.ts` hinzu
+### History Import Script ([`import_youtube_history.ts`](src/import_youtube_history.ts))
 
-### Import-Skript (`import_youtube_history.ts`)
+- **Validation**: Zod schema checks raw data structure
+- **ID Extraction**: Regex pattern extracts YouTube ID from URLs
+- **Batch Processing**: 8 entries per batch (optimized for performance)
+- **Duplicate Detection**: `ON CONFLICT` clause skips existing entries
+- **Error Logging**: Detailed error logs with original data
 
-- **Validierung**: Zod-Schema prüft Rohdatenstruktur
-- **ID-Extraktion**: Regex-Muster extrahieren YouTube-ID aus URLs
-- **Batch-Verarbeitung**: 8 Einträge pro Batch (optimiert für Performance)
-- **Duplikaterkennung**: `ON CONFLICT`-Klausel überspringt vorhandene Einträge
-- **Fehlerlogging**: Detaillierte Fehlerprotokolle mit Originaldaten
+### Note-Link Script ([`import_youtube_note_links.ts`](src/import_youtube_note_links.ts))
 
-### Note-Link Skript (`import_youtube_note_links.ts`)
+- **Markdown Scanning**: Recursively searches .md files for YouTube links
+- **ID Extraction**: Supports various YouTube URL formats (Video, Shorts, Embed)
+- **Database Logic**:
+  - Duplicate check on (youtube_id, title, file_name)
+  - Title conflict detection for same video ID
+- **Error Collection**: Aggregates all errors for bundled output
 
-- **Markdown-Scanning**: Durchsucht .md-Dateien rekursiv nach YouTube-Links
-- **ID-Extraktion**: Unterstützt verschiedene YouTube-URL-Formate (Video, Shorts, Embed)
-- **Datenbanklogik**:
-  - Duplikatsprüfung auf (youtube_id, title, file_name)
-  - Erkennung von Titelkonflikten bei gleicher Video-ID
-- **Fehlerprotokollierung**: Sammelt alle Fehler für gebündelte Ausgabe
+### Transcript Script ([`import_youtube_transcript.ts`](src/import_youtube_transcript.ts))
 
-### Transkript-Skript (`import_youtube_transcript.ts`)
+- **yt-dlp Integration**: Downloads subtitles in SRT format
+- **Effect.ts**: Robust error handling with retry logic
+- **Database Operations**:
+  - Upsert transcripts with language detection
+  - Error message storage for failed downloads
+- **Cleanup**: Automatic deletion of temporary files
 
-- **yt-dlp Integration**: Lädt Untertitel im SRT-Format herunter
-- **Effect.ts**: Robustes Error-Handling mit Retry-Logik
-- **Datenbankoperationen**:
-  - Upsert von Transkripten mit Sprachkennung
-  - Speicherung von Fehlermeldungen bei fehlgeschlagenen Downloads
-- **Cleanup**: Automatisches Löschen temporärer Dateien
+### Video Details Script ([`get_video_details.ts`](src/get_video_details.ts))
+
+- **YouTube API Integration**: Fetches video metadata via YouTube Data API v3
+- **Chapter Extraction**: Parses timestamps from video descriptions
+- **Duration Formatting**: Converts ISO 8601 duration to human-readable format
+- **Output**: Console-based formatted output with full video details
+
+**Usage:**
+
+```bash
+bun run get_video_details.ts <VIDEO_ID>
+# Example: bun run get_video_details.ts wkTHCRSNhYo
+```
 
 ## Lib
 
-### TODO `subtitle_processors`
+### Subtitle Processors ([`subtitle_processors.ts`](src/subtitle-processors.ts))
 
-## 📋 Voraussetzungen
+Pure functions for subtitle format conversion using `@aj-archipelago/subvibe`:
+
+- **[`parseSRT()`](src/subtitle-processors.ts:20)**: Parse and normalize SRT content
+- **[`toPlainText()`](src/subtitle-processors.ts:58)**: Convert SRT to plain text (removes timestamps)
+- **[`toLLMFormat()`](src/subtitle-processors.ts:72)**: Convert SRT to LLM-optimized format with time intervals (default: 20s)
+
+## 📋 Prerequisites
 
 - Node.js ≥18.x
 - PostgreSQL ≥15
-- yt-dlp (`brew install yt-dlp` oder `pip install yt-dlp`)
-- `.env`-Datei mit:
+- yt-dlp (`brew install yt-dlp` or `pip install yt-dlp`)
+- `.env` file with:
   ```env
   DATABASE_URL="postgres://user:pass@host:port/db"
+  YOUTUBE_API_KEY="your_api_key"  # For get_video_details.ts
   ```
-- **Für Transkripte**: Chrome-Browser mit angemeldetem YouTube-Account (für Cookie-Zugriff)
+- **For transcripts**: Chrome browser with logged-in YouTube account (for cookie access)
 
 ## 🛠️ Installation
 
@@ -59,63 +78,66 @@ psql $DATABASE_URL -f src/create_youtube_note_links.sql
 psql $DATABASE_URL -f src/create_youtube_transcript.sql
 ```
 
-## 🚀 Verwendung
+## 🚀 Usage
 
 ```bash
-# History-Import
+# History import
 bun src/import_youtube_history.ts path/to/history.json
 
-# Note-Link-Import
-bun src/import_youtube_note_links.ts /pfad/zu/notes
+# Note-link import
+bun src/import_youtube_note_links.ts /path/to/notes
 
-# Transkript-Download
+# Transcript download
 bun src/import_youtube_transcript.ts main.youtube_videos
+
+# Get video details (requires YOUTUBE_API_KEY)
+bun run get_video_details.ts <VIDEO_ID>
 ```
 
-## 🗃️ Datenbankschema-Dokumentation
+## 🗃️ Database Schema Documentation
 
 ### youtube_history
 
-| Spalte            | Typ         | Beschreibung                |
-| ----------------- | ----------- | --------------------------- |
-| id                | SERIAL      | Primärschlüssel             |
-| youtube_id        | VARCHAR(20) | Eindeutige YouTube-Video-ID |
-| watched_time      | TIMESTAMP   | Exakter Wiedergabezeitpunkt |
-| details           | JSONB       | Zusätzliche Metadaten       |
-| activity_controls | JSONB       | Nutzerinteraktionen         |
+| Column            | Type        | Description              |
+| ----------------- | ----------- | ------------------------ |
+| id                | SERIAL      | Primary key              |
+| youtube_id        | VARCHAR(20) | Unique YouTube video ID  |
+| watched_time      | TIMESTAMP   | Exact playback timestamp |
+| details           | JSONB       | Additional metadata      |
+| activity_controls | JSONB       | User interactions        |
 
 ### youtube_note_links
 
-| Spalte     | Typ         | Beschreibung                          |
-| ---------- | ----------- | ------------------------------------- |
-| youtube_id | VARCHAR(20) | Video-ID (Fremdschlüssel)             |
-| title      | TEXT        | Optionaler benutzerdefinierter Titel  |
-| file_name  | TEXT        | Vollständiger Pfad zur Markdown-Datei |
-| created_at | TIMESTAMP   | Erstellungszeitpunkt                  |
+| Column     | Type        | Description                 |
+| ---------- | ----------- | --------------------------- |
+| youtube_id | VARCHAR(20) | Video ID (foreign key)      |
+| title      | TEXT        | Optional user-defined title |
+| file_name  | TEXT        | Full path to Markdown file  |
+| created_at | TIMESTAMP   | Creation timestamp          |
 
 ### youtube_transcript
 
-| Spalte              | Typ         | Beschreibung                                |
-| ------------------- | ----------- | ------------------------------------------- |
-| youtube_id          | VARCHAR(20) | Primärschlüssel                             |
-| transcript_original | TEXT        | Roh-Transkript im SRT-Format                |
-| lang                | VARCHAR(10) | Sprachkürzel (z.B. 'en', 'de')              |
-| error               | TEXT        | Fehlermeldung bei fehlgeschlagenem Download |
-| updated_at          | TIMESTAMP   | Letzte Aktualisierung                       |
+| Column              | Type        | Description                        |
+| ------------------- | ----------- | ---------------------------------- |
+| youtube_id          | VARCHAR(20) | Primary key                        |
+| transcript_original | TEXT        | Raw transcript in SRT format       |
+| lang                | VARCHAR(10) | Language code (e.g., 'en', 'de')   |
+| error               | TEXT        | Error message for failed downloads |
+| updated_at          | TIMESTAMP   | Last update                        |
 
-## 🚨 Fehlerbehandlung
+## 🚨 Error Handling
 
-- **Allgemein**:
-  - Konsolenausgabe mit Fehlerstatistiken
-  - Detailierte Originaldaten bei schweren Fehlern
-  - Transaktionssicherheit bei Datenbankoperationen
+- **General**:
+  - Console output with error statistics
+  - Detailed original data for severe errors
+  - Transaction safety for database operations
 
-- **Transkript-spezifisch**:
-  - Behandlung von privaten/gesperrten Videos
-  - Cookie-basierte Authentifizierungsfehler
-  - Speicherung von Fehlerlogs in der Datenbank
+- **Transcript-specific**:
+  - Handling of private/locked videos
+  - Cookie-based authentication errors
+  - Error log storage in database
 
-- **Note-Link-spezifisch**:
-  - Titelkonflikt-Erkennung bei gleicher Video-ID
-  - Validierung von YouTube-Link-Formaten
-  - Batch-Verarbeitung von Markdown-Dateien
+- **Note-link-specific**:
+  - Title conflict detection for same video ID
+  - YouTube link format validation
+  - Batch processing of Markdown files
