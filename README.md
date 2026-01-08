@@ -1,5 +1,34 @@
 # All Personal Projects
 
+This monorepo contains various personal projects including financial forecasting tools, REST servers, database utilities, and YouTube note automation scripts. I created this as a monorepo to bundle all the scripts and enhancements one needs in one place. Additionally, it serves as a centralized place to enhance my coding AI additions, saved in `ai-assistants/main-rules.md` for easy use across all projects/apps.
+
+## Apps
+
+- [financy-forecast](/apps/financy-forecast/README.md) - Financial forecasting dashboard with snapshot management
+  - Forecast calculations and visualization
+  - Scenario management
+  - Settings and configuration
+
+### Tests
+
+- [rest-server](/apps/rest-server/README.md) - Effet-based REST API server, combines services from package directory
+
+## Packages
+
+- [db](/packages/db/README.md) - Database utilities and Prisma client
+  - Environment configuration
+  - Data copying scripts (prod → staging → dev)
+- [eslint-config](/packages/eslint-config/README.md) - Shared ESLint configurations
+- [typescript-config](/packages/typescript-config/README.md) - Shared TypeScript configurations
+- [yt-notes-scripts](/packages/yt-notes-scripts/README.md) - YouTube history and transcript import
+  - Video details import
+  - Transcript processing
+  - Note links management
+
+### Tests
+
+- [video-service](/packages/video-service/README.md) - Testbed for service written with Effect
+
 ## Init from fresh clone
 
 - see `./packages/db/README.md`
@@ -8,19 +37,14 @@
 
 ### Push data from prod over staging to dev
 
-```bash
-cd ./packages/db/
-NODE_ENV=staging bun src/copy.ts
-NODE_ENV=dev bun src/copy.ts
-```
+See [packages/db/src/copy.ts](/packages/db/src/copy.ts) for the script that copies database data from production over staging to development. Run with: `cd packages/db && bun run copy`. See the [packages/db/README.md#data-copy-process](/packages/db/README.md#data-copy-process) for detailed information.
 
-## Apps and Packages
+### QA
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `bun run lint` - Run ESLint on all projects
+- `bun run typecheck` - Run TypeScript type checking
+- `bun run format` - Format code with Prettier
+- `bun run format:check` - Check code formatting without modifying files
 
 ## Utilities
 
@@ -29,42 +53,10 @@ This Turborepo has some additional tools already setup for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
-
-## Build
-
-To build all apps and packages, run the following command:
-
-```
-turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-turbo build --filter=docs
-```
-
-## Develop
-
-To develop all apps and packages, run the following command:
-
-```
-turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-turbo dev --filter=web
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+- Turbopack
+  - [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
+  - [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
+  - [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+  - [Configuration Options](https://turborepo.com/docs/reference/configuration)
+  - [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+- [Bun](https://bun.sh) - Fast JavaScript runtime and package manager
