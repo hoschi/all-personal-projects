@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { $ } from "bun";
+
 import { existsSync, writeFileSync } from "fs";
 
 console.log("Initializing ESLint and TypeScript configuration...");
@@ -32,4 +32,4 @@ if (!existsSync("tsconfig.json")) {
     );
 }
 
-console.log("Done! You may need to install dependencies: bun install");
+console.log("Done! You may need to install dependencies: bun install and");

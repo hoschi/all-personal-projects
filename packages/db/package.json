@@ -17,7 +17,8 @@
     "check-types": "tsc --noEmit",
     "fix": "eslint --fix .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "echo 'no tests'"
   },
   "devDependencies": {
     "@prisma/generator-helper": "^6.17.1",

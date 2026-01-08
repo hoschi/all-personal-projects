@@ -10,7 +10,7 @@
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "test": "turbo run test",
-    "ci": "bun run check-types && bun run lint && bun run format:check && turbo run test --filter=@repo/financy-forecast"
+    "ci": "bun run check-types && bun run lint && bun run format:check && turbo run test"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

@@ -10,7 +10,8 @@
     "check-types": "tsc --noEmit",
     "fix": "eslint --fix .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "echo 'no tests'"
   },
   "dependencies": {
     "@effect/platform-bun": "^0.81.1",
