@@ -42,12 +42,12 @@ See [packages/db/src/copy.ts](/packages/db/src/copy.ts) for the script that copi
 ### QA
 
 - `bun run lint` - Run ESLint on all projects
-- `bun run typecheck` - Run TypeScript type checking
-- `bun run fix` - Führt eslint --fix und format task auf einmal aus
+- `bun run check-types` - Run TypeScript type checking
+- `bun run fix` - Runs eslint --fix and format task at once
 - `bun run format` - Format code with Prettier
 - `bun run format:check` - Check code formatting without modifying files
-- `bun run test` - Führt unit tests einen projects aus
-- `bun run ci` - Führt lint, typecheck, format:check und test aus.
+- `bun run test` - Runs unit tests for all projects
+- `bun run ci` - Runs lint, typecheck, format:check and test
 
 ## Utilities
 
