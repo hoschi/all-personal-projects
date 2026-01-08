@@ -664,6 +664,23 @@ describe("getForecastData", () => {
     expect(mockGetSettings).toHaveBeenCalled()
   })
 
+  test("should return Option.none when getSettings returns Option.none", async () => {
+    mockGetLatestAssetSnapshot.mockReturnValue(
+      Option.some(createMockAssetSnapshot()),
+    )
+    mockGetRecurringItems.mockReturnValue([createMockRecurringItem()])
+    mockGetScenarioItems.mockReturnValue([createMockScenarioItem()])
+    mockGetSettings.mockReturnValue(Option.none())
+
+    const result = await getForecastData()
+
+    expect(Option.isNone(result)).toBe(true)
+    expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
+    expect(mockGetRecurringItems).toHaveBeenCalled()
+    expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
+  })
+
   // ========================================================================
   // Error Handling Tests
   // ========================================================================

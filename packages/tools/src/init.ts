@@ -51,4 +51,4 @@ if (existsSync("package.json")) {
     writeFileSync("package.json", JSON.stringify(packageJson, null, 2) + "\n");
 }
 
-console.log("Done! You may need to install dependencies: bun install and");
+console.log("Done! You may need to install dependencies: bun install and run bun run format");
