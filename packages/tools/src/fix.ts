@@ -1,4 +1,4 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
 
-await $`eslint --fix .`;
+await $`FORCE_COLOR=1 eslint --fix .`;

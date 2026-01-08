@@ -1,4 +1,4 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
 
-await $`prettier --write .`;
+await $`FORCE_COLOR=1 prettier --write .`;

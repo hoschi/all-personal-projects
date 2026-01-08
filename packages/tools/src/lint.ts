@@ -6,4 +6,4 @@ if (!checkEslintConfig()) {
     exitWithMessage("ESLint not configured. Run 'bun run init' to set up ESLint.");
 }
 
-await $`eslint .`;
+await $`FORCE_COLOR=1 eslint .`;

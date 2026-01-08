@@ -6,4 +6,4 @@ if (!checkTsConfig()) {
     exitWithMessage("TypeScript not configured. Run 'bun run init' to set up TypeScript.");
 }
 
-await $`tsc --noEmit`;
+await $`FORCE_COLOR=1 tsc --noEmit`;
