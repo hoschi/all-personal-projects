@@ -3,11 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "lint": "./src/lint.ts",
-    "check-types": "./src/check-types.ts",
-    "fix": "./src/fix.ts",
-    "format": "./src/format.ts",
-    "format:check": "./src/format-check.ts"
+    "init": "./src/init.ts"
   },
   "exports": {
     "./*": "./src/*.ts"

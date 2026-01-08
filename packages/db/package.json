@@ -12,7 +12,12 @@
   "scripts": {
     "migrate:dev": "dotenv -e .env.dev -- prisma migrate dev",
     "migrate:staging": "dotenv -e .env.staging -- prisma migrate deploy",
-    "migrate:prod": "dotenv -e .env.production -- prisma migrate deploy"
+    "migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@prisma/generator-helper": "^6.17.1",
