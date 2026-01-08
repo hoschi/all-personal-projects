@@ -4,6 +4,8 @@ TODO zusammenfassende Beschreibung der bestehende Skripte.
 
 ## ⚙️ Funktionsweise
 
+TODO füge auch `get_video_details.ts` hinzu
+
 ### Import-Skript (`import_youtube_history.ts`)
 
 - **Validierung**: Zod-Schema prüft Rohdatenstruktur
@@ -29,6 +31,10 @@ TODO zusammenfassende Beschreibung der bestehende Skripte.
   - Upsert von Transkripten mit Sprachkennung
   - Speicherung von Fehlermeldungen bei fehlgeschlagenen Downloads
 - **Cleanup**: Automatisches Löschen temporärer Dateien
+
+## Lib
+
+### TODO `subtitle_processors`
 
 ## 📋 Voraussetzungen
 

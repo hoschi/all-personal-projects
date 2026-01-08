@@ -12,7 +12,7 @@ import { Effect, Either, Layer, Schema, Option } from "effect"
 class Video extends Schema.Class<Video>("Video")({
   id: Schema.Number,
   title: Schema.NonEmptyString,
-}) {}
+}) { }
 
 const idParam = HttpApiSchema.param("id", Schema.NumberFromString)
 
@@ -55,11 +55,12 @@ const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
       ),
     )
     .handle("getVideos", () =>
+      // @ts-ignore FIXME
       Effect.gen(function* () {
         console.log("hello?", process.env.DATABASE_URL)
         const videos = yield* Effect.promise(() => client.video.findMany())
         console.log(videos)
-
+        // @ts-ignore FIXME!
         return yield* Effect.forEach(videos, (video) =>
           Schema.decodeUnknown(Video)(video, {
             onExcessProperty: "error",
