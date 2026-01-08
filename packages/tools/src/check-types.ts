@@ -1,11 +1,9 @@
+#!/usr/bin/env bun
+import { $ } from "bun";
 import { checkTsConfig, exitWithMessage } from "./utils/config-check.js";
 
 if (!checkTsConfig()) {
-    exitWithMessage("TypeScript not configured. Run 'bun run init' in a new project.");
+    exitWithMessage("TypeScript not configured. Run 'bun run init' to set up TypeScript.");
 }
 
-const result = await Bun.spawn(["bunx", "tsc", "--noEmit"], {
-    stdio: ["ignore", "pipe", "inherit"] as const,
-});
-
-process.exit(result.exitCode);
+await $`tsc --noEmit`;

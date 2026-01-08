@@ -1,7 +1,4 @@
-const result = await Bun.spawn(["bunx", "prettier", "--write", "."], {
-    stdio: ["ignore", "pipe", "inherit"] as const,
-});
+#!/usr/bin/env bun
+import { $ } from "bun";
 
-process.exit(result.exitCode);
-
-export { };
+await $`prettier --write .`;
