@@ -48,6 +48,24 @@
       "dependsOn": [
         "^fix"
       ]
+    },
+    "test": {
+      "dependsOn": [
+        "^test"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.test.ts"
+      ],
+      "outputLogs": "new-only"
+    },
+    "ci": {
+      "dependsOn": [
+        "check-types",
+        "lint",
+        "format:check",
+        "test"
+      ]
     }
   }
 }
