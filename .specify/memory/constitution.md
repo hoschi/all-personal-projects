@@ -22,7 +22,7 @@ _Rationale: This separation isolates complex business logic from the unpredictab
 
 ### II. Opinionated Frameworks for Speed
 
-Development MUST prioritize well-established, opinionated frameworks to minimize boilerplate and accelerate progress. The default stack includes the Effect platform for the application backend, Next.js for the frontend, and Prisma for the ORM. Choosing to build components from scratch instead of using these frameworks requires explicit justification.
+Development MUST prioritize well-established, opinionated frameworks to minimize boilerplate and accelerate progress. The default stack includes the Effect platform for the application backend, Next.js for the frontend, and Prisma for the ORM. Choosing to build components from scratch instead of using these frameworks requires explicit justification. Some projects contain even simpler mechanisms like Zod for easy schemas (better understandable by AI) or direct usage of a database client.
 _Rationale: As a solo developer working on private projects, velocity is paramount. "Simple things must be simple." Frameworks provide proven solutions to common problems, allowing focus to remain on delivering features rather than reinventing infrastructure._
 
 ### III. Unified & Performant Tech Stack
@@ -32,12 +32,12 @@ _Rationale: A homogenous stack reduces cognitive load and context-switching. The
 
 ### IV. AI-Centric Development & Rigorous Quality Gates
 
-The codebase MUST be structured for effective collaboration with AI coding assistants. This is supported by MANDATORY quality gates: 100% unit test coverage for the functional core (setup, scripts, and shell are excluded), automated detection of unused code and circular dependencies, and consistent code formatting. Tests are the primary mechanism for validating AI-generated code.
+The codebase MUST be structured for effective collaboration with AI coding assistants. This is supported by MANDATORY quality gates: 100% unit test coverage for the functional core (setup, scripts, and shell are excluded), automated detection of unused code and circular dependencies, and consistent code formatting. Tests, linting and type checking are the primary mechanism for validating AI-generated code.
 _Rationale: AI assistants are treated as core team members. A clear structure, comprehensive tests, and automated quality checks are non-negotiable for leveraging AI safely and effectively, ensuring that generated code is correct and maintainable._
 
 ### V. Schema-Driven End-to-End Type Safety
 
-Data structures MUST be defined using Effect Schemas. These schemas serve as the single source of truth and MUST be shared between the backend API, frontend applications, and for validating data models used by Prisma. The Effect platform's API layer MUST be used to ensure type safety is preserved across network boundaries. OpenAPI specifications MUST be automatically generated from these schemas for consumption by non-TypeScript clients.
+Data structures MUST be defined using Effect or Zod Schemas. These schemas serve as the single source of truth and MUST be shared between the backend API, frontend applications, and for validating data models used by Prisma or the database directly. The schemas MUST be used to ensure type safety is preserved across network boundaries.
 _Rationale: This approach eliminates an entire class of data-related bugs by guaranteeing consistency from the database to the user interface. It makes refactoring safer and provides a clear, enforceable contract for all data interactions._
 
 ### VI. Structured Monorepo & Project Separation
