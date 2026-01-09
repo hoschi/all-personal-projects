@@ -54,8 +54,6 @@ const packageJsonFiles = [
   ...findPackageJsonFiles(join(ROOT_DIR, "apps")),
 ];
 
-const linked: string[] = [];
-
 for (const pkgJsonPath of packageJsonFiles) {
   const pkgDir = dirname(pkgJsonPath);
 
@@ -85,7 +83,7 @@ for (const pkgJsonPath of packageJsonFiles) {
 
       if (existsSync(fullPath)) {
         symlinkSync(fullPath, linkPath);
-        linked.push(`${name} -> ${normalizedPath}`);
+        console.log(`${name} -> ${normalizedPath}`);
       } else {
         console.error(`WARNING: ${fullPath} not found`);
       }
@@ -93,8 +91,4 @@ for (const pkgJsonPath of packageJsonFiles) {
   } catch (error) {
     console.error(`Error processing ${pkgJsonPath}:`, error);
   }
-}
-
-if (linked.length > 0) {
-  console.log(linked.join(", "));
 }
