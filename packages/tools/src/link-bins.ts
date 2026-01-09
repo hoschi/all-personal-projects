@@ -20,7 +20,7 @@ import {
 import { join, dirname } from "path"
 
 // Script is at packages/tools/src/link-bins.ts, root is 3 levels up
-const SCRIPT_PATH = import.meta.filename
+const SCRIPT_PATH = process.argv[1]
 const ROOT_DIR = dirname(dirname(dirname(dirname(SCRIPT_PATH))))
 const BIN_DIR = join(ROOT_DIR, "node_modules/.bin")
 
