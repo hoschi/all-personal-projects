@@ -9,7 +9,7 @@ if (!existsSync("eslint.config.mjs")) {
   console.log("Creating eslint.config.mjs...")
   writeFileSync(
     "eslint.config.mjs",
-    `export { default } from "@repo/eslint-config/base";\n`,
+    `export { config } from "@repo/eslint-config/base";\n`,
   )
 }
 
