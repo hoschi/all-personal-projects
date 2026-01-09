@@ -645,7 +645,7 @@ describe("getForecastData", () => {
     expect(mockGetSettings).toHaveBeenCalled()
   })
 
-  test("should handle combination of edge cases - no snapshot and empty recurring items", async () => {
+  test("should handle edge case - empty recurring items with snapshot and scenarios", async () => {
     // Setup mock return values - Kombination aus Edge Cases
     mockGetLatestAssetSnapshot.mockImplementation(async () =>
       Option.some(createMockAssetSnapshot()),
