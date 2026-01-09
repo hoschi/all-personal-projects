@@ -20,7 +20,7 @@
     "noUncheckedIndexedAccess": false,
     "target": "ES2022",
     "types": [
-      "bun-types"
+      "@types/bun"
     ]
   }
 }

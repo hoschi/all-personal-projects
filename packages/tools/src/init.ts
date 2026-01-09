@@ -23,7 +23,7 @@ if (!existsSync("tsconfig.json")) {
         extends: "@repo/typescript-config/base.json",
         compilerOptions: {
           strict: true,
-          types: ["bun-types"],
+          types: ["@types/bun"],
         },
       },
       null,
