@@ -1,0 +1,11 @@
+{
+  "name": "@repo/tools",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "init": "./src/init.ts"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  }
+}

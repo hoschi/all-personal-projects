@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "check-types": "tsc --noEmit"
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "fix": "eslint --fix . && bun run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo 'no tests'"
   },
   "dependencies": {
     "@effect/platform-bun": "^0.81.1",

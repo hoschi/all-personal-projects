@@ -7,7 +7,11 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "fix": "eslint --fix . && bun run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo 'no tests'"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

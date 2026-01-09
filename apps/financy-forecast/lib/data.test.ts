@@ -7,6 +7,7 @@ import {
   RecurringItemInterval,
   RecurringItem,
   ScenarioItem,
+  Settings,
 } from "./schemas"
 
 // ============================================================================
@@ -65,6 +66,11 @@ const createMockScenarioItem = (
   ...overrides,
 })
 
+const createMockSettings = (overrides = {}): Settings => ({
+  estimatedMonthlyVariableCosts: 50000, // 500.00 EUR in Cents
+  ...overrides,
+})
+
 // ============================================================================
 // Mock Module Setup mit Bun's Native Mock System (Erweitert)
 // ============================================================================
@@ -77,6 +83,7 @@ const mockGetAccounts = mock()
 const mockGetLatestAssetSnapshot = mock()
 const mockGetRecurringItems = mock()
 const mockGetScenarioItems = mock()
+const mockGetSettings = mock()
 
 // Mock module implementation für db.ts
 mock.module("./db", () => ({
@@ -85,8 +92,7 @@ mock.module("./db", () => ({
   getLatestAssetSnapshot: mockGetLatestAssetSnapshot,
   getRecurringItems: mockGetRecurringItems,
   getScenarioItems: mockGetScenarioItems,
-  // Nur die tatsächlich verwendeten Funktionen mocken
-  // Andere Funktionen werden nicht aufgerufen in getMatrixData()
+  getSettings: mockGetSettings,
 }))
 
 // ============================================================================
@@ -359,6 +365,7 @@ describe("getForecastData", () => {
     mockGetLatestAssetSnapshot.mockClear()
     mockGetRecurringItems.mockClear()
     mockGetScenarioItems.mockClear()
+    mockGetSettings.mockClear()
   })
 
   // ========================================================================
@@ -409,6 +416,9 @@ describe("getForecastData", () => {
     )
     mockGetRecurringItems.mockImplementation(async () => mockRecurringItems)
     mockGetScenarioItems.mockImplementation(async () => mockScenarioItems)
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -439,6 +449,7 @@ describe("getForecastData", () => {
     expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
     expect(mockGetRecurringItems).toHaveBeenCalled()
     expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   test("should handle various RecurringItemInterval types correctly", async () => {
@@ -467,6 +478,9 @@ describe("getForecastData", () => {
     )
     mockGetRecurringItems.mockImplementation(async () => mockRecurringItems)
     mockGetScenarioItems.mockImplementation(async () => [])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -505,6 +519,9 @@ describe("getForecastData", () => {
     )
     mockGetRecurringItems.mockImplementation(async () => mockRecurringItems)
     mockGetScenarioItems.mockImplementation(async () => mockScenarioItems)
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -533,6 +550,9 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -540,6 +560,7 @@ describe("getForecastData", () => {
     expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
     expect(mockGetRecurringItems).toHaveBeenCalled()
     expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   test("should return Option.none when recurring items array is empty", async () => {
@@ -551,6 +572,9 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -558,6 +582,7 @@ describe("getForecastData", () => {
     expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
     expect(mockGetRecurringItems).toHaveBeenCalled()
     expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   test("should return Option.none when recurring items array length is 0", async () => {
@@ -567,10 +592,14 @@ describe("getForecastData", () => {
     )
     mockGetRecurringItems.mockImplementation(async () => []) // Array.length = 0
     mockGetScenarioItems.mockImplementation(async () => [])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
     expect(Option.isNone(result)).toBe(true)
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   test("should handle empty scenario items array gracefully", async () => {
@@ -582,6 +611,9 @@ describe("getForecastData", () => {
       createMockRecurringItem(),
     ])
     mockGetScenarioItems.mockImplementation(async () => []) // Leeres Array
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -595,6 +627,7 @@ describe("getForecastData", () => {
     expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
     expect(mockGetRecurringItems).toHaveBeenCalled()
     expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   test("should handle combination of edge cases - no snapshot and empty recurring items", async () => {
@@ -602,13 +635,17 @@ describe("getForecastData", () => {
     mockGetLatestAssetSnapshot.mockImplementation(async () => Option.none())
     mockGetRecurringItems.mockImplementation(async () => [])
     mockGetScenarioItems.mockImplementation(async () => [])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
     expect(Option.isNone(result)).toBe(true)
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
-  test("should handle combination of edge cases - no snapshot and empty recurring items", async () => {
+  test("should handle edge case - empty recurring items with snapshot and scenarios", async () => {
     // Setup mock return values - Kombination aus Edge Cases
     mockGetLatestAssetSnapshot.mockImplementation(async () =>
       Option.some(createMockAssetSnapshot()),
@@ -617,10 +654,35 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ]) // has scenarios
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
     expect(Option.isNone(result)).toBe(true) // Still returns none because recurring items are empty
+    expect(mockGetSettings).toHaveBeenCalled()
+  })
+
+  test("should return Option.none when getSettings returns Option.none", async () => {
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
+      Option.some(createMockAssetSnapshot()),
+    )
+    mockGetRecurringItems.mockImplementation(async () => [
+      createMockRecurringItem(),
+    ])
+    mockGetScenarioItems.mockImplementation(async () => [
+      createMockScenarioItem(),
+    ])
+    mockGetSettings.mockImplementation(async () => Option.none())
+
+    const result = await getForecastData()
+
+    expect(Option.isNone(result)).toBe(true)
+    expect(mockGetLatestAssetSnapshot).toHaveBeenCalled()
+    expect(mockGetRecurringItems).toHaveBeenCalled()
+    expect(mockGetScenarioItems).toHaveBeenCalled()
+    expect(mockGetSettings).toHaveBeenCalled()
   })
 
   // ========================================================================
@@ -638,6 +700,9 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     await expect(getForecastData()).rejects.toThrow(
       "Database connection failed",
@@ -654,6 +719,9 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     await expect(getForecastData()).rejects.toThrow(
       "Database connection failed",
@@ -668,6 +736,28 @@ describe("getForecastData", () => {
       createMockRecurringItem(),
     ])
     mockGetScenarioItems.mockImplementation(async () => {
+      throw new Error("Database connection failed")
+    })
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
+
+    await expect(getForecastData()).rejects.toThrow(
+      "Database connection failed",
+    )
+  })
+
+  test("should handle database connection error in getSettings", async () => {
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
+      Option.some(createMockAssetSnapshot()),
+    )
+    mockGetRecurringItems.mockImplementation(async () => [
+      createMockRecurringItem(),
+    ])
+    mockGetScenarioItems.mockImplementation(async () => [
+      createMockScenarioItem(),
+    ])
+    mockGetSettings.mockImplementation(async () => {
       throw new Error("Database connection failed")
     })
 
@@ -695,6 +785,9 @@ describe("getForecastData", () => {
     )
     mockGetRecurringItems.mockImplementation(async () => mockRecurringItems)
     mockGetScenarioItems.mockImplementation(async () => mockScenarioItems)
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 
@@ -737,6 +830,9 @@ describe("getForecastData", () => {
     mockGetScenarioItems.mockImplementation(async () => [
       createMockScenarioItem(),
     ])
+    mockGetSettings.mockImplementation(async () =>
+      Option.some(createMockSettings()),
+    )
 
     const result = await getForecastData()
 

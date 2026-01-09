@@ -1,16 +1,17 @@
 {
-  "name": "financy-forecast",
+  "name": "@repo/financy-forecast",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3056",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
     "check-types": "tsc --noEmit",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "fix": "eslint --fix . && bun run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "bun test"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

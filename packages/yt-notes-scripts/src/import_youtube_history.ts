@@ -143,7 +143,7 @@ const main = async (): Promise<number> => {
   }
 
   const client = new Client({ connectionString: process.env.DATABASE_URL })
-  let totalStats = {
+  const totalStats = {
     successful: 0,
     failed: 0,
     duplicates: 0,
