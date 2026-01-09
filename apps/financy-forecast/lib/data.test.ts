@@ -665,12 +665,16 @@ describe("getForecastData", () => {
   })
 
   test("should return Option.none when getSettings returns Option.none", async () => {
-    mockGetLatestAssetSnapshot.mockReturnValue(
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
       Option.some(createMockAssetSnapshot()),
     )
-    mockGetRecurringItems.mockReturnValue([createMockRecurringItem()])
-    mockGetScenarioItems.mockReturnValue([createMockScenarioItem()])
-    mockGetSettings.mockReturnValue(Option.none())
+    mockGetRecurringItems.mockImplementation(async () => [
+      createMockRecurringItem(),
+    ])
+    mockGetScenarioItems.mockImplementation(async () => [
+      createMockScenarioItem(),
+    ])
+    mockGetSettings.mockImplementation(async () => Option.none())
 
     const result = await getForecastData()
 
@@ -737,6 +741,25 @@ describe("getForecastData", () => {
     mockGetSettings.mockImplementation(async () =>
       Option.some(createMockSettings()),
     )
+
+    await expect(getForecastData()).rejects.toThrow(
+      "Database connection failed",
+    )
+  })
+
+  test("should handle database connection error in getSettings", async () => {
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
+      Option.some(createMockAssetSnapshot()),
+    )
+    mockGetRecurringItems.mockImplementation(async () => [
+      createMockRecurringItem(),
+    ])
+    mockGetScenarioItems.mockImplementation(async () => [
+      createMockScenarioItem(),
+    ])
+    mockGetSettings.mockImplementation(async () => {
+      throw new Error("Database connection failed")
+    })
 
     await expect(getForecastData()).rejects.toThrow(
       "Database connection failed",
