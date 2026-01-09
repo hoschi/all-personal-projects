@@ -1,14 +1,9 @@
-//  @ts-check
-
 import { tanstackConfig } from "@tanstack/eslint-config"
 
-/**
- * A shared ESLint configuration for the repository.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
+//console.log(tanstackConfig)
+
 export default [
-  ...tanstackConfig,
+  //...tanstackConfig,
   {
     ignores: [".output/"],
   },
