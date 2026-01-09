@@ -11,11 +11,10 @@
 import { existsSync, mkdirSync, readFileSync, symlinkSync, unlinkSync, readdirSync, lstatSync } from "fs";
 import { join, dirname } from "path";
 
-// Use script path to determine root dir (works from any cwd)
-const SCRIPT_PATH = process.argv[1] ?? import.meta.filename;
-const SCRIPT_DIR = dirname(SCRIPT_PATH);
-const ROOT_DIR = SCRIPT_DIR;
-const BIN_DIR = "node_modules/.bin";
+// Script is at packages/tools/src/link-bins.ts, root is 3 levels up
+const SCRIPT_PATH = import.meta.filename;
+const ROOT_DIR = dirname(dirname(dirname(dirname(SCRIPT_PATH))));
+const BIN_DIR = join(ROOT_DIR, "node_modules/.bin");
 
 // Create bin directory if it doesn't exist
 if (!existsSync(BIN_DIR)) {
@@ -85,8 +84,7 @@ for (const pkgJsonPath of packageJsonFiles) {
       }
 
       if (existsSync(fullPath)) {
-        const absoluteFullPath = join(ROOT_DIR, fullPath);
-        symlinkSync(absoluteFullPath, linkPath);
+        symlinkSync(fullPath, linkPath);
         linked.push(`${name} -> ${normalizedPath}`);
       } else {
         console.error(`WARNING: ${fullPath} not found`);
