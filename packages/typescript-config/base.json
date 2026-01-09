@@ -6,7 +6,11 @@
     "esModuleInterop": true,
     "incremental": false,
     "isolatedModules": true,
-    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "es2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "NodeNext",
     "moduleDetection": "force",
     "moduleResolution": "NodeNext",
@@ -15,6 +19,8 @@
     "strict": true,
     "noUncheckedIndexedAccess": false,
     "target": "ES2022",
-    "types": ["bun-types"]
+    "types": [
+      "bun-types"
+    ]
   }
 }
