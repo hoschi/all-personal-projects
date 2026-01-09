@@ -10,7 +10,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
-    "fix": "eslint --fix . && bun run format",
+    "fix": "bun run format && eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
