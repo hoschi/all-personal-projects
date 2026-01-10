@@ -1,95 +1,97 @@
-import { Item, ItemId, ItemUpdateData } from './schema';
+import { Item, ItemId, ItemUpdateData } from "./schema"
 
 export const CATEGORIES = {
-    KITCHEN: 'KITCHEN',
-    ELECTRONICS: 'ELECTRONICS',
-    BATHROOM: 'BATHROOM',
-    LIVING_ROOM: 'LIVING_ROOM',
-    OFFICE: 'OFFICE',
-} as const;
+  KITCHEN: "KITCHEN",
+  ELECTRONICS: "ELECTRONICS",
+  BATHROOM: "BATHROOM",
+  LIVING_ROOM: "LIVING_ROOM",
+  OFFICE: "OFFICE",
+} as const
 
 export function getItems(): Item[] {
-    return [...stock].sort(({ title: titleA }, { title: titleB }) => titleA.localeCompare(titleB))
+  return [...stock].sort(({ title: titleA }, { title: titleB }) =>
+    titleA.localeCompare(titleB),
+  )
 }
 
 export function updateItem(id: ItemId, data: ItemUpdateData) {
-    const i = stock.findIndex(({ id: itemId }) => id === itemId)
-    if (i < 0) {
-        throw new Error(`Uknown item: ${id}`)
-    }
+  const i = stock.findIndex(({ id: itemId }) => id === itemId)
+  if (i < 0) {
+    throw new Error(`Uknown item: ${id}`)
+  }
 
-    stock[i] = { ...stock[i], ...data }
+  stock[i] = { ...stock[i], ...data }
 }
 
 const stock: Item[] = [
-    {
-        id: 1,
-        title: 'Shelf',
-        hasDiscount: false,
-        basePrice: 1000,
-        category: CATEGORIES.KITCHEN,
-    },
-    {
-        id: 2,
-        title: 'Toaster',
-        hasDiscount: true,
-        basePrice: 2500,
-        category: CATEGORIES.KITCHEN,
-    },
-    {
-        id: 3,
-        title: 'Laptop',
-        hasDiscount: false,
-        basePrice: 120000,
-        category: CATEGORIES.ELECTRONICS,
-    },
-    {
-        id: 4,
-        title: 'Headphones',
-        hasDiscount: true,
-        basePrice: 15000,
-        category: CATEGORIES.ELECTRONICS,
-    },
-    {
-        id: 5,
-        title: 'Shower Curtain',
-        hasDiscount: false,
-        basePrice: 2000,
-        category: CATEGORIES.BATHROOM,
-    },
-    {
-        id: 6,
-        title: 'Towel Rack',
-        hasDiscount: true,
-        basePrice: 3000,
-        category: CATEGORIES.BATHROOM,
-    },
-    {
-        id: 7,
-        title: 'Sofa',
-        hasDiscount: false,
-        basePrice: 50000,
-        category: CATEGORIES.LIVING_ROOM,
-    },
-    {
-        id: 8,
-        title: 'Coffee Table',
-        hasDiscount: true,
-        basePrice: 15000,
-        category: CATEGORIES.LIVING_ROOM,
-    },
-    {
-        id: 9,
-        title: 'Desk Chair',
-        hasDiscount: false,
-        basePrice: 10000,
-        category: CATEGORIES.OFFICE,
-    },
-    {
-        id: 10,
-        title: 'Monitor Stand',
-        hasDiscount: true,
-        basePrice: 5000,
-        category: CATEGORIES.OFFICE,
-    },
-];
+  {
+    id: 1,
+    title: "Shelf",
+    hasDiscount: false,
+    basePrice: 1000,
+    category: CATEGORIES.KITCHEN,
+  },
+  {
+    id: 2,
+    title: "Toaster",
+    hasDiscount: true,
+    basePrice: 2500,
+    category: CATEGORIES.KITCHEN,
+  },
+  {
+    id: 3,
+    title: "Laptop",
+    hasDiscount: false,
+    basePrice: 120000,
+    category: CATEGORIES.ELECTRONICS,
+  },
+  {
+    id: 4,
+    title: "Headphones",
+    hasDiscount: true,
+    basePrice: 15000,
+    category: CATEGORIES.ELECTRONICS,
+  },
+  {
+    id: 5,
+    title: "Shower Curtain",
+    hasDiscount: false,
+    basePrice: 2000,
+    category: CATEGORIES.BATHROOM,
+  },
+  {
+    id: 6,
+    title: "Towel Rack",
+    hasDiscount: true,
+    basePrice: 3000,
+    category: CATEGORIES.BATHROOM,
+  },
+  {
+    id: 7,
+    title: "Sofa",
+    hasDiscount: false,
+    basePrice: 50000,
+    category: CATEGORIES.LIVING_ROOM,
+  },
+  {
+    id: 8,
+    title: "Coffee Table",
+    hasDiscount: true,
+    basePrice: 15000,
+    category: CATEGORIES.LIVING_ROOM,
+  },
+  {
+    id: 9,
+    title: "Desk Chair",
+    hasDiscount: false,
+    basePrice: 10000,
+    category: CATEGORIES.OFFICE,
+  },
+  {
+    id: 10,
+    title: "Monitor Stand",
+    hasDiscount: true,
+    basePrice: 5000,
+    category: CATEGORIES.OFFICE,
+  },
+]

@@ -1,5 +1,5 @@
-import { Spinner } from "./ui/spinner";
+import { Spinner } from "./ui/spinner"
 
 export function LoadingIndi() {
-    return <Spinner className="size-6" />
+  return <Spinner className="size-6" />
 }
