@@ -13,7 +13,6 @@ import { Route as ListRouteImport } from './routes/list'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
@@ -38,11 +37,6 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
-  id: '/demo/start/server-funcs',
-  path: '/demo/start/server-funcs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoStartApiRequestRoute = DemoStartApiRequestRouteImport.update({
@@ -78,7 +72,6 @@ export interface FileRoutesByFullPath {
   '/list': typeof ListRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/list': typeof ListRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/list': typeof ListRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
-  '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
   '/demo/start/ssr/': typeof DemoStartSsrIndexRoute
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/list'
     | '/demo/api/names'
     | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr'
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/list'
     | '/demo/api/names'
     | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr'
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/list'
     | '/demo/api/names'
     | '/demo/start/api-request'
-    | '/demo/start/server-funcs'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
     | '/demo/start/ssr/'
@@ -154,7 +142,6 @@ export interface RootRouteChildren {
   ListRoute: typeof ListRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
-  DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
   DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
   DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
   DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
@@ -188,13 +175,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo/start/server-funcs': {
-      id: '/demo/start/server-funcs'
-      path: '/demo/start/server-funcs'
-      fullPath: '/demo/start/server-funcs'
-      preLoaderRoute: typeof DemoStartServerFuncsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/start/api-request': {
@@ -242,7 +222,6 @@ const rootRouteChildren: RootRouteChildren = {
   ListRoute: ListRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
-  DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
   DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
   DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
   DemoStartSsrIndexRoute: DemoStartSsrIndexRoute,
