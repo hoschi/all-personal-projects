@@ -1,7 +1,6 @@
-import { Switch } from "@/components/ui/switch"
-import { getListItems, setDiscount } from "@/data/actions"
-import { Item } from "@/data/schema"
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { ListItem } from "@/components/ListItem"
+import { getListItems } from "@/data/actions"
+import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/list")({
   component: RouteComponent,
@@ -12,25 +11,12 @@ export const Route = createFileRoute("/list")({
 })
 
 function RouteComponent() {
-  const router = useRouter()
   const { items } = Route.useLoaderData()
-  const toggleDiscount = async (item: Item) => {
-    await setDiscount({ data: { hasDiscount: !item.hasDiscount, id: item.id } })
-    router.invalidate()
-  }
 
   return (
     <div>
       {items.map((item) => (
-        <div className="bg-gray-300 p-2 m-2" key={item.id}>
-          <Switch
-            checked={item.hasDiscount}
-            className="mr-2"
-            onCheckedChange={() => toggleDiscount(item)}
-          />
-          {item.title}
-          <span className="ml-3 text-muted">{item.category}</span>
-        </div>
+        <ListItem key={item.id} item={item} />
       ))}
     </div>
   )

@@ -1,4 +1,4 @@
-import { useRouterState } from "@tanstack/react-router"
+import { Link, useRouterState } from "@tanstack/react-router"
 import { Spinner } from "./ui/spinner"
 
 export default function Header() {
@@ -6,7 +6,7 @@ export default function Header() {
 
   return (
     <div>
-      hello
+      <span className="text-2xl">Switch Test</span>
       <span>
         {/* Show a global spinner when the router is transitioning */}
         <span
@@ -17,6 +17,11 @@ export default function Header() {
           <Spinner />
         </span>
       </span>
+      <div className="flex gap-2">
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/list">List</Link>
+        <Link to="/categories">Categories</Link>
+      </div>
     </div>
   )
 }
