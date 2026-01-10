@@ -1,10 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getItems, updateItem } from "./db";
+import { Item } from "./schema";
 
 export const getListItems = createServerFn().handler(async () => await getItems())
 
+export const SetDiscountInput = Item.pick({ id: true, hasDiscount: true })
 export const setDiscount = createServerFn({ method: "POST" })
-    .inputValidator((d) => d) // TODO use (sub) schema from schemas file to validate that `d` is the data the handler gets as arguments
-    .handler(async ({ id, hasDiscount }) => {
+    .inputValidator(SetDiscountInput.parse)
+    .handler(async ({ data }) => {
+        const { id, hasDiscount } = data
         updateItem(id, { hasDiscount })
     })

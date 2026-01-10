@@ -1,4 +1,4 @@
-import { Item } from './schema';
+import { Item, ItemId, ItemUpdateData } from './schema';
 
 export const CATEGORIES = {
     KITCHEN: 'KITCHEN',
@@ -12,7 +12,7 @@ export function getItems(): Item[] {
     return [...stock].sort(({ title: titleA }, { title: titleB }) => titleA.localeCompare(titleB))
 }
 
-export function updateItem(id, data) {
+export function updateItem(id: ItemId, data: ItemUpdateData) {
     const i = stock.findIndex(({ id: itemId }) => id === itemId)
     if (i < 0) {
         throw new Error(`Uknown item: ${id}`)
