@@ -1,6 +1,5 @@
 import { Item } from './schema';
 
-// Erweiterte Kategorien (bestehende + 3 neue: BATHROOM, LIVING_ROOM, OFFICE)
 export const CATEGORIES = {
     KITCHEN: 'KITCHEN',
     ELECTRONICS: 'ELECTRONICS',
@@ -13,7 +12,15 @@ export function getItems(): Item[] {
     return [...stock].sort(({ title: titleA }, { title: titleB }) => titleA.localeCompare(titleB))
 }
 
-// Beispiel-Stock-Array mit 10 Items
+export function updateItem(id, data) {
+    const i = stock.findIndex(({ id: itemId }) => id === itemId)
+    if (i < 0) {
+        throw new Error(`Uknown item: ${id}`)
+    }
+
+    stock[i] = { ...stock[i], ...data }
+}
+
 const stock: Item[] = [
     {
         id: 1,
