@@ -2,8 +2,6 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "strict": true,
-    "types": [
-      "@types/bun"
-    ]
+    "types": ["@types/bun"]
   }
 }

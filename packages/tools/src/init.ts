@@ -42,7 +42,7 @@ if (existsSync("package.json")) {
     ...packageJson.scripts,
     lint: "eslint .",
     "check-types": "tsc --noEmit",
-    fix: "eslint --fix .",
+    fix: "eslint --fix .; bun run format",
     format: "prettier --write .",
     "format:check": "prettier --check .",
     test: "echo 'no tests'",
