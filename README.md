@@ -38,7 +38,7 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Init new project
 
-- `bun run init` - Initialize ESLint and TypeScript configuration
+- `bun run initproject` - Initialize ESLint and TypeScript configuration
 
 ## Daily Work
 
