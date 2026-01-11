@@ -32,6 +32,7 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Init from fresh clone
 
+- run `bun run packages/tools/src/link-bins.ts` to link bins correctly, Bun has a bug and `bun install` doesn't always work
 - see `./packages/db/README.md`
 - copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
 

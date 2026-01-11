@@ -3,9 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "init": "./src/init.ts"
+    "initproject": "./src/init.ts"
   },
   "exports": {
     "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "fix": "eslint --fix .; bun run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo 'no tests'"
   }
 }
