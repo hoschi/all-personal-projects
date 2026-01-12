@@ -10,11 +10,13 @@ export function ListItem({ item }: { item: Item }) {
   // NOTICE: This shows a spinner ONLY till the request to the server is pending. After this the page reloads the data which does NOT show a pending state!
   const [isPending, startTransition] = useTransition()
   const toggleDiscount = (item: Item) => {
+    console.log(`## upaditng item: ${item.id}`)
     startTransition(async () => {
       await setDiscount({
         data: { hasDiscount: !item.hasDiscount, id: item.id },
       })
       router.invalidate()
+      console.log(`## item: ${item.id} updated`)
     })
   }
   return (

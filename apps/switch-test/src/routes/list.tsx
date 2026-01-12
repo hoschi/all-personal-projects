@@ -5,7 +5,9 @@ import { createFileRoute } from "@tanstack/react-router"
 export const Route = createFileRoute("/list")({
   component: RouteComponent,
   loader: async () => {
+    console.log("## loading LIST data")
     const listItems = await getListItems()
+    console.log("## LIST data loaded")
     return { items: listItems }
   },
 })

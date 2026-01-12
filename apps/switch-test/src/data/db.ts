@@ -1,4 +1,5 @@
 import { Item, ItemId, ItemUpdateData } from "./schema"
+import { groupBy, prop } from "ramda"
 
 export const CATEGORIES = {
   KITCHEN: "KITCHEN",
@@ -8,19 +9,32 @@ export const CATEGORIES = {
   OFFICE: "OFFICE",
 } as const
 
-export function getItems(): Item[] {
+export async function getItems(): Promise<Item[]> {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
   return [...stock].sort(({ title: titleA }, { title: titleB }) =>
     titleA.localeCompare(titleB),
   )
 }
 
-export function updateItem(id: ItemId, data: ItemUpdateData) {
+type ItemMap = Record<string, Item[]>
+
+export async function getItemsByCategory(): Promise<ItemMap> {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  return groupBy(prop("category"), stock)
+}
+
+export async function updateItem(id: ItemId, data: ItemUpdateData) {
+  console.log(`## upaditng item: ${id} (DB)`)
+  await new Promise((resolve) => setTimeout(resolve, 3000))
+
   const i = stock.findIndex(({ id: itemId }) => id === itemId)
   if (i < 0) {
     throw new Error(`Uknown item: ${id}`)
   }
 
   stock[i] = { ...stock[i], ...data }
+  console.log(`## item: ${id} updated (DB)`)
 }
 
 const stock: Item[] = [

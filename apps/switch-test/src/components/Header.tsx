@@ -18,7 +18,7 @@ export default function Header() {
         </span>
       </span>
       <div className="flex gap-2">
-        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/">Home</Link>
         <Link to="/list">List</Link>
         <Link to="/categories">Categories</Link>
       </div>
