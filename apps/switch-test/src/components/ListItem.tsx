@@ -7,7 +7,6 @@ import { useTransition } from "react"
 
 export function ListItem({ item }: { item: Item }) {
   const router = useRouter()
-  // NOTICE: This shows a spinner ONLY till the request to the server is pending. After this the page reloads the data which does NOT show a pending state!
   const [isPending, startTransition] = useTransition()
   const toggleDiscount = (item: Item) => {
     console.log(`## upaditng item: ${item.id}`)
@@ -20,13 +19,13 @@ export function ListItem({ item }: { item: Item }) {
     })
   }
   return (
-    <div className="bg-gray-300 p-2 m-2">
+    <div className="bg-gray-300 p-2 m-2 flex">
       <Switch
         checked={item.hasDiscount}
         className="mr-2 inline-block"
         onCheckedChange={() => toggleDiscount(item)}
       />
-      {isPending && <Spinner />}
+      {isPending && <Spinner className="mr-1" />}
       {item.title}
       <span className="ml-3 text-muted">{item.category}</span>
     </div>

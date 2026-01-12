@@ -26,7 +26,7 @@ export async function getItemsByCategory(): Promise<ItemMap> {
 
 export async function updateItem(id: ItemId, data: ItemUpdateData) {
   console.log(`## upaditng item: ${id} (DB)`)
-  await new Promise((resolve) => setTimeout(resolve, 3000))
+  await new Promise((resolve) => setTimeout(resolve, 5000))
 
   const i = stock.findIndex(({ id: itemId }) => id === itemId)
   if (i < 0) {

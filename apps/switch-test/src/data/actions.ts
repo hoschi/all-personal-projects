@@ -15,5 +15,5 @@ export const setDiscount = createServerFn({ method: "POST" })
   .inputValidator(SetDiscountInput.parse)
   .handler(async ({ data }) => {
     const { id, hasDiscount } = data
-    updateItem(id, { hasDiscount })
+    await updateItem(id, { hasDiscount })
   })
