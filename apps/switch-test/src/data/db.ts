@@ -30,7 +30,7 @@ export async function updateItem(id: ItemId, data: ItemUpdateData) {
 
   const i = stock.findIndex(({ id: itemId }) => id === itemId)
   if (i < 0) {
-    throw new Error(`Uknown item: ${id}`)
+    throw new Error(`Unknown item: ${id}`)
   }
 
   stock[i] = { ...stock[i], ...data }
