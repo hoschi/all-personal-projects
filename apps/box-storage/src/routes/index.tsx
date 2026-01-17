@@ -6,5 +6,5 @@ export const Route = createFileRoute("/")({
 })
 
 function RouteComponent() {
-  return <div className="mt-4">Login</div>
+  return <div className="mt-4">Unauthenticated space to login.</div>
 }

@@ -19,7 +19,10 @@ export const getListItems = createServerFn()
   .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
   .handler(async ({ data }) => {
     const { filters = {} } = data || {}
-    return await getItems({ currentUserId: "user1", ...filters })
+    return await getItems({
+      currentUserId: "550e8400-e29b-41d4-a716-446655440001",
+      ...filters,
+    })
   })
 
 export const getHierarchicalViewData = createServerFn().handler(
@@ -27,12 +30,12 @@ export const getHierarchicalViewData = createServerFn().handler(
 )
 
 export const getDashboardDataFn = createServerFn().handler(
-  async () => await getDashboardData("user1"),
+  async () => await getDashboardData("550e8400-e29b-41d4-a716-446655440001"),
 )
 
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ itemId: z.string().uuid() }).parse)
+  .inputValidator(z.object({ itemId: z.uuid() }).parse)
   .handler(async ({ data }) => {
     const { itemId } = data
-    await toggleItemInMotion(itemId, "user1")
+    await toggleItemInMotion(itemId, "550e8400-e29b-41d4-a716-446655440001")
   })
