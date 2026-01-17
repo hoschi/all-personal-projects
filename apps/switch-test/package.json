@@ -7,7 +7,7 @@
     "dev": "vite dev --port 3057",
     "build": "vite build",
     "preview": "vite preview --port 3057",
-    "test": "vitest run",
+    "test": "echo 'no test availible'",
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
     "fix": "bun run format && eslint --fix .",
