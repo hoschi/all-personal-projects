@@ -18,7 +18,15 @@
 - **Problem**: dotenv lädt standardmäßig `.env`, nicht `.env.example`
 - **Lösung**: `cp .env.example .env` ausführen falls `.env` nicht verfügbar oder `.env` lesen um zu überprüfen ob alle benötigten Keys verfügbar sind
 
----
+## Frontend Applikationen
+
+### shadcn instructions
+
+Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, beispielsweise diesen Befehl, um eine Button Komponente hinzuzufügen:
+
+```bash
+bunx shadcn@latest add button
+```
 
 ## 🗄️ PostgreSQL-spezifische Erkenntnisse
 

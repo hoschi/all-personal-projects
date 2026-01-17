@@ -5,3 +5,4 @@ coverage
 *.min.js
 .turbo
 .next
+.output
