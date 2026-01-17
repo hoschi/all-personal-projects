@@ -8,11 +8,12 @@ This monorepo contains various personal projects including financial forecasting
   - Forecast calculations and visualization
   - Scenario management
   - Settings and configuration
+- [box-storage](/apps/box-storage/README.md) - TODO
 
 ### Tests
 
 - [rest-server](/apps/rest-server/README.md) - Effet-based REST API server, combines services from package directory
-- [switch-test](/apps/switch-test/README.md) - TanStack Start test: data loading logic and pending UI when editing the same entities in multiple places 
+- [switch-test](/apps/switch-test/README.md) - TanStack Start test: data loading logic and pending UI when editing the same entities in multiple places
 
 ## Packages
 

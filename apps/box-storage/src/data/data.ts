@@ -1,4 +1,4 @@
-import { Item, ItemId, ItemUpdateData } from "./schema"
+/* import { Item, ItemId, ItemUpdateData } from "./schema"
 import { groupBy, prop } from "ramda"
 
 export const CATEGORIES = {
@@ -109,3 +109,5 @@ const stock: Item[] = [
     category: CATEGORIES.OFFICE,
   },
 ]
+ */
+// TODO fake data to simulate Strap / Database / ...

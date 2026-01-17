@@ -1,5 +1,5 @@
-import z from "zod"
-import { CATEGORIES } from "./db"
+/* import z from "zod"
+import { CATEGORIES } from "./data"
 
 export const ItemId = z.number().int().positive().describe("Integer ID")
 export type ItemId = z.infer<typeof ItemId>
@@ -19,3 +19,5 @@ export type Item = z.infer<typeof Item>
 
 const ItemUpdateData = Item.omit({ id: true }).partial()
 export type ItemUpdateData = z.infer<typeof ItemUpdateData>
+ */
+// TODO zod schema for the data used in frontend

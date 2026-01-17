@@ -6,7 +6,7 @@ export default function Header() {
 
   return (
     <div>
-      <span className="text-2xl">Switch Test</span>
+      <span className="text-2xl">Box Storage</span>
       <span>
         {/* Show a global spinner when the router is transitioning */}
         <span
@@ -18,9 +18,8 @@ export default function Header() {
         </span>
       </span>
       <div className="flex gap-2">
-        <Link to="/">Home</Link>
-        <Link to="/list">List</Link>
-        <Link to="/categories">Categories</Link>
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/table-view">Items</Link>
       </div>
     </div>
   )
