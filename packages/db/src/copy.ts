@@ -311,7 +311,7 @@ async function restoreSchema(
   // Check if backup file exists
   try {
     readFileSync(backupFile, "utf8")
-  } catch (error) {
+  } catch {
     console.error(
       `Error: Backup file '${backupFile}' not found or not readable`,
     )
@@ -340,7 +340,7 @@ async function restoreSchema(
       },
     )
     console.log(`✅ Schema '${schema}' successfully deleted`)
-  } catch (error) {
+  } catch {
     console.log(
       `ℹ️ Schema '${schema}' did not exist or could not be deleted (possibly already empty)`,
     )
@@ -440,7 +440,7 @@ async function copySchema(
   // 3. Delete temporary file
   try {
     unlinkSync(TEMP_DUMP_FILE)
-  } catch (error) {
+  } catch {
     // Ignore if file does not exist
   }
 
