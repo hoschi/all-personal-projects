@@ -1,4 +1,4 @@
-import { Effect, pipe, Duration, Data, String, Stream, Console } from "effect"
+import { Effect, pipe, Duration, Data, String, Stream } from "effect"
 import { Command as CliCommand, Args } from "@effect/cli"
 import { Command } from "@effect/platform"
 import { FileSystem } from "@effect/platform"
@@ -71,7 +71,7 @@ const executeYtDlp = (videoId: string) =>
     )
 
     //const output: string = yield* Command.string(command)
-    const [exitCode, stdout, stderr] = yield* pipe(
+    const [, stdout, stderr] = yield* pipe(
       // Start running the command and return a handle to the running process
       Command.start(command),
       Effect.flatMap((process) =>

@@ -111,7 +111,7 @@ const logWarn = (msg: string) => console.warn("\x1b[33m[WARN]\x1b[0m", msg)
 const logErr = (msg: string) => console.error("\x1b[31m[ERR]\x1b[0m", msg)
 
 const main = async (): Promise<number> => {
-  const [_, __, folder] = process.argv
+  const [, , folder] = process.argv
   if (!folder) {
     logErr("Ordnername fehlt als Argument.")
     return 2

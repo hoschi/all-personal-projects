@@ -7,7 +7,7 @@ import {
   HttpApiSchema,
 } from "@effect/platform"
 import { client } from "@repo/db/client"
-import { Effect, Either, Layer, Schema, Option } from "effect"
+import { Effect, Layer, Schema } from "effect"
 
 class Video extends Schema.Class<Video>("Video")({
   id: Schema.Number,
@@ -30,10 +30,6 @@ const fakeDb: Record<number, Video> = [
 console.log("videos", fakeDb)
 console.log("connection?", process.env.DATABASE_URL)
 
-const f = async () => {
-  const videos = await client.video.findMany()
-}
-
 const getVideos = HttpApiEndpoint.get("getVideos", "/Videos")
   .addSuccess(Schema.Array(Video))
   .addError(HttpApiError.NotFound)
@@ -55,18 +51,18 @@ const VideoLive = HttpApiBuilder.group(VideoApi, "Videos", (handlers) =>
       ),
     )
     .handle("getVideos", () =>
-      // @ts-ignore FIXME
+      // @ts-expect-error FIXME
       Effect.gen(function* () {
         console.log("hello?", process.env.DATABASE_URL)
         const videos = yield* Effect.promise(() => client.video.findMany())
         console.log(videos)
-        // @ts-ignore FIXME!
+        // @ts-expect-error FIXME!
         return yield* Effect.forEach(videos, (video) =>
           Schema.decodeUnknown(Video)(video, {
             onExcessProperty: "error",
           }).pipe(
             Effect.tap((x) => Effect.logInfo(x)),
-            Effect.mapError((parseError) => new HttpApiError.NotFound()),
+            Effect.mapError(() => new HttpApiError.NotFound()),
           ),
         )
       }),
