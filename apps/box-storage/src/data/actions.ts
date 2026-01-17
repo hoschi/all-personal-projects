@@ -1,21 +1,38 @@
-/* import { createServerFn } from "@tanstack/react-start"
-import { getItems, getItemsByCategory, updateItem } from "./db"
-import { Item } from "./schema"
+import { createServerFn } from "@tanstack/react-start"
+import { z } from "zod"
+import {
+  getItems,
+  getHierarchicalData,
+  getDashboardData,
+  toggleItemInMotion,
+} from "./data"
 
-export const getListItems = createServerFn().handler(
-  async () => await getItems(),
-)
-
-export const getCategoryViewData = createServerFn().handler(
-  async () => await getItemsByCategory(),
-)
-
-export const SetDiscountInput = Item.pick({ id: true, hasDiscount: true })
-export const setDiscount = createServerFn({ method: "POST" })
-  .inputValidator(SetDiscountInput.parse)
-  .handler(async ({ data }) => {
-    const { id, hasDiscount } = data
-    await updateItem(id, { hasDiscount })
+const filtersSchema = z
+  .object({
+    searchText: z.string().optional(),
+    locationFilter: z.string().optional(),
+    statusFilter: z.string().optional(),
   })
- */
-// TODO implement server functions to access data via data.ts
+  .optional()
+
+export const getListItems = createServerFn()
+  .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
+  .handler(async ({ data }) => {
+    const { filters = {} } = data || {}
+    return await getItems({ currentUserId: "user1", ...filters })
+  })
+
+export const getHierarchicalViewData = createServerFn().handler(
+  async () => await getHierarchicalData(),
+)
+
+export const getDashboardDataFn = createServerFn().handler(
+  async () => await getDashboardData("user1"),
+)
+
+export const toggleItemInMotionFn = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ itemId: z.string().uuid() }).parse)
+  .handler(async ({ data }) => {
+    const { itemId } = data
+    await toggleItemInMotion(itemId, "user1")
+  })
