@@ -18,7 +18,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Switch Test",
+        title: "Box Storage",
       },
     ],
     links: [

@@ -10,8 +10,6 @@ export const getRouter = () => {
     routeTree,
     context: {},
     defaultPendingComponent: LoadingIndi,
-    defaultPendingMinMs: 10,
-    defaultPendingMs: 10,
 
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,

@@ -8,6 +8,7 @@ This monorepo contains various personal projects including financial forecasting
   - Forecast calculations and visualization
   - Scenario management
   - Settings and configuration
+- [box-storage](/apps/box-storage/README.md) - TODO
 
 ### Tests
 
