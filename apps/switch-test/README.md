@@ -1,27 +1,27 @@
 # Switch Test
 
-Dies Testet wie Tanstack Start Server Functions Implementation mit dem Caching Problem in NextJs umgeht und wie die UI für "read-your-own-write" Szenarios aussieht.
+This tests how Tanstack Start Server Functions implementation handles the caching problem in NextJs and how the UI looks for "read-your-own-write" scenarios.
 
-Kurzbeschreibung des Problems mit Next v16 (Stand Januar 2026): Die neuen Caching Mechanismen funktionieren nicht wenn der Client ein schlechtes Netzwerk hat. Das ist problematisch da man dies nicht kontrollieren kann. [Ausführliche Problembeschriebung](../financy-forecast/bug.md).
+Brief description of the problem with Next v16 (as of January 2026): The new caching mechanisms don't work when the client has a poor network. This is problematic since you can't control that. [Detailed problem description](../financy-forecast/bug.md).
 
-Szenario: Man den gleichen Daten Satz, in diesem Fall `hasDiscount`, ein mehreren Views der App sowohl sehen als auch ändern. Bei flaky oder langsamen Netzwerken ist die Frage wie die App darauf reagiert.
+Scenario: The same data set, in this case `hasDiscount`, is visible and changeable in multiple views of the app. With flaky or slow networks, the question is how the app responds.
 
 ## Steps
 
-- man startet auf der `/` Route
-- geht man zur `/list` und `/categories` Route sieht man die default pending Komponente, zur besseren Sichtbarkeit habe ich die Einstellungen angepasst damit diese früher angezeigt wie sonst
-- auf einer Seite kann man hier eine oder mehrere switches umlegen und durch das 5s delay zur anderen Seite wechseln bevor die Änderung gespeichert ist
+- Start on the `/` route
+- Going to `/list` and `/categories` routes, you see the default pending component, for better visibility I've adjusted the settings so it's displayed earlier than usual
+- On one page, you can toggle one or more switches and switch to the other page before the change is saved through the 5s delay
 
-## Ablauf
+## Process
 
-- das daten laden passiert mit einem 500ms delay und ist somit _schneller_ als das switch update! Das soll flaky Internet simulieren da man bei langsamen Internet erwarten würde das auch die Daten lange laden und somit _nach_ dem update die schon neuen Daten zurück geben.
-- die `/list` Route benutzt `useTransition` um den pending state der update Aktion zu visualisieren. Wichtig ist das man hier sieht das der item spinner verschwindet obwohl der switch sich _erst umlegt_ wenn die Daten durch die Invalidierung der Route neu laden!
-- legt man nun drei schalter um und geht auf die andere Seite sieht man jetzt den alten Zustand und dann werden nacheinander die Daten auch drei mal invalidiert und neu geladen. Die UI updated sicht automatisch, völlig korrekt.
-- legt man jetzt die drei Schalter um, geht zur anderen seite, legt hier zwei andere schalter um und geht wieder auf die andere Seite funktioniert trotzdem alles.
-- geht man wieder zurück auf die andere Seite wird hier auch alles korrekt aktualisiert.
-- ein switch der auf "ein" ist und erst auf der einen Seite dann auf der anderen seite angeklickt wird, bleibt auch "aus" wenn alle Seiten mit Datenladen fertig sind
+- Data loading happens with a 500ms delay and is thus _faster_ than the switch update! This is supposed to simulate flaky internet since with slow internet you would expect data to load slowly and thus return _after_ the update the already new data.
+- The `/list` route uses `useTransition` to visualize the pending state of the update action. It's important to see that the item spinner disappears even though the switch only _toggles_ when the data is reloaded through route invalidation!
+- If you toggle three switches and go to the other side, you see the old state and then the data is invalidated and reloaded three times in succession. The UI updates automatically, completely correctly.
+- If you now toggle the three switches, go to the other side, toggle two other switches there and go back to the other side, everything still works.
+- Going back to the other side also updates everything correctly there.
+- A switch that is "on" and clicked first on one side then on the other side remains "off" when all pages have finished loading data
 
-## Fazit
+## Conclusion
 
-- im Gegensatz zu der NextJs Problematik hat diese Implementierung keine der vielfältigen Nachteile und ist Einsatz bereit.
-- was noch fehlt ist eine Möglichkeit den loading state des data loaders anzuzeigen wenn im Hintergrund Daten geladen werden. Der Route state wird nicht auf `pending` gesetzt. Das kann auch sein das es nicht möglich ist und der einfachen Implementierung geschuldet ist im Gegensatz zu einer ausgefeilteren Logik die aber komplexer ist.
+- In contrast to the NextJs problem, this implementation has none of the various disadvantages and is ready for use.
+- What's still missing is a way to show the loading state of the data loader when data is being loaded in the background. The route state is not set to `pending`. This might also be that it's not possible and is due to the simple implementation compared to a more sophisticated logic that is but more complex.
