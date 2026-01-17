@@ -1,8 +1,7 @@
 # Financy Forecast
 
-## Project Summary
-
 Financy Forecast is a Next.js-based personal finance tracking tool focused on liquidity, burn-rate monitoring, and interactive runway simulation.
+[Currently Buggy!](./bug.md)
 
 **Key Features:**
 

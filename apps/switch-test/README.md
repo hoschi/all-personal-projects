@@ -2,7 +2,7 @@
 
 Dies Testet wie Tanstack Start Server Functions Implementation mit dem Caching Problem in NextJs umgeht und wie die UI für "read-your-own-write" Szenarios aussieht.
 
-Kurzbeschreibung des Problems mit Next v16 (Stand Januar 2026): Die neuen Caching Mechanismen funktionieren nicht wenn der Client ein schlechtes Netzwerk hat. Das ist problematisch da man dies nicht kontrollieren kann.
+Kurzbeschreibung des Problems mit Next v16 (Stand Januar 2026): Die neuen Caching Mechanismen funktionieren nicht wenn der Client ein schlechtes Netzwerk hat. Das ist problematisch da man dies nicht kontrollieren kann. [Ausführliche Problembeschriebung](../financy-forecast/bug.md).
 
 Szenario: Man den gleichen Daten Satz, in diesem Fall `hasDiscount`, ein mehreren Views der App sowohl sehen als auch ändern. Bei flaky oder langsamen Netzwerken ist die Frage wie die App darauf reagiert.
 
