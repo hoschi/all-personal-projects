@@ -8,9 +8,9 @@
     "build": "vite build",
     "preview": "vite preview --port 3057",
     "test": "echo 'no test availible'",
-    "lint": "eslint .",
+    "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
-    "fix": "bun run format && eslint --fix .",
+    "fix": "bun run format && bunx eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

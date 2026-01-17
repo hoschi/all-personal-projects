@@ -6,9 +6,9 @@
     "dev": "next dev --turbopack --port 3056",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
-    "fix": "eslint --fix . && bun run format",
+    "fix": "bunx eslint --fix . && bun run format",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "bun test"

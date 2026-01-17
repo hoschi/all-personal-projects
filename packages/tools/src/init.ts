@@ -40,9 +40,9 @@ if (existsSync("package.json")) {
 
   packageJson.scripts = {
     ...packageJson.scripts,
-    lint: "eslint .",
+    lint: "bunx eslint .",
     "check-types": "tsc --noEmit",
-    fix: "eslint --fix .; bun run format",
+    fix: "bunx eslint --fix .; bun run format",
     format: "prettier --write .",
     "format:check": "prettier --check .",
     test: "echo 'no tests'",
