@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@effect/platform": "^0.92.1",
-    "@repo/db": "*"
+    "@repo/db": "*",
+    "postgres": "^3.4.4"
   }
 }
