@@ -11,10 +11,6 @@ createuser all_personal_projects_staging -P --createdb
 createdb all_personal_projects_staging -O all_personal_projects_staging
 createuser all_personal_projects_dev -P --createdb
 createdb all_personal_projects_dev -O all_personal_projects_dev
-cd ./packages/db/
-dotenv -f .env.prod run -- npx prisma migrate deploy
-dotenv -f .env.staging run -- npx prisma migrate deploy
-dotenv -f .env.dev run -- npx prisma migrate deploy
 ```
 
 ## Database Copy Tools
@@ -153,7 +149,7 @@ bun copy.ts -f staging-backup.sql -r dev
 **Technical Details:**
 
 - Uses PostgreSQL CLI (`pg_dump` and `psql`)
-- Supports all PostgreSQL databases, not just Prisma
+- Supports all PostgreSQL databases
 - **Copy:** Deletes target schema completely before import (`--clean` flag)
 - **Backup:** Standard `pg_dump` export without DROP statements
 - **Restore:** Deletes target schema before import (`DROP SCHEMA CASCADE`)
