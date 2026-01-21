@@ -12,11 +12,11 @@ This monorepo contains various personal projects including financial forecasting
 ### Tests
 
 - [rest-server](/apps/rest-server/README.md) - Effet-based REST API server, combines services from package directory
-- [switch-test](/apps/switch-test/README.md) - TanStack Start test: data loading logic and pending UI when editing the same entities in multiple places 
+- [switch-test](/apps/switch-test/README.md) - TanStack Start test: data loading logic and pending UI when editing the same entities in multiple places
 
 ## Packages
 
-- [db](/packages/db/README.md) - Database utilities and Prisma client
+- [db](/packages/db/README.md) - Database utilities for PostgreSQL
   - Environment configuration
   - Data copying scripts (prod → staging → dev)
 - [eslint-config](/packages/eslint-config/README.md) - Shared ESLint configurations
