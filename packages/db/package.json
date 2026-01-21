@@ -10,9 +10,6 @@
     "copy-env": "./src/copy-env.ts"
   },
   "scripts": {
-    "migrate:dev": "dotenv -e .env.dev -- prisma migrate dev",
-    "migrate:staging": "dotenv -e .env.staging -- prisma migrate deploy",
-    "migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "fix": "bunx eslint --fix . && bun run format",
@@ -21,18 +18,15 @@
     "test": "echo 'no tests'"
   },
   "devDependencies": {
-    "@prisma/generator-helper": "^6.17.1",
-    "@prisma/internals": "^6.17.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "^22.15.3",
     "eslint": "^9.34.0",
-    "prisma": "^6.17.1",
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "@prisma/client": "6.17.1",
     "dotenv": "^16.4.5",
-    "dotenv-cli": "^10.0.0"
+    "dotenv-cli": "^10.0.0",
+    "postgres": "^3.4.4"
   }
 }
