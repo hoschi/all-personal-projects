@@ -9,5 +9,4 @@ const ServerLive = HttpApiBuilder.serve().pipe(
 )
 
 // Launch the server
-// @ts-expect-error FIXME!
 Layer.launch(ServerLive).pipe(BunRuntime.runMain)
