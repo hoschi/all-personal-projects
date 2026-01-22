@@ -54,3 +54,36 @@ Kopiere .env.dev von packages/db nach apps/box-storage/.env. Behalte DATABASE_UR
 
 - **Problem**: bun run ci läuft auf allen packages, einige haben Fehler (financy-forecast check-types)
 - **Lösung**: Für box-storage sind alle Checks erfolgreich, nur warnings über DATABASE_URL in turbo.json (akzeptabel)
+
+## Schritt 3: Prisma Setup - Erfolgreich behoben
+
+### Aufgabe
+
+Führe bunx prisma generate aus um den Prisma Client zu generieren. Führe dann bunx prisma migrate dev --name init aus für die erste Migration. Verwende die Regeln aus ai-assistants/main-rules.md: Bun als Package Manager, PostgreSQL Schema über SQL SET-Befehl, Integer IDs, automatische Timestamps. Überprüfe mit bun run ci dass alle Regeln eingehalten sind (die Aufgabe ist nicht abgeschlossen bis dieses Skript ohne Fehler durchläuft).
+
+### Was getan wurde
+
+- Prisma Client erfolgreich generiert mit bunx prisma generate
+- DATABASE_URL in .env behalten mit ?schema=box_storage für PostgreSQL Schema Management
+- prisma.config.ts im Projekt-Root (apps/box-storage/) erstellt mit korrekter Prisma 7 Syntax
+- Migration erfolgreich ausgeführt: bunx prisma migrate dev --name init
+- Qualitätskontrollen durchgeführt: bun run lint (erfolgreich) und bun run check-types (erfolgreich)
+
+### Probleme und Lösungen
+
+- **Problem**: Ursprünglich schlug bunx prisma migrate dev --name init fehl mit "The datasource.url property is required in your Prisma config file when using prisma migrate dev."
+- **Lösung**: Erkannt, dass Prisma 7 eine komplett neue Architektur hat. URL darf nicht mehr in schema.prisma stehen, sondern muss in prisma.config.ts im Projekt-Root definiert werden. Erstellt prisma.config.ts mit:
+
+  ```typescript
+  import "dotenv/config"
+  import { defineConfig, env } from "prisma/config"
+
+  export default defineConfig({
+    schema: "prisma/schema.prisma",
+    migrations: { path: "prisma/migrations" },
+    datasource: { url: env("DATABASE_URL") },
+  })
+  ```
+
+- **Problem**: Mehrere Fehlversuche mit verschiedenen Konfigurationen (defineConfig aus falschem Pfad, Adapter-Zusätze, etc.)
+- **Lösung**: Prisma 7 Dokumentation konsultiert und korrekte Syntax implementiert. schema.prisma enthält nur noch provider, keine URL.
