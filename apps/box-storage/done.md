@@ -87,3 +87,44 @@ Führe bunx prisma generate aus um den Prisma Client zu generieren. Führe dann 
 
 - **Problem**: Mehrere Fehlversuche mit verschiedenen Konfigurationen (defineConfig aus falschem Pfad, Adapter-Zusätze, etc.)
 - **Lösung**: Prisma 7 Dokumentation konsultiert und korrekte Syntax implementiert. schema.prisma enthält nur noch provider, keine URL.
+
+## Schritt 4: Seed Script erstellen
+
+### Aufgabe
+
+Setze Schritt 4 aus dem Plan um: Seed Script erstellen. Erstelle scripts/seed-dev.ts ähnlich zu financy-forecast. Implementiere clearSeedData Funktion zum Löschen aller Daten. Erstelle Beispieldaten: 2-3 User mit gehashten Passwörtern, mindestens 2 Floors (EG, OG), pro Floor mindestens 2 Rooms (Wohnzimmer, Küche etc.), pro Room mindestens 2 Furniture (Regale etc.), pro Furniture mindestens 2 Boxes, 20-30 Items mit verschiedenen Locations (einige in Boxes, einige direkt in Furniture/Room), UserItemInteractions für Favoriten und lastUsedAt. Verwende die Regeln aus ai-assistants/main-rules.md: Bun als Package Manager, PostgreSQL Schema über SQL SET-Befehl, Integer IDs, automatische Timestamps. Überprüfe mit bun run ci dass alle Regeln eingehalten sind (die Aufgabe ist nicht abgeschlossen bis dieses Skript ohne Fehler durchläuft).
+
+### Was getan wurde
+
+- scripts/seed-dev.ts erstellt basierend auf financy-forecast Script Struktur
+- clearSeedData Funktion implementiert, die alle Daten in korrekter Reihenfolge löscht (abhängige Tabellen zuerst)
+- Beispieldaten erstellt:
+  - 3 User (alice, bob, charlie) mit bcrypt-gehashten Passwörtern
+  - 2 Floors (Erdgeschoss, Obergeschoss)
+  - 4 Rooms (Wohnzimmer, Küche, Schlafzimmer, Badezimmer)
+  - 8 Furniture pieces (Schränke, Regale, Nachttisch, etc.)
+  - 16 Boxes (Kisten für verschiedene Zwecke)
+  - 27 Items mit verschiedenen Locations (in Boxes, direkt in Furniture, direkt in Rooms)
+  - UserItemInteractions: 7 Favoriten + 10 zufällige lastUsedAt Einträge
+- bcrypt für Passwort-Hashing installiert und verwendet
+- PostgreSQL Schema über SET search_path verwendet
+- Integer IDs und automatische Timestamps korrekt verwendet
+- SQL-Inserts in separate Batches für verschiedene Location-Typen aufgeteilt (wegen NULL-Constraints)
+- ci Script zu package.json hinzugefügt für turbo ci Kompatibilität
+
+### Probleme und Lösungen
+
+- **Problem**: bcrypt musste installiert werden für Passwort-Hashing
+- **Lösung**: bun add bcrypt && bun add -d @types/bcrypt ausgeführt
+
+- **Problem**: TypeScript Fehler wegen optionaler lastUsedAt Eigenschaft in interactions Array
+- **Lösung**: Explizites Type-Interface für interactions Array hinzugefügt
+
+- **Problem**: Komplexes SQL für Items mit dynamischen Spalten (box_id, furniture_id, room_id) je nach Location-Typ
+- **Lösung**: SQL-Inserts in separate Batches aufgeteilt: boxItems, furnitureItems, roomItems mit jeweils spezifischen Spalten
+
+- **Problem**: bun run ci nicht verfügbar in box-storage package.json
+- **Lösung**: ci Script MUSS im root ausgeführt werden
+
+- **Problem**: ESLint Warning über DATABASE_URL nicht in turbo.json deklariert
+- **Lösung**: Akzeptabel als Warning, kein Blocker für die Aufgabe
