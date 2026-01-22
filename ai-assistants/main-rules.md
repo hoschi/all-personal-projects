@@ -32,10 +32,10 @@ bunx shadcn@latest add button
 
 ### Schema-Parameter in URLs: PostgreSQL vs Prisma
 
-- **Problem**: PostgreSQL-URLs unterstützen **KEINEN** `schema=` Parameter. Dieser funktioniert nur in Projekten die Prisma verwenden. Manche Projekte benutzen `/packages/db` und damit Prisma, andere PostgreSQL direkt.
-- **Falsch**: `postgresql://user:pass@host:port/db?schema=financy_forecast`
+- **Problem**: PostgreSQL-URLs unterstützen **KEINEN** `schema=` Parameter. Dieser funktioniert nur in Projekten die Prisma verwenden, dort ist er OK. Manche Projekte benutzen Prisma, andere PostgreSQL direkt. Der Unterschied ist wichtig!
+- **Falsch für Projekte ohne Prisma**: `postgresql://user:pass@host:port/db?schema=financy_forecast`
 - **Korrekt**: `postgresql://user:pass@host:port/db?sslmode=disable`
-- **Lösung**: Schema über `SET search_path TO financy_forecast;` nach Verbindung setzen
+- **Lösung**: Schema über `SET search_path TO financy_forecast;` nach Verbindung setzen wenn nicht Prisma sondern Postgresql direkt verwendet wird
 
 ### PostgreSQL 17 Kompatibilität
 

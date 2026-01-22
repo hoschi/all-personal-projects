@@ -85,7 +85,7 @@ Basierend auf requirements.md und `<root>/ai-assistants/main-rules.md`:
 
 ### 4. Seed Script erstellen
 
-- Erstelle `scripts/seed-dev.ts` ähnlich zu financy-forecast
+- Erstelle `scripts/seed-dev.ts` ähnlich zu financy-forecast, benutze aber statt raw SQL den prisma client
 - Implementiere clearSeedData Funktion zum Löschen aller Daten
 - Erstelle Beispieldaten:
   - 2-3 User mit gehashten Passwörtern
@@ -95,19 +95,21 @@ Basierend auf requirements.md und `<root>/ai-assistants/main-rules.md`:
   - Pro Furniture mindestens 2 Boxes
   - 20-30 Items mit verschiedenen Locations (einige in Boxes, einige direkt in Furniture/Room)
   - UserItemInteractions für Favoriten und lastUsedAt
+- Teste das seed script in dem du die clear funtkion verwendest um dann die daten erneut zu erstellen
 
 ### 5. Testskripte erstellen
 
-- Erstelle `scripts/test-queries.ts`
+- Erstelle `scripts/test-queries.ts` die den Prisma Client benutzt um zu testen das damit die Daten aus dem seed script abgerufen werden können, bevor wir von Fake daten zu DB Daten umstiegen (Schritt 7)
 - Teste alle erforderlichen Abfragen:
   - Items für Inventory View (mit Filtern für owner, isPrivate)
   - Items für Dashboard (Meine Items, Andere Items, kürzlich modifizierte)
   - In Motion Status setzen/löschen
   - Hierarchische Struktur abfragen
-- Verwende Bun um Tests auszuführen
+- Verwende Bun um das Skript auszuführen
 
 ### 6. Abfragelogik validieren
 
+- Analysiere den Stand bis jetzt und überprüfe ob alle Anforderungen korrekt umgesetzt sind.
 - Stelle sicher, dass alle Business Logic implementiert ist:
   - In Motion: Setzen/löschen mit korrekten Regeln
   - Visibility: isPrivate + ownerId Logic
