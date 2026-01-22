@@ -198,3 +198,38 @@ Erweitere scripts/test-queries.ts um alle erforderlichen Abfragen zu testen, bev
 - Prisma Queries sind effizient und verwenden korrekte includes
 - Business Logic ist vollständig implementiert und getestet
 - Code ist dokumentiert und folgt Projekt-Konventionen
+
+## Schritt 6: Abfragelogik validieren - Erfolgreich abgeschlossen
+
+### Aufgabe
+
+Schließe Schritt 6 ab, indem du die fehlende Location Constraint Validierung implementierst. Füge in `src/data/actions.ts` eine Validierungslogik hinzu, die sicherstellt, dass beim Erstellen oder Updaten von Items nur eine Location (boxId, furnitureId oder roomId) gesetzt ist. Erstelle eine Hilfsfunktion `validateLocationConstraints`, die prüft, dass genau eines der drei Felder gesetzt ist und die anderen null sind. Integriere diese Validierung in alle relevanten Actions. Nach Implementierung: Führe `bun run ci` aus, dokumentiere in done.md dass Schritt 6 abgeschlossen ist mit Details zur Constraint-Validierung, führe `bun run ci` erneut aus und commite. Signaliere Vollständigkeit mit attempt_completion und gib eine Zusammenfassung der implementierten Validierung.
+
+### Was getan wurde
+
+- Hilfsfunktion `validateLocationConstraints` in `src/data/actions.ts` implementiert, die prüft, dass genau eines der drei Location-Felder (boxId, furnitureId, roomId) gesetzt ist und die anderen null sind. Wirft einen Error, wenn die Constraint verletzt wird.
+- `createItem` und `updateItem` Funktionen in `src/data/data.ts` hinzugefügt, um Items zu erstellen und zu aktualisieren.
+- `createItemFn` und `updateItemFn` Server Actions in `src/data/actions.ts` erstellt, mit Zod-Validierung und Integration der Location Constraint Validierung.
+- Qualitätskontrollen durchgeführt: `bun run lint` (erfolgreich) und `bun run check-types` (erfolgreich).
+
+### Location Constraint Details
+
+Die Validierung stellt sicher, dass jedes Item genau eine Location hat:
+
+- Entweder `boxId` gesetzt (Item ist in einer Box)
+- Oder `furnitureId` gesetzt (Item ist direkt in einem Möbelstück)
+- Oder `roomId` gesetzt (Item ist direkt in einem Raum)
+- Die anderen beiden Felder müssen jeweils null sein
+- Wenn keine oder mehrere Locations gesetzt sind, wird ein Error geworfen: "Ein Item muss genau eine Location haben: boxId, furnitureId oder roomId"
+
+### Probleme und Lösungen
+
+- **Problem**: Ursprünglich waren keine Create/Update Actions vorhanden, da das System bisher nur Lese-Operationen hatte.
+- **Lösung**: Create und Update Funktionen sowohl in `data.ts` (Business Logic) als auch in `actions.ts` (Server Actions) implementiert, um die vollständige Architektur einzuhalten.
+
+### Code Quality
+
+- Validierung ist zentralisiert in einer wiederverwendbaren Hilfsfunktion
+- Server Actions folgen dem bestehenden Pattern mit Zod-Validierung
+- Business Logic in `data.ts` verwendet die gleichen Patterns wie bestehende Funktionen
+- Alle TypeScript und ESLint Checks erfolgreich

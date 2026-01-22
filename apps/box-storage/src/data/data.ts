@@ -409,3 +409,60 @@ export async function toggleItemInMotion(
     items[itemIndex] = { ...item, inMotionUserId: null }
   }
 }
+
+export async function createItem(
+  name: string,
+  description: string,
+  isPrivate: boolean,
+  ownerId: string,
+  boxId: string | null,
+  furnitureId: string | null,
+  roomId: string | null,
+): Promise<Item> {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
+  const newItem: Item = {
+    id: `550e8400-e29b-41d4-a716-446655440${(items.length + 100).toString().padStart(3, "0")}`,
+    name,
+    description,
+    lastModifiedAt: new Date(),
+    isPrivate,
+    ownerId,
+    boxId,
+    furnitureId,
+    roomId,
+    inMotionUserId: null,
+  }
+
+  items.push(newItem)
+  return newItem
+}
+
+export async function updateItem(
+  itemId: string,
+  name: string,
+  description: string,
+  isPrivate: boolean,
+  boxId: string | null,
+  furnitureId: string | null,
+  roomId: string | null,
+): Promise<Item> {
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
+  const itemIndex = items.findIndex((item) => item.id === itemId)
+  if (itemIndex === -1) throw new Error(`Item not found: ${itemId}`)
+
+  const updatedItem: Item = {
+    ...items[itemIndex],
+    name,
+    description,
+    isPrivate,
+    boxId,
+    furnitureId,
+    roomId,
+    lastModifiedAt: new Date(),
+  }
+
+  items[itemIndex] = updatedItem
+  return updatedItem
+}

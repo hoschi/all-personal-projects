@@ -122,7 +122,8 @@ Basierend auf requirements.md und `<root>/ai-assistants/main-rules.md`:
 - Verwende statt fake daten den prisma Client
   - Verwende die Prisma Typen und erstelle nur Zod Schemas und Typen wo nötig
   - Wichtig ist das die Daten die vom Frontend kommen validiert werden wie aktuell auch schon
-  - Behalte die Trennung von Business Logik (actions) und DB (data) bei
+  - Vorher wurden `actions.ts` (Business Logik) und `data.ts` (DB Zugriff) getrennt. Die typsicheren Aktionen auf die DB über den Prisma Client machen es aber sinnvoll `prisma` direkt in `actions.ts` zu benutzen. In `data.ts` sollen daher nur Funktionen sein die `prisma` verwenden und mehrfach in `actions.ts` auftauchen um zB `getCurrentUser` ohne redundanz zu implementieren und sicherzustellen das `actions.ts` nicht zu groß wird.
+  - Dokumentieren den Code entsprechend
 
 ## Quality Gates
 
