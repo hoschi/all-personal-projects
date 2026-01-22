@@ -1,100 +1,568 @@
+/**
+ * Box-Storage Development Seed Data Script
+ *
+ * This script populates the database with realistic sample data for development:
+ * - 2-3 Users with hashed passwords
+ * - 2 Floors (EG, OG)
+ * - Per Floor 2 Rooms (Wohnzimmer, Küche, etc.)
+ * - Per Room 2 Furnitures
+ * - Per Furniture 2 Boxes
+ * - 20-30 Items with various locations (some in Boxes, some direct in Furniture/Room)
+ * - UserItemInteractions for favorites and lastUsedAt
+ */
+
 import { prisma } from "@/data/prisma"
-import { hash } from "bcryptjs"
+import * as bcrypt from "bcrypt"
 
-const main = async () => {
-  // Cleanup
-  await Promise.all([
-    prisma.userItemInteraction.deleteMany(),
-    prisma.item.deleteMany(),
-    prisma.box.deleteMany(),
-    prisma.furniture.deleteMany(),
-    prisma.room.deleteMany(),
-    prisma.floor.deleteMany(),
-    prisma.user.deleteMany(),
-  ])
-
-  // Users
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        username: "alice",
-        passwordHash: await hash("password123", 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        username: "bob",
-        passwordHash: await hash("password123", 10),
-      },
-    }),
-  ])
-
-  // Floors & Rooms
-  const floor = await prisma.floor.create({
-    data: {
-      name: "Ground Floor",
-      rooms: {
-        create: [{ name: "Living Room" }, { name: "Bedroom" }],
-      },
-    },
-    include: { rooms: true },
-  })
-
-  // Furniture in rooms
-  const furniture = await Promise.all(
-    floor.rooms.map((room) =>
-      prisma.furniture.create({
-        data: {
-          name: room.name === "Living Room" ? "Bookshelf" : "Nightstand",
-          roomId: room.id,
-          boxes: {
-            create: [
-              { name: `${room.name} Box 1` },
-              { name: `${room.name} Box 2` },
-            ],
-          },
-        },
-        include: { boxes: true },
-      }),
-    ),
-  )
-
-  // Items with nested relations
-  const items = await Promise.all(
-    furniture.flatMap((furn) =>
-      furn.boxes.map((box) =>
-        prisma.item.create({
-          data: {
-            name: `Item in ${box.name}`,
-            description: "Seeded test item",
-            lastModifiedAt: new Date(),
-            isPrivate: false,
-            ownerId: users[0].id,
-            boxId: box.id,
-            furnitureId: furn.id,
-            roomId: furn.room?.id,
-          },
-        }),
-      ),
-    ),
-  )
-
-  // User-Item interactions
-  await prisma.userItemInteraction.createMany({
-    data: items.slice(0, 2).map((item) => ({
-      userId: users[0].id,
-      itemId: item.id,
-      isFavorite: true,
-      lastUsedAt: new Date(),
-    })),
-  })
-
-  console.log(`✅ Seeded ${users.length} users, ${items.length} items`)
+/**
+ * Hash password using bcrypt
+ */
+async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10
+  return await bcrypt.hash(password, saltRounds)
 }
 
-main()
-  .catch((err) => {
-    console.error(err)
+/**
+ * Clear all development data
+ */
+async function clearSeedData(): Promise<void> {
+  console.log("🧹 Clearing development seed data...")
+
+  try {
+    await prisma.userItemInteraction.deleteMany()
+    console.log("  ✅ UserItemInteractions deleted")
+
+    await prisma.item.deleteMany()
+    console.log("  ✅ Items deleted")
+
+    await prisma.box.deleteMany()
+    console.log("  ✅ Boxes deleted")
+
+    await prisma.furniture.deleteMany()
+    console.log("  ✅ Furnitures deleted")
+
+    await prisma.room.deleteMany()
+    console.log("  ✅ Rooms deleted")
+
+    await prisma.floor.deleteMany()
+    console.log("  ✅ Floors deleted")
+
+    await prisma.user.deleteMany()
+    console.log("  ✅ Users deleted")
+
+    console.log("✅ Development data cleared")
+  } catch (error) {
+    console.error("❌ Failed to clear data:", error)
+    throw error
+  }
+}
+
+/**
+ * Create sample data
+ */
+async function seedDatabase(): Promise<void> {
+  console.log("🌱 Starting Box-Storage development seed...")
+  console.log("==============================================")
+
+  try {
+    // Test connection
+    await prisma.$connect()
+    console.log("✅ Database connection successful\n")
+
+    // Clear existing data first
+    await clearSeedData()
+    console.log("")
+
+    // Create users
+    console.log("👥 Creating users...")
+    const hashedPassword1 = await hashPassword("password123")
+    const hashedPassword2 = await hashPassword("password456")
+    const hashedPassword3 = await hashPassword("password789")
+
+    const user1 = await prisma.user.create({
+      data: {
+        username: "alice",
+        passwordHash: hashedPassword1,
+      },
+    })
+    console.log(`  ✅ User created: ${user1.username} (ID: ${user1.id})`)
+
+    const user2 = await prisma.user.create({
+      data: {
+        username: "bob",
+        passwordHash: hashedPassword2,
+      },
+    })
+    console.log(`  ✅ User created: ${user2.username} (ID: ${user2.id})`)
+
+    const user3 = await prisma.user.create({
+      data: {
+        username: "charlie",
+        passwordHash: hashedPassword3,
+      },
+    })
+    console.log(`  ✅ User created: ${user3.username} (ID: ${user3.id})`)
+    console.log("✅ Users created\n")
+
+    // Create floors
+    console.log("🏢 Creating floors...")
+    const floor1 = await prisma.floor.create({
+      data: {
+        name: "Erdgeschoss",
+      },
+    })
+    console.log(`  ✅ Floor created: ${floor1.name} (ID: ${floor1.id})`)
+
+    const floor2 = await prisma.floor.create({
+      data: {
+        name: "1. Stock",
+      },
+    })
+    console.log(`  ✅ Floor created: ${floor2.name} (ID: ${floor2.id})`)
+    console.log("✅ Floors created\n")
+
+    // Create rooms
+    console.log("🏠 Creating rooms...")
+    const rooms = [
+      { name: "Küche", floorId: floor1.id },
+      { name: "Wohnzimmer", floorId: floor1.id },
+      { name: "Schlafzimmer", floorId: floor2.id },
+      { name: "Büro", floorId: floor2.id },
+    ]
+
+    const createdRooms = []
+    for (const roomData of rooms) {
+      const room = await prisma.room.create({
+        data: roomData,
+      })
+      createdRooms.push(room)
+      console.log(
+        `  ✅ Room created: ${room.name} in ${roomData.floorId === floor1.id ? floor1.name : floor2.name} (ID: ${room.id})`,
+      )
+    }
+    console.log("✅ Rooms created\n")
+
+    // Create furnitures
+    console.log("🪑 Creating furnitures...")
+    const furnitures = [
+      { name: "Küchenschrank", roomId: createdRooms[0].id },
+      { name: "Regal", roomId: createdRooms[1].id },
+      { name: "Kommode", roomId: createdRooms[2].id },
+      { name: "Schreibtisch", roomId: createdRooms[3].id },
+    ]
+
+    const createdFurnitures = []
+    for (const furnitureData of furnitures) {
+      const furniture = await prisma.furniture.create({
+        data: furnitureData,
+      })
+      createdFurnitures.push(furniture)
+      console.log(
+        `  ✅ Furniture created: ${furniture.name} in ${createdRooms.find((r) => r.id === furnitureData.roomId)?.name} (ID: ${furniture.id})`,
+      )
+    }
+    console.log("✅ Furnitures created\n")
+
+    // Create boxes
+    console.log("📦 Creating boxes...")
+    const boxes = [
+      { name: "Obere Ablage", furnitureId: createdFurnitures[0].id },
+      { name: "Untere Ablage", furnitureId: createdFurnitures[0].id },
+      { name: "Fach 1", furnitureId: createdFurnitures[1].id },
+      { name: "Fach 2", furnitureId: createdFurnitures[1].id },
+      { name: "Schublade links", furnitureId: createdFurnitures[2].id },
+      { name: "Schublade rechts", furnitureId: createdFurnitures[2].id },
+      {
+        name: "Schublade unter Schreibtisch",
+        furnitureId: createdFurnitures[3].id,
+      },
+      { name: "Obere Schublade", furnitureId: createdFurnitures[3].id },
+    ]
+
+    const createdBoxes = []
+    for (const boxData of boxes) {
+      const box = await prisma.box.create({
+        data: boxData,
+      })
+      createdBoxes.push(box)
+      console.log(
+        `  ✅ Box created: ${box.name} in ${createdFurnitures.find((f) => f.id === boxData.furnitureId)?.name} (ID: ${box.id})`,
+      )
+    }
+    console.log("✅ Boxes created\n")
+
+    // Create items
+    console.log("📋 Creating items...")
+    const items = [
+      // Items in boxes
+      {
+        name: "Toaster",
+        description: "Elektrischer Toaster",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: createdBoxes[0].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Kaffeebecher",
+        description: "Blauer Kaffeebecher",
+        isPrivate: true,
+        ownerId: user1.id,
+        boxId: createdBoxes[1].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Buch",
+        description: "Roman",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: createdBoxes[2].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Fernbedienung",
+        description: "TV Fernbedienung",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: createdBoxes[3].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Kissen",
+        description: "Dekoratives Kissen",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: createdBoxes[4].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Laptop",
+        description: "Arbeitslaptop",
+        isPrivate: true,
+        ownerId: user1.id,
+        boxId: createdBoxes[5].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Schere",
+        description: "Haushaltsschere",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: createdBoxes[6].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Lampe",
+        description: "Stehlampe",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: createdBoxes[7].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Notizblock",
+        description: "Gelbe Notizblöcke",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: createdBoxes[0].id,
+        furnitureId: null,
+        roomId: null,
+      },
+      {
+        name: "Wasserkocher",
+        description: "Elektrischer Wasserkocher",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: createdBoxes[1].id,
+        furnitureId: null,
+        roomId: null,
+      },
+
+      // Items in furnitures
+      {
+        name: "DVD-Player",
+        description: "Alter DVD-Player",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: null,
+        furnitureId: createdFurnitures[1].id,
+        roomId: null,
+      },
+      {
+        name: "Bilderrahmen",
+        description: "Familienfoto",
+        isPrivate: true,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: createdFurnitures[2].id,
+        roomId: null,
+      },
+      {
+        name: "Taschenlampe",
+        description: "LED-Taschenlampe",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: null,
+        furnitureId: createdFurnitures[3].id,
+        roomId: null,
+      },
+      {
+        name: "Schlüsselbund",
+        description: "Haustürschlüssel",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: createdFurnitures[0].id,
+        roomId: null,
+      },
+      {
+        name: "Bilderbuch",
+        description: "Kinderbuch",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: null,
+        furnitureId: createdFurnitures[1].id,
+        roomId: null,
+      },
+
+      // Items in rooms
+      {
+        name: "Sofa",
+        description: "Wohnzimmersofa",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[1].id,
+      },
+      {
+        name: "Teppich",
+        description: "Wohnzimmerteppich",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[1].id,
+      },
+      {
+        name: "Vorhang",
+        description: "Fenster Vorhang",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[2].id,
+      },
+      {
+        name: "Bettdecke",
+        description: "Winterbettdecke",
+        isPrivate: true,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[2].id,
+      },
+      {
+        name: "Stuhl",
+        description: "Bürostuhl",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[3].id,
+      },
+      {
+        name: "Monitor",
+        description: "Computer Monitor",
+        isPrivate: true,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[3].id,
+      },
+      {
+        name: "Kühlschrank",
+        description: "Kühlschrank",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[0].id,
+      },
+      {
+        name: "Herd",
+        description: "Gasherd",
+        isPrivate: false,
+        ownerId: user2.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[0].id,
+      },
+      {
+        name: "Spülmaschine",
+        description: "Geschirrspüler",
+        isPrivate: false,
+        ownerId: user1.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[0].id,
+      },
+      {
+        name: "Mikrowelle",
+        description: "Mikrowellenherd",
+        isPrivate: false,
+        ownerId: user3.id,
+        boxId: null,
+        furnitureId: null,
+        roomId: createdRooms[0].id,
+      },
+    ]
+
+    const createdItems = []
+    for (let i = 0; i < items.length; i++) {
+      const itemData = items[i]
+      const item = await prisma.item.create({
+        data: {
+          ...itemData,
+          lastModifiedAt: new Date(
+            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+          ), // Random date within last 30 days
+        },
+      })
+      createdItems.push(item)
+      console.log(`  ✅ Item created: ${item.name} (ID: ${item.id})`)
+    }
+    console.log("✅ Items created\n")
+
+    // Create user item interactions
+    console.log("⭐ Creating user item interactions...")
+    const interactions = [
+      {
+        userId: user1.id,
+        itemId: createdItems[0].id,
+        isFavorite: true,
+        lastUsedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user1.id,
+        itemId: createdItems[1].id,
+        isFavorite: false,
+        lastUsedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user2.id,
+        itemId: createdItems[2].id,
+        isFavorite: true,
+        lastUsedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user2.id,
+        itemId: createdItems[3].id,
+        isFavorite: false,
+        lastUsedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user3.id,
+        itemId: createdItems[4].id,
+        isFavorite: true,
+        lastUsedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user3.id,
+        itemId: createdItems[5].id,
+        isFavorite: false,
+        lastUsedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user1.id,
+        itemId: createdItems[6].id,
+        isFavorite: false,
+        lastUsedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      },
+      {
+        userId: user2.id,
+        itemId: createdItems[7].id,
+        isFavorite: true,
+        lastUsedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      },
+    ]
+
+    for (const interactionData of interactions) {
+      await prisma.userItemInteraction.create({
+        data: interactionData,
+      })
+      console.log(
+        `  ✅ Interaction created: User ${interactionData.userId} - Item ${interactionData.itemId} (Favorite: ${interactionData.isFavorite})`,
+      )
+    }
+    console.log("✅ User item interactions created\n")
+
+    console.log("\n🎉 Development seed completed successfully!")
+    console.log("\n📊 Summary:")
+    console.log("  👥 3 Users (alice, bob, charlie)")
+    console.log("  🏢 2 Floors (Erdgeschoss, 1. Stock)")
+    console.log("  🏠 4 Rooms (Küche, Wohnzimmer, Schlafzimmer, Büro)")
+    console.log(
+      "  🪑 4 Furnitures (Küchenschrank, Regal, Kommode, Schreibtisch)",
+    )
+    console.log("  📦 8 Boxes (various locations)")
+    console.log(
+      `  📋 ${createdItems.length} Items (10 in boxes, 5 in furnitures, 10 in rooms)`,
+    )
+    console.log(
+      `  ⭐ ${interactions.length} User item interactions (favorites and last used)`,
+    )
+    console.log("\n💡 You can now start developing with realistic sample data!")
+  } catch (error) {
+    console.error("\n💥 Seed failed:", error)
+    throw error
+  } finally {
+    await prisma.$disconnect()
+  }
+}
+
+/**
+ * Main execution
+ */
+async function main(): Promise<void> {
+  const args = process.argv.slice(2)
+  const command = args[0] || "seed"
+
+  switch (command) {
+    case "seed":
+      await seedDatabase()
+      break
+    case "clear":
+      await prisma.$connect()
+      try {
+        await clearSeedData()
+      } finally {
+        await prisma.$disconnect()
+      }
+      break
+    default:
+      console.log("❓ Available commands:")
+      console.log("  seed  - Populate database with sample data (default)")
+      console.log("  clear - Remove all sample data")
+      console.log("\nUsage:")
+      console.log("  bun run scripts/seed-dev.ts seed")
+      console.log("  bun run scripts/seed-dev.ts clear")
+      break
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("❌ Script execution failed:", error)
     process.exit(1)
   })
-  .finally(() => prisma.$disconnect())
+}
