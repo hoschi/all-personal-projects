@@ -1,269 +1,5 @@
-import {
-  Item,
-  User,
-  Floor,
-  Room,
-  Furniture,
-  Box,
-  UserItemInteraction,
-} from "./schema"
-
-export const users: User[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440001",
-    username: "alice",
-    passwordHash: "hash1",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440002",
-    username: "bob",
-    passwordHash: "hash2",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440003",
-    username: "charlie",
-    passwordHash: "hash3",
-  },
-]
-
-const floors: Floor[] = [
-  { id: "550e8400-e29b-41d4-a716-446655440010", name: "Erdgeschoss" },
-  { id: "550e8400-e29b-41d4-a716-446655440011", name: "1. Stock" },
-]
-
-const rooms: Room[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440020",
-    name: "Küche",
-    floorId: "550e8400-e29b-41d4-a716-446655440010",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440021",
-    name: "Wohnzimmer",
-    floorId: "550e8400-e29b-41d4-a716-446655440010",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440022",
-    name: "Schlafzimmer",
-    floorId: "550e8400-e29b-41d4-a716-446655440011",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440023",
-    name: "Büro",
-    floorId: "550e8400-e29b-41d4-a716-446655440011",
-  },
-]
-
-const furnitures: Furniture[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440030",
-    name: "Küchenschrank",
-    roomId: "550e8400-e29b-41d4-a716-446655440020",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440031",
-    name: "Regal",
-    roomId: "550e8400-e29b-41d4-a716-446655440021",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440032",
-    name: "Kommode",
-    roomId: "550e8400-e29b-41d4-a716-446655440022",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440033",
-    name: "Schreibtisch",
-    roomId: "550e8400-e29b-41d4-a716-446655440023",
-  },
-]
-
-const boxes: Box[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440040",
-    name: "Obere Ablage",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440030",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440041",
-    name: "Untere Ablage",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440030",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440042",
-    name: "Fach 1",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440031",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440043",
-    name: "Fach 2",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440031",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440044",
-    name: "Schublade links",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440032",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440045",
-    name: "Schublade rechts",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440032",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440046",
-    name: "Schublade unter Schreibtisch",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440033",
-  },
-]
-
-const items: Item[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440100",
-    name: "Toaster",
-    description: "Elektrischer Toaster",
-    lastModifiedAt: new Date("2023-01-01"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440001",
-    boxId: "550e8400-e29b-41d4-a716-446655440040",
-    furnitureId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440101",
-    name: "Kaffeebecher",
-    description: "Blauer Kaffeebecher",
-    lastModifiedAt: new Date("2023-01-02"),
-    isPrivate: true,
-    ownerId: "550e8400-e29b-41d4-a716-446655440001",
-    boxId: "550e8400-e29b-41d4-a716-446655440041",
-    furnitureId: null,
-    roomId: null,
-    inMotionUserId: "550e8400-e29b-41d4-a716-446655440002",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440102",
-    name: "Buch",
-    description: "Roman",
-    lastModifiedAt: new Date("2023-01-03"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440002",
-    boxId: "550e8400-e29b-41d4-a716-446655440042",
-    furnitureId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440103",
-    name: "Fernbedienung",
-    description: "TV Fernbedienung",
-    lastModifiedAt: new Date("2023-01-04"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440001",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440031",
-    boxId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440104",
-    name: "Kissen",
-    description: "Dekoratives Kissen",
-    lastModifiedAt: new Date("2023-01-05"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440002",
-    roomId: "550e8400-e29b-41d4-a716-446655440021",
-    boxId: null,
-    furnitureId: null,
-    inMotionUserId: "550e8400-e29b-41d4-a716-446655440001",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440105",
-    name: "Laptop",
-    description: "Arbeitslaptop",
-    lastModifiedAt: new Date("2023-01-06"),
-    isPrivate: true,
-    ownerId: "550e8400-e29b-41d4-a716-446655440001",
-    roomId: "550e8400-e29b-41d4-a716-446655440023",
-    boxId: null,
-    furnitureId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440106",
-    name: "Schere",
-    description: "Haushaltsschere",
-    lastModifiedAt: new Date("2023-01-07"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440003",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440030",
-    boxId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440107",
-    name: "Lampe",
-    description: "Stehlampe",
-    lastModifiedAt: new Date("2023-01-08"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440002",
-    boxId: "550e8400-e29b-41d4-a716-446655440044",
-    furnitureId: null,
-    roomId: null,
-    inMotionUserId: "550e8400-e29b-41d4-a716-446655440003",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440108",
-    name: "Notizblock",
-    description: "Gelbe Notizblöcke",
-    lastModifiedAt: new Date("2023-01-09"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440001",
-    boxId: "550e8400-e29b-41d4-a716-446655440046",
-    furnitureId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440109",
-    name: "Wasserkocher",
-    description: "Elektrischer Wasserkocher",
-    lastModifiedAt: new Date("2023-01-10"),
-    isPrivate: false,
-    ownerId: "550e8400-e29b-41d4-a716-446655440003",
-    furnitureId: "550e8400-e29b-41d4-a716-446655440033",
-    boxId: null,
-    roomId: null,
-    inMotionUserId: null,
-  },
-]
-
-export const userItemInteractions: UserItemInteraction[] = [
-  {
-    userId: "550e8400-e29b-41d4-a716-446655440001",
-    itemId: "550e8400-e29b-41d4-a716-446655440100",
-    isFavorite: true,
-    lastUsedAt: new Date("2023-01-15"),
-  },
-  {
-    userId: "550e8400-e29b-41d4-a716-446655440001",
-    itemId: "550e8400-e29b-41d4-a716-446655440102",
-    isFavorite: false,
-    lastUsedAt: new Date("2023-01-16"),
-  },
-  {
-    userId: "550e8400-e29b-41d4-a716-446655440002",
-    itemId: "550e8400-e29b-41d4-a716-446655440104",
-    isFavorite: true,
-    lastUsedAt: new Date("2023-01-17"),
-  },
-  {
-    userId: "550e8400-e29b-41d4-a716-446655440003",
-    itemId: "550e8400-e29b-41d4-a716-446655440106",
-    isFavorite: false,
-    lastUsedAt: new Date("2023-01-18"),
-  },
-]
+import { Item, Floor } from "./schema"
+import { prisma } from "./prisma"
 
 export async function getItems({
   currentUserId,
@@ -271,142 +7,214 @@ export async function getItems({
   locationFilter = "",
   statusFilter = "",
 }: {
-  currentUserId: string
+  currentUserId: number
   searchText?: string
   locationFilter?: string
   statusFilter?: string
 }): Promise<Item[]> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  let filteredItems = items.filter(
-    (item) => !item.isPrivate || item.ownerId === currentUserId,
-  )
-
-  if (searchText) {
-    filteredItems = filteredItems.filter(
-      (item) =>
-        item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchText.toLowerCase()),
-    )
+  // Base query with visibility filter
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {
+    OR: [{ isPrivate: false }, { ownerId: currentUserId }],
   }
 
-  if (locationFilter) {
-    filteredItems = filteredItems.filter((item) => {
-      const box = item.boxId ? boxes.find((b) => b.id === item.boxId) : null
-      const furniture = item.furnitureId
-        ? furnitures.find((f) => f.id === item.furnitureId)
-        : null
-      const room = item.roomId ? rooms.find((r) => r.id === item.roomId) : null
-      const floor = room ? floors.find((f) => f.id === room.floorId) : null
-      const location =
-        floor?.name || room?.name || furniture?.name || box?.name || ""
-      return location.toLowerCase().includes(locationFilter.toLowerCase())
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const andConditions: any[] = []
+
+  // Add search filter
+  if (searchText) {
+    andConditions.push({
+      OR: [
+        { name: { contains: searchText, mode: "insensitive" as const } },
+        { description: { contains: searchText, mode: "insensitive" as const } },
+      ],
     })
   }
 
+  // Add location filter
+  if (locationFilter) {
+    andConditions.push({
+      OR: [
+        {
+          box: {
+            name: { contains: locationFilter, mode: "insensitive" as const },
+          },
+        },
+        {
+          furniture: {
+            name: { contains: locationFilter, mode: "insensitive" as const },
+          },
+        },
+        {
+          room: {
+            name: { contains: locationFilter, mode: "insensitive" as const },
+          },
+        },
+        {
+          room: {
+            floor: {
+              name: { contains: locationFilter, mode: "insensitive" as const },
+            },
+          },
+        },
+      ],
+    })
+  }
+
+  // Add status filter
   if (statusFilter) {
     if (statusFilter === "free") {
-      filteredItems = filteredItems.filter((item) => !item.inMotionUserId)
+      andConditions.push({ inMotionUserId: null })
     } else if (statusFilter === "in-motion") {
-      filteredItems = filteredItems.filter((item) => !!item.inMotionUserId)
+      andConditions.push({ inMotionUserId: { not: null } })
     } else if (statusFilter === "mine") {
-      filteredItems = filteredItems.filter(
-        (item) => item.inMotionUserId === currentUserId,
-      )
+      andConditions.push({ inMotionUserId: currentUserId })
     } else if (statusFilter === "others") {
-      filteredItems = filteredItems.filter(
-        (item) => item.inMotionUserId && item.inMotionUserId !== currentUserId,
+      andConditions.push(
+        { inMotionUserId: { not: null } },
+        { inMotionUserId: { not: currentUserId } },
       )
     }
   }
 
-  return filteredItems.sort((a, b) => a.name.localeCompare(b.name))
+  if (andConditions.length > 0) {
+    where.AND = andConditions
+  }
+
+  return await prisma.item.findMany({
+    where,
+    orderBy: { name: "asc" },
+  })
 }
 
 export async function getHierarchicalData(): Promise<Floor[]> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  return floors.map((floor) => ({
-    ...floor,
-    rooms: rooms
-      .filter((room) => room.floorId === floor.id)
-      .map((room) => ({
-        ...room,
-        furnitures: furnitures
-          .filter((furniture) => furniture.roomId === room.id)
-          .map((furniture) => ({
-            ...furniture,
-            boxes: boxes
-              .filter((box) => box.furnitureId === furniture.id)
-              .map((box) => ({
-                ...box,
-                items: items
-                  .filter((item) => item.boxId === box.id)
-                  .sort((a, b) => {
-                    const aInMotion = !!a.inMotionUserId
-                    const bInMotion = !!b.inMotionUserId
-                    if (aInMotion !== bInMotion) return aInMotion ? 1 : -1
-                    return a.name.localeCompare(b.name)
-                  }),
-              })),
-            items: items
-              .filter((item) => item.furnitureId === furniture.id)
-              .sort((a, b) => {
-                const aInMotion = !!a.inMotionUserId
-                const bInMotion = !!b.inMotionUserId
-                if (aInMotion !== bInMotion) return aInMotion ? 1 : -1
-                return a.name.localeCompare(b.name)
-              }),
-          })),
-        items: items
-          .filter((item) => item.roomId === room.id)
-          .sort((a, b) => {
-            const aInMotion = !!a.inMotionUserId
-            const bInMotion = !!b.inMotionUserId
-            if (aInMotion !== bInMotion) return aInMotion ? 1 : -1
-            return a.name.localeCompare(b.name)
-          }),
-      })),
-  }))
+  return await prisma.floor.findMany({
+    include: {
+      rooms: {
+        include: {
+          furniture: {
+            include: {
+              boxes: {
+                include: {
+                  items: {
+                    include: {
+                      owner: { select: { username: true } },
+                      inMotionUser: { select: { username: true } },
+                    },
+                    orderBy: [
+                      { inMotionUserId: "desc" }, // in-motion items last
+                      { name: "asc" },
+                    ],
+                  },
+                },
+              },
+              items: {
+                where: {
+                  boxId: null, // only items directly in furniture, not in boxes
+                },
+                include: {
+                  owner: { select: { username: true } },
+                  inMotionUser: { select: { username: true } },
+                },
+                orderBy: [{ inMotionUserId: "desc" }, { name: "asc" }],
+              },
+            },
+          },
+          items: {
+            where: {
+              furnitureId: null, // only items directly in room, not in furniture
+              boxId: null,
+            },
+            include: {
+              owner: { select: { username: true } },
+              inMotionUser: { select: { username: true } },
+            },
+            orderBy: [{ inMotionUserId: "desc" }, { name: "asc" }],
+          },
+        },
+      },
+    },
+  })
 }
 
-export async function getDashboardData(currentUserId: string): Promise<{
+export async function getDashboardData(currentUserId: number): Promise<{
   personalItems: Item[]
   othersItems: Item[]
   recentlyModified: Item[]
 }> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  // Personal items
+  const personalItems = await prisma.item.findMany({
+    where: { ownerId: currentUserId },
+    include: {
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { lastModifiedAt: "desc" },
+  })
 
-  const personalItems = items.filter((item) => item.ownerId === currentUserId)
-  const othersItems = items.filter(
-    (item) =>
-      item.ownerId !== currentUserId &&
-      (!item.isPrivate || item.ownerId === currentUserId),
-  )
-  const recentlyModified = items
-    .filter((item) => !item.isPrivate || item.ownerId === currentUserId)
-    .sort((a, b) => b.lastModifiedAt.getTime() - a.lastModifiedAt.getTime())
-    .slice(0, 5)
+  // Others items (public or owned by current user)
+  const othersItems = await prisma.item.findMany({
+    where: {
+      ownerId: { not: currentUserId },
+      OR: [{ isPrivate: false }, { ownerId: currentUserId }],
+    },
+    include: {
+      owner: { select: { username: true } },
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { lastModifiedAt: "desc" },
+  })
+
+  // Recently modified items (visible to user)
+  const recentlyModified = await prisma.item.findMany({
+    where: {
+      OR: [{ isPrivate: false }, { ownerId: currentUserId }],
+    },
+    include: {
+      owner: { select: { username: true } },
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { lastModifiedAt: "desc" },
+    take: 5,
+  })
 
   return { personalItems, othersItems, recentlyModified }
 }
 
 export async function toggleItemInMotion(
-  itemId: string,
-  currentUserId: string,
+  itemId: number,
+  currentUserId: number,
 ): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: { inMotionUserId: true },
+  })
 
-  const itemIndex = items.findIndex((item) => item.id === itemId)
-  if (itemIndex === -1) throw new Error(`Item not found: ${itemId}`)
+  if (!item) throw new Error(`Item not found: ${itemId}`)
 
-  const item = items[itemIndex]
   if (!item.inMotionUserId) {
-    items[itemIndex] = { ...item, inMotionUserId: currentUserId }
+    // Set to in motion
+    await prisma.item.update({
+      where: { id: itemId },
+      data: { inMotionUserId: currentUserId },
+    })
   } else if (item.inMotionUserId === currentUserId) {
-    items[itemIndex] = { ...item, inMotionUserId: null }
+    // Remove from motion (same user)
+    await prisma.item.update({
+      where: { id: itemId },
+      data: { inMotionUserId: null },
+    })
   } else {
-    items[itemIndex] = { ...item, inMotionUserId: null }
+    // Different user - remove from motion
+    await prisma.item.update({
+      where: { id: itemId },
+      data: { inMotionUserId: null },
+    })
   }
 }
 
@@ -414,55 +222,45 @@ export async function createItem(
   name: string,
   description: string,
   isPrivate: boolean,
-  ownerId: string,
-  boxId: string | null,
-  furnitureId: string | null,
-  roomId: string | null,
+  ownerId: number,
+  boxId: number | null,
+  furnitureId: number | null,
+  roomId: number | null,
 ): Promise<Item> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  const newItem: Item = {
-    id: `550e8400-e29b-41d4-a716-446655440${(items.length + 100).toString().padStart(3, "0")}`,
-    name,
-    description,
-    lastModifiedAt: new Date(),
-    isPrivate,
-    ownerId,
-    boxId,
-    furnitureId,
-    roomId,
-    inMotionUserId: null,
-  }
-
-  items.push(newItem)
-  return newItem
+  return await prisma.item.create({
+    data: {
+      name,
+      description,
+      lastModifiedAt: new Date(),
+      isPrivate,
+      ownerId,
+      boxId,
+      furnitureId,
+      roomId,
+      inMotionUserId: null,
+    },
+  })
 }
 
 export async function updateItem(
-  itemId: string,
+  itemId: number,
   name: string,
   description: string,
   isPrivate: boolean,
-  boxId: string | null,
-  furnitureId: string | null,
-  roomId: string | null,
+  boxId: number | null,
+  furnitureId: number | null,
+  roomId: number | null,
 ): Promise<Item> {
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  const itemIndex = items.findIndex((item) => item.id === itemId)
-  if (itemIndex === -1) throw new Error(`Item not found: ${itemId}`)
-
-  const updatedItem: Item = {
-    ...items[itemIndex],
-    name,
-    description,
-    isPrivate,
-    boxId,
-    furnitureId,
-    roomId,
-    lastModifiedAt: new Date(),
-  }
-
-  items[itemIndex] = updatedItem
-  return updatedItem
+  return await prisma.item.update({
+    where: { id: itemId },
+    data: {
+      name,
+      description,
+      isPrivate,
+      boxId,
+      furnitureId,
+      roomId,
+      lastModifiedAt: new Date(),
+    },
+  })
 }

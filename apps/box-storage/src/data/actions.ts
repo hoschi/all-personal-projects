@@ -11,9 +11,9 @@ import {
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
-  boxId: string | null,
-  furnitureId: string | null,
-  roomId: string | null,
+  boxId: number | null,
+  furnitureId: number | null,
+  roomId: number | null,
 ): void {
   const locations = [boxId, furnitureId, roomId].filter((id) => id !== null)
   if (locations.length !== 1) {
@@ -36,7 +36,7 @@ export const getListItems = createServerFn()
   .handler(async ({ data }) => {
     const { filters = {} } = data || {}
     return await getItems({
-      currentUserId: "550e8400-e29b-41d4-a716-446655440001",
+      currentUserId: 4,
       ...filters,
     })
   })
@@ -46,14 +46,14 @@ export const getHierarchicalViewData = createServerFn().handler(
 )
 
 export const getDashboardDataFn = createServerFn().handler(
-  async () => await getDashboardData("550e8400-e29b-41d4-a716-446655440001"),
+  async () => await getDashboardData(4),
 )
 
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ itemId: z.uuid() }).parse)
+  .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
   .handler(async ({ data }) => {
     const { itemId } = data
-    await toggleItemInMotion(itemId, "550e8400-e29b-41d4-a716-446655440001")
+    await toggleItemInMotion(itemId, 4)
   })
 
 export const createItemFn = createServerFn({ method: "POST" })
@@ -62,9 +62,9 @@ export const createItemFn = createServerFn({ method: "POST" })
       name: z.string().min(1),
       description: z.string(),
       isPrivate: z.boolean(),
-      boxId: z.string().uuid().nullable(),
-      furnitureId: z.string().uuid().nullable(),
-      roomId: z.string().uuid().nullable(),
+      boxId: z.coerce.number().nullable(),
+      furnitureId: z.coerce.number().nullable(),
+      roomId: z.coerce.number().nullable(),
     }).parse,
   )
   .handler(async ({ data }) => {
@@ -74,7 +74,7 @@ export const createItemFn = createServerFn({ method: "POST" })
       name,
       description,
       isPrivate,
-      "550e8400-e29b-41d4-a716-446655440001",
+      4,
       boxId,
       furnitureId,
       roomId,
@@ -84,13 +84,13 @@ export const createItemFn = createServerFn({ method: "POST" })
 export const updateItemFn = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      itemId: z.string().uuid(),
+      itemId: z.coerce.number(),
       name: z.string().min(1),
       description: z.string(),
       isPrivate: z.boolean(),
-      boxId: z.string().uuid().nullable(),
-      furnitureId: z.string().uuid().nullable(),
-      roomId: z.string().uuid().nullable(),
+      boxId: z.coerce.number().nullable(),
+      furnitureId: z.coerce.number().nullable(),
+      roomId: z.coerce.number().nullable(),
     }).parse,
   )
   .handler(async ({ data }) => {

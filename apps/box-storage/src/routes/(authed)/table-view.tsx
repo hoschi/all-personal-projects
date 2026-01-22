@@ -8,7 +8,7 @@ export const Route = createFileRoute("/(authed)/table-view")({
   ssr: false,
   loader: async () => {
     const items = await getListItems()
-    return { items, userId: "550e8400-e29b-41d4-a716-446655440001" }
+    return { items, userId: 4 }
   },
 })
 
