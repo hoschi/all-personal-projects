@@ -112,7 +112,15 @@ Basierend auf requirements.md und `<root>/ai-assistants/main-rules.md`:
   - In Motion: Setzen/löschen mit korrekten Regeln
   - Visibility: isPrivate + ownerId Logic
   - Location Constraints: Nur eine Location pro Item
-- Teste Performance mit realistischen Datenmengen
+
+### 7. Ersetze das fake data setup mit dem DB setup
+
+- Analysiere welche React Komponenten aktuell die `actions.ts` Funktionen benutzen um die zu sehen wie die fake Daten verwendet werden
+- Lösche die Fake daten und Zod Schemas komplett
+- Verwende statt fake daten den prisma Client
+  - Verwende die Prisma Typen und erstelle nur Zod Schemas und Typen wo nötig
+  - Wichtig ist das die Daten die vom Frontend kommen validiert werden wie aktuell auch schon
+  - Behalte die Trennung von Business Logik (actions) und DB (data) bei
 
 ## Quality Gates
 

@@ -145,7 +145,7 @@ Setze Schritt 5 aus dem Plan um: Testskripte erstellen. Erstelle scripts/test-qu
 - Alle Tests laufen erfolgreich mit bun run scripts/test-queries.ts
 - Business Logic Validierung: Privacy Settings, Location Constraints, In Motion Regeln korrekt implementiert
 - ci Script ausgeführt, alle Regeln eingehalten (nur warnings akzeptabel)
-- Mock-Daten bleiben unverändert für spätere Umstellung auf DB
+- Mock-Daten in Datein actions/schema/data bleiben unverändert, werden später durch neues DB setup ersetzt, dazu wurde plan.md erweitert
 
 ### Probleme und Lösungen
 
