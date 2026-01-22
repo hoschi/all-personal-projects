@@ -99,7 +99,7 @@ Basierend auf requirements.md und `<root>/ai-assistants/main-rules.md`:
 
 ### 5. Testskripte erstellen
 
-- Erstelle `scripts/test-queries.ts` die den Prisma Client benutzt um zu testen das damit die Daten aus dem seed script abgerufen werden können, bevor wir von Fake daten zu DB Daten umstiegen (Schritt 7)
+- Erstelle `./scripts/test-queries.ts` die den Prisma Client benutzt um zu testen das damit die Daten aus dem seed script abgerufen werden können, bevor wir von Fake daten zu DB Daten umstiegen (Schritt 7)
 - Teste alle erforderlichen Abfragen:
   - Items für Inventory View (mit Filtern für owner, isPrivate)
   - Items für Dashboard (Meine Items, Andere Items, kürzlich modifizierte)

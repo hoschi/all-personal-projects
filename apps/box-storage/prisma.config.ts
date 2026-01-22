@@ -1,7 +1,7 @@
 import "dotenv/config"
 import { defineConfig, env } from "prisma/config"
 
-export default defineConfig({
+export const config = {
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
@@ -9,4 +9,6 @@ export default defineConfig({
   datasource: {
     url: `${env("DATABASE_URL")}?schema=box_storage`,
   },
-})
+}
+
+export default defineConfig(config)

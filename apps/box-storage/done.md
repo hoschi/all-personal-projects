@@ -68,6 +68,7 @@ Führe bunx prisma generate aus um den Prisma Client zu generieren. Führe dann 
 - prisma.config.ts im Projekt-Root (apps/box-storage/) erstellt mit korrekter Prisma 7 Syntax
 - Migration erfolgreich ausgeführt: bunx prisma migrate dev --name init
 - Qualitätskontrollen durchgeführt: bun run lint (erfolgreich) und bun run check-types (erfolgreich)
+- `seed-dev.ts` und `test-queries.ts` erstellt mit funktionierendem Beispiel code um spätere Schritte zu vereinfachen
 
 ### Probleme und Lösungen
 
