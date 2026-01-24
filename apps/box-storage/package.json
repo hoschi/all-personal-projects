@@ -12,7 +12,8 @@
     "check-types": "tsc --noEmit",
     "fix": "bun run format && bunx eslint --fix .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "generate:prisma": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
