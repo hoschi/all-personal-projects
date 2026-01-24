@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Activity, User, MoveRight } from "lucide-react"
+import { Prisma } from "@prisma/client"
 
 export const Route = createFileRoute("/(authed)/dashboard")({
   component: RouteComponent,
@@ -18,7 +19,15 @@ export const Route = createFileRoute("/(authed)/dashboard")({
   },
 })
 
-function getLocationDisplay(item): string {
+function getLocationDisplay(
+  item: Prisma.ItemGetPayload<{
+    include: {
+      box: { select: { name: true } }
+      furniture: { select: { name: true } }
+      room: { select: { name: true } }
+    }
+  }>,
+): string {
   if (item.box?.name) return item.box.name
   if (item.furniture?.name) return item.furniture.name
   if (item.room?.name) return item.room.name
