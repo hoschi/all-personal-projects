@@ -156,9 +156,11 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema) {
 
 ### Obligatorische Qualitätskontrollen
 
+Führe im Monorepo root `bun run ci` aus und fixe die Fehler, sonst ist deine Aufgabe _nicht_ abgeschlossen. In einer app oder package Projekt stehen dir die folgenden Befehle zur Verfügung um einzelne Dinge nacheinander zu prüfen:
+
 - **Schritt 1**: `bun lint` - Code-Qualität prüfen
 - **Schritt 2**: `bun check-types` - TypeScript-Typen prüfen
-- **Erkenntnis**: Niemals Aufgabe als abgeschlossen markieren ohne diese Prüfungen
+- **Erkenntnis**: Niemals Aufgabe als abgeschlossen markieren ohne `bun run ci` Erfolg im Monorepo root.
 
 ## 🧪 Bun Test spezifische Erkenntnisse
 
