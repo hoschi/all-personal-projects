@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Activity, User, MoveRight } from "lucide-react"
-import { Prisma } from "@prisma/client"
+import { ItemGetPayload } from "@/generated/prisma/models"
 
 export const Route = createFileRoute("/(authed)/dashboard")({
   component: RouteComponent,
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/(authed)/dashboard")({
 })
 
 function getLocationDisplay(
-  item: Prisma.ItemGetPayload<{
+  item: ItemGetPayload<{
     include: {
       box: { select: { name: true } }
       furniture: { select: { name: true } }
