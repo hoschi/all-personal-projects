@@ -10,7 +10,8 @@
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "test": "turbo run test",
-    "ci": "turbo run ci"
+    "ci": "turbo run ci",
+    "ci-noc": "turbo run ci --cache=local:"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
