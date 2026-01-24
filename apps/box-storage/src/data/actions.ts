@@ -30,14 +30,7 @@ export const getListItems = createServerFn()
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
 
-    // Base query with visibility filter
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
-      OR: [{ isPrivate: false }, { ownerId: 4 }],
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const andConditions: any[] = []
+    const andConditions = []
 
     // Add search filter
     if (searchText) {
@@ -100,12 +93,11 @@ export const getListItems = createServerFn()
       }
     }
 
-    if (andConditions.length > 0) {
-      where.AND = andConditions
-    }
-
     return await prisma.item.findMany({
-      where,
+      where: {
+        OR: [{ isPrivate: false }, { ownerId: 4 }],
+        AND: andConditions,
+      },
       orderBy: { name: "asc" },
     })
   })
