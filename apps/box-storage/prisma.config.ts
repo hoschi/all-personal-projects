@@ -1,7 +1,11 @@
-import "dotenv/config"
-import { defineConfig, env } from "prisma/config"
+import { config as dotenvConfig } from "dotenv"
+import { defineConfig } from "prisma/config"
 
-export const DATABASE_SCHEMA_NAME = env("DATABASE_SCHEMA_NAME")
+// Load .env.base first, then override with .env if it exists
+dotenvConfig({ path: ".env.base", quiet: true })
+dotenvConfig({ path: ".env", override: true, quiet: true })
+
+export const DATABASE_SCHEMA_NAME = process.env.DATABASE_SCHEMA_NAME
 
 export const config = {
   schema: "prisma/schema.prisma",
@@ -9,7 +13,7 @@ export const config = {
     path: "prisma/migrations",
   },
   datasource: {
-    url: `${env("DATABASE_URL")}?schema=${DATABASE_SCHEMA_NAME}`,
+    url: `${process.env.DATABASE_URL}?schema=${DATABASE_SCHEMA_NAME}`,
   },
 }
 
