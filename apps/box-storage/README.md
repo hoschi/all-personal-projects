@@ -156,6 +156,7 @@ bun run scripts/seed-dev.ts clear
   - Add "screen too small" message for mobile devices
 - **Security:** Use server-only package to prevent DB connection details leakage
 - **Testing:** Add unit tests for business logic functions
+- find out why Prisma generate right befoe `tsc` still throws TS errors, but only on CI env
 
 ---
 
