@@ -108,7 +108,7 @@ async function getDashboardDataPrisma(currentUserId: number) {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   })
 
   // Others items (public or owned by current user)
@@ -123,7 +123,7 @@ async function getDashboardDataPrisma(currentUserId: number) {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   })
 
   // Recently modified items (visible to user)
@@ -137,7 +137,7 @@ async function getDashboardDataPrisma(currentUserId: number) {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
     take: 5,
   })
 

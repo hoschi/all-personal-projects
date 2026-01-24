@@ -52,7 +52,7 @@ The modeling follows relational best practices according to the architectural de
 ### 3.3 Items & Storage
 
 - **Table `Item`:**
-  - Basic data: Name, Description, `lastModifiedAt`.
+  - Basic data: Name, Description.
   - **Visibility:** Field `isPrivate` (Boolean) and relation `ownerId` (User). If `isPrivate` is set, only the owner may see the item.
   - **Storage Location (Exclusivity):** An item can be in three different locations. This must be represented via three nullable foreign keys:
     1.  `boxId` (in box)
@@ -60,6 +60,7 @@ The modeling follows relational best practices according to the architectural de
     3.  `roomId` (directly in room)
   - _Rule:_ An item may not be directly assigned to a floor or the house.
   - **Status "In Motion":** Relation `inMotionUserId` (Nullable Foreign Key to `User`). Indicates who has the item right now.
+  - **Timestamps:** `createdAt` (auto-generated) and `updatedAt` (auto-updated on any change).
 
 ### 3.4 Personalization (Relation Table)
 

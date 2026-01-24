@@ -87,7 +87,6 @@ model Item {
   id             Int      @id @default(autoincrement())
   name           String
   description    String
-  lastModifiedAt DateTime
   isPrivate      Boolean
   ownerId        Int
   owner          User     @relation("Owner", fields: [ownerId], references: [id])

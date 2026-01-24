@@ -161,7 +161,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   })
 
   // Others items (public or owned by current user)
@@ -176,7 +176,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   })
 
   // Recently modified items (visible to user)
@@ -190,7 +190,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
       furniture: { select: { name: true } },
       room: { select: { name: true } },
     },
-    orderBy: { lastModifiedAt: "desc" },
+    orderBy: { updatedAt: "desc" },
     take: 5,
   })
 
@@ -247,7 +247,6 @@ export const createItemFn = createServerFn({ method: "POST" })
       data: {
         name,
         description,
-        lastModifiedAt: new Date(),
         isPrivate,
         ownerId: 4,
         boxId,
@@ -283,7 +282,6 @@ export const updateItemFn = createServerFn({ method: "POST" })
         boxId,
         furnitureId,
         roomId,
-        lastModifiedAt: new Date(),
       },
     })
   })

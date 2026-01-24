@@ -38,7 +38,6 @@ export const ItemSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string(),
-  lastModifiedAt: z.date(),
   isPrivate: z.boolean(),
   ownerId: z.number(),
   boxId: z.number().nullable(),

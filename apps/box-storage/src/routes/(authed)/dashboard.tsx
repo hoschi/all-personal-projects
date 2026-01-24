@@ -156,11 +156,16 @@ function RouteComponent() {
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-slate-900 leading-tight">
-                      <span className="font-semibold">
-                        {log.owner?.username || "Unbekannt"}
-                      </span>{" "}
-                      hat <span className="font-semibold">{log.name}</span>{" "}
-                      geändert.
+                      <span className="font-semibold">{log.name}</span>
+                      {log.owner?.username && (
+                        <>
+                          {" "}
+                          - gehört{" "}
+                          <span className="font-semibold">
+                            {log.owner?.username}
+                          </span>
+                        </>
+                      )}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
                       {log.lastModifiedAt.toLocaleString("de-DE")}

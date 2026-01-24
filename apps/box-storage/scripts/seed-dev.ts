@@ -432,9 +432,6 @@ async function seedDatabase(): Promise<void> {
       const item = await prisma.item.create({
         data: {
           ...itemData,
-          lastModifiedAt: new Date(
-            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-          ), // Random date within last 30 days
         },
       })
       createdItems.push(item)
