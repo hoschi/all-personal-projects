@@ -89,7 +89,6 @@ unlinkSync(tempSqlFile)
 
 - **Pattern**: Jedes Projekt bekommt eigenes Schema (`financy_forecast`)
 - **Vorteil**: Saubere Trennung zwischen Projekten
-- **Implementation**: `SET search_path TO projekt_schema;`
 
 ### Singleton-Tabellen (Settings)
 
@@ -102,6 +101,22 @@ CREATE TABLE settings (
     estimated_monthly_variable_costs BIGINT NOT NULL DEFAULT 0
 );
 ```
+
+---
+
+## 🏗️ Prisma und Datenbank-Migrations-Patterns
+
+### Prisma 7 Architektur
+
+- **Problem**: Prisma 7 erfordert datasource URL in prisma.config.ts, nicht in schema.prisma
+- **Lösung**: Erstelle prisma.config.ts im Projekt-Root mit korrektem defineConfig, siehe `apps/box-storage/prisma.config.ts`
+- **Erkenntnis**: Schema.prisma enthält nur provider und Models, keine URL
+
+### Testing-Praktiken für Migrationen
+
+- **Problem**: Große Migrationen brauchen Validierung vor Ausführung
+- **Lösung**: Vollständige Test-Scripts mit Prisma oder DB Client erstellen
+- **Pattern**: test-queries.ts mit allen Business-Funktionen schreiben und mit Bun ausführen um Funtionalität zu testen
 
 ---
 
