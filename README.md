@@ -8,6 +8,11 @@ This monorepo contains various personal projects including financial forecasting
   - Forecast calculations and visualization
   - Scenario management
   - Settings and configuration
+- [box-storage](/apps/box-storage/README.md) - Storage management system
+  - TanStack Start web application
+  - PostgreSQL database with Prisma ORM
+  - Multi-level storage hierarchy (Floor → Room → Furniture → Box → Item)
+  - In Motion status tracking for items
 
 ### Tests
 

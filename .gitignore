@@ -39,4 +39,4 @@ yarn-error.log*
 
 .claude_consciousness.m8
 .history/
-.roo/
+.roo/mcp.json

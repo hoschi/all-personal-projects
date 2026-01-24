@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"            // Required
+  output   = "../src/generated/prisma"  // Required
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  items               Item[]               @relation("Owner")
+  inMotionItems       Item[]               @relation("InMotionUser")
+  userItemInteractions UserItemInteraction[]
+
+  @@map("users")
+}
+
+model Floor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  rooms Room[]
+
+  @@map("floors")
+}
+
+model Room {
+  id        Int      @id @default(autoincrement())
+  name      String
+  floorId   Int
+  floor     Floor    @relation(fields: [floorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  furniture Furniture[]
+  items     Item[]     @relation("RoomLocation")
+
+  @@map("rooms")
+  @@index([floorId])
+}
+
+model Furniture {
+  id        Int      @id @default(autoincrement())
+  name      String
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  boxes Box[]
+  items Item[] @relation("FurnitureLocation")
+
+  @@map("furniture")
+  @@index([roomId])
+}
+
+model Box {
+  id          Int        @id @default(autoincrement())
+  name        String
+  furnitureId Int
+  furniture   Furniture  @relation(fields: [furnitureId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  items Item[] @relation("BoxLocation")
+
+  @@map("boxes")
+  @@index([furnitureId])
+}
+
+model Item {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String
+  isPrivate      Boolean
+  ownerId        Int
+  owner          User     @relation("Owner", fields: [ownerId], references: [id])
+  boxId          Int?
+  box            Box?     @relation("BoxLocation", fields: [boxId], references: [id])
+  furnitureId    Int?
+  furniture      Furniture? @relation("FurnitureLocation", fields: [furnitureId], references: [id])
+  roomId         Int?
+  room           Room?    @relation("RoomLocation", fields: [roomId], references: [id])
+  inMotionUserId Int?
+  inMotionUser   User?    @relation("InMotionUser", fields: [inMotionUserId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  userItemInteractions UserItemInteraction[]
+
+  @@map("items")
+  @@index([ownerId])
+  @@index([boxId])
+  @@index([furnitureId])
+  @@index([roomId])
+  @@index([inMotionUserId])
+}
+
+model UserItemInteraction {
+  userId     Int
+  itemId     Int
+  isFavorite Boolean
+  lastUsedAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+
+  @@id([userId, itemId])
+  @@map("user_item_interactions")
+  @@index([userId])
+  @@index([itemId])
+}
