@@ -10,23 +10,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Activity, User, MoveRight } from "lucide-react"
 
-interface ExtendedItem {
-  id: number
-  name: string
-  description: string
-  lastModifiedAt: Date
-  isPrivate: boolean
-  ownerId: number
-  boxId: number | null
-  furnitureId: number | null
-  roomId: number | null
-  inMotionUserId: number | null
-  box?: { name: string } | null
-  furniture?: { name: string } | null
-  room?: { name: string } | null
-  owner?: { username: string } | null
-}
-
 export const Route = createFileRoute("/(authed)/dashboard")({
   component: RouteComponent,
   ssr: false,
@@ -35,7 +18,7 @@ export const Route = createFileRoute("/(authed)/dashboard")({
   },
 })
 
-function getLocationDisplay(item: ExtendedItem): string {
+function getLocationDisplay(item): string {
   if (item.box?.name) return item.box.name
   if (item.furniture?.name) return item.furniture.name
   if (item.room?.name) return item.room.name
@@ -43,12 +26,7 @@ function getLocationDisplay(item: ExtendedItem): string {
 }
 
 function RouteComponent() {
-  const { personalItems, othersItems, recentlyModified } =
-    Route.useLoaderData() as {
-      personalItems: ExtendedItem[]
-      othersItems: ExtendedItem[]
-      recentlyModified: ExtendedItem[]
-    }
+  const { personalItems, othersItems, recentlyModified } = Route.useLoaderData()
 
   // Filter personal items that are in motion
   const myItemsInMotion = personalItems.filter(
@@ -56,14 +34,7 @@ function RouteComponent() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-sm text-slate-500">
-          Willkommen zurück, hier ist eine Übersicht über dein System.
-        </p>
-      </div>
-
+    <div className="space-y-6 mt-2">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Meine Gegenstände Card */}
         <Card>
@@ -168,7 +139,7 @@ function RouteComponent() {
                       )}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {log.lastModifiedAt.toLocaleString("de-DE")}
+                      {log.updatedAt.toLocaleString("de-DE")}
                     </p>
                   </div>
                 </div>

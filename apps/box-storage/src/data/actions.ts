@@ -166,6 +166,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
 
   // Others items (public or owned by current user)
   const othersItems = await prisma.item.findMany({
+    take: 5,
     where: {
       ownerId: { not: 4 },
       OR: [{ isPrivate: false }, { ownerId: 4 }],
