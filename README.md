@@ -41,6 +41,22 @@ This monorepo contains various personal projects including financial forecasting
 - run `bun run packages/tools/src/link-bins.ts` to link bins correctly, Bun has a bug and `bun install` doesn't always work
 - see `./packages/db/README.md`
 - copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
+- set up the git MCP server to match the [main-rules](/ai-assistants/main-rules.md) file, e.g. `.roo/mpc.json`:
+
+```json
+{
+  "mcpServers": {
+    "git": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "/Users/hoschi/repos/personal-one"
+      ]
+    }
+  }
+}
+```
 
 ## Init new project
 
