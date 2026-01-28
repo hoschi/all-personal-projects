@@ -6,7 +6,9 @@ export default function Header() {
 
   return (
     <div>
-      <span className="text-2xl">Box Storage</span>
+      <Link to="/">
+        <span className="text-2xl">Box Storage</span>
+      </Link>
       <span>
         {/* Show a global spinner when the router is transitioning */}
         <span
