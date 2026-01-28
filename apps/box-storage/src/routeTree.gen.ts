@@ -9,24 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as authedRouteRouteImport } from './routes/(authed)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authedTableViewRouteImport } from './routes/(authed)/table-view'
 import { Route as authedDashboardRouteImport } from './routes/(authed)/dashboard'
 
+const authedRouteRoute = authedRouteRouteImport.update({
+  id: '/(authed)',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authedTableViewRoute = authedTableViewRouteImport.update({
-  id: '/(authed)/table-view',
+  id: '/table-view',
   path: '/table-view',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => authedRouteRoute,
 } as any)
 const authedDashboardRoute = authedDashboardRouteImport.update({
-  id: '/(authed)/dashboard',
+  id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => authedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -42,6 +47,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/(authed)': typeof authedRouteRouteWithChildren
   '/(authed)/dashboard': typeof authedDashboardRoute
   '/(authed)/table-view': typeof authedTableViewRoute
 }
@@ -50,17 +56,28 @@ export interface FileRouteTypes {
   fullPaths: '/' | '/dashboard' | '/table-view'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/dashboard' | '/table-view'
-  id: '__root__' | '/' | '/(authed)/dashboard' | '/(authed)/table-view'
+  id:
+    | '__root__'
+    | '/'
+    | '/(authed)'
+    | '/(authed)/dashboard'
+    | '/(authed)/table-view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  authedDashboardRoute: typeof authedDashboardRoute
-  authedTableViewRoute: typeof authedTableViewRoute
+  authedRouteRoute: typeof authedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(authed)': {
+      id: '/(authed)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof authedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -73,22 +90,35 @@ declare module '@tanstack/react-router' {
       path: '/table-view'
       fullPath: '/table-view'
       preLoaderRoute: typeof authedTableViewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof authedRouteRoute
     }
     '/(authed)/dashboard': {
       id: '/(authed)/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof authedDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof authedRouteRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+interface authedRouteRouteChildren {
+  authedDashboardRoute: typeof authedDashboardRoute
+  authedTableViewRoute: typeof authedTableViewRoute
+}
+
+const authedRouteRouteChildren: authedRouteRouteChildren = {
   authedDashboardRoute: authedDashboardRoute,
   authedTableViewRoute: authedTableViewRoute,
+}
+
+const authedRouteRouteWithChildren = authedRouteRoute._addFileChildren(
+  authedRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  authedRouteRoute: authedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
