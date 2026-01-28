@@ -153,51 +153,55 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
   })
 })
 
-export const getDashboardDataFn = createServerFn().handler(async () => {
-  // Personal items
-  const personalItems = await prisma.item.findMany({
-    where: { ownerId: 4 },
-    include: {
-      box: { select: { name: true } },
-      furniture: { select: { name: true } },
-      room: { select: { name: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-  })
+export const getDashboardDataFn = createServerFn().handler(
+  async ({ context }) => {
+    await context.checkAuthOrRedirect()
 
-  // Others items (public or owned by current user)
-  const othersItems = await prisma.item.findMany({
-    take: 5,
-    where: {
-      ownerId: { not: 4 },
-      OR: [{ isPrivate: false }, { ownerId: 4 }],
-    },
-    include: {
-      owner: { select: { username: true } },
-      box: { select: { name: true } },
-      furniture: { select: { name: true } },
-      room: { select: { name: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-  })
+    // Personal items
+    const personalItems = await prisma.item.findMany({
+      where: { ownerId: 4 },
+      include: {
+        box: { select: { name: true } },
+        furniture: { select: { name: true } },
+        room: { select: { name: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    })
 
-  // Recently modified items (visible to user)
-  const recentlyModified = await prisma.item.findMany({
-    where: {
-      OR: [{ isPrivate: false }, { ownerId: 4 }],
-    },
-    include: {
-      owner: { select: { username: true } },
-      box: { select: { name: true } },
-      furniture: { select: { name: true } },
-      room: { select: { name: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 5,
-  })
+    // Others items (public or owned by current user)
+    const othersItems = await prisma.item.findMany({
+      take: 5,
+      where: {
+        ownerId: { not: 4 },
+        OR: [{ isPrivate: false }, { ownerId: 4 }],
+      },
+      include: {
+        owner: { select: { username: true } },
+        box: { select: { name: true } },
+        furniture: { select: { name: true } },
+        room: { select: { name: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    })
 
-  return { personalItems, othersItems, recentlyModified }
-})
+    // Recently modified items (visible to user)
+    const recentlyModified = await prisma.item.findMany({
+      where: {
+        OR: [{ isPrivate: false }, { ownerId: 4 }],
+      },
+      include: {
+        owner: { select: { username: true } },
+        box: { select: { name: true } },
+        furniture: { select: { name: true } },
+        room: { select: { name: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+    })
+
+    return { personalItems, othersItems, recentlyModified }
+  },
+)
 
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ itemId: z.coerce.number() }).parse)

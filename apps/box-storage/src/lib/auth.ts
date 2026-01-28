@@ -4,6 +4,10 @@ export function hasToken() {
   return !!localStorage.getItem("token")
 }
 
+export function getToken() {
+    return localStorage.getItem("token")
+}
+
 export async function login(callback: () => void) {
   const { username } = await loginFn({
     data: { username: "alice", password: "blubs" },
