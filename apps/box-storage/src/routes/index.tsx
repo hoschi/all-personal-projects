@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { login } from "@/lib/auth"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -6,5 +7,14 @@ export const Route = createFileRoute("/")({
 })
 
 function RouteComponent() {
-  return <div className="mt-4">Unauthenticated space to login.</div>
+  const navigate = useNavigate()
+
+  return (
+    <div className="mt-4">
+      Unauthenticated space to login.
+      <button onClick={() => login(() => navigate({ to: "/dashboard" }))}>
+        Login
+      </button>
+    </div>
+  )
 }

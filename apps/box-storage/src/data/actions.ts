@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
+import { redirect } from "@tanstack/react-router"
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -285,4 +286,22 @@ export const updateItemFn = createServerFn({ method: "POST" })
         roomId,
       },
     })
+  })
+
+export const loginFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      password: z.string(),
+      // TODO get username from UserSchema. extract this object into own schema files with the others specific schemas for frontend. use this schema for form validation as well!
+      username: z.string(),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
+    const { username } = data
+    const user = await prisma.user.findFirst({ where: { username } })
+    console.log("login fn:", { username, found: !!user })
+
+    if (!user) throw redirect({ to: "/" })
+
+    return { username }
   })
