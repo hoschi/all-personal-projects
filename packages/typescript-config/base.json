@@ -6,21 +6,22 @@
     "esModuleInterop": true,
     "incremental": false,
     "isolatedModules": true,
-    "lib": [
-      "es2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "module": "NodeNext",
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
     "moduleDetection": "force",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "noUncheckedIndexedAccess": false,
-    "target": "ES2022",
-    "types": [
-      "@types/bun"
-    ]
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noEmit": true,
+
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+
+    "types": ["@types/bun"]
   }
 }
