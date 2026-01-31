@@ -11,7 +11,7 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["generate:prisma", "^check-types"]
     },
     "format": {
       "dependsOn": ["^format"]
@@ -28,13 +28,7 @@
       "outputLogs": "new-only"
     },
     "ci": {
-      "dependsOn": [
-        "check-types",
-        "lint",
-        "format:check",
-        "test",
-        "generate:prisma"
-      ]
+      "dependsOn": ["check-types", "^lint", "format:check", "test"]
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"]
