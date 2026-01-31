@@ -4,14 +4,14 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "TURBO_CONCURRENCY=1 turbo run lint",
     "check-types": "turbo run check-types",
     "fix": "turbo run fix",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "test": "turbo run test",
-    "ci": "turbo run ci",
-    "ci-noc": "turbo run ci --cache=local:"
+    "ci": "turbo run ci && bun run lint",
+    "ci-noc": "turbo run ci --cache=local: && bun run lint"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

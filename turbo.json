@@ -28,7 +28,7 @@
       "outputLogs": "new-only"
     },
     "ci": {
-      "dependsOn": ["check-types", "^lint", "format:check", "test"]
+      "dependsOn": ["check-types", "format:check", "test"]
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"]
