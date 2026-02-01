@@ -1,6 +1,8 @@
 import { createStart } from "@tanstack/react-start"
-import { authMiddleware } from "./lib/middleware"
+import { authMiddleware } from "./middleware"
 
-const start = createStart(authMiddleware)
-
-export default start
+export const startInstance = createStart(() => {
+  return {
+    functionMiddleware: [authMiddleware],
+  }
+})

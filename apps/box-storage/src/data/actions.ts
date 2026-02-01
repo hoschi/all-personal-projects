@@ -2,6 +2,22 @@ import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
 import { redirect } from "@tanstack/react-router"
+import { getRequest } from "@tanstack/react-start/server"
+
+const checkAuthOrRedirect = async (request: Request) => {
+  console.log("check auth")
+  const authHeader = request.headers.get("Authorization")
+  const username = authHeader?.split(" ")[1] // 🙈
+  if (username) {
+    const user = await prisma.user.findFirst({
+      where: { username },
+    })
+    if (user) {
+      return user
+    }
+  }
+  throw redirect({ to: "/" })
+}
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -153,55 +169,56 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
   })
 })
 
-export const getDashboardDataFn = createServerFn().handler(
-  async ({ context }) => {
-    await context.checkAuthOrRedirect()
+export const getDashboardDataFn = createServerFn().handler(async () => {
+  const request = getRequest()
+  console.log("dabo server - start")
+  const currentUser = await checkAuthOrRedirect(request)
+  console.log("dabo server - AUTHED", currentUser.id)
 
-    // Personal items
-    const personalItems = await prisma.item.findMany({
-      where: { ownerId: 4 },
-      include: {
-        box: { select: { name: true } },
-        furniture: { select: { name: true } },
-        room: { select: { name: true } },
-      },
-      orderBy: { updatedAt: "desc" },
-    })
+  // Personal items
+  const personalItems = await prisma.item.findMany({
+    where: { ownerId: 4 },
+    include: {
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
 
-    // Others items (public or owned by current user)
-    const othersItems = await prisma.item.findMany({
-      take: 5,
-      where: {
-        ownerId: { not: 4 },
-        OR: [{ isPrivate: false }, { ownerId: 4 }],
-      },
-      include: {
-        owner: { select: { username: true } },
-        box: { select: { name: true } },
-        furniture: { select: { name: true } },
-        room: { select: { name: true } },
-      },
-      orderBy: { updatedAt: "desc" },
-    })
+  // Others items (public or owned by current user)
+  const othersItems = await prisma.item.findMany({
+    take: 5,
+    where: {
+      ownerId: { not: 4 },
+      OR: [{ isPrivate: false }, { ownerId: 4 }],
+    },
+    include: {
+      owner: { select: { username: true } },
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
 
-    // Recently modified items (visible to user)
-    const recentlyModified = await prisma.item.findMany({
-      where: {
-        OR: [{ isPrivate: false }, { ownerId: 4 }],
-      },
-      include: {
-        owner: { select: { username: true } },
-        box: { select: { name: true } },
-        furniture: { select: { name: true } },
-        room: { select: { name: true } },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-    })
+  // Recently modified items (visible to user)
+  const recentlyModified = await prisma.item.findMany({
+    where: {
+      OR: [{ isPrivate: false }, { ownerId: 4 }],
+    },
+    include: {
+      owner: { select: { username: true } },
+      box: { select: { name: true } },
+      furniture: { select: { name: true } },
+      room: { select: { name: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 5,
+  })
 
-    return { personalItems, othersItems, recentlyModified }
-  },
-)
+  return { personalItems, othersItems, recentlyModified }
+})
 
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
