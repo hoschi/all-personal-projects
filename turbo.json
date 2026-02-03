@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "dist/**", "!.next/cache/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -28,7 +28,7 @@
       "outputLogs": "new-only"
     },
     "ci": {
-      "dependsOn": ["check-types", "format:check", "test"]
+      "dependsOn": ["build", "check-types", "format:check", "test"]
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"]

@@ -2,6 +2,9 @@ node_modules
 dist
 build
 coverage
+**/routeTree.gen.ts
+**/next-env.d.ts
+apps/box-storage/src/generated/**
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
