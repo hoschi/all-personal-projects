@@ -37,13 +37,19 @@ const filtersSchema = z
   .object({
     searchText: z.string().optional(),
     locationFilter: z.string().optional(),
-    statusFilter: z.string().optional(),
+    statusFilter: z.enum(["in-motion", "mine", "free", "others"]).optional(),
   })
   .optional()
+export type ListItemFilters = z.infer<typeof filtersSchema>
 
 export const getListItems = createServerFn()
   .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
   .handler(async ({ data }) => {
+    const request = getRequest()
+    console.log("list items server - start")
+    const currentUser = await checkAuthOrRedirect(request)
+    const userId = currentUser.id
+    console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
 
@@ -101,18 +107,18 @@ export const getListItems = createServerFn()
       } else if (statusFilter === "in-motion") {
         andConditions.push({ inMotionUserId: { not: null } })
       } else if (statusFilter === "mine") {
-        andConditions.push({ inMotionUserId: 4 })
+        andConditions.push({ inMotionUserId: userId })
       } else if (statusFilter === "others") {
         andConditions.push(
           { inMotionUserId: { not: null } },
-          { inMotionUserId: { not: 4 } },
+          { inMotionUserId: { not: userId } },
         )
       }
     }
 
     return await prisma.item.findMany({
       where: {
-        OR: [{ isPrivate: false }, { ownerId: 4 }],
+        OR: [{ isPrivate: false }, { ownerId: userId }],
         AND: andConditions,
       },
       orderBy: { name: "asc" },
@@ -173,11 +179,12 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   const request = getRequest()
   console.log("dabo server - start")
   const currentUser = await checkAuthOrRedirect(request)
-  console.log("dabo server - AUTHED", currentUser.id)
+  const userId = currentUser.id
+  console.log("dabo server - AUTHED", userId)
 
   // Personal items
   const personalItems = await prisma.item.findMany({
-    where: { ownerId: 4 },
+    where: { ownerId: userId },
     include: {
       box: { select: { name: true } },
       furniture: { select: { name: true } },
@@ -190,8 +197,8 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   const othersItems = await prisma.item.findMany({
     take: 5,
     where: {
-      ownerId: { not: 4 },
-      OR: [{ isPrivate: false }, { ownerId: 4 }],
+      ownerId: { not: userId },
+      OR: [{ isPrivate: false }, { ownerId: userId }],
     },
     include: {
       owner: { select: { username: true } },
@@ -205,7 +212,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   // Recently modified items (visible to user)
   const recentlyModified = await prisma.item.findMany({
     where: {
-      OR: [{ isPrivate: false }, { ownerId: 4 }],
+      OR: [{ isPrivate: false }, { ownerId: userId }],
     },
     include: {
       owner: { select: { username: true } },
@@ -223,6 +230,11 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
   .handler(async ({ data }) => {
+    const request = getRequest()
+    console.log("toggle server - start")
+    const currentUser = await checkAuthOrRedirect(request)
+    const userId = currentUser.id
+    console.log("toggle server - AUTHED", userId)
     const { itemId } = data
     const item = await prisma.item.findUnique({
       where: { id: itemId },
@@ -235,9 +247,9 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
       // Set to in motion
       await prisma.item.update({
         where: { id: itemId },
-        data: { inMotionUserId: 4 },
+        data: { inMotionUserId: userId },
       })
-    } else if (item.inMotionUserId === 4) {
+    } else if (item.inMotionUserId === userId) {
       // Remove from motion (same user)
       await prisma.item.update({
         where: { id: itemId },
@@ -264,6 +276,11 @@ export const createItemFn = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+    const request = getRequest()
+    console.log("create item server - start")
+    const currentUser = await checkAuthOrRedirect(request)
+    const userId = currentUser.id
+    console.log("create item server - AUTHED", userId)
     const { name, description, isPrivate, boxId, furnitureId, roomId } = data
     validateLocationConstraints(boxId, furnitureId, roomId)
     return await prisma.item.create({
@@ -271,7 +288,7 @@ export const createItemFn = createServerFn({ method: "POST" })
         name,
         description,
         isPrivate,
-        ownerId: 4,
+        ownerId: userId,
         boxId,
         furnitureId,
         roomId,
@@ -324,5 +341,5 @@ export const loginFn = createServerFn({ method: "POST" })
 
     if (!user) throw redirect({ to: "/" })
 
-    return { username }
+    return { username, id: user.id }
   })
