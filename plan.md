@@ -21,6 +21,7 @@ Done
 - Ran `bun install` and `bun run ci` outside the sandbox; CI now passes with expected warnings only.
 - Added per-package `turbo.json` overrides with `outputs: []` for build tasks that do not produce artifacts.
 - Re-ran `bun run ci` outside the sandbox; build output warnings are gone (lint warnings remain as before).
+- Standardized all workspace package versions to `0.0.0` and switched internal dependencies to `workspace:*`.
 
 Next
 
