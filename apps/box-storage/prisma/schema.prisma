@@ -75,6 +75,7 @@ model Item {
   description    String
   isPrivate      Boolean
   ownerId        String
+  ownerUsername  String   @default("")
   boxId          Int?
   box            Box?     @relation("BoxLocation", fields: [boxId], references: [id])
   furnitureId    Int?
@@ -82,6 +83,7 @@ model Item {
   roomId         Int?
   room           Room?    @relation("RoomLocation", fields: [roomId], references: [id])
   inMotionUserId String?
+  inMotionUsername String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -98,6 +100,7 @@ model Item {
 
 model UserItemInteraction {
   userId     String
+  userUsername String @default("")
   itemId     Int
   isFavorite Boolean
   lastUsedAt DateTime

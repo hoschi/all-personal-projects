@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "./prisma"
 import { redirect } from "@tanstack/react-router"
 import { authStateFn } from "@/lib/auth"
+import { clerkClient } from "@clerk/tanstack-react-start/server"
 
 const checkAuthOrRedirect = async () => {
   console.log("check auth")
@@ -13,6 +14,14 @@ const checkAuthOrRedirect = async () => {
   }
 
   return userId
+}
+
+const getClerkUsername = async (userId: string): Promise<string> => {
+  const user = await clerkClient.users.getUser(userId)
+  const fallbackName = [user.firstName, user.lastName]
+    .filter(Boolean)
+    .join(" ")
+  return user.username || user.fullName || fallbackName || userId
 }
 
 // Hilfsfunktion zur Validierung der Location Constraints
@@ -224,21 +233,22 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
 
     if (!item.inMotionUserId) {
       // Set to in motion
+      const inMotionUsername = await getClerkUsername(userId)
       await prisma.item.update({
         where: { id: itemId },
-        data: { inMotionUserId: userId },
+        data: { inMotionUserId: userId, inMotionUsername },
       })
     } else if (item.inMotionUserId === userId) {
       // Remove from motion (same user)
       await prisma.item.update({
         where: { id: itemId },
-        data: { inMotionUserId: null },
+        data: { inMotionUserId: null, inMotionUsername: null },
       })
     } else {
       // Different user - remove from motion
       await prisma.item.update({
         where: { id: itemId },
-        data: { inMotionUserId: null },
+        data: { inMotionUserId: null, inMotionUsername: null },
       })
     }
   })
@@ -258,6 +268,7 @@ export const createItemFn = createServerFn({ method: "POST" })
     console.log("create item server - start")
     const userId = await checkAuthOrRedirect()
     console.log("create item server - AUTHED", userId)
+    const ownerUsername = await getClerkUsername(userId)
     const { name, description, isPrivate, boxId, furnitureId, roomId } = data
     validateLocationConstraints(boxId, furnitureId, roomId)
     return await prisma.item.create({
@@ -266,10 +277,12 @@ export const createItemFn = createServerFn({ method: "POST" })
         description,
         isPrivate,
         ownerId: userId,
+        ownerUsername,
         boxId,
         furnitureId,
         roomId,
         inMotionUserId: null,
+        inMotionUsername: null,
       },
     })
   })
