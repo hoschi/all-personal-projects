@@ -1,11 +1,17 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "DATABASE_SCHEMA_NAME",
+    "DATABASE_URL",
+    "DB_SCHEMA",
+    "YOUTUBE_API_KEY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "dist/**", "!.next/cache/**"]
+      "outputs": [".next/**", ".output/**", "dist/**", "!.next/cache/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -13,27 +19,40 @@
     "check-types": {
       "dependsOn": ["generate:prisma", "^check-types"]
     },
-    "syncpack:check": {},
-    "syncpack:fix": {},
+    "syncpack:check": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/package.json",
+        "$TURBO_ROOT$/bun.lock",
+        "$TURBO_ROOT$/apps/*/package.json",
+        "$TURBO_ROOT$/packages/*/package.json"
+      ]
+    },
+    "syncpack:fix": {
+      "cache": false
+    },
     "format": {
-      "dependsOn": ["^format"]
+      "dependsOn": ["^format"],
+      "cache": false
     },
     "format:check": {
       "dependsOn": ["^format:check"]
     },
     "fix": {
-      "dependsOn": ["^fix"]
+      "dependsOn": ["^fix"],
+      "cache": false
     },
     "test": {
       "dependsOn": ["^test"],
-      "inputs": ["$TURBO_DEFAULT$", "!**/*.test.ts"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputLogs": "new-only"
     },
     "ci": {
       "dependsOn": ["build", "check-types", "format:check", "syncpack:check", "test"]
     },
     "generate:prisma": {
-      "dependsOn": ["^generate:prisma"]
+      "dependsOn": ["^generate:prisma"],
+      "outputs": ["src/generated/prisma/**"]
     }
   }
 }

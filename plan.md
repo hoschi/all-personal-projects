@@ -14,6 +14,11 @@ Done
 - Added syncpack check task and wired it into Turbo CI.
 - Ensured syncpack:check runs via packages/tools.
 - Ran `bun run ci` outside the sandbox successfully with syncpack:check (lint warnings only).
+- Adjusted turbo.json caching inputs/outputs per best practices (build outputs, test inputs, non-cacheable fix/format, Prisma outputs, syncpack inputs).
+- Confirmed `.output/**` is required for TanStack Start/Nitro build outputs; kept in Turbo outputs.
+- Added `globalEnv` entries in `turbo.json` for env vars used in code to keep Turbo caching correct and silence env-var warnings.
+- Added root `eslint` devDependency to prevent `bunx` from pulling ESLint 10 and failing lint tasks.
+- Ran `bun install` and `bun run ci` outside the sandbox; CI now passes with expected warnings only.
 
 Next
 
