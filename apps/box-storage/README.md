@@ -112,12 +112,12 @@ The schema defines a comprehensive relational model for hierarchical storage:
 - **Item:** Can be located in Box, Furniture, or Room (exclusive relationship)
 - **UserItemInteraction:** Tracks favorites and usage history (junction table)
 
-User data is managed by Clerk. The database stores Clerk user IDs (string) in `Item.ownerId`, `Item.inMotionUserId`, and `UserItemInteraction.userId`.
+User data is managed by Clerk. The database stores Clerk user IDs (string) and usernames in `Item.ownerId`, `Item.ownerUsername`, `Item.inMotionUserId`, `Item.inMotionUsername`, `UserItemInteraction.userId`, and `UserItemInteraction.userUsername`.
 
 **Key Relationships:**
 
 - Items have exactly one location: `boxId`, `furnitureId`, or `roomId` (mutually exclusive)
-- Items can be "In Motion" via `inMotionUserId` (Clerk user ID)
+- Items can be "In Motion" via `inMotionUserId` (Clerk user ID) and `inMotionUsername`
 - Items have visibility control via `isPrivate` flag and `ownerId`
 
 ### 3. Seed Script
