@@ -13,6 +13,8 @@
     "check-types": {
       "dependsOn": ["generate:prisma", "^check-types"]
     },
+    "syncpack:check": {},
+    "syncpack:fix": {},
     "format": {
       "dependsOn": ["^format"]
     },
@@ -28,7 +30,7 @@
       "outputLogs": "new-only"
     },
     "ci": {
-      "dependsOn": ["build", "check-types", "format:check", "test"]
+      "dependsOn": ["build", "check-types", "format:check", "syncpack:check", "test"]
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"]

@@ -9,6 +9,8 @@
     "fix": "turbo run fix",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
+    "syncpack:check": "turbo run syncpack:check --filter=@repo/tools",
+    "syncpack:fix": "turbo run syncpack:fix --filter=@repo/tools",
     "test": "turbo run test",
     "ci": "turbo run ci && bun run lint",
     "ci-noc": "turbo run ci --cache=local: && bun run lint"

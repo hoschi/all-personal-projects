@@ -11,7 +11,10 @@ Done
 - Added explicit types in financy-forecast tsconfig to avoid missing aria-query type errors.
 - Removed an unused @ts-expect-error in rest-server.
 - Ran `bun run ci` outside the sandbox successfully (lint warnings only).
+- Added syncpack check task and wired it into Turbo CI.
+- Ensured syncpack:check runs via packages/tools.
+- Ran `bun run ci` outside the sandbox successfully with syncpack:check (lint warnings only).
 
 Next
 
-- Create turbo task to check with syncpack that everything is in sync, add it to existing ci task
+- Create the requested git commits once the git MCP server is available.
