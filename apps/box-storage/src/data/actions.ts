@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
-import { Item } from "@/generated/prisma/client"
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -94,7 +93,7 @@ export const getListItems = createServerFn()
       }
     }
 
-    const result: Item[] = await prisma.item.findMany({
+    const result = await prisma.item.findMany({
       where: {
         OR: [{ isPrivate: false }, { ownerId: 4 }],
         AND: andConditions,
@@ -157,7 +156,7 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
 
 export const getDashboardDataFn = createServerFn().handler(async () => {
   // Personal items
-  const personalItems: Item[] = await prisma.item.findMany({
+  const personalItems = await prisma.item.findMany({
     where: { ownerId: 4 },
     include: {
       box: { select: { name: true } },
@@ -168,7 +167,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   })
 
   // Others items (public or owned by current user)
-  const othersItems: Item[] = await prisma.item.findMany({
+  const othersItems = await prisma.item.findMany({
     take: 5,
     where: {
       ownerId: { not: 4 },
@@ -184,7 +183,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   })
 
   // Recently modified items (visible to user)
-  const recentlyModified: Item[] = await prisma.item.findMany({
+  const recentlyModified = await prisma.item.findMany({
     where: {
       OR: [{ isPrivate: false }, { ownerId: 4 }],
     },

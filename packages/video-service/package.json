@@ -6,27 +6,28 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "fix": "bunx eslint --fix . && bun run format",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . --ignore-path ../../.prettierignore",
+    "format:check": "prettier --check . --ignore-path ../../.prettierignore",
     "test": "echo 'no tests'"
   },
   "devDependencies": {
-    "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
-    "@repo/db": "*",
-    "@types/node": "^22.15.3",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@types/node": "^24.9.1",
     "eslint": "^9.34.0",
-    "typescript": "5.9.2"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@effect/platform": "^0.92.1",
-    "@repo/db": "*",
+    "@repo/db": "workspace:*",
     "@types/bun": "^1.3.6",
     "dotenv": "^17.2.3",
     "effect": "^3.19.15",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.7"
   }
 }
