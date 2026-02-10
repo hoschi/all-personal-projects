@@ -16,6 +16,7 @@
     "generate:prisma": "prisma generate"
   },
   "dependencies": {
+    "@clerk/tanstack-react-start": "^0.29.1",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@radix-ui/react-slot": "^1.2.4",

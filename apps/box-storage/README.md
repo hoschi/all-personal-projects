@@ -17,7 +17,8 @@ Box Storage is a TanStack Start-based web application for organizing household i
 - **Database:** PostgreSQL with Prisma ORM
 - **UI/Styling:** Tailwind CSS, ShadCN UI
 - **Validation:** Zod
-- **Authentication:** TODO (Clerk planned)
+- **Authentication:** Clerk
+  - [Docs](https://clerk.com/docs/reference/tanstack-react-start/)
 
 ## TanStack Start Features Used
 
@@ -165,3 +166,7 @@ bun run scripts/seed-dev.ts clear
 
 - Bun package manager
 - PostgreSQL 15+, see [db package](../../packages/db/README.md) how to create and env files
+
+### Create .env file
+
+- Copy [.env.example](./.env.example) to `.env` and fill out Clerk credentials

@@ -1,5 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router"
 import { Spinner } from "./ui/spinner"
+import {
+  SignedIn,
+  UserButton,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+} from "@clerk/tanstack-react-start"
 
 export default function Header() {
   const isFetching = useRouterState({ select: (s) => s.isLoading })
@@ -24,6 +31,15 @@ export default function Header() {
         <Link to="/table-view" search={{ onlyMine: false }}>
           Items
         </Link>
+        {/* Show the sign-in and sign-up buttons when the user is signed out */}
+        <SignedOut>
+          <SignInButton />
+          <SignUpButton />
+        </SignedOut>
+        {/* Show the user button when the user is signed in */}
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
       </div>
     </div>
   )

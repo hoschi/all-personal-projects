@@ -2,21 +2,17 @@ import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
 import { redirect } from "@tanstack/react-router"
-import { getRequest } from "@tanstack/react-start/server"
+import { authStateFn } from "@/lib/auth"
 
-const checkAuthOrRedirect = async (request: Request) => {
+const checkAuthOrRedirect = async () => {
   console.log("check auth")
-  const authHeader = request.headers.get("Authorization")
-  const username = authHeader?.split(" ")[1] // 🙈
-  if (username) {
-    const user = await prisma.user.findFirst({
-      where: { username },
-    })
-    if (user) {
-      return user
-    }
+  const { userId } = await authStateFn()
+
+  if (!userId) {
+    throw redirect({ to: "/" })
   }
-  throw redirect({ to: "/" })
+
+  return userId
 }
 
 // Hilfsfunktion zur Validierung der Location Constraints
@@ -45,10 +41,8 @@ export type ListItemFilters = z.infer<typeof filtersSchema>
 export const getListItems = createServerFn()
   .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
   .handler(async ({ data }) => {
-    const request = getRequest()
     console.log("list items server - start")
-    const currentUser = await checkAuthOrRedirect(request)
-    const userId = currentUser.id
+    const userId = await checkAuthOrRedirect()
     console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
@@ -178,10 +172,8 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
 })
 
 export const getDashboardDataFn = createServerFn().handler(async () => {
-  const request = getRequest()
   console.log("dabo server - start")
-  const currentUser = await checkAuthOrRedirect(request)
-  const userId = currentUser.id
+  const userId = await checkAuthOrRedirect()
   console.log("dabo server - AUTHED", userId)
 
   // Personal items
@@ -232,10 +224,8 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
   .handler(async ({ data }) => {
-    const request = getRequest()
     console.log("toggle server - start")
-    const currentUser = await checkAuthOrRedirect(request)
-    const userId = currentUser.id
+    const userId = await checkAuthOrRedirect()
     console.log("toggle server - AUTHED", userId)
     const { itemId } = data
     const item = await prisma.item.findUnique({
@@ -278,10 +268,8 @@ export const createItemFn = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
-    const request = getRequest()
     console.log("create item server - start")
-    const currentUser = await checkAuthOrRedirect(request)
-    const userId = currentUser.id
+    const userId = await checkAuthOrRedirect()
     console.log("create item server - AUTHED", userId)
     const { name, description, isPrivate, boxId, furnitureId, roomId } = data
     validateLocationConstraints(boxId, furnitureId, roomId)
