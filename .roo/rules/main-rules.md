@@ -156,9 +156,11 @@ export async function handleSaveForecastDirect(input: SaveForecastSchema) {
 
 ### Obligatorische Qualitätskontrollen
 
+Führe im Monorepo root `bun run ci` aus und fixe die Fehler, sonst ist deine Aufgabe _nicht_ abgeschlossen. In einer app oder package Projekt stehen dir die folgenden Befehle zur Verfügung um einzelne Dinge nacheinander zu prüfen:
+
 - **Schritt 1**: `bun lint` - Code-Qualität prüfen
 - **Schritt 2**: `bun check-types` - TypeScript-Typen prüfen
-- **Erkenntnis**: Niemals Aufgabe als abgeschlossen markieren ohne diese Prüfungen
+- **Erkenntnis**: Niemals Aufgabe als abgeschlossen markieren ohne `bun run ci` Erfolg im Monorepo root.
 
 ## 🧪 Bun Test spezifische Erkenntnisse
 
@@ -210,3 +212,29 @@ beforeEach(() => {
 
 - **Problem**: Durch `describe` Blöcke ensteht nesting und die Einrückung wird größer so das der Code schwerer lesbar ist
 - **Lösung**: Benutze auf dem ersten level nur `test` ohne `describe`, nutze `describe` nur wenn unbedingt nötig, z.B. um mocks die von mehreren Tests benutzt werden mit unterschiedlichen Daten zu initalisieren
+
+---
+
+## Monorepo Konventionen (Turbo, Syncpack, Versions)
+
+### Turbo Outputs
+
+- **Erkenntnis**: Für Projekte mit echten Build-Artefakten müssen die Outputs gesetzt sein, z.B. `.next/**`, `.output/**`, `dist/**`, und `!.next/cache/**` als Ausschluss
+- **Problem**: Turbo warnt bei Tasks ohne Outputs (z.B. `build` mit `echo 'not implemented'`)
+- **Lösung**: Pro Paket ein `turbo.json` anlegen und für betroffene Tasks explizit `outputs: []` setzen (statt global falsche Outputs zu deklarieren)
+
+### Turbo Caching und Env-Variablen
+
+- **Problem**: Env-Variablen beeinflussen Outputs, aber landen nicht im Cache-Key
+- **Lösung**: Relevante Variablen in `globalEnv` aufnehmen (z.B. `DATABASE_SCHEMA_NAME`, `DATABASE_URL`, `DB_SCHEMA`, `YOUTUBE_API_KEY`)
+
+### Syncpack Usage
+
+- **Ziel**: Dependency-Versionen im Monorepo konsistent halten
+- **Konvention**: `syncpack:check` und `syncpack:fix` über `packages/tools` ausführen (dort ist Syncpack verfügbar)
+- **Caching**: Fix-Tasks (`syncpack:fix`, `format`, `fix`) immer `cache: false`
+
+### Monorepo Versionierung
+
+- **Konvention**: Alle Workspace-Packages starten mit `version: "0.0.0"`, erst mit dem ersten Release wird gezählt und mit `0.0.1` gestartet
+- **Wichtig**: Interne Abhängigkeiten müssen `workspace:*` verwenden als Version in der dependency Sektion in einer `package.json` Datei
