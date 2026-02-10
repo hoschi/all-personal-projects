@@ -122,6 +122,7 @@ export const getListItems = createServerFn()
   })
 
 export const getHierarchicalViewData = createServerFn().handler(async () => {
+  await checkAuthOrRedirect()
   return await prisma.floor.findMany({
     include: {
       rooms: {
@@ -286,6 +287,7 @@ export const updateItemFn = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+    await checkAuthOrRedirect()
     const { itemId, name, description, isPrivate, boxId, furnitureId, roomId } =
       data
     validateLocationConstraints(boxId, furnitureId, roomId)
