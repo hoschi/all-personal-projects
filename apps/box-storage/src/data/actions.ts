@@ -17,7 +17,7 @@ const checkAuthOrRedirect = async () => {
 }
 
 const getClerkUsername = async (userId: string): Promise<string> => {
-  const user = await clerkClient.users.getUser(userId)
+  const user = await clerkClient().users.getUser(userId)
   const fallbackName = [user.firstName, user.lastName].filter(Boolean).join(" ")
   return user.username || user.fullName || fallbackName || userId
 }
