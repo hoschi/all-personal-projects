@@ -186,7 +186,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   console.log("dabo server - AUTHED", userId)
 
   // Personal items
-  const personalItems: Item[] = await prisma.item.findMany({
+  const personalItems = await prisma.item.findMany({
     where: { ownerId: userId },
     include: {
       box: { select: { name: true } },
@@ -197,7 +197,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   })
 
   // Others items (public or owned by current user)
-  const othersItems: Item[] = await prisma.item.findMany({
+  const othersItems = await prisma.item.findMany({
     take: 5,
     where: {
       ownerId: { not: userId },
@@ -213,7 +213,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
   })
 
   // Recently modified items (visible to user)
-  const recentlyModified: Item[] = await prisma.item.findMany({
+  const recentlyModified = await prisma.item.findMany({
     where: {
       OR: [{ isPrivate: false }, { ownerId: userId }],
     },
