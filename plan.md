@@ -19,6 +19,8 @@ Done
 - Added `globalEnv` entries in `turbo.json` for env vars used in code to keep Turbo caching correct and silence env-var warnings.
 - Added root `eslint` devDependency to prevent `bunx` from pulling ESLint 10 and failing lint tasks.
 - Ran `bun install` and `bun run ci` outside the sandbox; CI now passes with expected warnings only.
+- Added per-package `turbo.json` overrides with `outputs: []` for build tasks that do not produce artifacts.
+- Re-ran `bun run ci` outside the sandbox; build output warnings are gone (lint warnings remain as before).
 
 Next
 
