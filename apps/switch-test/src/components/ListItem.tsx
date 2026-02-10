@@ -9,7 +9,7 @@ export function ListItem({ item }: { item: Item }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const toggleDiscount = (item: Item) => {
-    console.log(`## upaditng item: ${item.id}`)
+    console.log(`## updating item: ${item.id}`)
     startTransition(async () => {
       await setDiscount({
         data: { hasDiscount: !item.hasDiscount, id: item.id },

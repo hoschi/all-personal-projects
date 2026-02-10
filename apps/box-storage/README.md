@@ -148,15 +148,14 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
-- **Authentication:** Implement login via username/password
-- **Route Protection:** Protect all routes (except login)
+- **Authentication:** Implement login via username/password with Clerk
+- error handling for async functions in React components, e.g. `toggleInMotion` in table-view.tsx, [see comment](https://github.com/hoschi/all-personal-projects/pull/8#pullrequestreview-3772423363)
+- replace if/else with ts-pattern, AI doesn't do this by itself so far, add rules for this
 - **UI Enhancements:**
   - Move sidebar toggle from content header to sidebar header
   - Create icon sidebar in collapsed version
   - Add "screen too small" message for mobile devices
-- **Security:** Use server-only package to prevent DB connection details leakage
 - **Testing:** Add unit tests for business logic functions
-- find out why Prisma generate right befoe `tsc` still throws TS errors, but only on CI env
 
 ---
 

@@ -39,8 +39,8 @@ function RouteComponent() {
   const navigate = useNavigate({ from: Route.fullPath })
 
   const toggleInMotion = async (item: Item) => {
-    console.log(`## upaditng item: ${item.id}`)
-    await toggleItemInMotionFn({ data: { itemId: item.id } })
+    console.log(`## updating item: ${item.id}`)
+    await toggleItemInMotionFn({ data: { itemId: 66666 } })
     router.invalidate()
     console.log(`## item: ${item.id} updated`)
   }
