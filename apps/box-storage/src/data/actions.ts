@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
-import { Item } from "@/generated/prisma/client"
 import { redirect } from "@tanstack/react-router"
 import { getRequest } from "@tanstack/react-start/server"
 
@@ -117,7 +116,7 @@ export const getListItems = createServerFn()
       }
     }
 
-    const result: Item[] = await prisma.item.findMany({
+    const result = await prisma.item.findMany({
       where: {
         OR: [{ isPrivate: false }, { ownerId: userId }],
         AND: andConditions,

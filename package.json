@@ -9,14 +9,17 @@
     "fix": "turbo run fix",
     "format": "turbo run format",
     "format:check": "turbo run format:check",
+    "syncpack:check": "turbo run syncpack:check --filter=@repo/tools",
+    "syncpack:fix": "turbo run syncpack:fix --filter=@repo/tools",
     "test": "turbo run test",
     "ci": "turbo run ci && bun run lint",
-    "ci-noc": "turbo run ci --cache=local: && bun run lint"
+    "ci-noc": "turbo run ci --cache=local: && TURBO_CONCURRENCY=1 turbo run lint  --cache=local:"
   },
   "devDependencies": {
+    "eslint": "^9.34.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
-    "typescript": "5.9.2"
+    "typescript": "^5.9.2"
   },
   "engines": {
     "node": ">=18"
