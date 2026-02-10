@@ -40,7 +40,7 @@ function RouteComponent() {
 
   const toggleInMotion = async (item: Item) => {
     console.log(`## updating item: ${item.id}`)
-    await toggleItemInMotionFn({ data: { itemId: 66666 } })
+    await toggleItemInMotionFn({ data: { itemId: item.id } })
     router.invalidate()
     console.log(`## item: ${item.id} updated`)
   }
