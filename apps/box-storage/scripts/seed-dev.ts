@@ -40,7 +40,6 @@ async function clearSeedData(): Promise<void> {
     console.log("  ✅ Floors deleted")
 
     // Reset auto-increment counters using raw SQL with schema
-    await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."user_item_interactions" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."items" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."boxes" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."furniture" RESTART IDENTITY CASCADE`

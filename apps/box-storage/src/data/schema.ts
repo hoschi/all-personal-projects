@@ -32,7 +32,7 @@ export const ItemSchema = z.object({
   name: z.string(),
   description: z.string(),
   isPrivate: z.boolean(),
-  ownerId: z.string(),
+  ownerId: z.string().min(1),
   boxId: z.number().nullable(),
   furnitureId: z.number().nullable(),
   roomId: z.number().nullable(),

@@ -6,7 +6,7 @@ import { useUser } from "@clerk/tanstack-react-start"
 export const authStateFn = createServerFn().handler(async () => {
   const { isAuthenticated, userId } = await auth()
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !userId) {
     throw redirect({
       to: "/",
     })

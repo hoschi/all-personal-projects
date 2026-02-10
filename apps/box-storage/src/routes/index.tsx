@@ -7,15 +7,19 @@ export const Route = createFileRoute("/")({
 })
 
 function RouteComponent() {
-  const { isSignedIn, user } = useUser()
+  const { isSignedIn, isLoaded, user } = useUser()
 
   return (
     <div className="mt-4">
       <p>This is the last storage system you need.</p>
-      {isSignedIn ? (
-        <p> Hello {user.fullName || user.username}!</p>
+      {isLoaded ? (
+        isSignedIn ? (
+          <p> Hello {user.fullName || user.username}!</p>
+        ) : (
+          <p>You are not signed in and can't interact with the system!</p>
+        )
       ) : (
-        <p>You are not signed in and can't interact with the system!</p>
+        ""
       )}
     </div>
   )

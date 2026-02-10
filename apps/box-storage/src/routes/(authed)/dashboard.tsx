@@ -106,7 +106,7 @@ function RouteComponent() {
                       {item.name}
                     </p>
                     <p className="text-xs text-slate-500">
-                      Besitzer: {item.ownerId || "Unbekannt"}
+                      Besitzer: {item.ownerId}
                     </p>
                   </div>
                   <Badge variant="outline">
