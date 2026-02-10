@@ -13,7 +13,7 @@
     "syncpack:fix": "turbo run syncpack:fix --filter=@repo/tools",
     "test": "turbo run test",
     "ci": "turbo run ci && bun run lint",
-    "ci-noc": "turbo run ci --cache=local: && URBO_CONCURRENCY=1 turbo run lint  --cache=local:"
+    "ci-noc": "turbo run ci --cache=local: && TURBO_CONCURRENCY=1 turbo run lint  --cache=local:"
   },
   "devDependencies": {
     "eslint": "^9.34.0",
