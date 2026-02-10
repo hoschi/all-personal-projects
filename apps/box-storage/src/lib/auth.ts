@@ -1,27 +1,66 @@
-import { loginFn } from "@/data/actions"
+import { auth, clerkClient } from "@clerk/tanstack-react-start/server"
+import { createServerFn } from "@tanstack/react-start"
+import { redirect } from "@tanstack/react-router"
+import { useUser } from "@clerk/tanstack-react-start"
 
-export function hasToken() {
-  return !!localStorage.getItem("token")
-}
+export const authStateFn = createServerFn().handler(async () => {
+  const { isAuthenticated, userId } = await auth()
 
-export function getToken() {
-  return localStorage.getItem("token")
-}
-
-export function getUserId() {
-  const stringId = localStorage.getItem("userId")
-  if (!stringId) {
-    throw new Error("It is not me, it is you thats doing this wrong!")
+  if (!isAuthenticated || !userId) {
+    throw redirect({
+      to: "/",
+    })
   }
-  return parseInt(stringId, 10)
+
+  return { userId }
+})
+
+const clerkUsernameCache: Record<string, string> = {}
+const clerkUsernameCacheOrder: string[] = []
+const CLERK_USERNAME_CACHE_LIMIT = 20
+
+const cacheClerkUsername = (userId: string, username: string) => {
+  if (clerkUsernameCache[userId]) {
+    const existingIndex = clerkUsernameCacheOrder.indexOf(userId)
+    if (existingIndex >= 0) {
+      clerkUsernameCacheOrder.splice(existingIndex, 1)
+    }
+  }
+
+  clerkUsernameCache[userId] = username
+  clerkUsernameCacheOrder.push(userId)
+
+  if (clerkUsernameCacheOrder.length > CLERK_USERNAME_CACHE_LIMIT) {
+    const oldestUserId = clerkUsernameCacheOrder.shift()
+    if (oldestUserId) {
+      delete clerkUsernameCache[oldestUserId]
+    }
+  }
 }
 
-export async function login(callback: () => void) {
-  const { username, id } = await loginFn({
-    data: { username: "alice", password: "blubs" },
-  })
-  localStorage.setItem("token", username)
-  localStorage.setItem("userId", id.toString())
+export const getClerkUsername = async (userId: string): Promise<string> => {
+  const cachedUsername = clerkUsernameCache[userId]
+  if (cachedUsername) {
+    return cachedUsername
+  }
 
-  callback()
+  const user = await clerkClient().users.getUser(userId)
+
+  if (!user.username) {
+    throw new Error(`Missing Clerk username for userId: ${userId}`)
+  }
+
+  cacheClerkUsername(userId, user.username)
+
+  return user.username
+}
+
+export const useUserId = function () {
+  const { user } = useUser()
+
+  if (!user?.id) {
+    throw Error("Use this only in authed routes!")
+  }
+
+  return user.id
 }

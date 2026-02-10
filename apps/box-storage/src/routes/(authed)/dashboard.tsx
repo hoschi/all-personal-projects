@@ -106,7 +106,7 @@ function RouteComponent() {
                       {item.name}
                     </p>
                     <p className="text-xs text-slate-500">
-                      Besitzer: {item.owner?.username || "Unbekannt"}
+                      Besitzer: {item.ownerUsername}
                     </p>
                   </div>
                   <Badge variant="outline">
@@ -137,9 +137,7 @@ function RouteComponent() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-slate-900 leading-tight">
                       <span className="font-semibold">{log.name}</span> - gehört{" "}
-                      <span className="font-semibold">
-                        {log.owner.username}
-                      </span>
+                      <span className="font-semibold">{log.ownerUsername}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
                       {log.updatedAt.toLocaleString("de-DE")}

@@ -8,7 +8,7 @@ Box Storage is a TanStack Start-based web application for organizing household i
 - **Inventory View** - Table-based view of all visible items with filtering and sorting capabilities
 - **Hierarchical View** - Tree-based visualization of the storage structure
 - **Dashboard** - Overview of personal items, other users' items, and recently modified items
-- **In Motion Status** - Track which user currently has an item in use
+- **In Motion Status** - Track which Clerk user currently has an item in use
 
 **Tech Stack:**
 
@@ -17,7 +17,8 @@ Box Storage is a TanStack Start-based web application for organizing household i
 - **Database:** PostgreSQL with Prisma ORM
 - **UI/Styling:** Tailwind CSS, ShadCN UI
 - **Validation:** Zod
-- **Authentication:** TODO (Clerk planned)
+- **Authentication:** Clerk
+  - [Docs](https://clerk.com/docs/reference/tanstack-react-start/)
 
 ## TanStack Start Features Used
 
@@ -104,7 +105,6 @@ The application uses Prisma 7 architecture with PostgreSQL database. The datasou
 
 The schema defines a comprehensive relational model for hierarchical storage:
 
-- **User:** Core user entity with authentication credentials
 - **Floor:** Top level in the house hierarchy
 - **Room:** Belongs to Floor (1:n relationship)
 - **Furniture:** Belongs to Room (1:n relationship)
@@ -112,10 +112,12 @@ The schema defines a comprehensive relational model for hierarchical storage:
 - **Item:** Can be located in Box, Furniture, or Room (exclusive relationship)
 - **UserItemInteraction:** Tracks favorites and usage history (junction table)
 
+User data is managed by Clerk. The database stores Clerk user IDs (string) and usernames in `Item.ownerId`, `Item.ownerUsername`, `Item.inMotionUserId`, `Item.inMotionUsername`, `UserItemInteraction.userId`, and `UserItemInteraction.userUsername`.
+
 **Key Relationships:**
 
 - Items have exactly one location: `boxId`, `furnitureId`, or `roomId` (mutually exclusive)
-- Items can be "In Motion" via `inMotionUserId` foreign key
+- Items can be "In Motion" via `inMotionUserId` (Clerk user ID) and `inMotionUsername`
 - Items have visibility control via `isPrivate` flag and `ownerId`
 
 ### 3. Seed Script
@@ -126,7 +128,7 @@ The schema defines a comprehensive relational model for hierarchical storage:
 
 **Sample data:**
 
-- **4 Users:** alice, bob, charlie, david (with hashed passwords)
+- **4 Clerk User IDs:** alice, bob, charlie, david
 - **2 Floors:** Erdgeschoss, 1. Stock
 - **4 Rooms:** Küche, Wohnzimmer, Schlafzimmer, Büro
 - **4 Furnitures:** Küchenschrank, Regal, Kommode, Schreibtisch
@@ -137,7 +139,7 @@ The schema defines a comprehensive relational model for hierarchical storage:
 **Commands:**
 
 ```bash
-# Clear and €eed database with sample data
+# Clear and seed database with sample data
 bun run scripts/seed-dev.ts seed
 
 # Clear all sample data
@@ -148,7 +150,6 @@ bun run scripts/seed-dev.ts clear
 
 ## Todo
 
-- **Authentication:** Implement login via username/password with Clerk
 - error handling for async functions in React components, e.g. `toggleInMotion` in table-view.tsx, [see comment](https://github.com/hoschi/all-personal-projects/pull/8#pullrequestreview-3772423363)
 - replace if/else with ts-pattern, AI doesn't do this by itself so far, add rules for this
 - **UI Enhancements:**
@@ -165,3 +166,7 @@ bun run scripts/seed-dev.ts clear
 
 - Bun package manager
 - PostgreSQL 15+, see [db package](../../packages/db/README.md) how to create and env files
+
+### Create .env file
+
+- Copy [.env.example](./.env.example) to `.env` and fill out Clerk credentials

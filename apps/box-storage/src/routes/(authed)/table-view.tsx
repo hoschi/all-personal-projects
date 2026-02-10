@@ -5,7 +5,7 @@ import {
   toggleItemInMotionFn,
 } from "@/data/actions"
 import { Item } from "@/data/schema"
-import { getUserId } from "@/lib/auth"
+import { useUserId } from "@/lib/auth"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { z } from "zod"
 
@@ -35,7 +35,7 @@ function RouteComponent() {
   const router = useRouter()
   const { items } = Route.useLoaderData()
   const search = Route.useSearch()
-  const userId = getUserId()
+  const userId = useUserId()
   const navigate = useNavigate({ from: Route.fullPath })
 
   const toggleInMotion = async (item: Item) => {

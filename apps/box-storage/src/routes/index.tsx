@@ -1,5 +1,5 @@
-import { login } from "@/lib/auth"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useUser } from "@clerk/tanstack-react-start"
+import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -7,14 +7,18 @@ export const Route = createFileRoute("/")({
 })
 
 function RouteComponent() {
-  const navigate = useNavigate()
+  const { isSignedIn, isLoaded, user } = useUser()
 
   return (
     <div className="mt-4">
-      Unauthenticated space to login.
-      <button onClick={() => login(() => navigate({ to: "/dashboard" }))}>
-        Login
-      </button>
+      <p>This is the last storage system you need.</p>
+      {isLoaded ? (
+        isSignedIn ? (
+          <p> Hello {user.fullName || user.username}!</p>
+        ) : (
+          <p>You are not signed in and can't interact with the system!</p>
+        )
+      ) : null}
     </div>
   )
 }

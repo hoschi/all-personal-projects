@@ -10,21 +10,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  items               Item[]               @relation("Owner")
-  inMotionItems       Item[]               @relation("InMotionUser")
-  userItemInteractions UserItemInteraction[]
-
-  @@map("users")
-}
-
 model Floor {
   id        Int      @id @default(autoincrement())
   name      String
@@ -89,16 +74,16 @@ model Item {
   name           String
   description    String
   isPrivate      Boolean
-  ownerId        Int
-  owner          User     @relation("Owner", fields: [ownerId], references: [id])
+  ownerId        String
+  ownerUsername  String
   boxId          Int?
   box            Box?     @relation("BoxLocation", fields: [boxId], references: [id])
   furnitureId    Int?
   furniture      Furniture? @relation("FurnitureLocation", fields: [furnitureId], references: [id])
   roomId         Int?
   room           Room?    @relation("RoomLocation", fields: [roomId], references: [id])
-  inMotionUserId Int?
-  inMotionUser   User?    @relation("InMotionUser", fields: [inMotionUserId], references: [id])
+  inMotionUserId String?
+  inMotionUsername String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -114,14 +99,14 @@ model Item {
 }
 
 model UserItemInteraction {
-  userId     Int
+  userId     String
+  userUsername String
   itemId     Int
   isFavorite Boolean
   lastUsedAt DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
   item Item @relation(fields: [itemId], references: [id])
 
   @@id([userId, itemId])
