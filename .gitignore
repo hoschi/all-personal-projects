@@ -41,3 +41,5 @@ yarn-error.log*
 .history/
 .roo/mcp.json
 tmp/
+ai-ref/nextjs-llms-full.txt
+ai-ref/ts-pattern-README.md

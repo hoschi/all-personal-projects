@@ -13,7 +13,8 @@
     "syncpack:fix": "turbo run syncpack:fix --filter=@repo/tools",
     "test": "turbo run test",
     "ci": "turbo run ci && bun run lint",
-    "ci-noc": "turbo run ci --cache=local: && TURBO_CONCURRENCY=1 turbo run lint  --cache=local:"
+    "ci-noc": "turbo run ci --cache=local: && TURBO_CONCURRENCY=1 turbo run lint --cache=local:",
+    "init-fresh-clone": "bun run packages/tools/src/init-fresh-clone.ts"
   },
   "devDependencies": {
     "eslint": "^9.34.0",

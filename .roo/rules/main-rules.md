@@ -5,6 +5,18 @@
 - Dokumentation von Code und Readmes sind _immer_ englisch, deine Antworten auf deutsch.
 - Verwende _immer_ den MCP Server nie das CLI um mit `git` zu arbeiten
 - Wenn du Problem angehst überlege ob dir Informationen aus der bestehenden Codebase helfen können. Dier steht in den meisten Roo Modi ein MCP Server zur Verfügung um die Code Base zu durchsuchen. Benutze diesen um mehr Informationen zu bekommen _bevor_ du an der Lösung arbeitest.
+- Wenn du Dokumentation herunterladen möchtest, speichere sie im `tmp`-Ordner, damit sie nicht mit Git committed wird. Dokumentation oder andere Artefakte, die du zur Übergabe zwischen Roo Modi/Agenten oder aus Useranweisungen heraus erstellst, speicherst du im `current`-Ordner, falls nicht anders angegeben oder sinnvoll. `plan.md` legst du ebenfalls in `current` ab, außer du arbeitest mit dem `specify`-System.
+
+## AI ref
+
+Im Ordner `tmp/ai-ref` müssen folgende Dateien sein:
+
+- `nextjs-llms-full.txt` enthält die komplette Dokumentation für Next.js v16.
+- `tan-stack-llms.txt` enthält Links zur TanStack-Dokumentation für aktuelle und detailliertere Informationen.
+- `ts-pattern-README.md` enthält die wichtigsten Dokumentations- und API-Beispiele für die ts-pattern Bibliothek.
+- Führe `bun run packages/tools/src/fetch-ai-docs.ts` aus, um die Dateien nach `tmp/ai-ref` zu laden.
+
+Lies diese Dateien, wenn sie für die aktuelle Aufgabe sinnvoll sind oder du Probleme hast mit Dingen, die hier thematisiert werden. Aktuelle Dokumentation zu bekommen ist WICHTIG, da deine Trainingsdaten veraltet sein können.
 
 ## 🔧 Kritische Projekt-Konfiguration
 
@@ -80,6 +92,17 @@ unlinkSync(tempSqlFile)
 
 - **Problem**: `\i` (include) funktioniert nicht mit `-c` Parameter
 - **Lösung**: Separate `-f` Parameter für Dateien verwenden
+
+---
+
+## Einfache CLI-Skripte
+
+- **Argumente**: Immer `commander` für CLI-Parsing verwenden (`-y/--yes` für Auto-Confirm).
+- **Prompts**: Für Interaktion `@inquirer/prompts` nutzen (z.B. `confirm`), mit Default `false`.
+- **Non-Interactive**: Wenn `!process.stdin.isTTY`, keine Prompts starten und sichere Defaults verwenden.
+- **Root-Pfad**: Root-Verzeichnis aus `import.meta.url` via `fileURLToPath` + `dirname` ableiten (kein `cwd`-Raten).
+- **Ausführung**: Befehle per `spawnSync` mit `stdio: "inherit"` ausführen und bei Fehlern mit Exit-Code beenden.
+- **Logging**: Kurze, klare Step-Logs (`Linking...`, `Fetching...`, `Installing...`).
 
 ---
 
