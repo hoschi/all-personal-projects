@@ -131,10 +131,6 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
               boxes: {
                 include: {
                   items: {
-                    include: {
-                      owner: { select: { username: true } },
-                      inMotionUser: { select: { username: true } },
-                    },
                     orderBy: [
                       { inMotionUserId: "desc" }, // in-motion items last
                       { name: "asc" },
@@ -146,10 +142,6 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
                 where: {
                   boxId: null, // only items directly in furniture, not in boxes
                 },
-                include: {
-                  owner: { select: { username: true } },
-                  inMotionUser: { select: { username: true } },
-                },
                 orderBy: [{ inMotionUserId: "desc" }, { name: "asc" }],
               },
             },
@@ -158,10 +150,6 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
             where: {
               furnitureId: null, // only items directly in room, not in furniture
               boxId: null,
-            },
-            include: {
-              owner: { select: { username: true } },
-              inMotionUser: { select: { username: true } },
             },
             orderBy: [{ inMotionUserId: "desc" }, { name: "asc" }],
           },
@@ -195,7 +183,6 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
       OR: [{ isPrivate: false }, { ownerId: userId }],
     },
     include: {
-      owner: { select: { username: true } },
       box: { select: { name: true } },
       furniture: { select: { name: true } },
       room: { select: { name: true } },
@@ -209,7 +196,6 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
       OR: [{ isPrivate: false }, { ownerId: userId }],
     },
     include: {
-      owner: { select: { username: true } },
       box: { select: { name: true } },
       furniture: { select: { name: true } },
       room: { select: { name: true } },
@@ -314,22 +300,4 @@ export const updateItemFn = createServerFn({ method: "POST" })
         roomId,
       },
     })
-  })
-
-export const loginFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      password: z.string(),
-      // TODO get username from UserSchema. extract this object into own schema files with the others specific schemas for frontend. use this schema for form validation as well!
-      username: z.string(),
-    }).parse,
-  )
-  .handler(async ({ data }) => {
-    const { username } = data
-    const user = await prisma.user.findFirst({ where: { username } })
-    console.log("login fn:", { username, found: !!user })
-
-    if (!user) throw redirect({ to: "/" })
-
-    return { username, id: user.id }
   })

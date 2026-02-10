@@ -1,12 +1,5 @@
 import { z } from "zod"
 
-export const UserSchema = z.object({
-  id: z.number(),
-  username: z.string(),
-  passwordHash: z.string(),
-})
-export type User = z.infer<typeof UserSchema>
-
 export const FloorSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -39,16 +32,16 @@ export const ItemSchema = z.object({
   name: z.string(),
   description: z.string(),
   isPrivate: z.boolean(),
-  ownerId: z.number(),
+  ownerId: z.string(),
   boxId: z.number().nullable(),
   furnitureId: z.number().nullable(),
   roomId: z.number().nullable(),
-  inMotionUserId: z.number().nullable(),
+  inMotionUserId: z.string().nullable(),
 })
 export type Item = z.infer<typeof ItemSchema>
 
 export const UserItemInteractionSchema = z.object({
-  userId: z.number(),
+  userId: z.string(),
   itemId: z.number(),
   isFavorite: z.boolean(),
   lastUsedAt: z.date(),

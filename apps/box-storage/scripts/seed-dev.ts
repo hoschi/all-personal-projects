@@ -2,7 +2,7 @@
  * Box-Storage Development Seed Data Script
  *
  * This script populates the database with realistic sample data for development:
- * - 2-3 Users with hashed passwords
+ * - 4 Clerk user IDs for ownership and interactions
  * - 2 Floors (EG, OG)
  * - Per Floor 2 Rooms (Wohnzimmer, Küche, etc.)
  * - Per Room 2 Furnitures
@@ -12,15 +12,6 @@
  */
 
 import { prisma } from "@/data/prisma"
-import * as bcrypt from "bcrypt"
-
-/**
- * Hash password using bcrypt
- */
-async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 10
-  return await bcrypt.hash(password, saltRounds)
-}
 
 /**
  * Clear all development data
@@ -48,9 +39,6 @@ async function clearSeedData(): Promise<void> {
     await prisma.floor.deleteMany()
     console.log("  ✅ Floors deleted")
 
-    await prisma.user.deleteMany()
-    console.log("  ✅ Users deleted")
-
     // Reset auto-increment counters using raw SQL with schema
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."user_item_interactions" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."items" RESTART IDENTITY CASCADE`
@@ -58,7 +46,6 @@ async function clearSeedData(): Promise<void> {
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."furniture" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."rooms" RESTART IDENTITY CASCADE`
     await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."floors" RESTART IDENTITY CASCADE`
-    await prisma.$executeRaw`TRUNCATE TABLE "box_storage"."users" RESTART IDENTITY CASCADE`
     console.log("  ✅ Auto-increment counters reset")
 
     console.log("✅ Development data cleared")
@@ -84,45 +71,19 @@ async function seedDatabase(): Promise<void> {
     await clearSeedData()
     console.log("")
 
-    // Create users
-    console.log("👥 Creating users...")
-    const hashedPassword1 = await hashPassword("password123")
-    const hashedPassword2 = await hashPassword("password456")
-    const hashedPassword3 = await hashPassword("password789")
-
-    const user1 = await prisma.user.create({
-      data: {
-        username: "alice",
-        passwordHash: hashedPassword1,
-      },
-    })
-    console.log(`  ✅ User created: ${user1.username} (ID: ${user1.id})`)
-
-    const user2 = await prisma.user.create({
-      data: {
-        username: "bob",
-        passwordHash: hashedPassword2,
-      },
-    })
-    console.log(`  ✅ User created: ${user2.username} (ID: ${user2.id})`)
-
-    const user3 = await prisma.user.create({
-      data: {
-        username: "charlie",
-        passwordHash: hashedPassword3,
-      },
-    })
-    console.log(`  ✅ User created: ${user3.username} (ID: ${user3.id})`)
-
-    // Create user with ID 4 for compatibility with hardcoded user ID in actions.ts
-    const user4 = await prisma.user.create({
-      data: {
-        username: "david",
-        passwordHash: hashedPassword1,
-      },
-    })
-    console.log(`  ✅ User created: ${user4.username} (ID: ${user4.id})`)
-    console.log("✅ Users created\n")
+    // Clerk user IDs for ownership and interactions
+    const userIds = {
+      alice: "user_39U97yqxnMF3KaDTJP4kkN2owE6!",
+      bob: "user_2fJ9aR1kT8pQmL7xX0yZ3vW5nN4!",
+      charlie: "user_7kLmN2pQrS4tUvWxYzA1bC3dE5!",
+      david: "user_9mNoP6qRsT2uVwXyZ4aB7cD1eF!",
+    }
+    console.log("👥 Using Clerk user IDs...")
+    console.log(`  ✅ alice: ${userIds.alice}`)
+    console.log(`  ✅ bob: ${userIds.bob}`)
+    console.log(`  ✅ charlie: ${userIds.charlie}`)
+    console.log(`  ✅ david: ${userIds.david}`)
+    console.log("✅ Clerk user IDs ready\n")
 
     // Create floors
     console.log("🏢 Creating floors...")
@@ -219,7 +180,7 @@ async function seedDatabase(): Promise<void> {
         name: "Toaster",
         description: "Elektrischer Toaster",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: createdBoxes[0].id,
         furnitureId: null,
         roomId: null,
@@ -228,7 +189,7 @@ async function seedDatabase(): Promise<void> {
         name: "Kaffeebecher",
         description: "Blauer Kaffeebecher",
         isPrivate: true,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: createdBoxes[1].id,
         furnitureId: null,
         roomId: null,
@@ -237,7 +198,7 @@ async function seedDatabase(): Promise<void> {
         name: "Buch",
         description: "Roman",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: createdBoxes[2].id,
         furnitureId: null,
         roomId: null,
@@ -246,7 +207,7 @@ async function seedDatabase(): Promise<void> {
         name: "Fernbedienung",
         description: "TV Fernbedienung",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: createdBoxes[3].id,
         furnitureId: null,
         roomId: null,
@@ -255,7 +216,7 @@ async function seedDatabase(): Promise<void> {
         name: "Kissen",
         description: "Dekoratives Kissen",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: createdBoxes[4].id,
         furnitureId: null,
         roomId: null,
@@ -264,7 +225,7 @@ async function seedDatabase(): Promise<void> {
         name: "Laptop",
         description: "Arbeitslaptop",
         isPrivate: true,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: createdBoxes[5].id,
         furnitureId: null,
         roomId: null,
@@ -273,7 +234,7 @@ async function seedDatabase(): Promise<void> {
         name: "Schere",
         description: "Haushaltsschere",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: createdBoxes[6].id,
         furnitureId: null,
         roomId: null,
@@ -282,7 +243,7 @@ async function seedDatabase(): Promise<void> {
         name: "Lampe",
         description: "Stehlampe",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: createdBoxes[7].id,
         furnitureId: null,
         roomId: null,
@@ -291,7 +252,7 @@ async function seedDatabase(): Promise<void> {
         name: "Notizblock",
         description: "Gelbe Notizblöcke",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: createdBoxes[0].id,
         furnitureId: null,
         roomId: null,
@@ -300,7 +261,7 @@ async function seedDatabase(): Promise<void> {
         name: "Wasserkocher",
         description: "Elektrischer Wasserkocher",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: createdBoxes[1].id,
         furnitureId: null,
         roomId: null,
@@ -311,7 +272,7 @@ async function seedDatabase(): Promise<void> {
         name: "DVD-Player",
         description: "Alter DVD-Player",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: null,
         furnitureId: createdFurnitures[1].id,
         roomId: null,
@@ -320,7 +281,7 @@ async function seedDatabase(): Promise<void> {
         name: "Bilderrahmen",
         description: "Familienfoto",
         isPrivate: true,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: createdFurnitures[2].id,
         roomId: null,
@@ -329,7 +290,7 @@ async function seedDatabase(): Promise<void> {
         name: "Taschenlampe",
         description: "LED-Taschenlampe",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: null,
         furnitureId: createdFurnitures[3].id,
         roomId: null,
@@ -338,7 +299,7 @@ async function seedDatabase(): Promise<void> {
         name: "Schlüsselbund",
         description: "Haustürschlüssel",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: createdFurnitures[0].id,
         roomId: null,
@@ -347,7 +308,7 @@ async function seedDatabase(): Promise<void> {
         name: "Bilderbuch",
         description: "Kinderbuch",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: null,
         furnitureId: createdFurnitures[1].id,
         roomId: null,
@@ -358,7 +319,7 @@ async function seedDatabase(): Promise<void> {
         name: "Sofa",
         description: "Wohnzimmersofa",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[1].id,
@@ -367,7 +328,7 @@ async function seedDatabase(): Promise<void> {
         name: "Teppich",
         description: "Wohnzimmerteppich",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[1].id,
@@ -376,7 +337,7 @@ async function seedDatabase(): Promise<void> {
         name: "Vorhang",
         description: "Fenster Vorhang",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[2].id,
@@ -385,7 +346,7 @@ async function seedDatabase(): Promise<void> {
         name: "Bettdecke",
         description: "Winterbettdecke",
         isPrivate: true,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[2].id,
@@ -394,7 +355,7 @@ async function seedDatabase(): Promise<void> {
         name: "Stuhl",
         description: "Bürostuhl",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[3].id,
@@ -403,7 +364,7 @@ async function seedDatabase(): Promise<void> {
         name: "Monitor",
         description: "Computer Monitor",
         isPrivate: true,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[3].id,
@@ -412,7 +373,7 @@ async function seedDatabase(): Promise<void> {
         name: "Kühlschrank",
         description: "Kühlschrank",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[0].id,
@@ -421,7 +382,7 @@ async function seedDatabase(): Promise<void> {
         name: "Herd",
         description: "Gasherd",
         isPrivate: false,
-        ownerId: user2.id,
+        ownerId: userIds.bob,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[0].id,
@@ -430,7 +391,7 @@ async function seedDatabase(): Promise<void> {
         name: "Spülmaschine",
         description: "Geschirrspüler",
         isPrivate: false,
-        ownerId: user4.id,
+        ownerId: userIds.david,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[0].id,
@@ -439,7 +400,7 @@ async function seedDatabase(): Promise<void> {
         name: "Mikrowelle",
         description: "Mikrowellenherd",
         isPrivate: false,
-        ownerId: user3.id,
+        ownerId: userIds.charlie,
         boxId: null,
         furnitureId: null,
         roomId: createdRooms[0].id,
@@ -463,49 +424,49 @@ async function seedDatabase(): Promise<void> {
     console.log("⭐ Creating user item interactions...")
     const interactions = [
       {
-        userId: user4.id,
+        userId: userIds.david,
         itemId: createdItems[0].id,
         isFavorite: true,
         lastUsedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user4.id,
+        userId: userIds.david,
         itemId: createdItems[1].id,
         isFavorite: false,
         lastUsedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user2.id,
+        userId: userIds.bob,
         itemId: createdItems[2].id,
         isFavorite: true,
         lastUsedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user2.id,
+        userId: userIds.bob,
         itemId: createdItems[3].id,
         isFavorite: false,
         lastUsedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user3.id,
+        userId: userIds.charlie,
         itemId: createdItems[4].id,
         isFavorite: true,
         lastUsedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user3.id,
+        userId: userIds.charlie,
         itemId: createdItems[5].id,
         isFavorite: false,
         lastUsedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user4.id,
+        userId: userIds.david,
         itemId: createdItems[6].id,
         isFavorite: false,
         lastUsedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
       },
       {
-        userId: user2.id,
+        userId: userIds.bob,
         itemId: createdItems[7].id,
         isFavorite: true,
         lastUsedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
@@ -524,7 +485,7 @@ async function seedDatabase(): Promise<void> {
 
     console.log("\n🎉 Development seed completed successfully!")
     console.log("\n📊 Summary:")
-    console.log("  👥 4 Users (alice, bob, charlie, david)")
+    console.log("  👥 4 Clerk user IDs (alice, bob, charlie, david)")
     console.log("  🏢 2 Floors (Erdgeschoss, 1. Stock)")
     console.log("  🏠 4 Rooms (Küche, Wohnzimmer, Schlafzimmer, Büro)")
     console.log(
