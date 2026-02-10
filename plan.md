@@ -1,14 +1,17 @@
 # Plan
 
 Done
+
 - Read all README files and main rules.
 - Added build to the Turbo CI pipeline and defined build scripts across workspaces.
 - Kept build placeholders where needed and added tsc builds for script packages.
 - Adjusted Prettier ignore handling for generated outputs and route tree files.
 - Fixed dashboard data typing in box-storage to align with Prisma includes.
-- Switched financy-forecast build to webpack to avoid Turbopack panics in CI.
 - Ran syncpack to align dependency versions across the monorepo.
+- Added explicit types in financy-forecast tsconfig to avoid missing aria-query type errors.
+- Removed an unused @ts-expect-error in rest-server.
+- Ran `bun run ci` outside the sandbox successfully (lint warnings only).
 
 Next
-- Rerun `bun run ci` in an environment with outbound network access for Google Fonts.
-- Create the requested git commits once the git MCP server is available.
+
+- Create turbo task to check with syncpack that everything is in sync, add it to existing ci task

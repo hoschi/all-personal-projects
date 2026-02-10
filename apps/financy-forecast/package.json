@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3056",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
     "lint": "bunx eslint .",
     "check-types": "echo 'fix this'",
