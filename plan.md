@@ -6,4 +6,4 @@
 - [x] Update the dev seed script to use Clerk user IDs
 - [x] Run the dev seed script
 - [x] Regenerate Prisma client
-- [ ] Run CI checks
+- [x] Run CI checks
