@@ -137,9 +137,7 @@ function RouteComponent() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-slate-900 leading-tight">
                       <span className="font-semibold">{log.name}</span> - gehört{" "}
-                      <span className="font-semibold">
-                        {log.ownerId}
-                      </span>
+                      <span className="font-semibold">{log.ownerId}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
                       {log.updatedAt.toLocaleString("de-DE")}

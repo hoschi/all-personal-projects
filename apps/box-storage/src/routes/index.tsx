@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const { isSignedIn, user } = useUser()
-  
+
   return (
     <div className="mt-4">
       <p>This is the last storage system you need.</p>
