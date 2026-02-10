@@ -26,5 +26,6 @@ TypeScript 5.x: Follow standard conventions
 <!-- MANUAL ADDITIONS START -->
 
 Read ALWAYS `.specify/memory/constitution.md` and stick to these principles.
+Read ALWAYS `./ai-assistants/main-rules.md` and stick to these principles.
 
 <!-- MANUAL ADDITIONS END -->

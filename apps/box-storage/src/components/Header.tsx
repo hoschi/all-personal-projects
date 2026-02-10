@@ -6,7 +6,9 @@ export default function Header() {
 
   return (
     <div>
-      <span className="text-2xl">Box Storage</span>
+      <Link to="/">
+        <span className="text-2xl">Box Storage</span>
+      </Link>
       <span>
         {/* Show a global spinner when the router is transitioning */}
         <span
@@ -19,7 +21,9 @@ export default function Header() {
       </span>
       <div className="flex gap-2">
         <Link to="/dashboard">Dashboard</Link>
-        <Link to="/table-view">Items</Link>
+        <Link to="/table-view" search={{ onlyMine: false }}>
+          Items
+        </Link>
       </div>
     </div>
   )

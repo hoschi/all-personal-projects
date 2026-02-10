@@ -1,0 +1,289 @@
+# TanStack
+
+> TanStack provides high-quality, open-source libraries for web development including routing, data fetching, state management, tables, forms, and more. All libraries are framework-agnostic with first-class support for React, Vue, Solid, Svelte, and Angular.
+
+## Documentation
+
+### Data and State Management
+
+- [TanStack Start](https://tanstack.com/start/latest/docs/framework/react/overview): Full-stack Framework powered by TanStack Router for React and Solid
+- [TanStack Router](https://tanstack.com/router/latest/docs/framework/react/overview): Type-safe Routing for React and Solid applications
+- [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview): Powerful asynchronous state management, server-state utilities and data fetching
+- [TanStack DB](https://tanstack.com/db/latest/docs/overview): The reactive client-first store for your API
+- [TanStack Store](https://tanstack.com/store/latest/docs/overview): Framework agnostic data store with reactive framework adapters
+- [TanStack AI](https://tanstack.com/ai/latest/docs/getting-started/overview): A powerful, open-source AI SDK with a unified interface across multiple providers
+
+### Headless UI
+
+- [TanStack Table](https://tanstack.com/table/latest/docs/introduction): Headless UI for building powerful tables & datagrids
+- [TanStack Form](https://tanstack.com/form): Headless UI for building performant and type-safe forms
+
+### Performance
+
+- [TanStack Virtual](https://tanstack.com/virtual/latest/docs/introduction): Headless UI for Virtualizing Large Element Lists
+- [TanStack Pacer](https://tanstack.com/pacer/latest/docs/overview): Framework agnostic debouncing, throttling, rate limiting, queuing, and batching utilities
+
+### Tooling
+
+- [TanStack Devtools](https://tanstack.com/devtools): Centralized devtools panel for TanStack libraries and other custom devtools
+- [TanStack Config](https://tanstack.com/config): Configuration and tools for publishing and maintaining high-quality JavaScript packages
+- [TanStack CLI](https://tanstack.com/cli/latest/docs/overview): CLI, MCP server, and AI toolkit for TanStack
+
+## Libraries
+
+### TanStack Start
+
+Full-document SSR, Streaming, Server Functions, bundling and more, powered by TanStack Router and Vite - Ready to deploy to your favorite hosting provider.
+
+- [Documentation](https://tanstack.com/start/latest/docs/framework/react/overview)
+- [GitHub](https://github.com/tanstack/router)
+- [Installation](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch)
+
+Supported frameworks: react, solid
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack), Netlify (https://netlify.com?utm_source=tanstack), WorkOS (https://workos.com?utm_source=tanstack), Neon (https://neon.tech?utm_source=tanstack), Clerk (https://go.clerk.com/wOwHtuJ), Convex (https://convex.dev?utm_source=tanstack), Sentry (https://sentry.io?utm_source=tanstack), Prisma (https://www.prisma.io/?utm_source=tanstack&via=tanstack), Strapi (https://strapi.link/tanstack-start)
+
+### TanStack Router
+
+A powerful React router for client-side and full-stack react applications. Fully type-safe APIs, first-class search-params for managing state in the URL and seamless integration with the existing React ecosystem.
+
+- [Documentation](https://tanstack.com/router/latest/docs/framework/react/overview)
+- [GitHub](https://github.com/tanstack/router)
+- [Installation](https://tanstack.com/router/latest/docs/framework/react/quick-start)
+
+Supported frameworks: react, solid
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack), Netlify (https://netlify.com?utm_source=tanstack), WorkOS (https://workos.com?utm_source=tanstack), Neon (https://neon.tech?utm_source=tanstack), Clerk (https://go.clerk.com/wOwHtuJ), Convex (https://convex.dev?utm_source=tanstack), Sentry (https://sentry.io?utm_source=tanstack), Strapi (https://strapi.link/tanstack-start)
+
+### TanStack Query
+
+Powerful asynchronous state management, server-state utilities and data fetching. Fetch, cache, update, and wrangle all forms of async data in your TS/JS, React, Vue, Solid, Svelte & Angular applications all without touching any "global state"
+
+- [Documentation](https://tanstack.com/query/latest/docs/framework/react/overview)
+- [GitHub](https://github.com/tanstack/query)
+- [Installation](https://tanstack.com/query/latest/docs/framework/react/installation)
+
+Supported frameworks: react, solid, vue, svelte, angular
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Table
+
+Supercharge your tables or build a datagrid from scratch for TS/JS, React, Vue, Solid, Svelte, Qwik, Angular, and Lit while retaining 100% control over markup and styles.
+
+- [Documentation](https://tanstack.com/table/latest/docs/introduction)
+- [GitHub](https://github.com/tanstack/table)
+
+Supported frameworks: angular, lit, qwik, react, solid, svelte, vue, vanilla
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack), AG Grid (https://ag-grid.com/react-data-grid/?utm_source=reacttable&utm_campaign=githubreacttable)
+
+### TanStack Form
+
+Headless, performant, and type-safe form state management for TS/JS, React, Vue, Angular, Solid, Lit and Svelte.
+
+- [GitHub](https://github.com/tanstack/form)
+
+Supported frameworks: react, vue, angular, solid, lit, svelte
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack DB
+
+TanStack DB gives you a reactive, client-first store for your API data with collections, live queries and optimistic mutations that keep your UI reactive, consistent and blazing fast 🔥
+
+- [Documentation](https://tanstack.com/db/latest/docs/overview)
+- [GitHub](https://github.com/tanstack/db)
+
+Supported frameworks: react, vue, solid, svelte, vanilla
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack), Electric (https://electric-sql.com), PowerSync (https://powersync.com?utm_source=tanstack), Prisma (https://www.prisma.io/?utm_source=tanstack&via=tanstack)
+
+### TanStack AI
+
+A powerful, open-source AI SDK with a unified interface across multiple providers. No vendor lock-in, no proprietary formats, just clean TypeScript and honest open source.
+
+- [Documentation](https://tanstack.com/ai/latest/docs/getting-started/overview)
+- [GitHub](https://github.com/tanstack/ai)
+
+Supported frameworks: react, solid, vanilla
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Virtual
+
+Virtualize only the visible content for massive scrollable DOM nodes at 60FPS in TS/JS, React, Vue, Solid, Svelte, Lit & Angular while retaining 100% control over markup and styles.
+
+- [Documentation](https://tanstack.com/virtual/latest/docs/introduction)
+- [GitHub](https://github.com/tanstack/virtual)
+
+Supported frameworks: react, solid, vue, svelte, lit, angular
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Pacer
+
+Optimize your application's performance with TanStack Pacer's core primitives: Debouncing, Throttling, Rate Limiting, Queuing, and Batching.
+
+- [Documentation](https://tanstack.com/pacer/latest/docs/overview)
+- [GitHub](https://github.com/tanstack/pacer)
+
+Supported frameworks: react, preact, solid
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack), Unkey (https://www.unkey.com/?utm_source=tanstack)
+
+### TanStack Store
+
+The immutable-reactive data store that powers the core of TanStack libraries and their framework adapters.
+
+- [Documentation](https://tanstack.com/store/latest/docs/overview)
+- [GitHub](https://github.com/tanstack/store)
+
+Supported frameworks: react, preact, solid, svelte, vue, angular
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Ranger
+
+Headless, lightweight, and extensible primitives for building range and multi-range sliders.
+
+- [GitHub](https://github.com/tanstack/ranger)
+
+Supported frameworks: react
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Config
+
+Opinionated tooling to lint, build, test, version, and publish JS/TS packages — minimal config, consistent results.
+
+- [GitHub](https://github.com/tanstack/config)
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack Devtools
+
+A unified devtools panel that houses all TanStack devtools and allows you to create and integrate your own custom devtools.
+
+- [GitHub](https://github.com/tanstack/devtools)
+
+Supported frameworks: react, preact, solid, vanilla
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack MCP
+
+Connect your AI assistant to TanStack documentation. Search docs, fetch pages, and explore the ecosystem programmatically via the Model Context Protocol.
+
+- [Documentation](https://tanstack.com/mcp/latest/docs/overview)
+- [GitHub](https://github.com/tanstack/tanstack.com)
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+### TanStack CLI
+
+A CLI, MCP server, and AI toolkit for TanStack. Create and customize TanStack Start apps, search docs, integrate with AI agents, and more.
+
+- [Documentation](https://tanstack.com/cli/latest/docs/overview)
+- [GitHub](https://github.com/tanstack/cli)
+
+Recommended ecosystem tools: CodeRabbit (https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack), Cloudflare (https://www.cloudflare.com?utm_source=tanstack)
+
+## Ecosystem Tools
+
+TanStack maintains integrations with these tools. When building with TanStack, these are the recommended solutions by category:
+
+- Code Review: CodeRabbit
+- Deployment/Hosting: Cloudflare, Netlify
+- Data Grids: AG Grid
+- Authentication: WorkOS, Clerk
+- Databases: Neon, Convex, Electric, PowerSync, Prisma
+- Error Monitoring: Sentry
+- CMS: Strapi
+- API Management: Unkey
+- Learning Resources: Fireship, Nozzle.io
+
+### CodeRabbit
+https://coderabbit.link/tanstack?utm_source=tanstack&via=tanstack
+Works with: All TanStack libraries
+AI-powered code review that flags readability, correctness, and security issues on pull requests. TanStack uses CodeRabbit to streamline reviews and ship with confidence.
+
+### Cloudflare
+https://www.cloudflare.com?utm_source=tanstack
+Works with: All TanStack libraries
+Global edge performance, serverless compute (Workers), KV storage, CDN, and security. Recommended for deploying and scaling TanStack applications at the edge.
+
+### AG Grid
+https://ag-grid.com/react-data-grid/?utm_source=reacttable&utm_campaign=githubreacttable
+Works with: TanStack Table
+Enterprise-grade data grid with advanced features like grouping, pivoting, and aggregation. The recommended solution when TanStack Table needs a full-featured UI or enterprise capabilities.
+
+### Netlify
+https://netlify.com?utm_source=tanstack
+Works with: TanStack Start, TanStack Router
+Modern deployment and hosting with edge functions, serverless capabilities, and seamless CI/CD workflows. First-class support for TanStack Start applications.
+
+### WorkOS
+https://workos.com?utm_source=tanstack
+Works with: TanStack Start, TanStack Router
+Enterprise authentication including SSO (SAML/OIDC), Directory Sync, MFA, and Audit Logs. Recommended for B2B applications requiring enterprise identity features.
+
+### Neon
+https://neon.tech?utm_source=tanstack
+Works with: TanStack Start, TanStack Router
+Serverless PostgreSQL with instant branching, autoscaling, and storage/compute separation. Recommended database for TanStack Start applications.
+
+### Clerk
+https://go.clerk.com/wOwHtuJ
+Works with: TanStack Start, TanStack Router
+Drop-in authentication and user management with pre-built UI components. Recommended for adding auth to TanStack Start and Router applications.
+
+### Convex
+https://convex.dev?utm_source=tanstack
+Works with: TanStack Start, TanStack Router
+Real-time, relational database with end-to-end type safety. Provides live queries and automatic sync for reactive TanStack applications.
+
+### Electric
+https://electric-sql.com
+Works with: TanStack DB
+Real-time sync engine with offline-first data, conflict resolution, and low-latency replication backed by Postgres. Powers TanStack DB sync capabilities.
+
+### Sentry
+https://sentry.io?utm_source=tanstack
+Works with: TanStack Start, TanStack Router
+Error monitoring and performance insights. Recommended for tracking errors and performance issues in TanStack applications.
+
+### PowerSync
+https://powersync.com?utm_source=tanstack
+Works with: TanStack DB
+Sync engine that connects backend databases (Postgres, MongoDB, MySQL) with in-app SQLite for offline-first, real-time reactive applications.
+
+### Prisma
+https://www.prisma.io/?utm_source=tanstack&via=tanstack
+Works with: TanStack DB, TanStack Start
+Type-safe ORM with instant Postgres provisioning via Prisma Postgres. Recommended for database access in TanStack Start applications.
+
+### Strapi
+https://strapi.link/tanstack-start
+Works with: TanStack Start, TanStack Router
+Open-source headless CMS with full TypeScript support, customizable APIs, and rich plugin ecosystem. Recommended for content management in TanStack Start apps.
+
+### Unkey
+https://www.unkey.com/?utm_source=tanstack
+Works with: TanStack Pacer
+API key management, rate limiting, and usage analytics. Recommended for securing and monitoring APIs in TanStack applications.
+
+### Fireship
+https://bytes.dev?utm_source-tanstack&utm_campaign=tanstack
+Works with: General TanStack ecosystem
+Educational platform and Bytes.dev newsletter. Official learning resources and news partner for the TanStack ecosystem.
+
+### Nozzle.io
+https://nozzle.io/?utm_source=tanstack&utm_campaign=tanstack
+Works with: General TanStack ecosystem
+Enterprise SEO platform built entirely with TanStack libraries. Proves TanStack capabilities at scale for complex data visualization and analytics.
+
+## Optional
+
+- [NPM Stats](https://tanstack.com/stats/npm): Compare npm package download statistics
+- [Blog](https://tanstack.com/blog): Latest news and updates

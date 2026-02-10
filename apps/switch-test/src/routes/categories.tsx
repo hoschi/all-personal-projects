@@ -18,7 +18,7 @@ function RouteComponent() {
   const router = useRouter()
   const { categoryItems } = Route.useLoaderData()
   const toggleDiscount = async (item: Item) => {
-    console.log(`## upaditng item: ${item.id}`)
+    console.log(`## updating item: ${item.id}`)
     await setDiscount({ data: { hasDiscount: !item.hasDiscount, id: item.id } })
     router.invalidate()
     console.log(`## item: ${item.id} updated`)
