@@ -5,5 +5,5 @@
 - [x] Update app code and schemas to match new Prisma types
 - [x] Update the dev seed script to use Clerk user IDs
 - [ ] Run the dev seed script
-- [ ] Regenerate Prisma client
+- [x] Regenerate Prisma client
 - [ ] Run CI checks
