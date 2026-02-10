@@ -21,7 +21,9 @@ export default function Header() {
       </span>
       <div className="flex gap-2">
         <Link to="/dashboard">Dashboard</Link>
-        <Link to="/table-view">Items</Link>
+        <Link to="/table-view" search={{ onlyMine: false }}>
+          Items
+        </Link>
       </div>
     </div>
   )
