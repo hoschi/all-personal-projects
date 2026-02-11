@@ -1,19 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
-import { redirect } from "@tanstack/react-router"
 import { authStateFn, getClerkUsername } from "@/lib/auth"
-
-const checkAuthOrRedirect = async () => {
-  console.log("check auth")
-  const { userId } = await authStateFn()
-
-  if (!userId) {
-    throw redirect({ to: "/" })
-  }
-
-  return userId
-}
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -42,7 +30,7 @@ export const getListItems = createServerFn()
   .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
   .handler(async ({ data }) => {
     console.log("list items server - start")
-    const userId = await checkAuthOrRedirect()
+    await authStateFn()
     console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
@@ -122,7 +110,7 @@ export const getListItems = createServerFn()
   })
 
 export const getHierarchicalViewData = createServerFn().handler(async () => {
-  await checkAuthOrRedirect()
+  await authStateFn()
   return await prisma.floor.findMany({
     include: {
       rooms: {
@@ -162,7 +150,7 @@ export const getHierarchicalViewData = createServerFn().handler(async () => {
 
 export const getDashboardDataFn = createServerFn().handler(async () => {
   console.log("dabo server - start")
-  const userId = await checkAuthOrRedirect()
+  const { userId } = await authStateFn()
   console.log("dabo server - AUTHED", userId)
 
   // Personal items
@@ -212,7 +200,7 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
   .handler(async ({ data }) => {
     console.log("toggle server - start")
-    const userId = await checkAuthOrRedirect()
+    const { userId } = await authStateFn()
     console.log("toggle server - AUTHED", userId)
     const { itemId } = data
     const item = await prisma.item.findUnique({
@@ -257,7 +245,7 @@ export const createItemFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     console.log("create item server - start")
-    const userId = await checkAuthOrRedirect()
+    const { userId } = await authStateFn()
     console.log("create item server - AUTHED", userId)
     const ownerUsername = await getClerkUsername(userId)
     const { name, description, isPrivate, boxId, furnitureId, roomId } = data
@@ -291,7 +279,7 @@ export const updateItemFn = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
-    await checkAuthOrRedirect()
+    const { userId } = await authStateFn()
     const { itemId, name, description, isPrivate, boxId, furnitureId, roomId } =
       data
     validateLocationConstraints(boxId, furnitureId, roomId)
