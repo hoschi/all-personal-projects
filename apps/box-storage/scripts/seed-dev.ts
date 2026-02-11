@@ -191,8 +191,8 @@ async function seedDatabase(): Promise<void> {
         name: "Toaster",
         description: "Elektrischer Toaster",
         isPrivate: false,
-        ownerId: users.david.id,
-        ownerUsername: users.david.username,
+        ownerId: users.alice.id,
+        ownerUsername: users.alice.username,
         boxId: createdBoxes[0].id,
         furnitureId: null,
         roomId: null,
@@ -460,8 +460,8 @@ async function seedDatabase(): Promise<void> {
     console.log("⭐ Creating user item interactions...")
     const interactions = [
       {
-        userId: users.david.id,
-        userUsername: users.david.username,
+        userId: users.alice.id,
+        userUsername: users.alice.username,
         itemId: createdItems[0].id,
         isFavorite: true,
         lastUsedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
