@@ -283,6 +283,19 @@ export const updateItemFn = createServerFn({ method: "POST" })
     const { userId } = await authStateFn()
     const { itemId, name, description, isPrivate, boxId, furnitureId, roomId } =
       data
+    const item = await prisma.item.findUnique({
+      where: { id: itemId },
+      select: { ownerId: true },
+    })
+
+    if (!item) {
+      throw new Error(`Item not found: ${itemId}`)
+    }
+
+    if (item.ownerId !== userId) {
+      throw new Error("Not authorized to update this item")
+    }
+
     validateLocationConstraints(boxId, furnitureId, roomId)
     return await prisma.item.update({
       where: { id: itemId },
