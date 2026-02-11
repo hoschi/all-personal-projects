@@ -75,7 +75,7 @@ model Item {
   description    String
   isPrivate      Boolean
   ownerId        String
-  ownerUsername  String   @default("")
+  ownerUsername  String?
   boxId          Int?
   box            Box?     @relation("BoxLocation", fields: [boxId], references: [id])
   furnitureId    Int?
@@ -100,7 +100,7 @@ model Item {
 
 model UserItemInteraction {
   userId     String
-  userUsername String @default("")
+  userUsername String?
   itemId     Int
   isFavorite Boolean
   lastUsedAt DateTime
