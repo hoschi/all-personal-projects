@@ -37,13 +37,13 @@ export const ItemSchema = z.object({
   boxId: z.number().nullable(),
   furnitureId: z.number().nullable(),
   roomId: z.number().nullable(),
-  inMotionUserId: z.string().nullable(),
-  inMotionUsername: z.string().nullable(),
+  inMotionUserId: z.string().min(1).nullable(),
+  inMotionUsername: z.string().min(1).nullable(),
 })
 export type Item = z.infer<typeof ItemSchema>
 
 export const UserItemInteractionSchema = z.object({
-  userId: z.string(),
+  userId: z.string().min(1),
   userUsername: z.string().min(1),
   itemId: z.number(),
   isFavorite: z.boolean(),

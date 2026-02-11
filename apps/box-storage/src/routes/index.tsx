@@ -18,9 +18,7 @@ function RouteComponent() {
         ) : (
           <p>You are not signed in and can't interact with the system!</p>
         )
-      ) : (
-        ""
-      )}
+      ) : null}
     </div>
   )
 }
