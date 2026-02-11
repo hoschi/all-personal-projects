@@ -36,7 +36,6 @@ function RouteComponent() {
   const { items } = Route.useLoaderData()
   const search = Route.useSearch()
   const userId = useUserId()
-  console.log("userid", userId)
   const navigate = useNavigate({ from: Route.fullPath })
 
   const toggleInMotion = async (item: Item) => {
