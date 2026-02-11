@@ -50,7 +50,7 @@ export const getListItems = createServerFn()
   .inputValidator((data) => listItemsInputSchema.parse(data))
   .handler(async ({ data }) => {
     console.log("list items server - start")
-    await authStateFn()
+    const { userId } = await authStateFn()
     console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
