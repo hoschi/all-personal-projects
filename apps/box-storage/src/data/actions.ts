@@ -26,8 +26,28 @@ const filtersSchema = z
   .optional()
 export type ListItemFilters = z.infer<typeof filtersSchema>
 
+const listItemsInputSchema = z.object({ filters: filtersSchema }).optional()
+const toggleItemSchema = z.object({ itemId: z.coerce.number() })
+const createItemSchema = z.object({
+  name: z.string().min(1),
+  description: z.string(),
+  isPrivate: z.boolean(),
+  boxId: z.coerce.number().nullable(),
+  furnitureId: z.coerce.number().nullable(),
+  roomId: z.coerce.number().nullable(),
+})
+const updateItemSchema = z.object({
+  itemId: z.coerce.number(),
+  name: z.string().min(1),
+  description: z.string(),
+  isPrivate: z.boolean(),
+  boxId: z.coerce.number().nullable(),
+  furnitureId: z.coerce.number().nullable(),
+  roomId: z.coerce.number().nullable(),
+})
+
 export const getListItems = createServerFn()
-  .inputValidator(z.object({ filters: filtersSchema }).optional().parse)
+  .inputValidator((data) => listItemsInputSchema.parse(data))
   .handler(async ({ data }) => {
     console.log("list items server - start")
     await authStateFn()
@@ -197,7 +217,7 @@ export const getDashboardDataFn = createServerFn().handler(async () => {
 })
 
 export const toggleItemInMotionFn = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ itemId: z.coerce.number() }).parse)
+  .inputValidator((data) => toggleItemSchema.parse(data))
   .handler(async ({ data }) => {
     console.log("toggle server - start")
     const { userId } = await authStateFn()
@@ -233,16 +253,7 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
   })
 
 export const createItemFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      name: z.string().min(1),
-      description: z.string(),
-      isPrivate: z.boolean(),
-      boxId: z.coerce.number().nullable(),
-      furnitureId: z.coerce.number().nullable(),
-      roomId: z.coerce.number().nullable(),
-    }).parse,
-  )
+  .inputValidator((data) => createItemSchema.parse(data))
   .handler(async ({ data }) => {
     console.log("create item server - start")
     const { userId } = await authStateFn()
@@ -267,17 +278,7 @@ export const createItemFn = createServerFn({ method: "POST" })
   })
 
 export const updateItemFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      itemId: z.coerce.number(),
-      name: z.string().min(1),
-      description: z.string(),
-      isPrivate: z.boolean(),
-      boxId: z.coerce.number().nullable(),
-      furnitureId: z.coerce.number().nullable(),
-      roomId: z.coerce.number().nullable(),
-    }).parse,
-  )
+  .inputValidator((data) => updateItemSchema.parse(data))
   .handler(async ({ data }) => {
     const { userId } = await authStateFn()
     const { itemId, name, description, isPrivate, boxId, furnitureId, roomId } =
