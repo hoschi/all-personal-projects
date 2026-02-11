@@ -126,6 +126,15 @@ CREATE TABLE settings (
 - **Lösung**: Vollständige Test-Scripts mit Prisma oder DB Client erstellen
 - **Pattern**: test-queries.ts mit allen Business-Funktionen schreiben und mit Bun ausführen um Funtionalität zu testen
 
+### Safe Backfill for New NOT NULL Columns
+
+- **Problem**: Adding a new required (NOT NULL) column to existing tables fails because existing rows have no value.
+- **Solution**: Use a staged migration with a data backfill in between.
+- **Steps**:
+  1. Add the new columns as nullable (no default).
+  2. Backfill data (e.g. run `bun run scripts/seed-dev.ts` or a one-off script).
+  3. Change columns to NOT NULL and apply the second migration.
+
 ---
 
 ## 🔍 Debug Logging mit `debug` Bibliothek
