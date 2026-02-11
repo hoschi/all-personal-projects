@@ -126,6 +126,13 @@ CREATE TABLE settings (
 - **Lösung**: Vollständige Test-Scripts mit Prisma oder DB Client erstellen
 - **Pattern**: test-queries.ts mit allen Business-Funktionen schreiben und mit Bun ausführen um Funtionalität zu testen
 
+### Server Actions: Auth & Validierung
+
+- **Auth-Check bei Mutationen**: Bei Update/Write-Server-Funktionen immer Ownership prüfen (z.B. `item.ownerId === userId`), sonst können fremde Items geändert werden.
+- **Zod 4 inputValidator Bug**: `.parse` nicht als bare Callback-Funktion übergeben (bindet `this` falsch). Immer wrappen:
+  - `inputValidator((data) => schema.parse(data))`
+  - oder `const parsed = schema.safeParse(data)` und `parsed.data` verwenden.
+
 ### Sicheres Backfill für neue NOT NULL Spalten
 
 - **Problem**: Eine neue Pflichtspalte (NOT NULL) in bestehende Tabellen schlägt fehl, weil vorhandene Zeilen keinen Wert haben.
