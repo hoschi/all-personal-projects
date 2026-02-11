@@ -5,6 +5,14 @@
 - Dokumentation von Code und Readmes sind _immer_ englisch, deine Antworten auf deutsch.
 - Verwende _immer_ den MCP Server nie das CLI um mit `git` zu arbeiten
 - Wenn du Problem angehst überlege ob dir Informationen aus der bestehenden Codebase helfen können. Dier steht in den meisten Roo Modi ein MCP Server zur Verfügung um die Code Base zu durchsuchen. Benutze diesen um mehr Informationen zu bekommen _bevor_ du an der Lösung arbeitest.
+- Wenn du Dokumentation runterladen möchtest speichere diese im `tmp` Ordner damit sie nicht mit git comittet wird. Dokumentation oder andere Artefakte die du erstellen möchtest die zur Übergabe zwischen Roo Modi/Agenten oder aus Useranweisungen heraus generiert werden, speicherst du im `current` Ordner falls nicht anders angegeben/sinnvoll.
+
+## AI ref
+
+Lies diese Dateien wenn für die aktuelle Aufgabe sinnvoll oder du Probleme hast mit Dingen die hier thematisiert werden. Aktuelle Dokumentation zu bekommen ist wichtig da deine Trainingsdaten veraltet sein können.
+
+- `ai-ref/tan-stack-llms.txt`: Links zu Tan Stack Dokumentation um aktuelle und detailierter Informationen zu bekommen.
+- [Next JS llms.txt](https://nextjs.org/docs/llms-full.txt): Komplette Dokumentation vom Next JS v16 Framework
 
 ## 🔧 Kritische Projekt-Konfiguration
 
@@ -117,6 +125,15 @@ CREATE TABLE settings (
 - **Problem**: Große Migrationen brauchen Validierung vor Ausführung
 - **Lösung**: Vollständige Test-Scripts mit Prisma oder DB Client erstellen
 - **Pattern**: test-queries.ts mit allen Business-Funktionen schreiben und mit Bun ausführen um Funtionalität zu testen
+
+### Sicheres Backfill für neue NOT NULL Spalten
+
+- **Problem**: Eine neue Pflichtspalte (NOT NULL) in bestehende Tabellen schlägt fehl, weil vorhandene Zeilen keinen Wert haben.
+- **Lösung**: Eine gestufte Migration mit Daten-Backfill dazwischen.
+- **Schritte**:
+  1. Neue Spalten als nullable hinzufügen (kein Default).
+  2. Daten backfillen (z.B. `bun run scripts/seed-dev.ts` oder ein einmaliges Script).
+  3. Spalten auf NOT NULL setzen und die zweite Migration anwenden.
 
 ---
 
