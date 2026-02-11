@@ -2,8 +2,7 @@ import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 import { prisma } from "./prisma"
 import { redirect } from "@tanstack/react-router"
-import { authStateFn } from "@/lib/auth"
-import { clerkClient } from "@clerk/tanstack-react-start/server"
+import { authStateFn, getClerkUsername } from "@/lib/auth"
 
 const checkAuthOrRedirect = async () => {
   console.log("check auth")
@@ -14,12 +13,6 @@ const checkAuthOrRedirect = async () => {
   }
 
   return userId
-}
-
-const getClerkUsername = async (userId: string): Promise<string> => {
-  const user = await clerkClient().users.getUser(userId)
-  const fallbackName = [user.firstName, user.lastName].filter(Boolean).join(" ")
-  return user.username || user.fullName || fallbackName || userId
 }
 
 // Hilfsfunktion zur Validierung der Location Constraints
