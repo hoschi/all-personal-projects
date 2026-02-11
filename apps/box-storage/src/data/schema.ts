@@ -33,7 +33,7 @@ export const ItemSchema = z.object({
   description: z.string(),
   isPrivate: z.boolean(),
   ownerId: z.string().min(1),
-  ownerUsername: z.string().nullable(),
+  ownerUsername: z.string().min(1),
   boxId: z.number().nullable(),
   furnitureId: z.number().nullable(),
   roomId: z.number().nullable(),
@@ -44,7 +44,7 @@ export type Item = z.infer<typeof ItemSchema>
 
 export const UserItemInteractionSchema = z.object({
   userId: z.string(),
-  userUsername: z.string().nullable(),
+  userUsername: z.string().min(1),
   itemId: z.number(),
   isFavorite: z.boolean(),
   lastUsedAt: z.date(),
