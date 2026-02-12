@@ -53,7 +53,7 @@ export async function getMatrixData(
     }))
     .concat([
       {
-        id: "sum-curent",
+        id: "sum-current",
         amount: sumAll(accounts.map((a) => a.currentBalance)),
       },
     ])
