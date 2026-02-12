@@ -15,6 +15,23 @@ import { calculateApprovable } from "../domain/snapshots"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
 
+function formatDelta(delta: number | null): string {
+  if (delta === null) {
+    return "—"
+  }
+
+  const formatted = eurFormatter.format(delta / 100)
+  return delta > 0 ? `+${formatted}` : formatted
+}
+
+function getDeltaColorClass(delta: number | null): string {
+  if (delta === null || delta === 0) {
+    return "text-muted-foreground"
+  }
+
+  return delta > 0 ? "text-emerald-700" : "text-red-600"
+}
+
 export async function Matrix() {
   "use cache"
   cacheTag("snapshots", "accounts")
@@ -29,7 +46,7 @@ export async function Matrix() {
 }
 
 async function TableView({ data }: { data: MatrixData }) {
-  const { rows, header, lastDate } = data
+  const { rows, header, lastDate, changes, totalChange } = data
 
   const isApprovable = calculateApprovable(lastDate)
   return (
@@ -56,6 +73,19 @@ async function TableView({ data }: { data: MatrixData }) {
               <TableCell className="font-medium">{row.name}</TableCell>
             </TableRow>
           ))}
+          <TableRow>
+            {changes.map((changeCell) => (
+              <TableCell
+                key={changeCell.id}
+                className={getDeltaColorClass(changeCell.delta)}
+              >
+                {formatDelta(changeCell.delta)}
+              </TableCell>
+            ))}
+            <TableCell className={getDeltaColorClass(totalChange)}>
+              {formatDelta(totalChange)}
+            </TableCell>
+          </TableRow>
           {isApprovable && (
             <TableRow>
               {EffectArray.makeBy(header.length - 1, (i) => (
