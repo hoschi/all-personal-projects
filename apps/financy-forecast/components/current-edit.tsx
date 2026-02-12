@@ -57,21 +57,14 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
   const rows = data.rows.map((row) => {
     const inputValue = inputState[row.id] ?? toInputValue(row.currentBalance)
     const parsedCurrentValue = parseCurrentBalanceValue(inputValue)
-    const liveDeltaError = Either.match(parsedCurrentValue, {
-      onLeft: (error) => error,
-      onRight: () => null,
-    })
-    const liveDelta = Either.match(parsedCurrentValue, {
-      onLeft: () => null,
-      onRight: (currentBalance) =>
-        calculateSnapshotDelta(currentBalance, row.snapshotBalance),
-    })
+    const liveDelta = Either.map(parsedCurrentValue, (currentBalance) =>
+      calculateSnapshotDelta(currentBalance, row.snapshotBalance),
+    )
 
     return {
       ...row,
       inputValue,
       liveDelta,
-      liveDeltaError,
     }
   })
 
@@ -138,13 +131,15 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
                 />
               </TableCell>
               <TableCell
-                className={
-                  row.liveDeltaError
-                    ? "text-red-600"
-                    : getDeltaColorClass(row.liveDelta)
-                }
+                className={Either.match(row.liveDelta, {
+                  onLeft: () => "text-red-600",
+                  onRight: (delta) => getDeltaColorClass(delta),
+                })}
               >
-                {row.liveDeltaError ?? formatDelta(row.liveDelta)}
+                {Either.match(row.liveDelta, {
+                  onLeft: (error) => error,
+                  onRight: (delta) => formatDelta(delta),
+                })}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 <Tooltip>
