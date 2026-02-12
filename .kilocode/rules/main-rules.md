@@ -48,7 +48,7 @@ bunx shadcn@latest add button
 - **Falsch**: `useUser` Hook von Clerk benutzen.
 - **Korrekt**: `userId` im `loader` vom `context` zurück geben.
 - **Lösung**: `useUser` braucht zwei Render Zyklen um einen Wert zu liefern, im ersten Zyklus ist die id _immer_ undefined. Die `userId` aus dem Router Kontext ist direkt da.
-- **Referenz-Implementierung**: [TableView](<../apps/box-storage/src/routes/(authed)/table-view.tsx>)
+- **Referenz-Implementierung**: [TableView](<../../apps/box-storage/src/routes/(authed)/table-view.tsx>)
 
 ## 🗄️ PostgreSQL-spezifische Erkenntnisse
 
