@@ -2,7 +2,8 @@
 
 import { z } from "zod"
 import Debug from "debug"
-import { updateTag } from "next/cache"
+import { revalidateTag } from "next/cache"
+import { redirect } from "next/navigation"
 import { Option } from "effect"
 import {
   approveCurrentBalancesAsSnapshot,
@@ -93,8 +94,8 @@ export async function handleApproveSnapshot(): Promise<void> {
 
   await approveCurrentBalancesAsSnapshot(snapshotDate)
 
-  updateTag("snapshots")
-  updateTag("accounts")
+  revalidateTag("snapshots", "max")
+  revalidateTag("accounts", "max")
 }
 
 // =============================================================================
@@ -137,9 +138,8 @@ export async function handleSaveForecastDirect(
     await updateForecastData(inputData)
     debug("Atomic forecast update completed successfully")
 
-    // 6. Invalidate cache to refresh UI with immediate effect
-    // Using updateTag for read-your-own-writes scenario
-    updateTag("scenarios")
+    // 6. Invalidate cache to refresh UI
+    revalidateTag("scenarios", "max")
 
     return {
       success: true,
@@ -203,8 +203,8 @@ export async function handleUpdateScenarioIsActive(
     await updateForcastScenario({ id: scenarioId, isActive })
     debug("updateForcastScenario completed successfully")
 
-    // 2. Invalidate cache to refresh UI with immediate effect
-    updateTag("scenarios")
+    // 2. Invalidate cache to refresh UI
+    revalidateTag("scenarios", "max")
 
     return {
       success: true,
@@ -247,6 +247,7 @@ export async function handleUpdateScenarioIsActive(
  * Saves current balances from form data where fields are submitted as `balance:<accountId>` in EUR.
  */
 export async function handleSaveCurrentBalances(
+  _prevState: ServerActionResult | null,
   formData: FormData,
 ): Promise<ServerActionResult> {
   const debug = Debug("app:action:handleSaveCurrentBalances")
@@ -257,16 +258,8 @@ export async function handleSaveCurrentBalances(
     const parsed = saveCurrentBalancesSchema.parse({ updates })
     debug("Validated %d account balance updates", parsed.updates.length)
 
-    const updatedAccounts = await updateAccountCurrentBalances(parsed.updates)
-    updateTag("accounts")
-
-    return {
-      success: true,
-      message: "Current balances saved successfully",
-      data: {
-        updatedAccounts,
-      },
-    }
+    await updateAccountCurrentBalances(parsed.updates)
+    revalidateTag("accounts", "max")
   } catch (error) {
     debug("Saving current balances failed: %O", error)
 
@@ -292,4 +285,6 @@ export async function handleSaveCurrentBalances(
       error: "Failed to save current balances. Please try again later.",
     }
   }
+
+  redirect("/dashboard")
 }

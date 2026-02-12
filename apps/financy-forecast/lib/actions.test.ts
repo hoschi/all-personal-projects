@@ -12,8 +12,9 @@ const mockGetLatestAssetSnapshot = mock()
 const mockUpdateForcastScenario = mock()
 const mockUpdateAccountCurrentBalances = mock()
 const mockNow = mock()
+const mockRedirect = mock()
 
-const mockUpdateTag = mock()
+const mockRevalidateTag = mock()
 
 mock.module("./db", () => ({
   approveCurrentBalancesAsSnapshot: mockApproveCurrentBalancesAsSnapshot,
@@ -24,7 +25,11 @@ mock.module("./db", () => ({
 }))
 
 mock.module("next/cache", () => ({
-  updateTag: mockUpdateTag,
+  revalidateTag: mockRevalidateTag,
+}))
+
+mock.module("next/navigation", () => ({
+  redirect: mockRedirect,
 }))
 
 mock.module("./utils", () => ({
@@ -38,7 +43,8 @@ describe("handleApproveSnapshot", () => {
     mockGetLatestAssetSnapshot.mockClear()
     mockUpdateForcastScenario.mockClear()
     mockUpdateAccountCurrentBalances.mockClear()
-    mockUpdateTag.mockClear()
+    mockRevalidateTag.mockClear()
+    mockRedirect.mockClear()
     mockNow.mockReset()
   })
 
@@ -55,8 +61,8 @@ describe("handleApproveSnapshot", () => {
     expect(mockApproveCurrentBalancesAsSnapshot).toHaveBeenCalledTimes(1)
     const firstCallArg = mockApproveCurrentBalancesAsSnapshot.mock.calls[0]?.[0]
     expect(firstCallArg).toEqual(new Date(2025, 3, 1))
-    expect(mockUpdateTag).toHaveBeenCalledWith("snapshots")
-    expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
+    expect(mockRevalidateTag).toHaveBeenCalledWith("snapshots", "max")
+    expect(mockRevalidateTag).toHaveBeenCalledWith("accounts", "max")
   })
 
   test("throws SnapshotNotApprovableError when snapshot is not approvable yet", async () => {
@@ -116,18 +122,22 @@ describe("handleApproveSnapshot", () => {
 describe("handleSaveCurrentBalances", () => {
   beforeEach(() => {
     mockUpdateAccountCurrentBalances.mockClear()
-    mockUpdateTag.mockClear()
+    mockRevalidateTag.mockClear()
+    mockRedirect.mockClear()
   })
 
   test("updates balances and revalidates accounts tag", async () => {
     mockUpdateAccountCurrentBalances.mockImplementation(async () => 1)
+    mockRedirect.mockImplementation(() => {
+      throw new Error("NEXT_REDIRECT")
+    })
     const formData = new FormData()
     formData.append("balance:550e8400-e29b-41d4-a716-446655440000", "10.50")
     formData.append("balance:550e8400-e29b-41d4-a716-446655440001", "0")
 
-    await expect(handleSaveCurrentBalances(formData)).resolves.toMatchObject({
-      success: true,
-    })
+    await expect(handleSaveCurrentBalances(null, formData)).rejects.toThrow(
+      "NEXT_REDIRECT",
+    )
 
     expect(mockUpdateAccountCurrentBalances).toHaveBeenCalledWith([
       {
@@ -139,17 +149,21 @@ describe("handleSaveCurrentBalances", () => {
         currentBalance: 0,
       },
     ])
-    expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
+    expect(mockRevalidateTag).toHaveBeenCalledWith("accounts", "max")
+    expect(mockRedirect).toHaveBeenCalledWith("/dashboard")
   })
 
   test("returns validation error for invalid account id format", async () => {
     const formData = new FormData()
     formData.append("balance:not-a-uuid", "10")
 
-    await expect(handleSaveCurrentBalances(formData)).resolves.toMatchObject({
+    await expect(
+      handleSaveCurrentBalances(null, formData),
+    ).resolves.toMatchObject({
       success: false,
       error: "Validation failed",
     })
     expect(mockUpdateAccountCurrentBalances).not.toHaveBeenCalled()
+    expect(mockRedirect).not.toHaveBeenCalled()
   })
 })

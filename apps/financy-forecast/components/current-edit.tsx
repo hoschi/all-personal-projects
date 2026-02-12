@@ -24,8 +24,7 @@ import {
 import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
 import { format, formatDistanceToNow } from "date-fns"
 import { handleSaveCurrentBalances, ServerActionResult } from "@/lib/actions"
-import { useActionState, useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useActionState, useMemo, useState } from "react"
 import Link from "next/link"
 
 const initialActionState: ServerActionResult | null = null
@@ -45,22 +44,14 @@ function formatLastUpdatedAbsolute(date: Date): string {
 }
 
 export function CurrentEdit({ data }: { data: CurrentEditData }) {
-  const router = useRouter()
   const [inputState, setInputState] = useState<Record<string, string>>(() =>
     createInitialInputState(data.rows),
   )
 
   const [actionState, formAction, isPending] = useActionState(
-    async (_prevState: ServerActionResult | null, formData: FormData) =>
-      await handleSaveCurrentBalances(formData),
+    handleSaveCurrentBalances,
     initialActionState,
   )
-
-  useEffect(() => {
-    if (actionState?.success) {
-      router.push("/dashboard")
-    }
-  }, [actionState, router])
 
   const rows = useMemo(
     () =>
@@ -103,7 +94,7 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
         </p>
       </div>
 
-      <Table className="table-layout-fixed">
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow>
             <TableHead colSpan={2}>Latest Snapshot</TableHead>
