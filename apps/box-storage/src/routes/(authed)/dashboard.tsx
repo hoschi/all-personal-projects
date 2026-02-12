@@ -13,7 +13,6 @@ import { ItemGetPayload } from "@/generated/prisma/models"
 
 export const Route = createFileRoute("/(authed)/dashboard")({
   component: RouteComponent,
-  ssr: false,
   loader: async () => {
     return await getDashboardDataFn()
   },

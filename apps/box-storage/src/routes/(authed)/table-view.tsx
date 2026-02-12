@@ -5,7 +5,6 @@ import {
   toggleItemInMotionFn,
 } from "@/data/actions"
 import { Item } from "@/data/schema"
-import { useUserId } from "@/lib/auth"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { z } from "zod"
 
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/(authed)/table-view")({
   ssr: false,
   validateSearch: Search.parse,
   loaderDeps: ({ search: { onlyMine } }) => ({ onlyMine }),
-  loader: async ({ deps: { onlyMine } }) => {
+  loader: async ({ deps: { onlyMine }, context }) => {
     const filters: ListItemFilters = {}
     if (onlyMine) {
       filters.statusFilter = "mine"
@@ -27,15 +26,14 @@ export const Route = createFileRoute("/(authed)/table-view")({
     const items = await getListItems({
       data: { filters },
     })
-    return { items }
+    return { items, userId: context.userId }
   },
 })
 
 function RouteComponent() {
   const router = useRouter()
-  const { items } = Route.useLoaderData()
+  const { items, userId } = Route.useLoaderData()
   const search = Route.useSearch()
-  const userId = useUserId()
   const navigate = useNavigate({ from: Route.fullPath })
 
   const toggleInMotion = async (item: Item) => {
