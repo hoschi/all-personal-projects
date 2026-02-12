@@ -1,3 +1,5 @@
+import { Either } from "effect"
+
 export function calculateSnapshotDelta(
   currentBalance: number,
   snapshotBalance: number | null,
@@ -49,27 +51,29 @@ function normalizeBalanceInput(rawValue: string): string {
   return withoutSpaces
 }
 
-export function parseCurrentBalanceValue(rawValue: string): number {
+export type ParseCurrentBalanceValueError = string
+
+// Effect models Either as Either<Right, Left>.
+export type ParseCurrentBalanceValueResult = Either.Either<
+  number,
+  ParseCurrentBalanceValueError
+>
+
+export function parseCurrentBalanceValue(
+  rawValue: string,
+): ParseCurrentBalanceValueResult {
   const normalized = normalizeBalanceInput(rawValue)
 
   if (normalized.length === 0) {
-    throw new Error("Balance value is required")
+    return Either.left("Balance value is required")
   }
 
   const amount = Number(normalized)
   if (!Number.isFinite(amount)) {
-    throw new Error(`Invalid balance value: ${rawValue}`)
+    return Either.left(`Invalid balance value: ${rawValue}`)
   }
 
-  return Math.round(amount * 100)
-}
-
-export function tryParseCurrentBalanceValue(rawValue: string): number | null {
-  try {
-    return parseCurrentBalanceValue(rawValue)
-  } catch {
-    return null
-  }
+  return Either.right(Math.round(amount * 100))
 }
 
 export function toInputValue(amountInCents: number): string {

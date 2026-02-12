@@ -18,14 +18,15 @@ import {
 } from "@/components/ui/tooltip"
 import {
   calculateSnapshotDelta,
+  parseCurrentBalanceValue,
   toInputValue,
-  tryParseCurrentBalanceValue,
 } from "@/domain/currentBalances"
 import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
 import { format, formatDistanceToNow } from "date-fns"
 import { handleSaveCurrentBalances, ServerActionResult } from "@/lib/actions"
 import { useActionState, useState } from "react"
 import Link from "next/link"
+import { Either } from "effect"
 
 const initialActionState: ServerActionResult | null = null
 
@@ -55,15 +56,22 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
 
   const rows = data.rows.map((row) => {
     const inputValue = inputState[row.id] ?? toInputValue(row.currentBalance)
-    const parsedCurrentValue = tryParseCurrentBalanceValue(inputValue)
+    const parsedCurrentValue = parseCurrentBalanceValue(inputValue)
+    const liveDeltaError = Either.match(parsedCurrentValue, {
+      onLeft: (error) => error,
+      onRight: () => null,
+    })
+    const liveDelta = Either.match(parsedCurrentValue, {
+      onLeft: () => null,
+      onRight: (currentBalance) =>
+        calculateSnapshotDelta(currentBalance, row.snapshotBalance),
+    })
 
     return {
       ...row,
       inputValue,
-      liveDelta:
-        parsedCurrentValue === null
-          ? null
-          : calculateSnapshotDelta(parsedCurrentValue, row.snapshotBalance),
+      liveDelta,
+      liveDeltaError,
     }
   })
 
@@ -129,8 +137,14 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
                   required
                 />
               </TableCell>
-              <TableCell className={getDeltaColorClass(row.liveDelta)}>
-                {formatDelta(row.liveDelta)}
+              <TableCell
+                className={
+                  row.liveDeltaError
+                    ? "text-red-600"
+                    : getDeltaColorClass(row.liveDelta)
+                }
+              >
+                {row.liveDeltaError ?? formatDelta(row.liveDelta)}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 <Tooltip>

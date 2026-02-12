@@ -4,7 +4,7 @@ import { z } from "zod"
 import Debug from "debug"
 import { updateTag } from "next/cache"
 import { redirect } from "next/navigation"
-import { Option } from "effect"
+import { Either, Option } from "effect"
 import {
   approveCurrentBalancesAsSnapshot,
   changeSettings,
@@ -58,9 +58,14 @@ function extractCurrentBalanceUpdates(formData: FormData): {
         throw new Error("Invalid form payload: expected text values")
       }
 
+      const parsedBalance = parseCurrentBalanceValue(value)
+      if (Either.isLeft(parsedBalance)) {
+        throw new Error(parsedBalance.left)
+      }
+
       return {
         accountId: key.replace("balance:", ""),
-        currentBalance: parseCurrentBalanceValue(value),
+        currentBalance: parsedBalance.right,
       }
     })
 }
