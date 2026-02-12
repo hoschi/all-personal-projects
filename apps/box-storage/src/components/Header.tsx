@@ -26,7 +26,7 @@ export default function Header() {
           <Spinner />
         </span>
       </span>
-      <div className="flex gap-2">
+      <div className="flex gap-2 h-10 items-center">
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/table-view" search={{ onlyMine: false }}>
           Items
