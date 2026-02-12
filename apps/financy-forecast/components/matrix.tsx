@@ -10,7 +10,7 @@ import { getMatrixData } from "@/lib/data"
 import { Option, Array as EffectArray } from "effect"
 import { isNone } from "effect/Option"
 import { format } from "date-fns"
-import { eurFormatter } from "./format"
+import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
 import { Button } from "./ui/button"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
@@ -20,23 +20,6 @@ import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
 } from "@/domain/approveErrors"
-
-function formatDelta(delta: number | null): string {
-  if (delta === null) {
-    return "—"
-  }
-
-  const formatted = eurFormatter.format(delta / 100)
-  return delta > 0 ? `+${formatted}` : formatted
-}
-
-function getDeltaColorClass(delta: number | null): string {
-  if (delta === null || delta === 0) {
-    return "text-muted-foreground"
-  }
-
-  return delta > 0 ? "text-emerald-700" : "text-red-600"
-}
 
 export async function Matrix() {
   "use cache"

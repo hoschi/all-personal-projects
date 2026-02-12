@@ -125,7 +125,9 @@ describe("handleSaveCurrentBalances", () => {
     formData.append("balance:550e8400-e29b-41d4-a716-446655440000", "10.50")
     formData.append("balance:550e8400-e29b-41d4-a716-446655440001", "0")
 
-    await expect(handleSaveCurrentBalances(formData)).resolves.toBeUndefined()
+    await expect(handleSaveCurrentBalances(formData)).resolves.toMatchObject({
+      success: true,
+    })
 
     expect(mockUpdateAccountCurrentBalances).toHaveBeenCalledWith([
       {
@@ -140,11 +142,14 @@ describe("handleSaveCurrentBalances", () => {
     expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
   })
 
-  test("throws for invalid account id format", async () => {
+  test("returns validation error for invalid account id format", async () => {
     const formData = new FormData()
     formData.append("balance:not-a-uuid", "10")
 
-    await expect(handleSaveCurrentBalances(formData)).rejects.toBeDefined()
+    await expect(handleSaveCurrentBalances(formData)).resolves.toMatchObject({
+      success: false,
+      error: "Validation failed",
+    })
     expect(mockUpdateAccountCurrentBalances).not.toHaveBeenCalled()
   })
 })

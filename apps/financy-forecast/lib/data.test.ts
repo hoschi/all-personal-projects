@@ -1,5 +1,5 @@
 import { describe, test, expect, mock, beforeEach } from "bun:test"
-import { getMatrixData, getForecastData } from "./data"
+import { getCurrentEditData, getForecastData, getMatrixData } from "./data"
 import { Option } from "effect"
 import {
   AccountCategory,
@@ -401,6 +401,113 @@ describe("getMatrixData", () => {
 
     expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4)
     expect(mockGetAccounts).toHaveBeenCalled()
+  })
+})
+
+describe("getCurrentEditData", () => {
+  beforeEach(() => {
+    mockGetAccounts.mockClear()
+    mockGetLatestAssetSnapshot.mockClear()
+    mockGetBalanceDetailsBySnapshotId.mockClear()
+  })
+
+  test("returns snapshot values and computed deltas when latest snapshot exists", async () => {
+    mockGetAccounts.mockImplementation(async () => [
+      createMockAccount({
+        id: "account-1",
+        name: "Main",
+        currentBalance: 1200,
+        updatedAt: new Date("2025-01-02T12:00:00.000Z"),
+      }),
+    ])
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
+      Option.some(
+        createMockAssetSnapshot(new Date("2025-01-01"), { id: "snapshot-42" }),
+      ),
+    )
+    mockGetBalanceDetailsBySnapshotId.mockImplementation(async () => [
+      {
+        id: "detail-1",
+        snapshotId: "snapshot-42",
+        accountId: "account-1",
+        amount: 1000,
+      },
+    ])
+
+    const result = await getCurrentEditData()
+
+    expect(result.lastSnapshotDate).toEqual(new Date("2025-01-01"))
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0]?.snapshotBalance).toBe(1000)
+    expect(result.rows[0]?.delta).toBe(200)
+    expect(mockGetBalanceDetailsBySnapshotId).toHaveBeenCalledWith(
+      "snapshot-42",
+    )
+  })
+
+  test("returns no-snapshot fallback when no snapshot is available", async () => {
+    mockGetAccounts.mockImplementation(async () => [
+      createMockAccount({
+        id: "account-1",
+        currentBalance: 2000,
+      }),
+    ])
+    mockGetLatestAssetSnapshot.mockImplementation(async () => Option.none())
+    mockGetBalanceDetailsBySnapshotId.mockImplementation(async () => undefined)
+
+    const result = await getCurrentEditData()
+
+    expect(result.lastSnapshotDate).toBeNull()
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0]?.snapshotBalance).toBeNull()
+    expect(result.rows[0]?.delta).toBeNull()
+    expect(mockGetBalanceDetailsBySnapshotId).not.toHaveBeenCalled()
+  })
+
+  test("computes positive and negative deltas and preserves number types", async () => {
+    mockGetAccounts.mockImplementation(async () => [
+      createMockAccount({
+        id: "account-positive",
+        name: "Positive",
+        currentBalance: 1500,
+      }),
+      createMockAccount({
+        id: "account-negative",
+        name: "Negative",
+        currentBalance: 800,
+      }),
+    ])
+    mockGetLatestAssetSnapshot.mockImplementation(async () =>
+      Option.some(
+        createMockAssetSnapshot(new Date("2025-02-01"), {
+          id: "snapshot-edge",
+        }),
+      ),
+    )
+    mockGetBalanceDetailsBySnapshotId.mockImplementation(async () => [
+      {
+        id: "detail-positive",
+        snapshotId: "snapshot-edge",
+        accountId: "account-positive",
+        amount: 1000,
+      },
+      {
+        id: "detail-negative",
+        snapshotId: "snapshot-edge",
+        accountId: "account-negative",
+        amount: 1200,
+      },
+    ])
+
+    const result = await getCurrentEditData()
+
+    const positive = result.rows.find((row) => row.id === "account-positive")
+    const negative = result.rows.find((row) => row.id === "account-negative")
+
+    expect(positive?.delta).toBe(500)
+    expect(negative?.delta).toBe(-400)
+    expect(typeof positive?.delta).toBe("number")
+    expect(typeof negative?.delta).toBe("number")
   })
 })
 

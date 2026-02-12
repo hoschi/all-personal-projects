@@ -19,6 +19,7 @@ import {
   calculateNextSnapshotDate,
 } from "../domain/snapshots"
 import { SnapshotNotApprovableError } from "../domain/approveErrors"
+import { parseCurrentBalanceValue } from "../domain/currentBalances"
 
 // =============================================================================
 // TypeScript Interfaces
@@ -32,6 +33,7 @@ export interface ServerActionResult {
     fieldErrors?: Record<string, string[]>
     updatedScenarios?: number
     variableCostsUpdated?: boolean
+    updatedAccounts?: number
   }
 }
 
@@ -44,18 +46,22 @@ const saveCurrentBalancesSchema = z.object({
   updates: z.array(currentBalanceUpdateEntrySchema).min(1),
 })
 
-function parseCurrentBalanceValue(rawValue: string): number {
-  const normalized = rawValue.trim().replace(",", ".")
-  if (normalized.length === 0) {
-    throw new Error("Balance value is required")
-  }
-  const amount = Number(normalized)
+function extractCurrentBalanceUpdates(formData: FormData): {
+  accountId: string
+  currentBalance: number
+}[] {
+  return Array.from(formData.entries())
+    .filter(([key]) => key.startsWith("balance:"))
+    .map(([key, value]) => {
+      if (typeof value !== "string") {
+        throw new Error("Invalid form payload: expected text values")
+      }
 
-  if (!Number.isFinite(amount)) {
-    throw new Error(`Invalid balance value: ${rawValue}`)
-  }
-
-  return Math.round(amount * 100)
+      return {
+        accountId: key.replace("balance:", ""),
+        currentBalance: parseCurrentBalanceValue(value),
+      }
+    })
 }
 
 export async function handleApproveSnapshot(): Promise<void> {
@@ -242,26 +248,48 @@ export async function handleUpdateScenarioIsActive(
  */
 export async function handleSaveCurrentBalances(
   formData: FormData,
-): Promise<void> {
+): Promise<ServerActionResult> {
   const debug = Debug("app:action:handleSaveCurrentBalances")
   debug("Received save current balances request")
 
-  const updates = Array.from(formData.entries())
-    .filter(([key]) => key.startsWith("balance:"))
-    .map(([key, value]) => {
-      if (typeof value !== "string") {
-        throw new Error("Invalid form payload: expected text values")
-      }
+  try {
+    const updates = extractCurrentBalanceUpdates(formData)
+    const parsed = saveCurrentBalancesSchema.parse({ updates })
+    debug("Validated %d account balance updates", parsed.updates.length)
 
+    const updatedAccounts = await updateAccountCurrentBalances(parsed.updates)
+    updateTag("accounts")
+
+    return {
+      success: true,
+      message: "Current balances saved successfully",
+      data: {
+        updatedAccounts,
+      },
+    }
+  } catch (error) {
+    debug("Saving current balances failed: %O", error)
+
+    if (error instanceof z.ZodError) {
       return {
-        accountId: key.replace("balance:", ""),
-        currentBalance: parseCurrentBalanceValue(value),
+        success: false,
+        error: "Validation failed",
+        data: {
+          fieldErrors: error.flatten().fieldErrors,
+        },
       }
-    })
+    }
 
-  const parsed = saveCurrentBalancesSchema.parse({ updates })
-  debug("Validated %d account balance updates", parsed.updates.length)
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
 
-  await updateAccountCurrentBalances(parsed.updates)
-  updateTag("accounts")
+    return {
+      success: false,
+      error: "Failed to save current balances. Please try again later.",
+    }
+  }
 }

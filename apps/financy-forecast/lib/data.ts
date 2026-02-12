@@ -20,6 +20,7 @@ import {
 import { last } from "ramda"
 import { sumAll } from "effect/Number"
 import { calculateApprovable } from "../domain/snapshots"
+import { calculateSnapshotDelta } from "../domain/currentBalances"
 
 function createMonthlyChangeCells(sumCells: MatrixCell[]): MatrixChangeCell[] {
   return sumCells.map((cell, index, cells) => ({
@@ -176,10 +177,7 @@ export async function getCurrentEditData(): Promise<CurrentEditData> {
         currentBalance: account.currentBalance,
         updatedAt: account.updatedAt,
         snapshotBalance,
-        delta:
-          snapshotBalance === null
-            ? null
-            : account.currentBalance - snapshotBalance,
+        delta: calculateSnapshotDelta(account.currentBalance, snapshotBalance),
       }
     }),
   }

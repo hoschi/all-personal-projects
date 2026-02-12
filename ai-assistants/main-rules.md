@@ -40,6 +40,24 @@ Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, be
 bunx shadcn@latest add button
 ```
 
+### Numerische Eingaben mit Komma
+
+- **Problem**: `replace(\",\", \".\")` ersetzt nur das erste Komma.
+- **Lösung**: Immer globale Ersetzung (`replace(/,/g, \".\")` oder `replaceAll(\",\", \".\")`) vor `Number(...)` verwenden.
+
+## Next.js 16
+
+### Cache Components: Uncached Data
+
+- **Problem**: Seiten mit uncached Datenzugriff schlagen im Build fehl (`Uncached data was accessed outside of <Suspense>`).
+- **Lösung**: Uncached Data-Reads in eine async Unterkomponente auslagern und in `<Suspense>` rendern, statt direkt im Page-Root zu blockieren.
+
+### Server Action Fehlerbehandlung für Formulare
+
+- **Problem**: Unbehandelte Errors in Server Actions triggern Error Boundaries und geben dem Nutzer kein verwertbares Feedback.
+- **Lösung**: Server Actions in `try/catch` kapseln und ein strukturiertes Result (`success`, `error`, `fieldErrors`) zurückgeben; UI zeigt Fehler gezielt an.
+- **Pattern**: Business-Parsing/Validierung in Helper-Funktionen, UI-State/Anzeige im Client-Form-Component.
+
 ## 🗄️ PostgreSQL-spezifische Erkenntnisse
 
 ### Schema-Parameter in URLs: PostgreSQL vs Prisma
