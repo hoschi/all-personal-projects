@@ -18,8 +18,10 @@ import {
   ForecastTimelineData,
 } from "./types"
 import { last } from "ramda"
-import { sumAll } from "effect/Number"
-import { calculateApprovable } from "../domain/snapshots"
+import {
+  calculateAccountsTotalBalance,
+  calculateApprovable,
+} from "../domain/snapshots"
 import { calculateSnapshotDelta } from "../domain/currentBalances"
 
 function createMonthlyChangeCells(sumCells: MatrixCell[]): MatrixChangeCell[] {
@@ -59,12 +61,16 @@ export async function getMatrixData(
   const sumCells: MatrixCell[] = details
     .map((detail) => ({
       id: `sum-${detail.snapshot.id}`,
-      amount: detail.snapshot.totalLiquidity,
+      amount: calculateAccountsTotalBalance(
+        Object.values(detail.accountBalances),
+      ),
     }))
     .concat([
       {
         id: "sum-current",
-        amount: sumAll(accounts.map((a) => a.currentBalance)),
+        amount: calculateAccountsTotalBalance(
+          accounts.map((a) => a.currentBalance),
+        ),
       },
     ])
   const changes = createMonthlyChangeCells(sumCells)

@@ -229,16 +229,16 @@ describe("getMatrixData", () => {
     expect(sumRow.cells).toHaveLength(4) // 3 snapshots + current
 
     // Verify sum calculations (note: data is reversed, so newest comes first)
-    // Sum row uses snapshot.totalLiquidity and current balance sum
-    expect(sumRow.cells[0].amount).toBe(1000000) // newest snapshot (2023-03-01) totalLiquidity
-    expect(sumRow.cells[1].amount).toBe(1000000) // middle snapshot (2023-02-01) totalLiquidity
-    expect(sumRow.cells[2].amount).toBe(1000000) // oldest snapshot (2023-01-01) totalLiquidity
+    // Sum row is calculated from account balances for each snapshot and current
+    expect(sumRow.cells[0].amount).toBe(500000) // newest snapshot (2023-03-01)
+    expect(sumRow.cells[1].amount).toBe(475000) // middle snapshot (2023-02-01)
+    expect(sumRow.cells[2].amount).toBe(450000) // oldest snapshot (2023-01-01)
     expect(sumRow.cells[3].amount).toBe(500000) // current balance sum (one account with 500000)
     expect(matrixData.changes[0]?.delta).toBeNull()
-    expect(matrixData.changes[1]?.delta).toBe(0)
-    expect(matrixData.changes[2]?.delta).toBe(0)
-    expect(matrixData.changes[3]?.delta).toBe(-500000)
-    expect(matrixData.totalChange).toBe(-500000)
+    expect(matrixData.changes[1]?.delta).toBe(-25000)
+    expect(matrixData.changes[2]?.delta).toBe(-25000)
+    expect(matrixData.changes[3]?.delta).toBe(50000)
+    expect(matrixData.totalChange).toBe(0)
 
     expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4)
     expect(mockGetAccounts).toHaveBeenCalled()
@@ -298,14 +298,14 @@ describe("getMatrixData", () => {
     expect(sumRow.name).toBe("")
     expect(sumRow.cells).toHaveLength(3) // 2 snapshots + current
 
-    // Verify sum calculations (snapshot totalLiquidity + current balance sum)
-    expect(sumRow.cells[0].amount).toBe(1000000) // newest snapshot totalLiquidity
-    expect(sumRow.cells[1].amount).toBe(1000000) // oldest snapshot totalLiquidity
+    // Verify sum calculations (snapshot account sums + current balance sum)
+    expect(sumRow.cells[0].amount).toBe(750000) // newest snapshot
+    expect(sumRow.cells[1].amount).toBe(700000) // oldest snapshot
     expect(sumRow.cells[2].amount).toBe(750000) // current balance sum (500000 + 250000)
     expect(matrixData.changes[0]?.delta).toBeNull()
-    expect(matrixData.changes[1]?.delta).toBe(0)
-    expect(matrixData.changes[2]?.delta).toBe(-250000)
-    expect(matrixData.totalChange).toBe(-250000)
+    expect(matrixData.changes[1]?.delta).toBe(-50000)
+    expect(matrixData.changes[2]?.delta).toBe(50000)
+    expect(matrixData.totalChange).toBe(0)
 
     expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4)
     expect(mockGetAccounts).toHaveBeenCalled()
@@ -393,9 +393,9 @@ describe("getMatrixData", () => {
       // Verify sum row calculations
       const sumRow = matrixData.rows.find((row) => row.id === "sum")
       expect(sumRow).toBeDefined()
-      // Sum row should contain snapshot.totalLiquidity values
-      expect(sumRow?.cells[0].amount).toBe(1000000) // newest snapshot totalLiquidity
-      expect(sumRow?.cells[1].amount).toBe(1000000) // oldest snapshot totalLiquidity
+      // Sum row should contain calculated snapshot sums
+      expect(sumRow?.cells[0].amount).toBe(750000) // newest snapshot
+      expect(sumRow?.cells[1].amount).toBe(450000) // oldest snapshot
       expect(sumRow?.cells[2].amount).toBe(500000) // current balance sum (500000 + 0)
     }
 

@@ -1,4 +1,5 @@
 import { addMonths, isAfter, isEqual, startOfMonth, subMonths } from "date-fns"
+import { sumAll } from "effect/Number"
 import { now } from "../lib/utils"
 
 /**
@@ -33,4 +34,13 @@ export function calculateInitialSnapshotDate(
   referenceDate: Date = now(),
 ): Date {
   return startOfMonth(subMonths(referenceDate, 1))
+}
+
+/**
+ * Berechnet die Gesamtsumme über alle Kontostände in Cents.
+ */
+export function calculateAccountsTotalBalance(
+  balancesInCents: ReadonlyArray<number>,
+): number {
+  return sumAll(balancesInCents)
 }

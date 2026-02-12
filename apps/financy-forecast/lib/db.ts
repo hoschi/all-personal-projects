@@ -16,8 +16,8 @@ import {
   ForecastScenarioChanges,
 } from "./schemas"
 import * as dotenv from "dotenv"
-import { sumAll } from "effect/Number"
 import { NoAccountsAvailableError } from "../domain/approveErrors"
+import { calculateAccountsTotalBalance } from "../domain/snapshots"
 
 let sql: ReturnType<typeof postgres>
 async function getDb() {
@@ -309,7 +309,7 @@ export async function createAssetSnapshot(
 
 /**
  * Creates a snapshot from the current account balances.
- * Includes all account details and calculates totalLiquidity from LIQUID accounts only.
+ * Includes all account details and calculates totalLiquidity from all accounts.
  */
 export async function approveCurrentBalancesAsSnapshot(
   snapshotDate: Date,
@@ -332,10 +332,8 @@ export async function approveCurrentBalancesAsSnapshot(
         throw new NoAccountsAvailableError()
       }
 
-      const totalLiquidity = sumAll(
-        accounts
-          .filter((account) => account.category === AccountCategory.LIQUID)
-          .map((account) => account.currentBalance),
+      const totalLiquidity = calculateAccountsTotalBalance(
+        accounts.map((account) => account.currentBalance),
       )
 
       const snapshotResult = await tx<AssetSnapshot[]>`
