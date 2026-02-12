@@ -14,7 +14,7 @@ const mockUpdateAccountCurrentBalances = mock()
 const mockNow = mock()
 const mockRedirect = mock()
 
-const mockRevalidateTag = mock()
+const mockUpdateTag = mock()
 
 mock.module("./db", () => ({
   approveCurrentBalancesAsSnapshot: mockApproveCurrentBalancesAsSnapshot,
@@ -25,7 +25,7 @@ mock.module("./db", () => ({
 }))
 
 mock.module("next/cache", () => ({
-  revalidateTag: mockRevalidateTag,
+  updateTag: mockUpdateTag,
 }))
 
 mock.module("next/navigation", () => ({
@@ -43,7 +43,7 @@ describe("handleApproveSnapshot", () => {
     mockGetLatestAssetSnapshot.mockClear()
     mockUpdateForcastScenario.mockClear()
     mockUpdateAccountCurrentBalances.mockClear()
-    mockRevalidateTag.mockClear()
+    mockUpdateTag.mockClear()
     mockRedirect.mockClear()
     mockNow.mockReset()
   })
@@ -61,8 +61,8 @@ describe("handleApproveSnapshot", () => {
     expect(mockApproveCurrentBalancesAsSnapshot).toHaveBeenCalledTimes(1)
     const firstCallArg = mockApproveCurrentBalancesAsSnapshot.mock.calls[0]?.[0]
     expect(firstCallArg).toEqual(new Date(2025, 3, 1))
-    expect(mockRevalidateTag).toHaveBeenCalledWith("snapshots", "max")
-    expect(mockRevalidateTag).toHaveBeenCalledWith("accounts", "max")
+    expect(mockUpdateTag).toHaveBeenCalledWith("snapshots")
+    expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
   })
 
   test("throws SnapshotNotApprovableError when snapshot is not approvable yet", async () => {
@@ -122,11 +122,11 @@ describe("handleApproveSnapshot", () => {
 describe("handleSaveCurrentBalances", () => {
   beforeEach(() => {
     mockUpdateAccountCurrentBalances.mockClear()
-    mockRevalidateTag.mockClear()
+    mockUpdateTag.mockClear()
     mockRedirect.mockClear()
   })
 
-  test("updates balances and revalidates accounts tag", async () => {
+  test("updates balances and updates accounts tag", async () => {
     mockUpdateAccountCurrentBalances.mockImplementation(async () => 1)
     mockRedirect.mockImplementation(() => {
       throw new Error("NEXT_REDIRECT")
@@ -149,7 +149,7 @@ describe("handleSaveCurrentBalances", () => {
         currentBalance: 0,
       },
     ])
-    expect(mockRevalidateTag).toHaveBeenCalledWith("accounts", "max")
+    expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
     expect(mockRedirect).toHaveBeenCalledWith("/dashboard")
   })
 

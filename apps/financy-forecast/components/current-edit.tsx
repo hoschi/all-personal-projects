@@ -24,7 +24,7 @@ import {
 import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
 import { format, formatDistanceToNow } from "date-fns"
 import { handleSaveCurrentBalances, ServerActionResult } from "@/lib/actions"
-import { useActionState, useMemo, useState } from "react"
+import { useActionState, useState } from "react"
 import Link from "next/link"
 
 const initialActionState: ServerActionResult | null = null
@@ -53,24 +53,19 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
     initialActionState,
   )
 
-  const rows = useMemo(
-    () =>
-      data.rows.map((row) => {
-        const inputValue =
-          inputState[row.id] ?? toInputValue(row.currentBalance)
-        const parsedCurrentValue = tryParseCurrentBalanceValue(inputValue)
+  const rows = data.rows.map((row) => {
+    const inputValue = inputState[row.id] ?? toInputValue(row.currentBalance)
+    const parsedCurrentValue = tryParseCurrentBalanceValue(inputValue)
 
-        return {
-          ...row,
-          inputValue,
-          liveDelta:
-            parsedCurrentValue === null
-              ? null
-              : calculateSnapshotDelta(parsedCurrentValue, row.snapshotBalance),
-        }
-      }),
-    [data.rows, inputState],
-  )
+    return {
+      ...row,
+      inputValue,
+      liveDelta:
+        parsedCurrentValue === null
+          ? null
+          : calculateSnapshotDelta(parsedCurrentValue, row.snapshotBalance),
+    }
+  })
 
   if (data.rows.length === 0) {
     return (

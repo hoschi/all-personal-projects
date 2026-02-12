@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import Debug from "debug"
-import { revalidateTag } from "next/cache"
+import { updateTag } from "next/cache"
 import { redirect } from "next/navigation"
 import { Option } from "effect"
 import {
@@ -94,8 +94,8 @@ export async function handleApproveSnapshot(): Promise<void> {
 
   await approveCurrentBalancesAsSnapshot(snapshotDate)
 
-  revalidateTag("snapshots", "max")
-  revalidateTag("accounts", "max")
+  updateTag("snapshots")
+  updateTag("accounts")
 }
 
 // =============================================================================
@@ -139,7 +139,7 @@ export async function handleSaveForecastDirect(
     debug("Atomic forecast update completed successfully")
 
     // 6. Invalidate cache to refresh UI
-    revalidateTag("scenarios", "max")
+    updateTag("scenarios")
 
     return {
       success: true,
@@ -204,7 +204,7 @@ export async function handleUpdateScenarioIsActive(
     debug("updateForcastScenario completed successfully")
 
     // 2. Invalidate cache to refresh UI
-    revalidateTag("scenarios", "max")
+    updateTag("scenarios")
 
     return {
       success: true,
@@ -259,7 +259,7 @@ export async function handleSaveCurrentBalances(
     debug("Validated %d account balance updates", parsed.updates.length)
 
     await updateAccountCurrentBalances(parsed.updates)
-    revalidateTag("accounts", "max")
+    updateTag("accounts")
   } catch (error) {
     debug("Saving current balances failed: %O", error)
 
