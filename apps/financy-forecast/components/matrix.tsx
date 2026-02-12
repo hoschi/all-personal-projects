@@ -9,11 +9,13 @@ import {
 import { getMatrixData } from "@/lib/data"
 import { Option, Array as EffectArray } from "effect"
 import { isNone } from "effect/Option"
+import { format } from "date-fns"
 import { eurFormatter } from "./format"
 import { Button } from "./ui/button"
-import { calculateApprovable } from "../domain/snapshots"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
+import { handleApproveSnapshot } from "@/lib/actions"
+import { SnapshotNotApprovableError } from "@/lib/approve-errors"
 
 function formatDelta(delta: number | null): string {
   if (delta === null) {
@@ -46,9 +48,40 @@ export async function Matrix() {
 }
 
 async function TableView({ data }: { data: MatrixData }) {
-  const { rows, header, lastDate, changes, totalChange } = data
+  const { rows, header, changes, totalChange, isApprovable } = data
 
-  const isApprovable = calculateApprovable(lastDate)
+  async function approveAction() {
+    "use server"
+
+    try {
+      await handleApproveSnapshot()
+    } catch (error) {
+      if (error instanceof SnapshotNotApprovableError) {
+        const earliestApprovalDate = format(
+          error.earliestApprovalDate,
+          "yyyy-MM-dd",
+        )
+        console.error(
+          "Snapshot ist noch nicht freigebbar. Frühestes Freigabedatum: %s.",
+          earliestApprovalDate,
+        )
+        return
+      }
+
+      if (
+        error instanceof Error &&
+        error.message.includes("No accounts available")
+      ) {
+        console.error(
+          "Keine Kontodaten vorhanden. Bitte zuerst Konten und aktuelle Werte erfassen.",
+        )
+        return
+      }
+
+      throw error
+    }
+  }
+
   return (
     <div>
       <Table className="table-layout-fixed text-md">
@@ -86,17 +119,27 @@ async function TableView({ data }: { data: MatrixData }) {
               {formatDelta(totalChange)}
             </TableCell>
           </TableRow>
-          {isApprovable && (
-            <TableRow>
-              {EffectArray.makeBy(header.length - 1, (i) => (
-                <TableCell key={`empty-${i}`}></TableCell>
-              ))}
-              <TableCell>
-                <Button variant={"outline"}>approve</Button>
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          )}
+          <TableRow>
+            {EffectArray.makeBy(header.length - 1, (i) => (
+              <TableCell key={`empty-${i}`}></TableCell>
+            ))}
+            <TableCell>
+              {isApprovable ? (
+                <form action={approveAction}>
+                  <Button
+                    type="submit"
+                    variant={"outline"}
+                    aria-label="approve"
+                  >
+                    ✅
+                  </Button>
+                </form>
+              ) : (
+                <span className="text-muted-foreground font-medium">Est.</span>
+              )}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </div>

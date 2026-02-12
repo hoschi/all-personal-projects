@@ -17,6 +17,7 @@ import {
 } from "./types"
 import { last } from "ramda"
 import { sumAll } from "effect/Number"
+import { calculateApprovable } from "../domain/snapshots"
 
 function createMonthlyChangeCells(sumCells: MatrixCell[]): MatrixChangeCell[] {
   return sumCells.map((cell, index, cells) => ({
@@ -41,11 +42,17 @@ export async function getMatrixData(
     getAccounts(),
   ])
 
-  if (Option.isNone(snapshotsResult)) {
+  if (accounts.length === 0) {
     return Option.none()
   }
 
-  const details = Option.getOrThrow(snapshotsResult).reverse()
+  const details = Option.isNone(snapshotsResult)
+    ? []
+    : Option.getOrThrow(snapshotsResult).reverse()
+  const isInitialState = details.length === 0
+  const lastDate = last(details)?.snapshot.date ?? null
+  const isApprovable = lastDate === null ? true : calculateApprovable(lastDate)
+
   const sumCells: MatrixCell[] = details
     .map((detail) => ({
       id: `sum-${detail.snapshot.id}`,
@@ -94,7 +101,6 @@ export async function getMatrixData(
   const header = details
     .map((detail) => format(detail.snapshot.date, "yyyy-MM"))
     .concat(["Current"])
-  const lastDate = last(details)?.snapshot.date || new Date()
 
   return Option.some({
     rows,
@@ -102,6 +108,8 @@ export async function getMatrixData(
     totalChange,
     header,
     lastDate,
+    isApprovable,
+    isInitialState,
   })
 }
 

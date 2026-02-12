@@ -22,7 +22,9 @@ export interface MatrixData {
   changes: MatrixChangeCell[]
   totalChange: number | null
   header: string[]
-  lastDate: Date
+  lastDate: Date | null
+  isApprovable: boolean
+  isInitialState: boolean
 }
 
 // Forecast Timeline Types

@@ -16,6 +16,7 @@ import {
   ForecastScenarioChanges,
 } from "./schemas"
 import * as dotenv from "dotenv"
+import { sumAll } from "effect/Number"
 
 let sql: ReturnType<typeof postgres>
 async function getDb() {
@@ -260,6 +261,71 @@ export async function createAssetSnapshot(
   } catch (error) {
     console.error("Error creating asset snapshot:", error)
     throw new Error("Failed to create asset snapshot")
+  }
+}
+
+/**
+ * Creates a snapshot from the current account balances.
+ * Includes all account details and calculates totalLiquidity from LIQUID accounts only.
+ */
+export async function approveCurrentBalancesAsSnapshot(
+  snapshotDate: Date,
+): Promise<AssetSnapshot> {
+  const debug = Debug("app:db:approveCurrentBalancesAsSnapshot")
+  debug("Approving current balances as snapshot for date=%s", snapshotDate)
+
+  try {
+    const db = await getDb()
+    const snapshot = await db.begin(async (tx) => {
+      await tx`SET search_path TO financy_forecast;`
+
+      const accounts = await tx<Account[]>`
+        SELECT id, name, category, current_balance as "currentBalance"
+        FROM accounts
+        ORDER BY name ASC
+      `
+
+      if (accounts.length === 0) {
+        throw new Error("No accounts available to approve snapshot")
+      }
+
+      const totalLiquidity = sumAll(
+        accounts
+          .filter((account) => account.category === AccountCategory.LIQUID)
+          .map((account) => account.currentBalance),
+      )
+
+      const snapshotResult = await tx<AssetSnapshot[]>`
+        INSERT INTO asset_snapshots (id, date, total_liquidity)
+        VALUES (gen_random_uuid(), ${snapshotDate}, ${totalLiquidity})
+        RETURNING id, date, total_liquidity as "totalLiquidity"
+      `
+      const createdSnapshot = snapshotResult[0]
+      if (!createdSnapshot) {
+        throw new Error("Failed to create snapshot")
+      }
+
+      for (const account of accounts) {
+        await tx<AccountBalanceDetail[]>`
+          INSERT INTO account_balance_details (id, snapshot_id, account_id, amount)
+          VALUES (gen_random_uuid(), ${createdSnapshot.id}::uuid, ${account.id}::uuid, ${account.currentBalance})
+          RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
+        `
+      }
+
+      return createdSnapshot
+    })
+
+    return snapshot
+  } catch (error) {
+    console.error("Error approving current balances as snapshot:", error)
+    if (
+      error instanceof Error &&
+      error.message === "No accounts available to approve snapshot"
+    ) {
+      throw error
+    }
+    throw new Error("Failed to approve current balances as snapshot")
   }
 }
 

@@ -3,8 +3,21 @@
 import { z } from "zod"
 import Debug from "debug"
 import { updateTag } from "next/cache"
-import { changeSettings, updateForcastScenario } from "./db"
+import { Option } from "effect"
+import {
+  approveCurrentBalancesAsSnapshot,
+  changeSettings,
+  getLatestAssetSnapshot,
+  updateForcastScenario,
+} from "./db"
 import { saveForecastSchema, SaveForecastSchema } from "./schemas"
+import {
+  calculateApprovable,
+  calculateEarliestApprovalDate,
+  calculateInitialSnapshotDate,
+  calculateNextSnapshotDate,
+} from "../domain/snapshots"
+import { SnapshotNotApprovableError } from "./approve-errors"
 
 // =============================================================================
 // TypeScript Interfaces
@@ -19,6 +32,39 @@ export interface ServerActionResult {
     updatedScenarios?: number
     variableCostsUpdated?: boolean
   }
+}
+
+export async function handleApproveSnapshot(): Promise<void> {
+  const debug = Debug("app:action:handleApproveSnapshot")
+  debug("Received approve snapshot request")
+
+  const latestSnapshotResult = await getLatestAssetSnapshot()
+
+  let snapshotDate: Date
+  if (Option.isNone(latestSnapshotResult)) {
+    snapshotDate = calculateInitialSnapshotDate()
+    debug(
+      "No previous snapshot found. Using initial snapshot date=%s",
+      snapshotDate,
+    )
+  } else {
+    const lastSnapshot = Option.getOrThrow(latestSnapshotResult)
+    const isApprovable = calculateApprovable(lastSnapshot.date)
+
+    if (!isApprovable) {
+      throw new SnapshotNotApprovableError(
+        calculateEarliestApprovalDate(lastSnapshot.date),
+      )
+    }
+
+    snapshotDate = calculateNextSnapshotDate(lastSnapshot.date)
+    debug("Existing snapshot found. Next snapshot date=%s", snapshotDate)
+  }
+
+  await approveCurrentBalancesAsSnapshot(snapshotDate)
+
+  updateTag("snapshots")
+  updateTag("accounts")
 }
 
 // =============================================================================
