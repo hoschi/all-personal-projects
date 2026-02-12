@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test"
 import { Option } from "effect"
 import { handleApproveSnapshot } from "./actions"
-import { SnapshotNotApprovableError } from "./approve-errors"
+import {
+  NoAccountsAvailableError,
+  SnapshotNotApprovableError,
+} from "./approve-errors"
 
 const mockApproveCurrentBalancesAsSnapshot = mock()
 const mockChangeSettings = mock()
 const mockGetLatestAssetSnapshot = mock()
 const mockUpdateForcastScenario = mock()
+const mockNow = mock()
 
 const mockUpdateTag = mock()
 
@@ -21,6 +25,10 @@ mock.module("next/cache", () => ({
   updateTag: mockUpdateTag,
 }))
 
+mock.module("./utils", () => ({
+  now: mockNow,
+}))
+
 describe("handleApproveSnapshot", () => {
   beforeEach(() => {
     mockApproveCurrentBalancesAsSnapshot.mockClear()
@@ -28,9 +36,11 @@ describe("handleApproveSnapshot", () => {
     mockGetLatestAssetSnapshot.mockClear()
     mockUpdateForcastScenario.mockClear()
     mockUpdateTag.mockClear()
+    mockNow.mockClear()
   })
 
   test("approves initial snapshot when no previous snapshot exists", async () => {
+    mockNow.mockReturnValue(new Date(2025, 4, 19))
     mockGetLatestAssetSnapshot.mockImplementation(async () => Option.none())
     mockApproveCurrentBalancesAsSnapshot.mockImplementation(async () => ({
       id: "snapshot-1",
@@ -41,7 +51,7 @@ describe("handleApproveSnapshot", () => {
     await expect(handleApproveSnapshot()).resolves.toBeUndefined()
     expect(mockApproveCurrentBalancesAsSnapshot).toHaveBeenCalledTimes(1)
     const firstCallArg = mockApproveCurrentBalancesAsSnapshot.mock.calls[0]?.[0]
-    expect(firstCallArg).toBeInstanceOf(Date)
+    expect(firstCallArg).toEqual(new Date(2025, 3, 1))
     expect(mockUpdateTag).toHaveBeenCalledWith("snapshots")
     expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
   })
@@ -86,13 +96,14 @@ describe("handleApproveSnapshot", () => {
   })
 
   test("throws database no-account error when no accounts are available", async () => {
+    mockNow.mockReturnValue(new Date(2025, 4, 19))
     mockGetLatestAssetSnapshot.mockImplementation(async () => Option.none())
     mockApproveCurrentBalancesAsSnapshot.mockImplementation(async () => {
-      throw new Error("No accounts available to approve snapshot")
+      throw new NoAccountsAvailableError()
     })
 
-    await expect(handleApproveSnapshot()).rejects.toThrow(
-      "No accounts available to approve snapshot",
+    await expect(handleApproveSnapshot()).rejects.toBeInstanceOf(
+      NoAccountsAvailableError,
     )
   })
 })

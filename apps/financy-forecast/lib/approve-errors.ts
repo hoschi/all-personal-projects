@@ -4,3 +4,10 @@ export class SnapshotNotApprovableError extends Error {
     this.name = "SnapshotNotApprovableError"
   }
 }
+
+export class NoAccountsAvailableError extends Error {
+  constructor() {
+    super("No accounts available to approve snapshot")
+    this.name = "NoAccountsAvailableError"
+  }
+}

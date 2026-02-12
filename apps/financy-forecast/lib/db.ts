@@ -17,6 +17,7 @@ import {
 } from "./schemas"
 import * as dotenv from "dotenv"
 import { sumAll } from "effect/Number"
+import { NoAccountsAvailableError } from "./approve-errors"
 
 let sql: ReturnType<typeof postgres>
 async function getDb() {
@@ -286,7 +287,7 @@ export async function approveCurrentBalancesAsSnapshot(
       `
 
       if (accounts.length === 0) {
-        throw new Error("No accounts available to approve snapshot")
+        throw new NoAccountsAvailableError()
       }
 
       const totalLiquidity = sumAll(
@@ -306,10 +307,9 @@ export async function approveCurrentBalancesAsSnapshot(
       }
 
       for (const account of accounts) {
-        await tx<AccountBalanceDetail[]>`
+        await tx`
           INSERT INTO account_balance_details (id, snapshot_id, account_id, amount)
           VALUES (gen_random_uuid(), ${createdSnapshot.id}::uuid, ${account.id}::uuid, ${account.currentBalance})
-          RETURNING id, snapshot_id as "snapshotId", account_id as "accountId", amount
         `
       }
 
@@ -319,10 +319,7 @@ export async function approveCurrentBalancesAsSnapshot(
     return snapshot
   } catch (error) {
     console.error("Error approving current balances as snapshot:", error)
-    if (
-      error instanceof Error &&
-      error.message === "No accounts available to approve snapshot"
-    ) {
+    if (error instanceof NoAccountsAvailableError) {
       throw error
     }
     throw new Error("Failed to approve current balances as snapshot")

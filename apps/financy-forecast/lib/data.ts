@@ -48,7 +48,7 @@ export async function getMatrixData(
 
   const details = Option.isNone(snapshotsResult)
     ? []
-    : Option.getOrThrow(snapshotsResult).reverse()
+    : Option.getOrThrow(snapshotsResult).toReversed()
   const isInitialState = details.length === 0
   const lastDate = last(details)?.snapshot.date ?? null
   const isApprovable = lastDate === null ? true : calculateApprovable(lastDate)

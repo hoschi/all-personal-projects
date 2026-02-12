@@ -15,7 +15,10 @@ import { Button } from "./ui/button"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
 import { handleApproveSnapshot } from "@/lib/actions"
-import { SnapshotNotApprovableError } from "@/lib/approve-errors"
+import {
+  NoAccountsAvailableError,
+  SnapshotNotApprovableError,
+} from "@/lib/approve-errors"
 
 function formatDelta(delta: number | null): string {
   if (delta === null) {
@@ -61,21 +64,15 @@ async function TableView({ data }: { data: MatrixData }) {
           error.earliestApprovalDate,
           "yyyy-MM-dd",
         )
-        console.error(
-          "Snapshot ist noch nicht freigebbar. Frühestes Freigabedatum: %s.",
-          earliestApprovalDate,
+        throw new Error(
+          `Snapshot ist noch nicht freigebbar. Frühestes Freigabedatum: ${earliestApprovalDate}.`,
         )
-        return
       }
 
-      if (
-        error instanceof Error &&
-        error.message.includes("No accounts available")
-      ) {
-        console.error(
+      if (error instanceof NoAccountsAvailableError) {
+        throw new Error(
           "Keine Kontodaten vorhanden. Bitte zuerst Konten und aktuelle Werte erfassen.",
         )
-        return
       }
 
       throw error
