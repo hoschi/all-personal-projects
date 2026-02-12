@@ -83,7 +83,7 @@ async function updateForecastData(data: SaveForecastSchema): Promise<void> {
   operations.push(
     changeSettings({ estimatedMonthlyVariableCosts: data.variableCosts }),
   )
-  operations.concat(data.scenarios.map((s) => updateForcastScenario(s)))
+  operations.push(...data.scenarios.map((s) => updateForcastScenario(s)))
 
   // Execute all operations atomically
   await Promise.all(operations)

@@ -36,7 +36,7 @@ describe("handleApproveSnapshot", () => {
     mockGetLatestAssetSnapshot.mockClear()
     mockUpdateForcastScenario.mockClear()
     mockUpdateTag.mockClear()
-    mockNow.mockClear()
+    mockNow.mockReset()
   })
 
   test("approves initial snapshot when no previous snapshot exists", async () => {
@@ -57,6 +57,7 @@ describe("handleApproveSnapshot", () => {
   })
 
   test("throws SnapshotNotApprovableError when snapshot is not approvable yet", async () => {
+    mockNow.mockReturnValue(new Date(2025, 4, 19))
     const lastSnapshotDate = new Date(2999, 0, 1)
 
     mockGetLatestAssetSnapshot.mockImplementation(async () =>
@@ -74,6 +75,7 @@ describe("handleApproveSnapshot", () => {
   })
 
   test("approves next snapshot when last snapshot is approvable", async () => {
+    mockNow.mockReturnValue(new Date(2025, 4, 19))
     const lastSnapshotDate = new Date(2020, 0, 1)
 
     mockGetLatestAssetSnapshot.mockImplementation(async () =>

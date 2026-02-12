@@ -322,7 +322,9 @@ export async function approveCurrentBalancesAsSnapshot(
     if (error instanceof NoAccountsAvailableError) {
       throw error
     }
-    throw new Error("Failed to approve current balances as snapshot")
+    throw new Error("Failed to approve current balances as snapshot", {
+      cause: error,
+    })
   }
 }
 
