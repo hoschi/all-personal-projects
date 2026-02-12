@@ -17,7 +17,7 @@ import {
   calculateInitialSnapshotDate,
   calculateNextSnapshotDate,
 } from "../domain/snapshots"
-import { SnapshotNotApprovableError } from "./approve-errors"
+import { SnapshotNotApprovableError } from "../domain/approveErrors"
 
 // =============================================================================
 // TypeScript Interfaces

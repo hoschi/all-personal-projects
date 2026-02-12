@@ -4,7 +4,7 @@ import { handleApproveSnapshot } from "./actions"
 import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
-} from "./approve-errors"
+} from "../domain/approveErrors"
 
 const mockApproveCurrentBalancesAsSnapshot = mock()
 const mockChangeSettings = mock()

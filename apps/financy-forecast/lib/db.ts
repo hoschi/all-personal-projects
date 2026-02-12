@@ -17,7 +17,7 @@ import {
 } from "./schemas"
 import * as dotenv from "dotenv"
 import { sumAll } from "effect/Number"
-import { NoAccountsAvailableError } from "./approve-errors"
+import { NoAccountsAvailableError } from "../domain/approveErrors"
 
 let sql: ReturnType<typeof postgres>
 async function getDb() {

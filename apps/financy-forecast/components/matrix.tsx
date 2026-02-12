@@ -18,7 +18,7 @@ import { handleApproveSnapshot } from "@/lib/actions"
 import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
-} from "@/lib/approve-errors"
+} from "@/domain/approveErrors"
 
 function formatDelta(delta: number | null): string {
   if (delta === null) {
