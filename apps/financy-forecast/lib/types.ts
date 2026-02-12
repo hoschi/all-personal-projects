@@ -56,3 +56,17 @@ export interface ForecastTimelineData {
   lastSnapshotDate: Date // Date of the last snapshot (for forecast start point)
   months?: TimelineMonth[] // Calculated timeline months (optional, calculated)
 }
+
+export interface CurrentEditRow {
+  id: string
+  name: string
+  currentBalance: number
+  updatedAt: Date
+  snapshotBalance: number | null
+  delta: number | null
+}
+
+export interface CurrentEditData {
+  lastSnapshotDate: Date | null
+  rows: CurrentEditRow[]
+}

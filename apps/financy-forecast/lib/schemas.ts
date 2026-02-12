@@ -46,6 +46,8 @@ export const accountSchema = z.object({
   category: accountCategorySchema,
   /** Current account balance in cents (Integer) for performance optimization */
   currentBalance: z.number().int(),
+  /** Last timestamp when current balance was changed */
+  updatedAt: z.date(),
 })
 
 export type Account = z.infer<typeof accountSchema>

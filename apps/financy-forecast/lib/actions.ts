@@ -8,6 +8,7 @@ import {
   approveCurrentBalancesAsSnapshot,
   changeSettings,
   getLatestAssetSnapshot,
+  updateAccountCurrentBalances,
   updateForcastScenario,
 } from "./db"
 import { saveForecastSchema, SaveForecastSchema } from "./schemas"
@@ -32,6 +33,29 @@ export interface ServerActionResult {
     updatedScenarios?: number
     variableCostsUpdated?: boolean
   }
+}
+
+const currentBalanceUpdateEntrySchema = z.object({
+  accountId: z.uuid(),
+  currentBalance: z.number().int(),
+})
+
+const saveCurrentBalancesSchema = z.object({
+  updates: z.array(currentBalanceUpdateEntrySchema).min(1),
+})
+
+function parseCurrentBalanceValue(rawValue: string): number {
+  const normalized = rawValue.trim().replace(",", ".")
+  if (normalized.length === 0) {
+    throw new Error("Balance value is required")
+  }
+  const amount = Number(normalized)
+
+  if (!Number.isFinite(amount)) {
+    throw new Error(`Invalid balance value: ${rawValue}`)
+  }
+
+  return Math.round(amount * 100)
 }
 
 export async function handleApproveSnapshot(): Promise<void> {
@@ -211,4 +235,33 @@ export async function handleUpdateScenarioIsActive(
       error: "Failed to update scenario status. Please try again later.",
     }
   }
+}
+
+/**
+ * Saves current balances from form data where fields are submitted as `balance:<accountId>` in EUR.
+ */
+export async function handleSaveCurrentBalances(
+  formData: FormData,
+): Promise<void> {
+  const debug = Debug("app:action:handleSaveCurrentBalances")
+  debug("Received save current balances request")
+
+  const updates = Array.from(formData.entries())
+    .filter(([key]) => key.startsWith("balance:"))
+    .map(([key, value]) => {
+      if (typeof value !== "string") {
+        throw new Error("Invalid form payload: expected text values")
+      }
+
+      return {
+        accountId: key.replace("balance:", ""),
+        currentBalance: parseCurrentBalanceValue(value),
+      }
+    })
+
+  const parsed = saveCurrentBalancesSchema.parse({ updates })
+  debug("Validated %d account balance updates", parsed.updates.length)
+
+  await updateAccountCurrentBalances(parsed.updates)
+  updateTag("accounts")
 }

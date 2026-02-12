@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test"
 import { Option } from "effect"
-import { handleApproveSnapshot } from "./actions"
+import { handleApproveSnapshot, handleSaveCurrentBalances } from "./actions"
 import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
@@ -10,6 +10,7 @@ const mockApproveCurrentBalancesAsSnapshot = mock()
 const mockChangeSettings = mock()
 const mockGetLatestAssetSnapshot = mock()
 const mockUpdateForcastScenario = mock()
+const mockUpdateAccountCurrentBalances = mock()
 const mockNow = mock()
 
 const mockUpdateTag = mock()
@@ -18,6 +19,7 @@ mock.module("./db", () => ({
   approveCurrentBalancesAsSnapshot: mockApproveCurrentBalancesAsSnapshot,
   changeSettings: mockChangeSettings,
   getLatestAssetSnapshot: mockGetLatestAssetSnapshot,
+  updateAccountCurrentBalances: mockUpdateAccountCurrentBalances,
   updateForcastScenario: mockUpdateForcastScenario,
 }))
 
@@ -35,6 +37,7 @@ describe("handleApproveSnapshot", () => {
     mockChangeSettings.mockClear()
     mockGetLatestAssetSnapshot.mockClear()
     mockUpdateForcastScenario.mockClear()
+    mockUpdateAccountCurrentBalances.mockClear()
     mockUpdateTag.mockClear()
     mockNow.mockReset()
   })
@@ -107,5 +110,41 @@ describe("handleApproveSnapshot", () => {
     await expect(handleApproveSnapshot()).rejects.toBeInstanceOf(
       NoAccountsAvailableError,
     )
+  })
+})
+
+describe("handleSaveCurrentBalances", () => {
+  beforeEach(() => {
+    mockUpdateAccountCurrentBalances.mockClear()
+    mockUpdateTag.mockClear()
+  })
+
+  test("updates balances and revalidates accounts tag", async () => {
+    mockUpdateAccountCurrentBalances.mockImplementation(async () => 1)
+    const formData = new FormData()
+    formData.append("balance:550e8400-e29b-41d4-a716-446655440000", "10.50")
+    formData.append("balance:550e8400-e29b-41d4-a716-446655440001", "0")
+
+    await expect(handleSaveCurrentBalances(formData)).resolves.toBeUndefined()
+
+    expect(mockUpdateAccountCurrentBalances).toHaveBeenCalledWith([
+      {
+        accountId: "550e8400-e29b-41d4-a716-446655440000",
+        currentBalance: 1050,
+      },
+      {
+        accountId: "550e8400-e29b-41d4-a716-446655440001",
+        currentBalance: 0,
+      },
+    ])
+    expect(mockUpdateTag).toHaveBeenCalledWith("accounts")
+  })
+
+  test("throws for invalid account id format", async () => {
+    const formData = new FormData()
+    formData.append("balance:not-a-uuid", "10")
+
+    await expect(handleSaveCurrentBalances(formData)).rejects.toBeDefined()
+    expect(mockUpdateAccountCurrentBalances).not.toHaveBeenCalled()
   })
 })

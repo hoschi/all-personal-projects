@@ -15,6 +15,7 @@ import { Button } from "./ui/button"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
 import { handleApproveSnapshot } from "@/lib/actions"
+import Link from "next/link"
 import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
@@ -84,9 +85,27 @@ async function TableView({ data }: { data: MatrixData }) {
       <Table className="table-layout-fixed text-md">
         <TableHeader>
           <TableRow>
-            {header.map((dateStr) => (
-              <TableHead key={dateStr} className="w-[150px]">
-                {dateStr}
+            {header.map((dateStr, index) => (
+              <TableHead key={`${dateStr}-${index}`} className="w-[150px]">
+                <div className="flex items-center gap-1">
+                  <span>{dateStr}</span>
+                  {dateStr === "Current" ? (
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                    >
+                      <Link
+                        href="/current/edit"
+                        aria-label="Edit current balances"
+                        title="Edit current balances"
+                      >
+                        ✏️
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
               </TableHead>
             ))}
             <TableHead className="w-auto">Konten</TableHead>

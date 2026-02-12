@@ -19,6 +19,7 @@ const createMockAccount = (overrides = {}) => ({
   name: "Test Account",
   category: AccountCategory.LIQUID,
   currentBalance: 500000, // 5000.00 EUR in Cents
+  updatedAt: new Date("2025-01-01T12:00:00.000Z"),
   ...overrides,
 })
 
@@ -78,6 +79,7 @@ const createMockSettings = (overrides = {}): Settings => ({
 // Mock das gesamte db Modul mit Bun's mock() Funktion
 const mockGetSnapshotDetails = mock()
 const mockGetAccounts = mock()
+const mockGetBalanceDetailsBySnapshotId = mock()
 
 // Neue Mocks für getForecastData()
 const mockGetLatestAssetSnapshot = mock()
@@ -89,6 +91,7 @@ const mockGetSettings = mock()
 mock.module("./db", () => ({
   getSnapshotDetails: mockGetSnapshotDetails,
   getAccounts: mockGetAccounts,
+  getBalanceDetailsBySnapshotId: mockGetBalanceDetailsBySnapshotId,
   getLatestAssetSnapshot: mockGetLatestAssetSnapshot,
   getRecurringItems: mockGetRecurringItems,
   getScenarioItems: mockGetScenarioItems,
@@ -104,6 +107,7 @@ describe("getMatrixData", () => {
     // Clear mock state before each test
     mockGetSnapshotDetails.mockClear()
     mockGetAccounts.mockClear()
+    mockGetBalanceDetailsBySnapshotId.mockClear()
   })
 
   // ========================================================================

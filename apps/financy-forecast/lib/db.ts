@@ -82,7 +82,7 @@ export async function getAccounts(): Promise<Account[]> {
     const result = await executeWithSchema(
       async (db) =>
         await db<Account[]>`
-      SELECT id, name, category, current_balance as "currentBalance"
+      SELECT id, name, category, current_balance as "currentBalance", updated_at as "updatedAt"
       FROM accounts
       ORDER BY name ASC
     `,
@@ -106,7 +106,7 @@ export async function getAccountById(
     const result = await executeWithSchema(
       async (db) =>
         await db<Account[]>`
-      SELECT id, name, category, current_balance as "currentBalance"
+      SELECT id, name, category, current_balance as "currentBalance", updated_at as "updatedAt"
       FROM accounts
       WHERE id = ${id}
     `,
@@ -139,13 +139,55 @@ export async function createAccount(
         await db<Account[]>`
       INSERT INTO accounts (id, name, category, current_balance)
       VALUES (gen_random_uuid(), ${name}, ${category}, ${currentBalance})
-      RETURNING id, name, category, current_balance as "currentBalance"
+      RETURNING id, name, category, current_balance as "currentBalance", updated_at as "updatedAt"
     `,
     )
     return result[0]
   } catch (error) {
     console.error("Error creating account:", error)
     throw new Error("Failed to create account")
+  }
+}
+
+/**
+ * Update current balances for multiple accounts.
+ * `updated_at` is changed only for rows where the balance actually changed.
+ */
+export async function updateAccountCurrentBalances(
+  updates: { accountId: string; currentBalance: number }[],
+): Promise<number> {
+  const debug = Debug("app:db:updateAccountCurrentBalances")
+  debug("Updating current balances for %d accounts", updates.length)
+
+  if (updates.length === 0) {
+    return 0
+  }
+
+  try {
+    const db = await getDb()
+    const updatedCount = await db.begin(async (tx) => {
+      await tx`SET search_path TO financy_forecast;`
+
+      let changedRows = 0
+      for (const update of updates) {
+        const result = await tx<{ id: string }[]>`
+          UPDATE accounts
+          SET current_balance = ${update.currentBalance},
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${update.accountId}
+            AND current_balance IS DISTINCT FROM ${update.currentBalance}
+          RETURNING id
+        `
+        changedRows += result.length
+      }
+
+      return changedRows
+    })
+
+    return updatedCount
+  } catch (error) {
+    console.error("Error updating account current balances:", error)
+    throw new Error("Failed to update account current balances")
   }
 }
 
@@ -281,7 +323,7 @@ export async function approveCurrentBalancesAsSnapshot(
       await tx`SET search_path TO financy_forecast;`
 
       const accounts = await tx<Account[]>`
-        SELECT id, name, category, current_balance as "currentBalance"
+        SELECT id, name, category, current_balance as "currentBalance", updated_at as "updatedAt"
         FROM accounts
         ORDER BY name ASC
       `

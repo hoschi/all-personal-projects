@@ -1,4 +1,5 @@
 import {
+  getBalanceDetailsBySnapshotId,
   getAccounts,
   getLatestAssetSnapshot,
   getRecurringItems,
@@ -11,6 +12,7 @@ import { format } from "date-fns"
 import {
   MatrixChangeCell,
   MatrixCell,
+  CurrentEditData,
   MatrixData,
   MatrixRow,
   ForecastTimelineData,
@@ -141,4 +143,44 @@ export async function getForecastData(): Promise<
     scenarios,
     lastSnapshotDate: snapshotData.date,
   })
+}
+
+export async function getCurrentEditData(): Promise<CurrentEditData> {
+  const [accounts, latestSnapshotResult] = await Promise.all([
+    getAccounts(),
+    getLatestAssetSnapshot(),
+  ])
+
+  let lastSnapshotDate: Date | null = null
+  const snapshotBalances: Record<string, number> = {}
+
+  if (Option.isSome(latestSnapshotResult)) {
+    const latestSnapshot = Option.getOrThrow(latestSnapshotResult)
+    lastSnapshotDate = latestSnapshot.date
+
+    const balanceDetails = await getBalanceDetailsBySnapshotId(
+      latestSnapshot.id,
+    )
+    for (const detail of balanceDetails) {
+      snapshotBalances[detail.accountId] = detail.amount
+    }
+  }
+
+  return {
+    lastSnapshotDate,
+    rows: accounts.map((account) => {
+      const snapshotBalance = snapshotBalances[account.id] ?? null
+      return {
+        id: account.id,
+        name: account.name,
+        currentBalance: account.currentBalance,
+        updatedAt: account.updatedAt,
+        snapshotBalance,
+        delta:
+          snapshotBalance === null
+            ? null
+            : account.currentBalance - snapshotBalance,
+      }
+    }),
+  }
 }
