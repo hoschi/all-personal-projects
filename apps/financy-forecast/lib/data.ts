@@ -8,20 +8,30 @@ import {
 } from "./db"
 import { Option } from "effect"
 import { format } from "date-fns"
-import { MatrixData, ForecastTimelineData } from "./types"
+import {
+  MatrixChangeCell,
+  MatrixCell,
+  MatrixData,
+  MatrixRow,
+  ForecastTimelineData,
+} from "./types"
 import { last } from "ramda"
 import { sumAll } from "effect/Number"
+import { calculateApprovable } from "../domain/snapshots"
 
-// TODO these types Cell/Row need to be moved to `types` and used in `MatrixData`.
-interface Cell {
-  id: string
-  amount: number
+function createMonthlyChangeCells(sumCells: MatrixCell[]): MatrixChangeCell[] {
+  return sumCells.map((cell, index, cells) => ({
+    id: `change-${cell.id}`,
+    delta: index === 0 ? null : cell.amount - cells[index - 1]!.amount,
+  }))
 }
 
-interface Row {
-  id: string
-  name: string
-  cells: Cell[]
+function createTotalChange(sumCells: MatrixCell[]): number | null {
+  if (sumCells.length < 2) {
+    return null
+  }
+
+  return sumCells[sumCells.length - 1]!.amount - sumCells[0]!.amount
 }
 
 export async function getMatrixData(
@@ -32,13 +42,32 @@ export async function getMatrixData(
     getAccounts(),
   ])
 
-  if (Option.isNone(snapshotsResult)) {
+  if (accounts.length === 0) {
     return Option.none()
   }
 
-  const details = Option.getOrThrow(snapshotsResult).reverse()
+  const details = Option.isNone(snapshotsResult)
+    ? []
+    : Option.getOrThrow(snapshotsResult).toReversed()
+  const isInitialState = details.length === 0
+  const lastDate = last(details)?.snapshot.date ?? null
+  const isApprovable = lastDate === null ? true : calculateApprovable(lastDate)
 
-  const rows: Row[] = accounts
+  const sumCells: MatrixCell[] = details
+    .map((detail) => ({
+      id: `sum-${detail.snapshot.id}`,
+      amount: detail.snapshot.totalLiquidity,
+    }))
+    .concat([
+      {
+        id: "sum-current",
+        amount: sumAll(accounts.map((a) => a.currentBalance)),
+      },
+    ])
+  const changes = createMonthlyChangeCells(sumCells)
+  const totalChange = createTotalChange(sumCells)
+
+  const rows: MatrixRow[] = accounts
     .map((account) => {
       const cells = details
         .map((snapshot) => {
@@ -65,29 +94,22 @@ export async function getMatrixData(
       {
         id: "sum",
         name: "",
-        cells: details
-          .map((detail) => ({
-            id: `sum-${detail.snapshot.id}`,
-            amount: detail.snapshot.totalLiquidity,
-          }))
-          .concat([
-            {
-              id: "sum-curent",
-              amount: sumAll(accounts.map((a) => a.currentBalance)),
-            },
-          ]),
+        cells: sumCells,
       },
     ])
 
   const header = details
     .map((detail) => format(detail.snapshot.date, "yyyy-MM"))
     .concat(["Current"])
-  const lastDate = last(details)?.snapshot.date || new Date()
 
   return Option.some({
     rows,
+    changes,
+    totalChange,
     header,
     lastDate,
+    isApprovable,
+    isInitialState,
   })
 }
 

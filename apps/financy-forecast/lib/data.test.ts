@@ -122,6 +122,36 @@ describe("getMatrixData", () => {
     expect(mockGetAccounts).toHaveBeenCalled()
   })
 
+  test("should return current-only matrix when snapshots are missing but accounts exist", async () => {
+    mockGetSnapshotDetails.mockImplementation(async () => Option.none())
+    mockGetAccounts.mockImplementation(async () => [createMockAccount()])
+
+    const result = await getMatrixData(4)
+
+    expect(Option.isSome(result)).toBe(true)
+    const matrixData = Option.getOrThrow(result)
+
+    expect(matrixData.header).toEqual(["Current"])
+    expect(matrixData.lastDate).toBeNull()
+    expect(matrixData.isInitialState).toBe(true)
+    expect(matrixData.isApprovable).toBe(true)
+
+    expect(matrixData.rows).toHaveLength(2)
+
+    const accountRow = matrixData.rows[0]
+    expect(accountRow?.cells).toHaveLength(1)
+    expect(accountRow?.cells[0]?.amount).toBe(500000)
+
+    const sumRow = matrixData.rows[1]
+    expect(sumRow?.id).toBe("sum")
+    expect(sumRow?.cells).toHaveLength(1)
+    expect(sumRow?.cells[0]?.amount).toBe(500000)
+
+    expect(matrixData.changes).toHaveLength(1)
+    expect(matrixData.changes[0]?.delta).toBeNull()
+    expect(matrixData.totalChange).toBeNull()
+  })
+
   test("should return Option.none when database throws error", async () => {
     // Setup mock to throw error
     mockGetSnapshotDetails.mockImplementation(async () => {
@@ -162,8 +192,11 @@ describe("getMatrixData", () => {
 
     // Verify structure
     expect(matrixData.rows).toHaveLength(2) // One account + one sum row
+    expect(matrixData.changes).toHaveLength(4) // 3 snapshots + current
     expect(matrixData.header).toHaveLength(4) // 3 snapshots + "Current"
     expect(matrixData.lastDate).toBeInstanceOf(Date)
+    expect(matrixData.isInitialState).toBe(false)
+    expect(matrixData.isApprovable).toBe(true)
 
     // Verify exact header array (data is reversed, so newest comes first)
     expect(matrixData.header).toEqual([
@@ -197,6 +230,11 @@ describe("getMatrixData", () => {
     expect(sumRow.cells[1].amount).toBe(1000000) // middle snapshot (2023-02-01) totalLiquidity
     expect(sumRow.cells[2].amount).toBe(1000000) // oldest snapshot (2023-01-01) totalLiquidity
     expect(sumRow.cells[3].amount).toBe(500000) // current balance sum (one account with 500000)
+    expect(matrixData.changes[0]?.delta).toBeNull()
+    expect(matrixData.changes[1]?.delta).toBe(0)
+    expect(matrixData.changes[2]?.delta).toBe(0)
+    expect(matrixData.changes[3]?.delta).toBe(-500000)
+    expect(matrixData.totalChange).toBe(-500000)
 
     expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4)
     expect(mockGetAccounts).toHaveBeenCalled()
@@ -232,6 +270,9 @@ describe("getMatrixData", () => {
 
     // Should have 3 rows for 2 accounts + 1 sum row
     expect(matrixData.rows).toHaveLength(3)
+    expect(matrixData.changes).toHaveLength(3)
+    expect(matrixData.isInitialState).toBe(false)
+    expect(matrixData.isApprovable).toBe(true)
 
     // First account (Girokonto) - data is reversed
     const girokonto = matrixData.rows[0]
@@ -257,6 +298,10 @@ describe("getMatrixData", () => {
     expect(sumRow.cells[0].amount).toBe(1000000) // newest snapshot totalLiquidity
     expect(sumRow.cells[1].amount).toBe(1000000) // oldest snapshot totalLiquidity
     expect(sumRow.cells[2].amount).toBe(750000) // current balance sum (500000 + 250000)
+    expect(matrixData.changes[0]?.delta).toBeNull()
+    expect(matrixData.changes[1]?.delta).toBe(0)
+    expect(matrixData.changes[2]?.delta).toBe(-250000)
+    expect(matrixData.totalChange).toBe(-250000)
 
     expect(mockGetSnapshotDetails).toHaveBeenCalledWith(4)
     expect(mockGetAccounts).toHaveBeenCalled()

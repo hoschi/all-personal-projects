@@ -1,17 +1,30 @@
 import { RecurringItem, ScenarioItem } from "./schemas"
 
 // Matrix Types (for existing MatrixData component)
+export interface MatrixCell {
+  id: string
+  amount: number
+}
+
+export interface MatrixRow {
+  id: string
+  name: string
+  cells: MatrixCell[]
+}
+
+export interface MatrixChangeCell {
+  id: string
+  delta: number | null
+}
+
 export interface MatrixData {
-  rows: Array<{
-    id: string
-    name: string
-    cells: Array<{
-      id: string
-      amount: number
-    }>
-  }>
+  rows: MatrixRow[]
+  changes: MatrixChangeCell[]
+  totalChange: number | null
   header: string[]
-  lastDate: Date
+  lastDate: Date | null
+  isApprovable: boolean
+  isInitialState: boolean
 }
 
 // Forecast Timeline Types

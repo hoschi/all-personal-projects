@@ -9,11 +9,33 @@ import {
 import { getMatrixData } from "@/lib/data"
 import { Option, Array as EffectArray } from "effect"
 import { isNone } from "effect/Option"
+import { format } from "date-fns"
 import { eurFormatter } from "./format"
 import { Button } from "./ui/button"
-import { calculateApprovable } from "../domain/snapshots"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
+import { handleApproveSnapshot } from "@/lib/actions"
+import {
+  NoAccountsAvailableError,
+  SnapshotNotApprovableError,
+} from "@/domain/approveErrors"
+
+function formatDelta(delta: number | null): string {
+  if (delta === null) {
+    return "—"
+  }
+
+  const formatted = eurFormatter.format(delta / 100)
+  return delta > 0 ? `+${formatted}` : formatted
+}
+
+function getDeltaColorClass(delta: number | null): string {
+  if (delta === null || delta === 0) {
+    return "text-muted-foreground"
+  }
+
+  return delta > 0 ? "text-emerald-700" : "text-red-600"
+}
 
 export async function Matrix() {
   "use cache"
@@ -29,9 +51,34 @@ export async function Matrix() {
 }
 
 async function TableView({ data }: { data: MatrixData }) {
-  const { rows, header, lastDate } = data
+  const { rows, header, changes, totalChange, isApprovable } = data
 
-  const isApprovable = calculateApprovable(lastDate)
+  async function approveAction() {
+    "use server"
+
+    try {
+      await handleApproveSnapshot()
+    } catch (error) {
+      if (error instanceof SnapshotNotApprovableError) {
+        const earliestApprovalDate = format(
+          error.earliestApprovalDate,
+          "yyyy-MM-dd",
+        )
+        throw new Error(
+          `Snapshot ist noch nicht freigebbar. Frühestes Freigabedatum: ${earliestApprovalDate}.`,
+        )
+      }
+
+      if (error instanceof NoAccountsAvailableError) {
+        throw new Error(
+          "Keine Kontodaten vorhanden. Bitte zuerst Konten und aktuelle Werte erfassen.",
+        )
+      }
+
+      throw error
+    }
+  }
+
   return (
     <div>
       <Table className="table-layout-fixed text-md">
@@ -56,17 +103,40 @@ async function TableView({ data }: { data: MatrixData }) {
               <TableCell className="font-medium">{row.name}</TableCell>
             </TableRow>
           ))}
-          {isApprovable && (
-            <TableRow>
-              {EffectArray.makeBy(header.length - 1, (i) => (
-                <TableCell key={`empty-${i}`}></TableCell>
-              ))}
-              <TableCell>
-                <Button variant={"outline"}>approve</Button>
+          <TableRow>
+            {changes.map((changeCell) => (
+              <TableCell
+                key={changeCell.id}
+                className={getDeltaColorClass(changeCell.delta)}
+              >
+                {formatDelta(changeCell.delta)}
               </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          )}
+            ))}
+            <TableCell className={getDeltaColorClass(totalChange)}>
+              {formatDelta(totalChange)}
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            {EffectArray.makeBy(header.length - 1, (i) => (
+              <TableCell key={`empty-${i}`}></TableCell>
+            ))}
+            <TableCell>
+              {isApprovable ? (
+                <form action={approveAction}>
+                  <Button
+                    type="submit"
+                    variant={"outline"}
+                    aria-label="approve"
+                  >
+                    ✅
+                  </Button>
+                </form>
+              ) : (
+                <span className="text-muted-foreground font-medium">Est.</span>
+              )}
+            </TableCell>
+            <TableCell></TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </div>

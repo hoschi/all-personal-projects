@@ -246,6 +246,19 @@ beforeEach(() => {
 - **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
 - **Gefahr**: Tests würden vom aktuellen Datum abhängen und in Zukunft fehlschlagen
 - **Lösung**: IMMER `now()` aus utils verwenden, NIE `new Date()` Funktion verwenden. `now()` korrekt mit `mock.module()` mocken für stabile Tests
+- **Wichtig bei Bun-Mocks**: Für Zeit-Mocks `mockReset()` statt nur `mockClear()` nutzen, wenn Return-Values pro Test sicher zurückgesetzt werden müssen.
+- **Konvention**: In jedem Testpfad, der Datumslogik nutzt (`calculateApprovable`, `isAfter`, `isEqual`), `mockNow.mockReturnValue(...)` explizit setzen.
+
+### Fehlerbehandlung in Server/DB Code
+
+- **Pattern**: Für Business-Fehler (z.B. "nicht approvable", "keine Accounts") dedizierte Error-Klassen verwenden statt `error.message`-String-Matching.
+- **Rethrow-Regel**: Beim Wrappen technischer Fehler immer `cause` setzen (`new Error("...", { cause: error })`), damit Stack/Typ erhalten bleiben.
+- **speziell: Next.js**: Error-Klassen, die sowohl in Server- als auch UI-Code benötigt werden, in ein neutrales Domain-Modul legen (nicht in `use server`-Dateien).
+
+### Immutability in Datenaufbereitung
+
+- **Problem**: `reverse()` mutiert Arrays in-place und kann Side-Effects erzeugen.
+- **Lösung**: Für read-only Transformationen `toReversed()` verwenden.
 
 ### describe Blöcke
 
