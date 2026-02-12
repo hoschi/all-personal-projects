@@ -33,5 +33,5 @@ export function tryParseCurrentBalanceValue(rawValue: string): number | null {
 }
 
 export function toInputValue(amountInCents: number): string {
-  return (amountInCents / 100).toFixed(2)
+  return String(amountInCents / 100)
 }

@@ -129,8 +129,8 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
               <TableCell>
                 <Input
                   name={`balance:${row.id}`}
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={row.inputValue}
                   onChange={(event) => {
                     const nextValue = event.target.value
