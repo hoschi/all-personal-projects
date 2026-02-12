@@ -6,6 +6,7 @@ import {
 } from "@/data/actions"
 import { Item } from "@/data/schema"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
+import { match } from "ts-pattern"
 import { z } from "zod"
 
 export const Search = z.object({
@@ -19,10 +20,10 @@ export const Route = createFileRoute("/(authed)/table-view")({
   validateSearch: Search.parse,
   loaderDeps: ({ search: { onlyMine } }) => ({ onlyMine }),
   loader: async ({ deps: { onlyMine }, context }) => {
-    const filters: ListItemFilters = {}
-    if (onlyMine) {
-      filters.statusFilter = "mine"
-    }
+    const filters: ListItemFilters = match(onlyMine)
+      .with(true, () => ({ statusFilter: "mine" as const }))
+      .otherwise(() => ({}))
+
     const items = await getListItems({
       data: { filters },
     })

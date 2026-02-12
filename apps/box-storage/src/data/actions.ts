@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
+import { P, match } from "ts-pattern"
 import { z } from "zod"
+import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "./prisma"
 import { authStateFn, getClerkUsername } from "@/lib/auth"
 
@@ -10,11 +12,13 @@ function validateLocationConstraints(
   roomId: number | null,
 ): void {
   const locations = [boxId, furnitureId, roomId].filter((id) => id !== null)
-  if (locations.length !== 1) {
-    throw new Error(
-      "Ein Item muss genau eine Location haben: boxId, furnitureId oder roomId",
-    )
-  }
+  match(locations.length)
+    .with(1, () => undefined)
+    .otherwise(() => {
+      throw new Error(
+        "Ein Item muss genau eine Location haben: boxId, furnitureId oder roomId",
+      )
+    })
 }
 
 const filtersSchema = z
@@ -55,68 +59,84 @@ export const getListItems = createServerFn()
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
 
-    const andConditions = []
+    const andConditions: Prisma.ItemWhereInput[] = []
 
     // Add search filter
-    if (searchText) {
-      andConditions.push({
-        OR: [
-          { name: { contains: searchText, mode: "insensitive" as const } },
-          {
-            description: { contains: searchText, mode: "insensitive" as const },
-          },
-        ],
+    match(searchText)
+      .with(P.string.minLength(1), (searchTerm) => {
+        andConditions.push({
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" as const } },
+            {
+              description: {
+                contains: searchTerm,
+                mode: "insensitive" as const,
+              },
+            },
+          ],
+        })
+        return undefined
       })
-    }
+      .otherwise(() => undefined)
 
     // Add location filter
-    if (locationFilter) {
-      andConditions.push({
-        OR: [
-          {
-            box: {
-              name: { contains: locationFilter, mode: "insensitive" as const },
+    match(locationFilter)
+      .with(P.string.minLength(1), (locationTerm) => {
+        andConditions.push({
+          OR: [
+            {
+              box: {
+                name: { contains: locationTerm, mode: "insensitive" as const },
+              },
             },
-          },
-          {
-            furniture: {
-              name: { contains: locationFilter, mode: "insensitive" as const },
+            {
+              furniture: {
+                name: { contains: locationTerm, mode: "insensitive" as const },
+              },
             },
-          },
-          {
-            room: {
-              name: { contains: locationFilter, mode: "insensitive" as const },
+            {
+              room: {
+                name: { contains: locationTerm, mode: "insensitive" as const },
+              },
             },
-          },
-          {
-            room: {
-              floor: {
-                name: {
-                  contains: locationFilter,
-                  mode: "insensitive" as const,
+            {
+              room: {
+                floor: {
+                  name: {
+                    contains: locationTerm,
+                    mode: "insensitive" as const,
+                  },
                 },
               },
             },
-          },
-        ],
+          ],
+        })
+        return undefined
       })
-    }
+      .otherwise(() => undefined)
 
     // Add status filter
-    if (statusFilter) {
-      if (statusFilter === "free") {
+    match(statusFilter)
+      .with("free", () => {
         andConditions.push({ inMotionUserId: null })
-      } else if (statusFilter === "in-motion") {
+        return undefined
+      })
+      .with("in-motion", () => {
         andConditions.push({ inMotionUserId: { not: null } })
-      } else if (statusFilter === "mine") {
+        return undefined
+      })
+      .with("mine", () => {
         andConditions.push({ inMotionUserId: userId })
-      } else if (statusFilter === "others") {
+        return undefined
+      })
+      .with("others", () => {
         andConditions.push(
           { inMotionUserId: { not: null } },
           { inMotionUserId: { not: userId } },
         )
-      }
-    }
+        return undefined
+      })
+      .otherwise(() => undefined)
 
     const result = await prisma.item.findMany({
       where: {
@@ -228,28 +248,26 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
       select: { inMotionUserId: true },
     })
 
-    if (!item) throw new Error(`Item not found: ${itemId}`)
+    await match(item)
+      .with(P.nullish, () => {
+        throw new Error(`Item not found: ${itemId}`)
+      })
+      .with(P.nonNullable, async (existingItem) => {
+        const updateData = await match(existingItem.inMotionUserId)
+          .with(P.nullish, async () => {
+            const inMotionUsername = await getClerkUsername(userId)
+            return { inMotionUserId: userId, inMotionUsername }
+          })
+          .otherwise(() => ({
+            inMotionUserId: null,
+            inMotionUsername: null,
+          }))
 
-    if (!item.inMotionUserId) {
-      // Set to in motion
-      const inMotionUsername = await getClerkUsername(userId)
-      await prisma.item.update({
-        where: { id: itemId },
-        data: { inMotionUserId: userId, inMotionUsername },
+        await prisma.item.update({
+          where: { id: itemId },
+          data: updateData,
+        })
       })
-    } else if (item.inMotionUserId === userId) {
-      // Remove from motion (same user)
-      await prisma.item.update({
-        where: { id: itemId },
-        data: { inMotionUserId: null, inMotionUsername: null },
-      })
-    } else {
-      // Different user - remove from motion
-      await prisma.item.update({
-        where: { id: itemId },
-        data: { inMotionUserId: null, inMotionUsername: null },
-      })
-    }
   })
 
 export const createItemFn = createServerFn({ method: "POST" })
@@ -288,24 +306,25 @@ export const updateItemFn = createServerFn({ method: "POST" })
       select: { ownerId: true },
     })
 
-    if (!item) {
-      throw new Error(`Item not found: ${itemId}`)
-    }
-
-    if (item.ownerId !== userId) {
-      throw new Error("Not authorized to update this item")
-    }
-
-    validateLocationConstraints(boxId, furnitureId, roomId)
-    return await prisma.item.update({
-      where: { id: itemId },
-      data: {
-        name,
-        description,
-        isPrivate,
-        boxId,
-        furnitureId,
-        roomId,
-      },
-    })
+    return await match(item)
+      .with(P.nullish, () => {
+        throw new Error(`Item not found: ${itemId}`)
+      })
+      .with({ ownerId: userId }, async () => {
+        validateLocationConstraints(boxId, furnitureId, roomId)
+        return await prisma.item.update({
+          where: { id: itemId },
+          data: {
+            name,
+            description,
+            isPrivate,
+            boxId,
+            furnitureId,
+            roomId,
+          },
+        })
+      })
+      .otherwise(() => {
+        throw new Error("Not authorized to update this item")
+      })
   })

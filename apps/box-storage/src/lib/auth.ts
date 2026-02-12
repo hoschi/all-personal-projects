@@ -1,17 +1,20 @@
 import { auth, clerkClient } from "@clerk/tanstack-react-start/server"
 import { createServerFn } from "@tanstack/react-start"
 import { redirect } from "@tanstack/react-router"
+import { P, match } from "ts-pattern"
 
 export const authStateFn = createServerFn().handler(async () => {
   const { isAuthenticated, userId } = await auth()
 
-  if (!isAuthenticated || !userId) {
-    throw redirect({
-      to: "/",
+  return match({ isAuthenticated, userId })
+    .with({ isAuthenticated: true, userId: P.string }, ({ userId }) => ({
+      userId,
+    }))
+    .otherwise(() => {
+      throw redirect({
+        to: "/",
+      })
     })
-  }
-
-  return { userId }
 })
 
 const clerkUsernameCache: Record<string, string> = {}
@@ -19,37 +22,48 @@ const clerkUsernameCacheOrder: string[] = []
 const CLERK_USERNAME_CACHE_LIMIT = 20
 
 const cacheClerkUsername = (userId: string, username: string) => {
-  if (clerkUsernameCache[userId]) {
-    const existingIndex = clerkUsernameCacheOrder.indexOf(userId)
-    if (existingIndex >= 0) {
-      clerkUsernameCacheOrder.splice(existingIndex, 1)
-    }
-  }
+  match(clerkUsernameCache[userId])
+    .with(P.string, () => {
+      const existingIndex = clerkUsernameCacheOrder.indexOf(userId)
+      return match(existingIndex)
+        .with(P.number.gte(0), (index) => {
+          clerkUsernameCacheOrder.splice(index, 1)
+          return undefined
+        })
+        .otherwise(() => undefined)
+    })
+    .otherwise(() => undefined)
 
   clerkUsernameCache[userId] = username
   clerkUsernameCacheOrder.push(userId)
 
-  if (clerkUsernameCacheOrder.length > CLERK_USERNAME_CACHE_LIMIT) {
-    const oldestUserId = clerkUsernameCacheOrder.shift()
-    if (oldestUserId) {
-      delete clerkUsernameCache[oldestUserId]
-    }
-  }
+  const oldestUserId = match(
+    clerkUsernameCacheOrder.length > CLERK_USERNAME_CACHE_LIMIT,
+  )
+    .with(true, () => clerkUsernameCacheOrder.shift())
+    .otherwise(() => undefined)
+
+  match(oldestUserId)
+    .with(P.string, (id) => {
+      delete clerkUsernameCache[id]
+      return undefined
+    })
+    .otherwise(() => undefined)
 }
 
 export const getClerkUsername = async (userId: string): Promise<string> => {
-  const cachedUsername = clerkUsernameCache[userId]
-  if (cachedUsername) {
-    return cachedUsername
-  }
+  return match(clerkUsernameCache[userId])
+    .with(P.string, (username) => username)
+    .otherwise(async () => {
+      const user = await clerkClient().users.getUser(userId)
 
-  const user = await clerkClient().users.getUser(userId)
-
-  if (!user.username) {
-    throw new Error(`Missing Clerk username for userId: ${userId}`)
-  }
-
-  cacheClerkUsername(userId, user.username)
-
-  return user.username
+      return match(user.username)
+        .with(P.string, (username) => {
+          cacheClerkUsername(userId, username)
+          return username
+        })
+        .otherwise(() => {
+          throw new Error(`Missing Clerk username for userId: ${userId}`)
+        })
+    })
 }
