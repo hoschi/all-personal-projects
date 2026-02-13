@@ -2,6 +2,7 @@ import { auth, clerkClient } from "@clerk/tanstack-react-start/server"
 import { createServerFn } from "@tanstack/react-start"
 import { redirect } from "@tanstack/react-router"
 import { P, match } from "ts-pattern"
+import { without } from "ramda"
 
 export const authStateFn = createServerFn().handler(async () => {
   const { isAuthenticated, userId } = await auth()
@@ -18,37 +19,26 @@ export const authStateFn = createServerFn().handler(async () => {
 })
 
 const clerkUsernameCache: Record<string, string> = {}
-const clerkUsernameCacheOrder: string[] = []
+let clerkUsernameCacheOrder: string[] = []
 const CLERK_USERNAME_CACHE_LIMIT = 20
 
 const cacheClerkUsername = (userId: string, username: string) => {
-  match(clerkUsernameCache[userId])
-    .with(P.string, () => {
-      const existingIndex = clerkUsernameCacheOrder.indexOf(userId)
-      return match(existingIndex)
-        .with(P.number.gte(0), (index) => {
-          clerkUsernameCacheOrder.splice(index, 1)
-          return undefined
-        })
-        .otherwise(() => undefined)
-    })
-    .otherwise(() => undefined)
+  // remove user from cache order
+  clerkUsernameCacheOrder = without([userId], clerkUsernameCacheOrder)
 
+  // add/overwrite user
   clerkUsernameCache[userId] = username
   clerkUsernameCacheOrder.push(userId)
 
-  const oldestUserId = match(
-    clerkUsernameCacheOrder.length > CLERK_USERNAME_CACHE_LIMIT,
-  )
-    .with(true, () => clerkUsernameCacheOrder.shift())
-    .otherwise(() => undefined)
+  if (clerkUsernameCacheOrder.length <= CLERK_USERNAME_CACHE_LIMIT) {
+    return
+  }
 
-  match(oldestUserId)
-    .with(P.string, (id) => {
-      delete clerkUsernameCache[id]
-      return undefined
-    })
-    .otherwise(() => undefined)
+  // remove oldest (first) user if limit reached
+  const oldestUserId = clerkUsernameCacheOrder.shift()
+  delete clerkUsernameCache[oldestUserId]
+
+  console.log(userId, clerkUsernameCacheOrder.length, clerkUsernameCacheOrder)
 }
 
 export const getClerkUsername = async (userId: string): Promise<string> => {

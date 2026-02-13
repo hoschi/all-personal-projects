@@ -98,12 +98,24 @@ test("getClerkUsername evicts oldest cache entry after limit", async () => {
   const { getClerkUsername } = await loadAuthModule()
 
   await getClerkUsername("user-0")
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 19; i++) {
     await getClerkUsername(`user-${i}`)
   }
+  expect(mockGetUser).toHaveBeenCalledTimes(20)
 
+  await getClerkUsername("user-0")
+  await getClerkUsername("user-0")
+  expect(mockGetUser).toHaveBeenCalledTimes(20)
+
+  await getClerkUsername("user-100")
+  await getClerkUsername("user-100")
   expect(mockGetUser).toHaveBeenCalledTimes(21)
 
+  await getClerkUsername("user-1")
+  await getClerkUsername("user-1")
+  expect(mockGetUser).toHaveBeenCalledTimes(21)
+
+  await getClerkUsername("user-0")
   await getClerkUsername("user-0")
   expect(mockGetUser).toHaveBeenCalledTimes(22)
 })
