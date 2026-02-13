@@ -34,7 +34,6 @@ export interface ServerActionResult {
     fieldErrors?: Record<string, string[]>
     updatedScenarios?: number
     variableCostsUpdated?: boolean
-    updatedAccounts?: number
   }
 }
 

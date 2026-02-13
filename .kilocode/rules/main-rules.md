@@ -49,8 +49,8 @@ bunx shadcn@latest add button
 
 ### Numerische Eingaben mit Komma
 
-- **Problem**: `replace(\",\", \".\")` ersetzt nur das erste Komma.
-- **Lösung**: Immer globale Ersetzung (`replace(/,/g, \".\")` oder `replaceAll(\",\", \".\")`) vor `Number(...)` verwenden.
+- **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
+- **Lösung**: Immer globale Ersetzung (`replace(/,/g, ".")` oder `replaceAll(",", ".")`) vor `Number(...)` verwenden.
 
 ## Next.js 16
 
@@ -83,6 +83,15 @@ bunx shadcn@latest add button
   - `useActionState` soll den Action-State im Formular anzeigen; Server-Action-Signatur erhält dabei `prevState` als ersten Parameter.
   - Uncaught exceptions sind Bugs und sollen an Error Boundaries gehen.
   - Referenz: ca. Zeilen `4368-4378`, `4418`, `4550`, `11530-11532`.
+
+### RSC Boundary: Date-Werte in Client Components
+
+- **Problem**: Date-Werte aus Server Components/DB können im Client als String ankommen und dann in `date-fns`-Formatierungen brechen.
+- **Lösung**: Date-Werte im Client am Boundary immer normalisieren (`new Date(value)` / `parseISO(value)`) oder bereits formatiert als String vom Server übergeben.
+- **Kernzeilen aus `nextjs-llms-full.txt` (sinngemäß)**:
+  - Props zwischen Server- und Client-Komponenten müssen serialisierbar sein.
+  - Bei gemischten Server/Client-Boundaries auf stabile Typen achten und bei Bedarf clientseitig deserialisieren.
+  - Referenz: Serializable Props und RSC Datenfluss in den App-Router Grundlagen/API-Referenzen.
 
 ## 🗄️ PostgreSQL-spezifische Erkenntnisse
 

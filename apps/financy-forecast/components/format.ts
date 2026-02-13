@@ -1,8 +1,14 @@
+// For read-only UI text: localized currency output with symbol (e.g. "10,10 €").
 export const eurFormatter = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
   minimumFractionDigits: 2,
 })
+
+// For editable form inputs: plain numeric string without currency symbol (e.g. "10,10").
+export function toInputValue(amountInCents: number): string {
+  return (amountInCents / 100).toFixed(2).replace(".", ",")
+}
 
 export function formatDelta(delta: number | null): string {
   if (delta === null) {

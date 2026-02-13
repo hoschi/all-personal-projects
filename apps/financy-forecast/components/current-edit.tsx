@@ -19,9 +19,13 @@ import {
 import {
   calculateSnapshotDelta,
   parseCurrentBalanceValue,
-  toInputValue,
 } from "@/domain/currentBalances"
-import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
+import {
+  eurFormatter,
+  formatDelta,
+  getDeltaColorClass,
+  toInputValue,
+} from "./format"
 import { format, formatDistanceToNow } from "date-fns"
 import { handleSaveCurrentBalances, ServerActionResult } from "@/lib/actions"
 import { useActionState, useState } from "react"
@@ -29,6 +33,10 @@ import Link from "next/link"
 import { Either } from "effect"
 
 const initialActionState: ServerActionResult | null = null
+
+function deserializeDate(value: unknown): Date {
+  return value instanceof Date ? value : new Date(String(value))
+}
 
 function createInitialInputState(rows: CurrentEditData["rows"]) {
   return Object.fromEntries(
@@ -45,6 +53,10 @@ function formatLastUpdatedAbsolute(date: Date): string {
 }
 
 export function CurrentEdit({ data }: { data: CurrentEditData }) {
+  const lastSnapshotDate = data.lastSnapshotDate
+    ? deserializeDate(data.lastSnapshotDate)
+    : null
+
   const [inputState, setInputState] = useState<Record<string, string>>(() =>
     createInitialInputState(data.rows),
   )
@@ -55,6 +67,7 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
   )
 
   const rows = data.rows.map((row) => {
+    const updatedAt = deserializeDate(row.updatedAt)
     const inputValue = inputState[row.id] ?? toInputValue(row.currentBalance)
     const parsedCurrentValue = parseCurrentBalanceValue(inputValue)
     const liveDelta = Either.map(parsedCurrentValue, (currentBalance) =>
@@ -63,6 +76,7 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
 
     return {
       ...row,
+      updatedAt,
       inputValue,
       liveDelta,
     }
@@ -84,8 +98,8 @@ export function CurrentEdit({ data }: { data: CurrentEditData }) {
       <div>
         <h3 className="text-xl">Current Balances</h3>
         <p className="text-sm text-muted-foreground">
-          {data.lastSnapshotDate
-            ? `Snapshot date: ${format(data.lastSnapshotDate, "yyyy-MM-dd")}`
+          {lastSnapshotDate
+            ? `Snapshot date: ${format(lastSnapshotDate, "yyyy-MM-dd")}`
             : "No snapshot available yet."}
         </p>
       </div>

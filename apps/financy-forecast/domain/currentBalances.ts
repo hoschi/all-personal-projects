@@ -75,7 +75,3 @@ export function parseCurrentBalanceValue(
 
   return Either.right(Math.round(amount * 100))
 }
-
-export function toInputValue(amountInCents: number): string {
-  return String(amountInCents / 100)
-}

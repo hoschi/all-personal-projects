@@ -166,4 +166,23 @@ describe("handleSaveCurrentBalances", () => {
     expect(mockUpdateAccountCurrentBalances).not.toHaveBeenCalled()
     expect(mockRedirect).not.toHaveBeenCalled()
   })
+
+  test("returns db error when current balance update fails", async () => {
+    mockUpdateAccountCurrentBalances.mockImplementation(async () => {
+      throw new Error("Connection refused")
+    })
+
+    const formData = new FormData()
+    formData.append("balance:550e8400-e29b-41d4-a716-446655440000", "10,00")
+
+    await expect(
+      handleSaveCurrentBalances(null, formData),
+    ).resolves.toMatchObject({
+      success: false,
+      error: "Connection refused",
+    })
+
+    expect(mockRedirect).not.toHaveBeenCalled()
+    expect(mockUpdateTag).not.toHaveBeenCalled()
+  })
 })
