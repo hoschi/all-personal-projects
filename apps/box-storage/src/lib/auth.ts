@@ -35,10 +35,8 @@ const cacheClerkUsername = (userId: string, username: string) => {
   }
 
   // remove oldest (first) user if limit reached
-  const oldestUserId = clerkUsernameCacheOrder.shift()
+  const oldestUserId = clerkUsernameCacheOrder.shift()!
   delete clerkUsernameCache[oldestUserId]
-
-  console.log(userId, clerkUsernameCacheOrder.length, clerkUsernameCacheOrder)
 }
 
 export const getClerkUsername = async (userId: string): Promise<string> => {
