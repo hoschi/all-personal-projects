@@ -52,18 +52,16 @@ const cacheClerkUsername = (userId: string, username: string) => {
 }
 
 export const getClerkUsername = async (userId: string): Promise<string> => {
-  return match(clerkUsernameCache[userId])
-    .with(P.string, (username) => username)
-    .otherwise(async () => {
-      const user = await clerkClient().users.getUser(userId)
+  const cachedUsername = clerkUsernameCache[userId]
+  if (cachedUsername) {
+    return cachedUsername
+  }
 
-      return match(user.username)
-        .with(P.string, (username) => {
-          cacheClerkUsername(userId, username)
-          return username
-        })
-        .otherwise(() => {
-          throw new Error(`Missing Clerk username for userId: ${userId}`)
-        })
-    })
+  const user = await clerkClient().users.getUser(userId)
+  if (!user.username) {
+    throw new Error(`Missing Clerk username for userId: ${userId}`)
+  }
+
+  cacheClerkUsername(userId, user.username)
+  return user.username
 }
