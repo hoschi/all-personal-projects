@@ -243,26 +243,26 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
       select: { inMotionUserId: true },
     })
 
-    await match(item)
-      .with(P.nullish, () => {
-        throw new Error(`Item not found: ${itemId}`)
-      })
-      .with(P.nonNullable, async (existingItem) => {
-        const updateData = await match(existingItem.inMotionUserId)
-          .with(P.nullish, async () => {
-            const inMotionUsername = await getClerkUsername(userId)
-            return { inMotionUserId: userId, inMotionUsername }
-          })
-          .otherwise(() => ({
-            inMotionUserId: null,
-            inMotionUsername: null,
-          }))
-
-        await prisma.item.update({
-          where: { id: itemId },
-          data: updateData,
+    await prisma.item.update({
+      where: { id: itemId },
+      data: await match(item)
+        // is in motion, reset
+        .with({ inMotionUserId: P.string }, async () => ({
+          inMotionUserId: null,
+          inMotionUsername: null,
+        }))
+        // not in motion, assign to us
+        .with({ inMotionUserId: P.nullish }, async () => {
+          const inMotionUsername = await getClerkUsername(userId)
+          return {
+            inMotionUserId: userId,
+            inMotionUsername,
+          }
         })
-      })
+        .otherwise(() => {
+          throw new Error(`Item not found: ${itemId}`)
+        }),
+    })
   })
 
 export const createItemFn = createServerFn({ method: "POST" })
