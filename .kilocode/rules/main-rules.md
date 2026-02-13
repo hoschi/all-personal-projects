@@ -470,6 +470,56 @@ try {
 }
 ```
 
+#### Baue Match-Reihenfolge von konkret nach unspezifisch auf
+
+Baue Match-Reihenfolge von konkret nach unspezifisch auf: zuerst die spezifischen Fachfälle, dann generische Fälle (`P.nullish`, `P._`, `.otherwise`). Für Match-Refactorings ist die Reihenfolge oft invers zu typischen `if/else`-Bäumen. Verschachtelte Situationen können so auch aufgelöst werden, da diese nicht erlaubt sind!
+Doku: `ai-ref/ts-pattern-README.md:437`, `ai-ref/ts-pattern-README.md:611`.
+
+Negatives Beispiel:
+
+```ts
+await match(item)
+  .with(P.nullish, () => {
+    throw new Error(`Item not found: ${itemId}`)
+  })
+  .with(P.nonNullable, async (existingItem) => {
+    const updateData = await match(existingItem.inMotionUserId)
+      .with(P.nullish, async () => {
+        const inMotionUsername = await getClerkUsername(userId)
+        return { inMotionUserId: userId, inMotionUsername }
+      })
+      .otherwise(() => ({
+        inMotionUserId: null,
+        inMotionUsername: null,
+      }))
+
+    await prisma.item.update({
+      where: { id: itemId },
+      data: updateData,
+    })
+  })
+```
+
+Positives Beispiel:
+
+```ts
+const updateData = await match(item)
+  // Spezifischer Fall zuerst: Item ist bereits in motion
+  .with({ inMotionUserId: P.string }, async () => ({
+    inMotionUserId: null,
+    inMotionUsername: null,
+  }))
+  // Danach der weniger spezifische Fall: Item existiert, aber ist nicht in motion
+  .with({ inMotionUserId: P.nullish }, async () => {
+    const inMotionUsername = await getClerkUsername(userId)
+    return { inMotionUserId: userId, inMotionUsername }
+  })
+  // Ganz zum Schluss: Item existiert nicht
+  .otherwise(() => {
+    throw new Error(`Item not found: ${itemId}`)
+  })
+```
+
 #### Achte bei UI-Branches auf konfliktfreie Klassen
 
 Achte bei UI-Branches darauf, dass jede Branch konfliktfreie Klassen liefert (keine konkurrierenden Tailwind-Utilities in derselben Branch).
