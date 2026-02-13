@@ -7,7 +7,7 @@
     "dev": "vite dev --port 3058",
     "build": "vite build",
     "preview": "vite preview --port 3058",
-    "test": "echo 'no test availible'",
+    "test": "bun test",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "fix": "bun run format && bunx eslint --fix .",
