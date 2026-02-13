@@ -259,9 +259,10 @@ export const toggleItemInMotionFn = createServerFn({ method: "POST" })
             inMotionUsername,
           }
         })
-        .otherwise(() => {
+        .with(P.nullish, () => {
           throw new Error(`Item not found: ${itemId}`)
-        }),
+        })
+        .exhaustive(),
     })
   })
 

@@ -472,7 +472,7 @@ try {
 
 #### Baue Match-Reihenfolge von konkret nach unspezifisch auf
 
-Baue Match-Reihenfolge von konkret nach unspezifisch auf: zuerst die spezifischen Fachfälle, dann generische Fälle (`P.nullish`, `P._`, `.otherwise`). Für Match-Refactorings ist die Reihenfolge oft invers zu typischen `if/else`-Bäumen. Verschachtelte Situationen können so auch aufgelöst werden, da diese nicht erlaubt sind!
+Baue Match-Reihenfolge von konkret nach unspezifisch auf: zuerst die spezifischen Fachfälle, dann generische Fälle (`P.nullish`, `P._`, `.otherwise`). Für Match-Refactorings ist die Reihenfolge oft invers zu typischen `if/else`-Bäumen. Verschachtelte Situationen können so auch aufgelöst werden, da diese nicht erlaubt sind! Auf diese Weise ist es auch möglich `otherwise()` durch `exhaustive()` zu ersetzen, was stabiler für zukünftige Änderungen ist, da diese nicht verschlukt werden sondern als Typefehler auftauchen.
 Doku: `ai-ref/ts-pattern-README.md:437`, `ai-ref/ts-pattern-README.md:611`.
 
 Negatives Beispiel:
@@ -503,21 +503,27 @@ await match(item)
 Positives Beispiel:
 
 ```ts
-const updateData = await match(item)
-  // Spezifischer Fall zuerst: Item ist bereits in motion
-  .with({ inMotionUserId: P.string }, async () => ({
-    inMotionUserId: null,
-    inMotionUsername: null,
-  }))
-  // Danach der weniger spezifische Fall: Item existiert, aber ist nicht in motion
-  .with({ inMotionUserId: P.nullish }, async () => {
-    const inMotionUsername = await getClerkUsername(userId)
-    return { inMotionUserId: userId, inMotionUsername }
-  })
-  // Ganz zum Schluss: Item existiert nicht
-  .otherwise(() => {
-    throw new Error(`Item not found: ${itemId}`)
-  })
+await prisma.item.update({
+  where: { id: itemId },
+  data: await match(item)
+    // is in motion, reset
+    .with({ inMotionUserId: P.string }, async () => ({
+      inMotionUserId: null,
+      inMotionUsername: null,
+    }))
+    // not in motion, assign to us
+    .with({ inMotionUserId: P.nullish }, async () => {
+      const inMotionUsername = await getClerkUsername(userId)
+      return {
+        inMotionUserId: userId,
+        inMotionUsername,
+      }
+    })
+    .with(P.nullish, () => {
+      throw new Error(`Item not found: ${itemId}`)
+    })
+    .exhaustive(),
+})
 ```
 
 #### Achte bei UI-Branches auf konfliktfreie Klassen
