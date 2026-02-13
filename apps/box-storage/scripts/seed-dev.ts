@@ -129,9 +129,8 @@ async function seedDatabase(): Promise<void> {
         data: roomData,
       })
       createdRooms.push(room)
-      const floorName = match(roomData.floorId)
-        .with(floor1.id, () => floor1.name)
-        .otherwise(() => floor2.name)
+      const floorName =
+        roomData.floorId === floor1.id ? floor1.name : floor2.name
       console.log(
         `  ✅ Room created: ${room.name} in ${floorName} (ID: ${room.id})`,
       )
@@ -585,11 +584,9 @@ async function main(): Promise<void> {
 }
 
 // Run if called directly
-match(require.main === module)
-  .with(true, () => {
-    main().catch((error) => {
-      console.error("❌ Script execution failed:", error)
-      process.exit(1)
-    })
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("❌ Script execution failed:", error)
+    process.exit(1)
   })
-  .otherwise(() => undefined)
+}

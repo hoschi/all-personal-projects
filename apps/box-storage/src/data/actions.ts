@@ -12,13 +12,11 @@ function validateLocationConstraints(
   roomId: number | null,
 ): void {
   const locations = [boxId, furnitureId, roomId].filter((id) => id !== null)
-  match(locations.length)
-    .with(1, () => undefined)
-    .otherwise(() => {
-      throw new Error(
-        "Ein Item muss genau eine Location haben: boxId, furnitureId oder roomId",
-      )
-    })
+  if (locations.length !== 1) {
+    throw new Error(
+      "Ein Item muss genau eine Location haben: boxId, furnitureId oder roomId",
+    )
+  }
 }
 
 const filtersSchema = z

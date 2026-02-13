@@ -353,3 +353,41 @@ beforeEach(() => {
 
 - **Konvention**: Alle Workspace-Packages starten mit `version: "0.0.0"`, erst mit dem ersten Release wird gezählt und mit `0.0.1` gestartet
 - **Wichtig**: Interne Abhängigkeiten müssen `workspace:*` verwenden als Version in der dependency Sektion in einer `package.json` Datei
+
+---
+
+## ts-pattern
+
+### dos
+
+- **Nutze `match` für echte Mehrfach-Branches mit fachlicher Logik** (z.B. Status-Mapping oder strukturierte Objektfälle), nicht nur als `if`-Ersatz.
+- **Nutze `match` wenn ein Wert aus mehreren Fällen abgeleitet wird** und die Branches klarer als `if/else` sind.
+- **Nutze stabile Identifikatoren zwischen Throw und Handling** (z.B. Error-Klasse) und matche dann typsicher.
+- **Achte bei UI-Branches darauf, dass jede Branch konfliktfreie Klassen liefert** (keine konkurrierenden Tailwind-Utilities in derselben Branch).
+
+```ts
+class NotAuthenticatedError extends Error {}
+
+throw new NotAuthenticatedError()
+// ...
+match(error).with(P.instanceOf(NotAuthenticatedError), () => <SignIn />)
+```
+
+### donts
+
+- **Kein `match` nur als Guard mit Throw**: Wenn nur validiert und ggf. geworfen wird, `if` verwenden.
+- **Kein `match` für triviale Boolean-Auswahl** wie `asChild ? Slot : "span"`.
+- **Kein `match` für Node-Entry-Point Guards** wie `require.main === module`; hier ist ein einfaches `if` klarer.
+- **Keine verschachtelten `match`-Blöcke in derselben Funktion**, wenn ein flacher Ausdruck oder ein `if` lesbarer ist.
+- **Kein String-Coupling über `error.message`** zwischen Throw und UI-Handling.
+- **Kein switch/case** verwende ts-pattern für diese use cases.
+
+```ts
+// don't
+match(locations.length).with(1, () => {}).otherwise(() => {
+  throw new Error("...")
+})
+
+// do
+if (locations.length !== 1) throw new Error("...")
+```
