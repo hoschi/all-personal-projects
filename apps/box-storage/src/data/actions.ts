@@ -56,85 +56,82 @@ export const getListItems = createServerFn()
     console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
     const { searchText = "", locationFilter = "", statusFilter = "" } = filters
+    const searchTerm = searchText.trim()
+    const locationTerm = locationFilter.trim()
 
     const andConditions: Prisma.ItemWhereInput[] = []
 
-    // Add search filter
-    match(searchText)
-      .with(P.string.minLength(1), (searchTerm) => {
-        andConditions.push({
-          OR: [
-            { name: { contains: searchTerm, mode: "insensitive" as const } },
-            {
-              description: {
-                contains: searchTerm,
-                mode: "insensitive" as const,
-              },
+    if (searchTerm) {
+      andConditions.push({
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
             },
-          ],
-        })
-        return undefined
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
       })
-      .otherwise(() => undefined)
+    }
 
-    // Add location filter
-    match(locationFilter)
-      .with(P.string.minLength(1), (locationTerm) => {
-        andConditions.push({
-          OR: [
-            {
-              box: {
-                name: { contains: locationTerm, mode: "insensitive" as const },
+    if (locationTerm) {
+      andConditions.push({
+        OR: [
+          {
+            box: {
+              name: {
+                contains: locationTerm,
+                mode: "insensitive",
               },
             },
-            {
-              furniture: {
-                name: { contains: locationTerm, mode: "insensitive" as const },
+          },
+          {
+            furniture: {
+              name: {
+                contains: locationTerm,
+                mode: "insensitive",
               },
             },
-            {
-              room: {
-                name: { contains: locationTerm, mode: "insensitive" as const },
+          },
+          {
+            room: {
+              name: {
+                contains: locationTerm,
+                mode: "insensitive",
               },
             },
-            {
-              room: {
-                floor: {
-                  name: {
-                    contains: locationTerm,
-                    mode: "insensitive" as const,
-                  },
+          },
+          {
+            room: {
+              floor: {
+                name: {
+                  contains: locationTerm,
+                  mode: "insensitive",
                 },
               },
             },
-          ],
-        })
-        return undefined
+          },
+        ],
       })
-      .otherwise(() => undefined)
+    }
 
-    // Add status filter
-    match(statusFilter)
-      .with("free", () => {
-        andConditions.push({ inMotionUserId: null })
-        return undefined
-      })
-      .with("in-motion", () => {
-        andConditions.push({ inMotionUserId: { not: null } })
-        return undefined
-      })
-      .with("mine", () => {
-        andConditions.push({ inMotionUserId: userId })
-        return undefined
-      })
-      .with("others", () => {
-        andConditions.push(
+    andConditions.push(
+      ...match(statusFilter)
+        .with("free", () => [{ inMotionUserId: null }])
+        .with("in-motion", () => [{ inMotionUserId: { not: null } }])
+        .with("mine", () => [{ inMotionUserId: userId }])
+        .with("others", () => [
           { inMotionUserId: { not: null } },
           { inMotionUserId: { not: userId } },
-        )
-        return undefined
-      })
-      .otherwise(() => undefined)
+        ])
+        .otherwise(() => []),
+    )
 
     const result = await prisma.item.findMany({
       where: {
