@@ -71,6 +71,39 @@ const sortByOptions: ReadonlyArray<SelectOption<Search["sortBy"]>> = [
   { value: "status", label: "Sortieren: Status" },
 ]
 
+type DebouncedSearchKey = "searchText" | "locationFilter"
+
+function useDebouncedSearchParam(
+  localValue: string,
+  searchKey: DebouncedSearchKey,
+  navigate: (options: {
+    replace: true
+    search: (prev: Search) => Search
+  }) => void,
+  debounceMs: number,
+) {
+  const search = Route.useSearch()
+  const searchValue = search[searchKey]
+
+  useEffect(() => {
+    if (localValue === searchValue) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      navigate({
+        replace: true,
+        search: (prev) => ({
+          ...prev,
+          [searchKey]: localValue,
+        }),
+      })
+    }, debounceMs)
+
+    return () => clearTimeout(timer)
+  }, [debounceMs, localValue, navigate, searchKey, searchValue])
+}
+
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
   ssr: false,
@@ -138,41 +171,18 @@ function RouteComponent() {
     setLocalLocationFilter(search.locationFilter)
   }, [search.locationFilter])
 
-  useEffect(() => {
-    if (localSearchText === search.searchText) {
-      return
-    }
-
-    const timer = setTimeout(() => {
-      navigate({
-        replace: true,
-        search: (prev) => ({
-          ...prev,
-          searchText: localSearchText,
-        }),
-      })
-    }, INPUT_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [localSearchText, navigate, search.searchText])
-
-  useEffect(() => {
-    if (localLocationFilter === search.locationFilter) {
-      return
-    }
-
-    const timer = setTimeout(() => {
-      navigate({
-        replace: true,
-        search: (prev) => ({
-          ...prev,
-          locationFilter: localLocationFilter,
-        }),
-      })
-    }, INPUT_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [localLocationFilter, navigate, search.locationFilter])
+  useDebouncedSearchParam(
+    localSearchText,
+    "searchText",
+    navigate,
+    INPUT_DEBOUNCE_MS,
+  )
+  useDebouncedSearchParam(
+    localLocationFilter,
+    "locationFilter",
+    navigate,
+    INPUT_DEBOUNCE_MS,
+  )
 
   return (
     <div className="space-y-6 mt-2">
