@@ -1,11 +1,21 @@
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   getListItems,
   ListItemFilters,
+  ListItemStatusKey,
   toggleItemInMotionFn,
 } from "@/data/actions"
-import { Item } from "@/data/schema"
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { z } from "zod"
 
 export const Search = z.object({
@@ -18,6 +28,15 @@ export const Search = z.object({
   sortDirection: z.enum(["asc", "desc"]).catch("asc"),
 })
 export type Search = z.infer<typeof Search>
+type InventoryListItem = Awaited<ReturnType<typeof getListItems>>[number]
+
+const defaultSearch: Search = {
+  searchText: "",
+  locationFilter: "",
+  statusFilter: "all",
+  sortBy: "name",
+  sortDirection: "asc",
+}
 
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
@@ -53,30 +72,186 @@ export const Route = createFileRoute("/(authed)/table-view")({
 
 function RouteComponent() {
   const router = useRouter()
+  const navigate = useNavigate({ from: Route.fullPath })
   const { items, userId } = Route.useLoaderData()
+  const search = Route.useSearch()
 
-  const toggleInMotion = async (item: Item) => {
+  const toggleInMotion = async (item: Pick<InventoryListItem, "id">) => {
     console.log(`## updating item: ${item.id}`)
     await toggleItemInMotionFn({ data: { itemId: item.id } })
     router.invalidate()
     console.log(`## item: ${item.id} updated`)
   }
 
+  const updateSearch = (partial: Partial<Search>) => {
+    navigate({
+      replace: true,
+      search: (prev) => ({
+        ...prev,
+        ...partial,
+      }),
+    })
+  }
+
+  const getStatusBadgeVariant = (statusKey: ListItemStatusKey) => {
+    if (statusKey === "mine") {
+      return "blue" as const
+    }
+
+    if (statusKey === "others") {
+      return "outline" as const
+    }
+
+    return "secondary" as const
+  }
+
   return (
-    <div>
-      <div>
-        {items.map((item) => (
-          <div key={item.id} className="my-2 p-2 outline-amber-300 outline-1">
-            <div>{item.name}</div>
-            <div>{item.id}</div>
-            <Switch
-              checked={item.inMotionUserId === userId}
-              className="mr-2"
-              onCheckedChange={() => toggleInMotion(item)}
+    <div className="space-y-6 mt-2">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold text-slate-900">Inventar</h1>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-4">
+          <CardTitle>Gegenstände</CardTitle>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <input
+              type="text"
+              placeholder="Nach Name oder Beschreibung suchen..."
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
+              value={search.searchText}
+              onChange={(event) => {
+                updateSearch({ searchText: event.target.value })
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Nach Ort suchen..."
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
+              value={search.locationFilter}
+              onChange={(event) => {
+                updateSearch({ locationFilter: event.target.value })
+              }}
             />
           </div>
-        ))}
-      </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={search.statusFilter}
+              onChange={(event) => {
+                updateSearch({
+                  statusFilter: event.target.value as Search["statusFilter"],
+                })
+              }}
+            >
+              <option value="all">Alle Stati</option>
+              <option value="free">Frei</option>
+              <option value="mine">In Bewegung (du)</option>
+              <option value="others">In Bewegung (andere)</option>
+              <option value="in-motion">In Bewegung (alle)</option>
+            </select>
+
+            <select
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={search.sortBy}
+              onChange={(event) => {
+                updateSearch({ sortBy: event.target.value as Search["sortBy"] })
+              }}
+            >
+              <option value="name">Sortieren: Name</option>
+              <option value="location">Sortieren: Ort</option>
+              <option value="status">Sortieren: Status</option>
+            </select>
+
+            <select
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              value={search.sortDirection}
+              onChange={(event) => {
+                updateSearch({
+                  sortDirection: event.target.value as Search["sortDirection"],
+                })
+              }}
+            >
+              <option value="asc">Aufsteigend</option>
+              <option value="desc">Absteigend</option>
+            </select>
+
+            <button
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
+              type="button"
+              onClick={() => {
+                navigate({
+                  replace: true,
+                  search: defaultSearch,
+                })
+              }}
+            >
+              Zurücksetzen
+            </button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Gegenstand</TableHead>
+                <TableHead>Lagerort</TableHead>
+                <TableHead>Besitzer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-center">In Bewegung</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="font-medium text-slate-900">
+                      {item.name}
+                    </div>
+                    <div className="text-xs text-slate-400">ID: {item.id}</div>
+                  </TableCell>
+                  <TableCell className="max-w-96 truncate">
+                    {item.locationDisplay}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={item.ownerId === userId ? "blue" : "outline"}
+                    >
+                      {item.ownerUsername}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusBadgeVariant(item.statusKey)}>
+                      {item.statusLabel}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={item.inMotionUserId === userId}
+                        onCheckedChange={() => toggleInMotion(item)}
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+
+              {items.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-8 text-center text-slate-500"
+                  >
+                    Keine Treffer für die aktuellen Filter.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }
