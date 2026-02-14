@@ -154,7 +154,9 @@ function RouteComponent() {
                   event.currentTarget.value,
                 )
                 if (!parsed.success) {
-                  return
+                  throw new Error(
+                    `Invalid status filter value: ${event.currentTarget.value}`,
+                  )
                 }
                 updateSearch({ statusFilter: parsed.data })
               }}
@@ -174,7 +176,9 @@ function RouteComponent() {
                   event.currentTarget.value,
                 )
                 if (!parsed.success) {
-                  return
+                  throw new Error(
+                    `Invalid sort field value: ${event.currentTarget.value}`,
+                  )
                 }
                 updateSearch({ sortBy: parsed.data })
               }}
