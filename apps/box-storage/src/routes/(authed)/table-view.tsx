@@ -52,25 +52,24 @@ export const defaultSearch: Search = {
 
 const INPUT_DEBOUNCE_MS = 300
 
-const statusOptions = [
+type SelectOption<TValue extends string> = {
+  value: TValue
+  label: string
+}
+
+const statusOptions: ReadonlyArray<SelectOption<Search["statusFilter"]>> = [
   { value: inventoryAllStatusFilter, label: "Alle Stati" },
   { value: "free", label: "Frei" },
   { value: "mine", label: "In Bewegung (du)" },
   { value: "others", label: "In Bewegung (andere)" },
   { value: "in-motion", label: "In Bewegung (alle)" },
-] as const satisfies ReadonlyArray<{
-  value: Search["statusFilter"]
-  label: string
-}>
+]
 
-const sortByOptions = [
+const sortByOptions: ReadonlyArray<SelectOption<Search["sortBy"]>> = [
   { value: "name", label: "Sortieren: Name" },
   { value: "location", label: "Sortieren: Ort" },
   { value: "status", label: "Sortieren: Status" },
-] as const satisfies ReadonlyArray<{
-  value: Search["sortBy"]
-  label: string
-}>
+]
 
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
