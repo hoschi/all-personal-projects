@@ -52,6 +52,18 @@ bunx shadcn@latest add button
 - **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
 - **Lösung**: Immer globale Ersetzung (`replace(/,/g, ".")` oder `replaceAll(",", ".")`) vor `Number(...)` verwenden.
 
+### Select-Inputs: Keine `selectedIndex`-Logik
+
+- **Problem**: `selectedIndex` ist fragil (Reordering, Placeholder, dynamische Optionen).
+- **Lösung**: Immer `event.currentTarget.value` lesen und den String gegen die erlaubten Werte validieren (`zod.safeParse` oder Lookup in getypten `options`-Arrays).
+- **Regel**: Keine `as`-Casts in `onChange` für Selects; Typableitung muss über die Option-Typen oder Schema-Parsing passieren.
+
+### Zentrale Filter-/Sort-Contracts
+
+- **Problem**: UI und Backend driften bei String-Literalen (`"free"`, `"mine"`, ...).
+- **Lösung**: Gemeinsame Konstanten + Zod-Schemas in einem dedizierten Modul pflegen und in Route/Search sowie Server-Actions importieren.
+- **Regel**: Enum-ähnliche Query-Werte nicht doppelt als Literale in mehreren Dateien definieren.
+
 ## Next.js 16
 
 ### Cache-Invalidation in Server Actions
@@ -304,6 +316,12 @@ beforeEach(() => {
 - **Problem**: Wiederholter Mock-Daten-Code in Tests
 - **Lösung**: Factory Functions mit flexiblen Overrides verwenden
 
+### Hierarchie-Helper: Partial-Pfade mit testen
+
+- **Problem**: Nur "Happy Path"-Tests übersehen optionale Relationen (`null`-Zwischenknoten).
+- **Lösung**: Bei Hierarchie-Formatierung immer Full-Path + mindestens zwei Partial-Path-Fälle testen (z.B. room-only, box-without-furniture).
+- **Regel**: Optional-Chaining-Pfade dürfen nicht ungetestet bleiben.
+
 ### Date/Time Dependencies
 
 - **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
@@ -554,6 +572,26 @@ const classes = match("sm" as "sm" | "md")
 ```
 
 ### donts
+
+#### Kein strukturelles `match` für reine Hierarchie-Projektion mit Optional-Chaining
+
+Wenn die Handler ohnehin `?.`-Zugriffe verwenden und nur Segmente zusammensetzen, ist `match` meist unnötig komplex. Dann direkte `if`-/ternary-Branches verwenden.
+
+Negatives Beispiel:
+
+```ts
+import { P, match } from "ts-pattern"
+
+const parts = match(item)
+  .with({ box: { name: P.string } }, ({ box }) => [box?.name])
+  .otherwise(() => [])
+```
+
+Positives Beispiel:
+
+```ts
+const parts = item.box ? [item.box.name] : []
+```
 
 #### Kein `match` nur als Guard mit Throw
 
