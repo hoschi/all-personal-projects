@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Activity, User, MoveRight } from "lucide-react"
 import { ItemGetPayload } from "@/generated/prisma/models"
+import { match, P } from "ts-pattern"
 
 export const Route = createFileRoute("/(authed)/dashboard")({
   component: RouteComponent,
@@ -28,10 +29,11 @@ function getLocationDisplay(
     }
   }>,
 ): string {
-  if (item.box?.name) return item.box.name
-  if (item.furniture?.name) return item.furniture.name
-  if (item.room?.name) return item.room.name
-  return "Unbekannt"
+  return match(item)
+    .with({ box: { name: P.string } }, ({ box }) => box.name)
+    .with({ furniture: { name: P.string } }, ({ furniture }) => furniture.name)
+    .with({ room: { name: P.string } }, ({ room }) => room.name)
+    .otherwise(() => "Unbekannt")
 }
 
 function RouteComponent() {
@@ -110,7 +112,9 @@ function RouteComponent() {
                     </p>
                   </div>
                   <Badge variant="outline">
-                    {item.inMotionUserId ? "In Bewegung" : "Gelagert"}
+                    {match(item.inMotionUserId)
+                      .with(P.nonNullable, () => "In Bewegung")
+                      .otherwise(() => "Gelagert")}
                   </Badge>
                 </div>
               ))}

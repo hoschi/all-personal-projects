@@ -353,3 +353,380 @@ beforeEach(() => {
 
 - **Konvention**: Alle Workspace-Packages starten mit `version: "0.0.0"`, erst mit dem ersten Release wird gezählt und mit `0.0.1` gestartet
 - **Wichtig**: Interne Abhängigkeiten müssen `workspace:*` verwenden als Version in der dependency Sektion in einer `package.json` Datei
+
+---
+
+## ts-pattern
+
+### Index der wichtigsten ts-pattern Funktionalitäten
+
+- `match(value)`: Einstieg in den Builder für Pattern Matching. Details: `ai-ref/ts-pattern-README.md:209`, API-Referenz: `ai-ref/ts-pattern-README.md:417`.
+- `.with(pattern, handler)`: Branches definieren und Typen im Handler präzise narrowing. Details: `ai-ref/ts-pattern-README.md:230`, API-Referenz: `ai-ref/ts-pattern-README.md:437`.
+- `P.select(name?)`: Werte aus verschachtelten Strukturen extrahieren und direkt an den Handler übergeben. Details: `ai-ref/ts-pattern-README.md:252`, Pattern-Referenz: `ai-ref/ts-pattern-README.md:1217`.
+- `P.not(pattern)`: Negative Matches (alles außer X) typsicher ausdrücken. Details: `ai-ref/ts-pattern-README.md:299`, Pattern-Referenz: `ai-ref/ts-pattern-README.md:1194`.
+- `P.when(...)` und Guard-Funktionen: Zusätzliche Prädikatslogik in Pattern/Branches einbauen. Details: `ai-ref/ts-pattern-README.md:310`, Pattern-Referenz: `ai-ref/ts-pattern-README.md:1166`, API-Referenz `.when`: `ai-ref/ts-pattern-README.md:490`.
+- `P._`: Catch-all Wildcard für Default-Fälle. Details: `ai-ref/ts-pattern-README.md:349`.
+- `.returnType<OutputType>()`: Erzwingt konsistenten Rückgabetyp über alle Branches. Details: `ai-ref/ts-pattern-README.md:220`, API-Referenz: `ai-ref/ts-pattern-README.md:516`.
+- `.exhaustive()` und `.otherwise()`: Ausdruck ausführen und fehlende Fälle absichern (oder Default setzen). Details: `ai-ref/ts-pattern-README.md:364`, API-Referenz: `ai-ref/ts-pattern-README.md:539`, `ai-ref/ts-pattern-README.md:603`.
+- `isMatching`: Strukturvalidierung mit Pattern außerhalb von `match(...)`. Details: `ai-ref/ts-pattern-README.md:680`.
+- `P.instanceOf(...)`: Klassentypen (z.B. Error-Klassen) robust matchen. Details: `ai-ref/ts-pattern-README.md:1318`.
+
+### dos
+
+#### Nutze `match` für echte Mehrfach-Branches mit fachlicher Logik
+
+Nutze `match` für echte Mehrfach-Branches mit fachlicher Logik (z.B. Status-Mapping oder strukturierte Objektfälle), nicht nur als `if`-Ersatz.
+Doku: `ai-ref/ts-pattern-README.md:209`, `ai-ref/ts-pattern-README.md:230`, `ai-ref/ts-pattern-README.md:364`.
+
+Negatives Beispiel:
+
+```ts
+type OrderStatus = "draft" | "approved" | "rejected"
+
+function getStatusColor(status: OrderStatus) {
+  if (status === "draft") return "gray"
+  if (status === "approved") return "green"
+  if (status === "rejected") return "red"
+  return "gray"
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+type OrderStatus = "draft" | "approved" | "rejected"
+
+function getStatusColor(status: OrderStatus) {
+  return match(status)
+    .with("draft", () => "gray")
+    .with("approved", () => "green")
+    .with("rejected", () => "red")
+    .exhaustive()
+}
+```
+
+#### Nutze `match` wenn ein Wert aus mehreren Fällen abgeleitet wird
+
+Nutze `match` wenn ein Wert aus mehreren Fällen abgeleitet wird und die Branches klarer als `if/else` sind.
+Doku: `ai-ref/ts-pattern-README.md:143`, `ai-ref/ts-pattern-README.md:230`.
+
+Negatives Beispiel:
+
+```ts
+function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
+  if (role === "admin" && ownsProject) return "admin-owner"
+  if (role === "admin") return "admin"
+  if (ownsProject) return "owner"
+  return "member"
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
+  return match<[typeof role, boolean], string>([role, ownsProject])
+    .with(["admin", true], () => "admin-owner")
+    .with(["admin", false], () => "admin")
+    .with(["member", true], () => "owner")
+    .with(["member", false], () => "member")
+    .exhaustive()
+}
+```
+
+#### Nutze stabile Identifikatoren zwischen Throw und Handling
+
+Nutze stabile Identifikatoren zwischen Throw und Handling (z.B. Error-Klasse) und matche dann typsicher.
+Doku: `ai-ref/ts-pattern-README.md:1318`, `ai-ref/ts-pattern-README.md:230`.
+
+Negatives Beispiel:
+
+```ts
+try {
+  throw new Error("NOT_AUTHENTICATED")
+} catch (error) {
+  const message = error instanceof Error ? error.message : ""
+  return message === "NOT_AUTHENTICATED" ? "<SignIn />" : "<UnknownError />"
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { P, match } from "ts-pattern"
+
+class NotAuthenticatedError extends Error {}
+
+try {
+  throw new NotAuthenticatedError()
+} catch (error) {
+  return match(error)
+    .with(P.instanceOf(NotAuthenticatedError), () => "<SignIn />")
+    .otherwise(() => "<UnknownError />")
+}
+```
+
+#### Baue Match-Reihenfolge von konkret nach unspezifisch auf
+
+Baue Match-Reihenfolge von konkret nach unspezifisch auf: zuerst die spezifischen Fachfälle, dann generische Fälle (`P.nullish`, `P._`, `.otherwise`). Für Match-Refactorings ist die Reihenfolge oft invers zu typischen `if/else`-Bäumen. Verschachtelte Situationen können so auch aufgelöst werden, da diese nicht erlaubt sind! Auf diese Weise ist es auch möglich `otherwise()` durch `exhaustive()` zu ersetzen, was stabiler für zukünftige Änderungen ist, da diese nicht verschlukt werden sondern als Typefehler auftauchen.
+Doku: `ai-ref/ts-pattern-README.md:437`, `ai-ref/ts-pattern-README.md:611`.
+
+Negatives Beispiel:
+
+```ts
+await match(item)
+  .with(P.nullish, () => {
+    throw new Error(`Item not found: ${itemId}`)
+  })
+  .with(P.nonNullable, async (existingItem) => {
+    const updateData = await match(existingItem.inMotionUserId)
+      .with(P.nullish, async () => {
+        const inMotionUsername = await getClerkUsername(userId)
+        return { inMotionUserId: userId, inMotionUsername }
+      })
+      .otherwise(() => ({
+        inMotionUserId: null,
+        inMotionUsername: null,
+      }))
+
+    await prisma.item.update({
+      where: { id: itemId },
+      data: updateData,
+    })
+  })
+```
+
+Positives Beispiel:
+
+```ts
+await prisma.item.update({
+  where: { id: itemId },
+  data: await match(item)
+    // is in motion, reset
+    .with({ inMotionUserId: P.string }, async () => ({
+      inMotionUserId: null,
+      inMotionUsername: null,
+    }))
+    // not in motion, assign to us
+    .with({ inMotionUserId: P.nullish }, async () => {
+      const inMotionUsername = await getClerkUsername(userId)
+      return {
+        inMotionUserId: userId,
+        inMotionUsername,
+      }
+    })
+    .with(P.nullish, () => {
+      throw new Error(`Item not found: ${itemId}`)
+    })
+    .exhaustive(),
+})
+```
+
+#### Achte bei UI-Branches auf konfliktfreie Klassen
+
+Achte bei UI-Branches darauf, dass jede Branch konfliktfreie Klassen liefert (keine konkurrierenden Tailwind-Utilities in derselben Branch).
+Doku (Branch-Struktur): `ai-ref/ts-pattern-README.md:230`, `ai-ref/ts-pattern-README.md:364`.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+const classes = match("sm" as "sm" | "md")
+  .with("sm", () => "px-2 px-4 text-sm")
+  .with("md", () => "px-4 text-base")
+  .exhaustive()
+```
+
+Positives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+const classes = match("sm" as "sm" | "md")
+  .with("sm", () => "px-2 text-sm")
+  .with("md", () => "px-4 text-base")
+  .exhaustive()
+```
+
+### donts
+
+#### Kein `match` nur als Guard mit Throw
+
+Kein `match` nur als Guard mit Throw: Wenn nur validiert und ggf. geworfen wird, `if` verwenden.
+Doku (wann `match` sinnvoll ist): `ai-ref/ts-pattern-README.md:209`, `ai-ref/ts-pattern-README.md:230`.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+match(locations.length)
+  .with(1, () => undefined)
+  .otherwise(() => {
+    throw new Error("Expected one location")
+  })
+```
+
+Positives Beispiel:
+
+```ts
+if (locations.length !== 1) {
+  throw new Error("Expected one location")
+}
+```
+
+#### Kein `match` für triviale Boolean-Auswahl
+
+Kein `match` für triviale Boolean-Auswahl wie `asChild ? Slot : "span"`.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+const Component = match(asChild)
+  .with(true, () => Slot)
+  .otherwise(() => "span")
+```
+
+Positives Beispiel:
+
+```ts
+const Component = asChild ? Slot : "span"
+```
+
+#### Kein `match` für Node-Entry-Point Guards
+
+Kein `match` für Node-Entry-Point Guards wie `require.main === module`; hier ist ein einfaches `if` klarer.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+match(require.main === module)
+  .with(true, () => startCli())
+  .otherwise(() => undefined)
+```
+
+Positives Beispiel:
+
+```ts
+if (require.main === module) {
+  startCli()
+}
+```
+
+#### Keine verschachtelten `match`-Blöcke in derselben Funktion
+
+Keine verschachtelten `match`-Blöcke in derselben Funktion, wenn ein flacher Ausdruck oder ein `if` lesbarer ist.
+Doku (Tuples in einer Match-Struktur): `ai-ref/ts-pattern-README.md:143`, `ai-ref/ts-pattern-README.md:230`.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+function getAction(state: "idle" | "loading", isDirty: boolean) {
+  return match(state)
+    .with("idle", () =>
+      match(isDirty)
+        .with(true, () => "save")
+        .otherwise(() => "noop"),
+    )
+    .with("loading", () => "wait")
+    .exhaustive()
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+function getAction(state: "idle" | "loading", isDirty: boolean) {
+  return match<[typeof state, boolean], string>([state, isDirty])
+    .with(["idle", true], () => "save")
+    .with(["idle", false], () => "noop")
+    .with(["loading", true], () => "wait")
+    .with(["loading", false], () => "wait")
+    .exhaustive()
+}
+```
+
+#### Kein String-Coupling über `error.message`
+
+Kein String-Coupling über `error.message` zwischen Throw und UI-Handling.
+Doku: `ai-ref/ts-pattern-README.md:1318`.
+
+Negatives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+try {
+  throw new Error("MISSING_PERMISSION")
+} catch (error) {
+  const message = error instanceof Error ? error.message : ""
+  return match(message)
+    .with("MISSING_PERMISSION", () => "<NoPermission />")
+    .otherwise(() => "<UnknownError />")
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { P, match } from "ts-pattern"
+
+class MissingPermissionError extends Error {}
+
+try {
+  throw new MissingPermissionError()
+} catch (error) {
+  return match(error)
+    .with(P.instanceOf(MissingPermissionError), () => "<NoPermission />")
+    .otherwise(() => "<UnknownError />")
+}
+```
+
+#### Kein switch/case
+
+Kein switch/case verwende ts-pattern für diese use cases.
+Doku (mehrere Patterns in einer Branch): `ai-ref/ts-pattern-README.md:380`, API mit mehreren Patterns: `ai-ref/ts-pattern-README.md:437`.
+
+Negatives Beispiel:
+
+```ts
+function sanitizeTag(type: string): string {
+  switch (type) {
+    case "text":
+    case "span":
+    case "p":
+      return "text"
+    case "btn":
+    case "button":
+      return "button"
+    default:
+      return type
+  }
+}
+```
+
+Positives Beispiel:
+
+```ts
+import { match } from "ts-pattern"
+
+function sanitizeTag(type: string): string {
+  return match(type)
+    .with("text", "span", "p", () => "text")
+    .with("btn", "button", () => "button")
+    .otherwise(() => type)
+}
+```

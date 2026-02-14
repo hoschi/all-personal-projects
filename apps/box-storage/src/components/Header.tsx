@@ -7,6 +7,8 @@ import {
   SignInButton,
   SignUpButton,
 } from "@clerk/tanstack-react-start"
+import { match } from "ts-pattern"
+import { cn } from "@/lib/utils"
 
 export default function Header() {
   const isFetching = useRouterState({ select: (s) => s.isLoading })
@@ -19,9 +21,12 @@ export default function Header() {
       <span>
         {/* Show a global spinner when the router is transitioning */}
         <span
-          className={`text-3xl duration-300 delay-0 opacity-0 ${
-            isFetching ? ` duration-1000 opacity-40` : ""
-          }`}
+          className={cn(
+            "text-3xl delay-0",
+            match(isFetching)
+              .with(true, () => cn("duration-1000", "opacity-40"))
+              .otherwise(() => cn("duration-300", "opacity-0")),
+          )}
         >
           <Spinner />
         </span>

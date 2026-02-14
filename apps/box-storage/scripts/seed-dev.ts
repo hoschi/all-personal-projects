@@ -12,6 +12,7 @@
  */
 
 import { prisma } from "@/data/prisma"
+import { match } from "ts-pattern"
 
 /**
  * Clear all development data
@@ -128,8 +129,10 @@ async function seedDatabase(): Promise<void> {
         data: roomData,
       })
       createdRooms.push(room)
+      const floorName =
+        roomData.floorId === floor1.id ? floor1.name : floor2.name
       console.log(
-        `  ✅ Room created: ${room.name} in ${roomData.floorId === floor1.id ? floor1.name : floor2.name} (ID: ${room.id})`,
+        `  ✅ Room created: ${room.name} in ${floorName} (ID: ${room.id})`,
       )
     }
     console.log("✅ Rooms created\n")
@@ -558,27 +561,26 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2)
   const command = args[0] || "seed"
 
-  switch (command) {
-    case "seed":
+  await match(command)
+    .with("seed", async () => {
       await seedDatabase()
-      break
-    case "clear":
+    })
+    .with("clear", async () => {
       await prisma.$connect()
       try {
         await clearSeedData()
       } finally {
         await prisma.$disconnect()
       }
-      break
-    default:
+    })
+    .otherwise(() => {
       console.log("❓ Available commands:")
       console.log("  seed  - Populate database with sample data (default)")
       console.log("  clear - Remove all sample data")
       console.log("\nUsage:")
       console.log("  bun run scripts/seed-dev.ts seed")
       console.log("  bun run scripts/seed-dev.ts clear")
-      break
-  }
+    })
 }
 
 // Run if called directly
