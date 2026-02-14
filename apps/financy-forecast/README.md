@@ -34,43 +34,43 @@ forecasting.
 
 ### Core App Files
 
-| File                                                  | Purpose                                                           |
-| ----------------------------------------------------- | ----------------------------------------------------------------- |
-| [`app/layout.tsx`](app/layout.tsx)                    | Root layout with sidebar provider, Jotai provider, and font setup |
-| [`app/page.tsx`](app/page.tsx)                        | Entry point, redirects to `/dashboard`                            |
-| [`app/dashboard/page.tsx`](app/dashboard/page.tsx)    | Dashboard with financial matrix                                   |
-| [`app/current/edit/page.tsx`](app/current/edit/page.tsx) | Current balances edit page (`Suspense` + async data load)      |
-| [`app/forecast/page.tsx`](app/forecast/page.tsx)      | Forecast view with scenarios                                      |
-| [`app/settings/page.tsx`](app/settings/page.tsx)      | Settings page for recurring and scenario items                    |
-| [`app/global-error.tsx`](app/global-error.tsx)        | Global runtime error boundary                                     |
+| File                                                     | Purpose                                                           |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| [`app/layout.tsx`](app/layout.tsx)                       | Root layout with sidebar provider, Jotai provider, and font setup |
+| [`app/page.tsx`](app/page.tsx)                           | Entry point, redirects to `/dashboard`                            |
+| [`app/dashboard/page.tsx`](app/dashboard/page.tsx)       | Dashboard with financial matrix                                   |
+| [`app/current/edit/page.tsx`](app/current/edit/page.tsx) | Current balances edit page (`Suspense` + async data load)         |
+| [`app/forecast/page.tsx`](app/forecast/page.tsx)         | Forecast view with scenarios                                      |
+| [`app/settings/page.tsx`](app/settings/page.tsx)         | Settings page for recurring and scenario items                    |
+| [`app/global-error.tsx`](app/global-error.tsx)           | Global runtime error boundary                                     |
 
 ### Server Actions & Data Layer
 
-| File                               | Purpose                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------- |
-| [`lib/actions.ts`](lib/actions.ts) | Server Actions for forecast, snapshot approval, and saving current balances     |
-| [`lib/data.ts`](lib/data.ts)       | Data shaping for Matrix, Forecast, and Current Edit views                       |
-| [`lib/db.ts`](lib/db.ts)           | Raw SQL data access incl. transactional updates for account current balances     |
+| File                               | Purpose                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| [`lib/actions.ts`](lib/actions.ts) | Server Actions for forecast, snapshot approval, and saving current balances       |
+| [`lib/data.ts`](lib/data.ts)       | Data shaping for Matrix, Forecast, and Current Edit views                         |
+| [`lib/db.ts`](lib/db.ts)           | Raw SQL data access incl. transactional updates for account current balances      |
 | [`lib/schemas.ts`](lib/schemas.ts) | Zod schemas for validation and DB-result parsing (`Account` includes `updatedAt`) |
-| [`lib/types.ts`](lib/types.ts)     | Additional UI-facing TypeScript interfaces (incl. `CurrentEditData`)            |
+| [`lib/types.ts`](lib/types.ts)     | Additional UI-facing TypeScript interfaces (incl. `CurrentEditData`)              |
 
 ### Domain Logic
 
-| File                                                     | Purpose                                                           |
-| -------------------------------------------------------- | ----------------------------------------------------------------- |
-| [`domain/currentBalances.ts`](domain/currentBalances.ts) | Parsing localized numeric inputs and computing snapshot deltas     |
-| [`domain/snapshots.ts`](domain/snapshots.ts)             | Snapshot date rules and total-balance calculation helpers          |
-| [`domain/approveErrors.ts`](domain/approveErrors.ts)     | Domain errors for snapshot approval constraints                    |
+| File                                                     | Purpose                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| [`domain/currentBalances.ts`](domain/currentBalances.ts) | Parsing localized numeric inputs and computing snapshot deltas |
+| [`domain/snapshots.ts`](domain/snapshots.ts)             | Snapshot date rules and total-balance calculation helpers      |
+| [`domain/approveErrors.ts`](domain/approveErrors.ts)     | Domain errors for snapshot approval constraints                |
 
 ### Components
 
-| File                                                       | Purpose                                                                   |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [`components/matrix.tsx`](components/matrix.tsx)           | Financial matrix display, snapshot approval trigger, link to current edit |
-| [`components/current-edit.tsx`](components/current-edit.tsx) | Form for editing current balances with live deltas and error feedback   |
-| [`components/forecast.tsx`](components/forecast.tsx)       | Forecast form with timeline                                                |
-| [`components/format.ts`](components/format.ts)             | Shared EUR and delta formatting helpers                                   |
-| [`components/app-sidebar.tsx`](components/app-sidebar.tsx) | App navigation sidebar                                                     |
+| File                                                         | Purpose                                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [`components/matrix.tsx`](components/matrix.tsx)             | Financial matrix display, snapshot approval trigger, link to current edit |
+| [`components/current-edit.tsx`](components/current-edit.tsx) | Form for editing current balances with live deltas and error feedback     |
+| [`components/forecast.tsx`](components/forecast.tsx)         | Forecast form with timeline                                               |
+| [`components/format.ts`](components/format.ts)               | Shared EUR and delta formatting helpers                                   |
+| [`components/app-sidebar.tsx`](components/app-sidebar.tsx)   | App navigation sidebar                                                    |
 
 ---
 
