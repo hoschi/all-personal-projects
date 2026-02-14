@@ -1,32 +1,44 @@
-import { useEffect, useRef, useState } from "react"
+import { INPUT_DEBOUNCE_MS } from "@/constants"
+import { useEffect, useState } from "react"
 
-export function useDebouncedSearchParam<TValue>(
-  searchValue: TValue,
-  onDebouncedChange: (value: TValue) => void,
-  debounceMs: number,
-) {
-  const [localValue, setLocalValue] = useState(searchValue)
-  const onDebouncedChangeRef = useRef(onDebouncedChange)
+type RouteSearchApi<TSearch extends Record<string, string>> = {
+  useSearch: () => TSearch
+  useNavigate: () => (options: { replace: true; search: TSearch }) => void
+}
 
-  useEffect(() => {
-    onDebouncedChangeRef.current = onDebouncedChange
-  }, [onDebouncedChange])
+export function createUseDebouncedSearchParam<
+  TSearch extends Record<string, string>,
+>(route: RouteSearchApi<TSearch>, defaultDebounceMs = INPUT_DEBOUNCE_MS) {
+  return function useDebouncedSearchParam<TKey extends keyof TSearch & string>(
+    searchKey: TKey,
+    debounceMs = defaultDebounceMs,
+  ) {
+    const navigate = route.useNavigate()
+    const search = route.useSearch()
+    const searchValue = search[searchKey]
+    const [localValue, setLocalValue] = useState(searchValue)
 
-  useEffect(() => {
-    setLocalValue(searchValue)
-  }, [searchValue])
+    useEffect(() => {
+      setLocalValue(searchValue)
+    }, [searchValue])
 
-  useEffect(() => {
-    if (localValue === searchValue) {
-      return
-    }
+    useEffect(() => {
+      if (localValue === searchValue) {
+        return
+      }
 
-    const timer = setTimeout(() => {
-      onDebouncedChangeRef.current(localValue)
-    }, debounceMs)
+      const timer = setTimeout(() => {
+        const nextSearch = { ...search }
+        nextSearch[searchKey] = localValue
+        navigate({
+          replace: true,
+          search: nextSearch,
+        })
+      }, debounceMs)
 
-    return () => clearTimeout(timer)
-  }, [debounceMs, localValue, searchValue])
+      return () => clearTimeout(timer)
+    }, [debounceMs, localValue, navigate, search, searchKey, searchValue])
 
-  return [localValue, setLocalValue] as const
+    return [localValue, setLocalValue] as const
+  }
 }

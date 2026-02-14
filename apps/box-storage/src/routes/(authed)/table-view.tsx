@@ -22,7 +22,8 @@ import {
   inventorySortDirectionSchema,
   inventoryStatusFilterWithAllSchema,
 } from "@/data/inventory-query"
-import { useDebouncedSearchParam } from "@/hooks/use-debounced-search-param"
+import { createUseDebouncedSearchParam } from "@/hooks/use-debounced-search-param"
+import { SelectOption } from "@/types"
 import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { match } from "ts-pattern"
@@ -48,13 +49,6 @@ export const defaultSearch: Search = {
   statusFilter: inventoryAllStatusFilter,
   sortBy: defaultInventorySortBy,
   sortDirection: defaultInventorySortDirection,
-}
-
-const INPUT_DEBOUNCE_MS = 300
-
-type SelectOption<TValue extends string> = {
-  value: TValue
-  label: string
 }
 
 const statusOptions: ReadonlyArray<SelectOption<Search["statusFilter"]>> = [
@@ -102,6 +96,7 @@ export const Route = createFileRoute("/(authed)/table-view")({
     return { items, userId: context.userId }
   },
 })
+const useDebouncedSearchParam = createUseDebouncedSearchParam(Route)
 
 function RouteComponent() {
   const router = useRouter()
@@ -126,17 +121,10 @@ function RouteComponent() {
     })
   }
 
-  const [localSearchText, setLocalSearchText] = useDebouncedSearchParam(
-    search.searchText,
-    (nextSearchText) => updateSearch({ searchText: nextSearchText }),
-    INPUT_DEBOUNCE_MS,
-  )
-  const [localLocationFilter, setLocalLocationFilter] = useDebouncedSearchParam(
-    search.locationFilter,
-    (nextLocationFilter) =>
-      updateSearch({ locationFilter: nextLocationFilter }),
-    INPUT_DEBOUNCE_MS,
-  )
+  const [localSearchText, setLocalSearchText] =
+    useDebouncedSearchParam("searchText")
+  const [localLocationFilter, setLocalLocationFilter] =
+    useDebouncedSearchParam("locationFilter")
 
   return (
     <div className="space-y-6 mt-2">
