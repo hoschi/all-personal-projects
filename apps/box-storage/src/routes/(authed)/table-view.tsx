@@ -22,6 +22,7 @@ import {
   inventorySortDirectionSchema,
   inventoryStatusFilterWithAllSchema,
 } from "@/data/inventory-query"
+import { useDebouncedSearchParam } from "@/hooks/use-debounced-search-param"
 import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
@@ -70,39 +71,6 @@ const sortByOptions: ReadonlyArray<SelectOption<Search["sortBy"]>> = [
   { value: "location", label: "Sortieren: Ort" },
   { value: "status", label: "Sortieren: Status" },
 ]
-
-type DebouncedSearchKey = "searchText" | "locationFilter"
-
-function useDebouncedSearchParam(
-  localValue: string,
-  searchKey: DebouncedSearchKey,
-  navigate: (options: {
-    replace: true
-    search: (prev: Search) => Search
-  }) => void,
-  debounceMs: number,
-) {
-  const search = Route.useSearch()
-  const searchValue = search[searchKey]
-
-  useEffect(() => {
-    if (localValue === searchValue) {
-      return
-    }
-
-    const timer = setTimeout(() => {
-      navigate({
-        replace: true,
-        search: (prev) => ({
-          ...prev,
-          [searchKey]: localValue,
-        }),
-      })
-    }, debounceMs)
-
-    return () => clearTimeout(timer)
-  }, [debounceMs, localValue, navigate, searchKey, searchValue])
-}
 
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
@@ -173,14 +141,15 @@ function RouteComponent() {
 
   useDebouncedSearchParam(
     localSearchText,
-    "searchText",
-    navigate,
+    search.searchText,
+    (nextSearchText) => updateSearch({ searchText: nextSearchText }),
     INPUT_DEBOUNCE_MS,
   )
   useDebouncedSearchParam(
     localLocationFilter,
-    "locationFilter",
-    navigate,
+    search.locationFilter,
+    (nextLocationFilter) =>
+      updateSearch({ locationFilter: nextLocationFilter }),
     INPUT_DEBOUNCE_MS,
   )
 
