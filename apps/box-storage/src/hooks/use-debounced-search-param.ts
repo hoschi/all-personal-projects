@@ -9,10 +9,10 @@ type RouteSearchApi<TSearch extends Record<string, string>> = {
 export function createUseDebouncedSearchParam<
   TSearch extends Record<string, string>,
 >(route: RouteSearchApi<TSearch>, defaultDebounceMs = INPUT_DEBOUNCE_MS) {
-  return function useDebouncedSearchParam<TKey extends keyof TSearch & string>(
-    searchKey: TKey,
-    debounceMs = defaultDebounceMs,
-  ) {
+  return function useDebouncedSearchParam<
+    TCurrentSearch extends TSearch,
+    TKey extends keyof TCurrentSearch & string = keyof TCurrentSearch & string,
+  >(searchKey: TKey, debounceMs = defaultDebounceMs) {
     const navigate = route.useNavigate()
     const search = route.useSearch()
     const searchValue = search[searchKey]
