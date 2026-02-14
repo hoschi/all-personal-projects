@@ -303,7 +303,7 @@ function RouteComponent() {
                 <TableHead>Gegenstand</TableHead>
                 <TableHead>Lagerort</TableHead>
                 <TableHead>Besitzer</TableHead>
-                <TableHead className="text-center">In Bewegung</TableHead>
+                <TableHead className="text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
