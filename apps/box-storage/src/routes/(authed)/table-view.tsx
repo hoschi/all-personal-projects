@@ -25,7 +25,6 @@ import {
 import { useDebouncedSearchParam } from "@/hooks/use-debounced-search-param"
 import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
 import { match } from "ts-pattern"
 import { z } from "zod"
 
@@ -109,10 +108,6 @@ function RouteComponent() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { items, userId } = Route.useLoaderData()
   const search = Route.useSearch()
-  const [localSearchText, setLocalSearchText] = useState(search.searchText)
-  const [localLocationFilter, setLocalLocationFilter] = useState(
-    search.locationFilter,
-  )
 
   const toggleInMotion = async (item: Pick<InventoryListItem, "id">) => {
     console.log(`## updating item: ${item.id}`)
@@ -131,22 +126,12 @@ function RouteComponent() {
     })
   }
 
-  useEffect(() => {
-    setLocalSearchText(search.searchText)
-  }, [search.searchText])
-
-  useEffect(() => {
-    setLocalLocationFilter(search.locationFilter)
-  }, [search.locationFilter])
-
-  useDebouncedSearchParam(
-    localSearchText,
+  const [localSearchText, setLocalSearchText] = useDebouncedSearchParam(
     search.searchText,
     (nextSearchText) => updateSearch({ searchText: nextSearchText }),
     INPUT_DEBOUNCE_MS,
   )
-  useDebouncedSearchParam(
-    localLocationFilter,
+  const [localLocationFilter, setLocalLocationFilter] = useDebouncedSearchParam(
     search.locationFilter,
     (nextLocationFilter) =>
       updateSearch({ locationFilter: nextLocationFilter }),

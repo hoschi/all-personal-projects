@@ -1,16 +1,20 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export function useDebouncedSearchParam<TValue>(
-  localValue: TValue,
   searchValue: TValue,
   onDebouncedChange: (value: TValue) => void,
   debounceMs: number,
 ) {
+  const [localValue, setLocalValue] = useState(searchValue)
   const onDebouncedChangeRef = useRef(onDebouncedChange)
 
   useEffect(() => {
     onDebouncedChangeRef.current = onDebouncedChange
   }, [onDebouncedChange])
+
+  useEffect(() => {
+    setLocalValue(searchValue)
+  }, [searchValue])
 
   useEffect(() => {
     if (localValue === searchValue) {
@@ -23,4 +27,6 @@ export function useDebouncedSearchParam<TValue>(
 
     return () => clearTimeout(timer)
   }, [debounceMs, localValue, searchValue])
+
+  return [localValue, setLocalValue] as const
 }
