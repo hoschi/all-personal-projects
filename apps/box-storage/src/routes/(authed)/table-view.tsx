@@ -150,14 +150,13 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.statusFilter}
               onChange={(event) => {
-                const value = event.currentTarget.value
-                const nextOption = statusOptions.find(
-                  (option) => option.value === value,
+                const parsed = inventoryStatusFilterWithAllSchema.safeParse(
+                  event.currentTarget.value,
                 )
-                if (!nextOption) {
+                if (!parsed.success) {
                   return
                 }
-                updateSearch({ statusFilter: nextOption.value })
+                updateSearch({ statusFilter: parsed.data })
               }}
             >
               {statusOptions.map((option) => (
@@ -171,14 +170,13 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortBy}
               onChange={(event) => {
-                const value = event.currentTarget.value
-                const nextOption = sortByOptions.find(
-                  (option) => option.value === value,
+                const parsed = inventorySortBySchema.safeParse(
+                  event.currentTarget.value,
                 )
-                if (!nextOption) {
+                if (!parsed.success) {
                   return
                 }
-                updateSearch({ sortBy: nextOption.value })
+                updateSearch({ sortBy: parsed.data })
               }}
             >
               {sortByOptions.map((option) => (
