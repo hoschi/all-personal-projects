@@ -9,13 +9,13 @@
 
 ## AI ref
 
-Im Ordner `tmp/ai-ref` müssen folgende Dateien sein:
+Im Ordner `ai-ref` müssen folgende Dateien sein:
 
 - `nextjs-llms-full.txt` enthält die komplette Dokumentation für Next.js v16.
 - `effect-llms-full.txt` enthält die komplette Dokumentation zu Effect
 - `tan-stack-llms.txt` enthält Links zur TanStack-Dokumentation für aktuelle und detailliertere Informationen.
 - `ts-pattern-README.md` enthält die wichtigsten Dokumentations- und API-Beispiele für die ts-pattern Bibliothek.
-- Führe `bun run packages/tools/src/fetch-ai-docs.ts` aus, um die Dateien nach `tmp/ai-ref` zu laden.
+- Führe `bun run packages/tools/src/fetch-ai-docs.ts` aus, um die Dateien nach `ai-ref` zu laden.
 
 Lies diese Dateien, wenn sie für die aktuelle Aufgabe sinnvoll sind oder du Probleme hast mit Dingen, die hier thematisiert werden. Aktuelle Dokumentation zu bekommen ist WICHTIG, da deine Trainingsdaten veraltet sein können.
 
