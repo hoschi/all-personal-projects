@@ -22,10 +22,13 @@ import {
   inventorySortDirectionSchema,
   inventoryStatusFilterWithAllSchema,
 } from "@/data/inventory-query"
-import { createUseDebouncedSearchParam } from "@/hooks/use-debounced-search-param"
+import {
+  createUseDebouncedSearchParam,
+  createUseUpdateSearch,
+} from "@/hooks/use-debounced-search-param"
 import { SelectOption } from "@/types"
 import { ArrowUp, RotateCcw } from "lucide-react"
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
+import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { match } from "ts-pattern"
 import { z } from "zod"
 
@@ -97,28 +100,19 @@ export const Route = createFileRoute("/(authed)/table-view")({
   },
 })
 const useDebouncedSearchParam = createUseDebouncedSearchParam(Route)
+const useUpdateSearch = createUseUpdateSearch(Route)
 
 function RouteComponent() {
   const router = useRouter()
-  const navigate = useNavigate({ from: Route.fullPath })
   const { items, userId } = Route.useLoaderData()
   const search = Route.useSearch()
+  const { updateSearch } = useUpdateSearch()
 
   const toggleInMotion = async (item: Pick<InventoryListItem, "id">) => {
     console.log(`## updating item: ${item.id}`)
     await toggleItemInMotionFn({ data: { itemId: item.id } })
     router.invalidate()
     console.log(`## item: ${item.id} updated`)
-  }
-
-  const updateSearch = (partial: Partial<Search>) => {
-    navigate({
-      replace: true,
-      search: (prev) => ({
-        ...prev,
-        ...partial,
-      }),
-    })
   }
 
   const [localSearchText, setLocalSearchText] =
@@ -235,10 +229,7 @@ function RouteComponent() {
               onClick={() => {
                 setLocalSearchText(defaultSearch.searchText)
                 setLocalLocationFilter(defaultSearch.locationFilter)
-                navigate({
-                  replace: true,
-                  search: defaultSearch,
-                })
+                updateSearch(defaultSearch)
               }}
             >
               <RotateCcw size={16} />

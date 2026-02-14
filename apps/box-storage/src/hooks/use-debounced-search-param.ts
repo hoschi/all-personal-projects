@@ -6,14 +6,47 @@ type RouteSearchApi<TSearch extends Record<string, string>> = {
   useNavigate: () => (options: { replace: true; search: TSearch }) => void
 }
 
+export function createUseUpdateSearch<TSearch extends Record<string, string>>(
+  route: RouteSearchApi<TSearch>,
+) {
+  return function useUpdateSearch() {
+    const navigate = route.useNavigate()
+    const search = route.useSearch()
+
+    const updateSearch = (partial: Partial<TSearch>) => {
+      const nextSearch = { ...search, ...partial }
+      navigate({
+        replace: true,
+        search: nextSearch,
+      })
+    }
+
+    const updateSearchKey = <TKey extends keyof TSearch & string>(
+      key: TKey,
+      value: TSearch[TKey],
+    ) => {
+      const nextSearch = { ...search }
+      nextSearch[key] = value
+      navigate({
+        replace: true,
+        search: nextSearch,
+      })
+    }
+
+    return { updateSearch, updateSearchKey }
+  }
+}
+
 export function createUseDebouncedSearchParam<
   TSearch extends Record<string, string>,
 >(route: RouteSearchApi<TSearch>, defaultDebounceMs = INPUT_DEBOUNCE_MS) {
+  const useUpdateSearch = createUseUpdateSearch(route)
+
   return function useDebouncedSearchParam<
     TCurrentSearch extends TSearch,
     TKey extends keyof TCurrentSearch & string = keyof TCurrentSearch & string,
   >(searchKey: TKey, debounceMs = defaultDebounceMs) {
-    const navigate = route.useNavigate()
+    const { updateSearchKey } = useUpdateSearch()
     const search = route.useSearch()
     const searchValue = search[searchKey]
     const [localValue, setLocalValue] = useState(searchValue)
@@ -28,16 +61,11 @@ export function createUseDebouncedSearchParam<
       }
 
       const timer = setTimeout(() => {
-        const nextSearch = { ...search }
-        nextSearch[searchKey] = localValue
-        navigate({
-          replace: true,
-          search: nextSearch,
-        })
+        updateSearchKey(searchKey, localValue)
       }, debounceMs)
 
       return () => clearTimeout(timer)
-    }, [debounceMs, localValue, navigate, search, searchKey, searchValue])
+    }, [debounceMs, localValue, searchKey, searchValue, updateSearchKey])
 
     return [localValue, setLocalValue] as const
   }
