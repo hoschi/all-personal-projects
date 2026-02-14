@@ -37,6 +37,40 @@ const defaultSearch: Search = {
   sortDirection: "asc",
 }
 
+function isStatusFilter(value: string): value is Search["statusFilter"] {
+  switch (value) {
+    case "all":
+    case "in-motion":
+    case "mine":
+    case "free":
+    case "others":
+      return true
+    default:
+      return false
+  }
+}
+
+function isSortBy(value: string): value is Search["sortBy"] {
+  switch (value) {
+    case "name":
+    case "location":
+    case "status":
+      return true
+    default:
+      return false
+  }
+}
+
+function isSortDirection(value: string): value is Search["sortDirection"] {
+  switch (value) {
+    case "asc":
+    case "desc":
+      return true
+    default:
+      return false
+  }
+}
+
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
   ssr: false,
@@ -127,9 +161,11 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.statusFilter}
               onChange={(event) => {
-                updateSearch({
-                  statusFilter: event.target.value as Search["statusFilter"],
-                })
+                const value = event.target.value
+                if (!isStatusFilter(value)) {
+                  return
+                }
+                updateSearch({ statusFilter: value })
               }}
             >
               <option value="all">Alle Stati</option>
@@ -143,7 +179,11 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortBy}
               onChange={(event) => {
-                updateSearch({ sortBy: event.target.value as Search["sortBy"] })
+                const value = event.target.value
+                if (!isSortBy(value)) {
+                  return
+                }
+                updateSearch({ sortBy: value })
               }}
             >
               <option value="name">Sortieren: Name</option>
@@ -155,9 +195,11 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortDirection}
               onChange={(event) => {
-                updateSearch({
-                  sortDirection: event.target.value as Search["sortDirection"],
-                })
+                const value = event.target.value
+                if (!isSortDirection(value)) {
+                  return
+                }
+                updateSearch({ sortDirection: value })
               }}
             >
               <option value="asc">Aufsteigend</option>
