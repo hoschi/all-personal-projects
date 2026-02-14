@@ -7,6 +7,7 @@ Common tooling scripts for all workspaces.
 - `bun run init` - Initialize ESLint and TypeScript in the current workspace.
 - `bun run init-fresh-clone` - Link workspace bins, fetch AI docs into `tmp/`, and optionally run `bun install` (`-y`/`--yes` to skip the prompt).
 - `bun run fetch-ai-docs` - Download Next.js and ts-pattern docs into `tmp/` (gitignored).
+- `bun run sync-main-rules` - Sync `ai-assistants/main-rules.md` to `.roo/rules/main-rules.md` and `.kilocode/rules/main-rules.md`.
 - `bun run lint` - Run ESLint in this package.
 - `bun run fix` - Run ESLint with `--fix`, then format.
 - `bun run check-types` - Run TypeScript type checking (`tsc --noEmit`).
@@ -24,3 +25,9 @@ Common tooling scripts for all workspaces.
 - TypeScript config (`tsconfig.json`)
 
 Run `bun run init` to set up these files in a new workspace.
+
+## main-rules Sync
+
+- The file-sync logic lives in `src/sync-main-rules.ts`.
+- This script only handles content synchronization, no Git operations.
+- Git-specific orchestration (checking staged changes and `git add`) is handled in `.husky/pre-commit`.

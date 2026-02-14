@@ -66,6 +66,15 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Daily Work
 
+### main-rules Sync
+
+- `ai-assistants/main-rules.md` is the single source of truth.
+- A pre-commit hook syncs it to:
+  - `.roo/rules/main-rules.md`
+  - `.kilocode/rules/main-rules.md`
+- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the two target files automatically.
+- Manual sync is possible with: `bun run packages/tools/src/sync-main-rules.ts` or `cd packages/tools && bun run sync-main-rules`.
+
 ### Push data from prod over staging to dev
 
 See [packages/db/src/copy.ts](/packages/db/src/copy.ts) for the script that copies database data from production over staging to development. Run with: `cd packages/db && bun run copy`. See the [packages/db/README.md#data-copy-process](/packages/db/README.md#data-copy-process) for detailed information.
