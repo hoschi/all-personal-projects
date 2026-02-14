@@ -14,6 +14,14 @@ import {
   ListItemFilters,
   toggleItemInMotionFn,
 } from "@/data/actions"
+import {
+  defaultInventorySortBy,
+  defaultInventorySortDirection,
+  inventoryAllStatusFilter,
+  inventorySortBySchema,
+  inventorySortDirectionSchema,
+  inventoryStatusFilterWithAllSchema,
+} from "@/data/inventory-query"
 import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
@@ -23,11 +31,13 @@ import { z } from "zod"
 export const Search = z.object({
   searchText: z.string().catch(""),
   locationFilter: z.string().catch(""),
-  statusFilter: z
-    .enum(["all", "in-motion", "mine", "free", "others"])
-    .catch("all"),
-  sortBy: z.enum(["name", "location", "status"]).catch("name"),
-  sortDirection: z.enum(["asc", "desc"]).catch("asc"),
+  statusFilter: inventoryStatusFilterWithAllSchema.catch(
+    inventoryAllStatusFilter,
+  ),
+  sortBy: inventorySortBySchema.catch(defaultInventorySortBy),
+  sortDirection: inventorySortDirectionSchema.catch(
+    defaultInventorySortDirection,
+  ),
 })
 export type Search = z.infer<typeof Search>
 type InventoryListItem = Awaited<ReturnType<typeof getListItems>>[number]
@@ -35,24 +45,32 @@ type InventoryListItem = Awaited<ReturnType<typeof getListItems>>[number]
 export const defaultSearch: Search = {
   searchText: "",
   locationFilter: "",
-  statusFilter: "all",
-  sortBy: "name",
-  sortDirection: "asc",
+  statusFilter: inventoryAllStatusFilter,
+  sortBy: defaultInventorySortBy,
+  sortDirection: defaultInventorySortDirection,
 }
 
 const INPUT_DEBOUNCE_MS = 300
 
-function isStatusFilter(value: string): value is Search["statusFilter"] {
-  return match(value)
-    .with("all", "in-motion", "mine", "free", "others", () => true)
-    .otherwise(() => false)
-}
+const statusOptions = [
+  { value: inventoryAllStatusFilter, label: "Alle Stati" },
+  { value: "free", label: "Frei" },
+  { value: "mine", label: "In Bewegung (du)" },
+  { value: "others", label: "In Bewegung (andere)" },
+  { value: "in-motion", label: "In Bewegung (alle)" },
+] as const satisfies ReadonlyArray<{
+  value: Search["statusFilter"]
+  label: string
+}>
 
-function isSortBy(value: string): value is Search["sortBy"] {
-  return match(value)
-    .with("name", "location", "status", () => true)
-    .otherwise(() => false)
-}
+const sortByOptions = [
+  { value: "name", label: "Sortieren: Name" },
+  { value: "location", label: "Sortieren: Ort" },
+  { value: "status", label: "Sortieren: Status" },
+] as const satisfies ReadonlyArray<{
+  value: Search["sortBy"]
+  label: string
+}>
 
 export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
@@ -76,7 +94,7 @@ export const Route = createFileRoute("/(authed)/table-view")({
       locationFilter,
       sortBy,
       sortDirection,
-      ...(statusFilter === "all" ? {} : { statusFilter }),
+      ...(statusFilter === inventoryAllStatusFilter ? {} : { statusFilter }),
     }
 
     const items = await getListItems({
@@ -192,34 +210,38 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.statusFilter}
               onChange={(event) => {
-                const value = event.target.value
-                if (!isStatusFilter(value)) {
+                const nextOption =
+                  statusOptions[event.currentTarget.selectedIndex]
+                if (!nextOption) {
                   return
                 }
-                updateSearch({ statusFilter: value })
+                updateSearch({ statusFilter: nextOption.value })
               }}
             >
-              <option value="all">Alle Stati</option>
-              <option value="free">Frei</option>
-              <option value="mine">In Bewegung (du)</option>
-              <option value="others">In Bewegung (andere)</option>
-              <option value="in-motion">In Bewegung (alle)</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
 
             <select
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortBy}
               onChange={(event) => {
-                const value = event.target.value
-                if (!isSortBy(value)) {
+                const nextOption =
+                  sortByOptions[event.currentTarget.selectedIndex]
+                if (!nextOption) {
                   return
                 }
-                updateSearch({ sortBy: value })
+                updateSearch({ sortBy: nextOption.value })
               }}
             >
-              <option value="name">Sortieren: Name</option>
-              <option value="location">Sortieren: Ort</option>
-              <option value="status">Sortieren: Status</option>
+              {sortByOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
 
             <button

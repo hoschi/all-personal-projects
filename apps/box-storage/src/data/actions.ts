@@ -10,6 +10,13 @@ import {
   getStatusLabel,
   sortInventoryItems,
 } from "./list-items-utils"
+import {
+  defaultInventorySortBy,
+  defaultInventorySortDirection,
+  inventorySortBySchema,
+  inventorySortDirectionSchema,
+  inventoryStatusFilterSchema,
+} from "./inventory-query"
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -29,9 +36,9 @@ const filtersSchema = z
   .object({
     searchText: z.string().optional(),
     locationFilter: z.string().optional(),
-    statusFilter: z.enum(["in-motion", "mine", "free", "others"]).optional(),
-    sortBy: z.enum(["name", "location", "status"]).optional(),
-    sortDirection: z.enum(["asc", "desc"]).optional(),
+    statusFilter: inventoryStatusFilterSchema.optional(),
+    sortBy: inventorySortBySchema.optional(),
+    sortDirection: inventorySortDirectionSchema.optional(),
   })
   .optional()
 export type ListItemFilters = z.infer<typeof filtersSchema>
@@ -116,8 +123,8 @@ export const getListItems = createServerFn()
       searchText = "",
       locationFilter = "",
       statusFilter,
-      sortBy = "name",
-      sortDirection = "asc",
+      sortBy = defaultInventorySortBy,
+      sortDirection = defaultInventorySortDirection,
     } = filters
     const searchTerm = searchText.trim()
     const locationTerm = locationFilter.trim()

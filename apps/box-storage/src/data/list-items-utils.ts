@@ -1,8 +1,8 @@
 import { P, match } from "ts-pattern"
+import type { InventorySortBy, InventorySortDirection } from "./inventory-query"
 
 export type ListItemStatusKey = "free" | "mine" | "others"
-export type InventorySortBy = "name" | "location" | "status"
-export type InventorySortDirection = "asc" | "desc"
+export type { InventorySortBy, InventorySortDirection } from "./inventory-query"
 
 export type ListItemWithLocationRelations = {
   box: {
