@@ -12,7 +12,6 @@ import {
 import {
   getListItems,
   ListItemFilters,
-  ListItemStatusKey,
   toggleItemInMotionFn,
 } from "@/data/actions"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
@@ -91,18 +90,6 @@ function RouteComponent() {
         ...partial,
       }),
     })
-  }
-
-  const getStatusBadgeVariant = (statusKey: ListItemStatusKey) => {
-    if (statusKey === "mine") {
-      return "blue" as const
-    }
-
-    if (statusKey === "others") {
-      return "outline" as const
-    }
-
-    return "secondary" as const
   }
 
   return (
@@ -199,7 +186,6 @@ function RouteComponent() {
                 <TableHead>Gegenstand</TableHead>
                 <TableHead>Lagerort</TableHead>
                 <TableHead>Besitzer</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="text-center">In Bewegung</TableHead>
               </TableRow>
             </TableHeader>
@@ -223,11 +209,6 @@ function RouteComponent() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadgeVariant(item.statusKey)}>
-                      {item.statusLabel}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
                     <div className="flex justify-center">
                       <Switch
                         checked={item.inMotionUserId === userId}
@@ -241,7 +222,7 @@ function RouteComponent() {
               {items.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="py-8 text-center text-slate-500"
                   >
                     Keine Treffer für die aktuellen Filter.
