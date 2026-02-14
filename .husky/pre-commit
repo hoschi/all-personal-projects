@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+STAGED_SOURCE_FILE="$(git diff --cached --name-only -- ai-assistants/main-rules.md)"
+if [ -z "$STAGED_SOURCE_FILE" ]; then
+  exit 0
+fi
+
+bun run packages/tools/src/sync-main-rules.ts
+git add .roo/rules/main-rules.md .kilocode/rules/main-rules.md
