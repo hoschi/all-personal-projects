@@ -204,8 +204,10 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.statusFilter}
               onChange={(event) => {
-                const nextOption =
-                  statusOptions[event.currentTarget.selectedIndex]
+                const value = event.currentTarget.value
+                const nextOption = statusOptions.find(
+                  (option) => option.value === value,
+                )
                 if (!nextOption) {
                   return
                 }
@@ -223,8 +225,10 @@ function RouteComponent() {
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortBy}
               onChange={(event) => {
-                const nextOption =
-                  sortByOptions[event.currentTarget.selectedIndex]
+                const value = event.currentTarget.value
+                const nextOption = sortByOptions.find(
+                  (option) => option.value === value,
+                )
                 if (!nextOption) {
                   return
                 }

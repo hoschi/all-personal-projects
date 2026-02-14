@@ -44,62 +44,22 @@ export type SortableInventoryItem = {
 export function getLocationDisplay(
   item: ListItemWithLocationRelations,
 ): string {
-  const segments = match(item)
-    .with(
-      {
-        box: {
-          name: P.string,
-          furniture: P.union(
-            {
-              name: P.string,
-              room: P.union(
-                {
-                  name: P.string,
-                  floor: P.union({ name: P.string }, P.nullish),
-                },
-                P.nullish,
-              ),
-            },
-            P.nullish,
-          ),
-        },
-      },
-      ({ box }) => [
-        box.furniture?.room?.floor?.name,
-        box.furniture?.room?.name,
-        box.furniture?.name,
-        box.name,
-      ],
-    )
-    .with(
-      {
-        furniture: {
-          name: P.string,
-          room: P.union(
-            {
-              name: P.string,
-              floor: P.union({ name: P.string }, P.nullish),
-            },
-            P.nullish,
-          ),
-        },
-      },
-      ({ furniture }) => [
-        furniture.room?.floor?.name,
-        furniture.room?.name,
-        furniture.name,
-      ],
-    )
-    .with(
-      {
-        room: {
-          name: P.string,
-          floor: P.union({ name: P.string }, P.nullish),
-        },
-      },
-      ({ room }) => [room.floor?.name, room.name],
-    )
-    .otherwise(() => [])
+  const segments = item.box
+    ? [
+        item.box.furniture?.room?.floor?.name,
+        item.box.furniture?.room?.name,
+        item.box.furniture?.name,
+        item.box.name,
+      ]
+    : item.furniture
+      ? [
+          item.furniture.room?.floor?.name,
+          item.furniture.room?.name,
+          item.furniture.name,
+        ]
+      : item.room
+        ? [item.room.floor?.name, item.room.name]
+        : []
 
   return segments.filter(Boolean).join(" > ") || "Unknown"
 }
