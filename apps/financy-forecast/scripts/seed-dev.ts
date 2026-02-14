@@ -10,6 +10,7 @@
  */
 
 import { execSync } from "child_process"
+import { calculateAccountsTotalBalance } from "../domain/snapshots"
 
 // Load environment variables
 import * as dotenv from "dotenv"
@@ -144,12 +145,9 @@ function seedAssetSnapshots(): void {
   })
 
   monthlyBalances.forEach((month) => {
-    const totalLiquidity = Object.entries(month.balances)
-      .filter(
-        ([accountName]) =>
-          accountName !== "Comdirect Depot" && accountName !== "DAX ETF Fond",
-      )
-      .reduce((sum, [, balance]) => sum + balance, 0)
+    const totalLiquidity = calculateAccountsTotalBalance(
+      Object.values(month.balances),
+    )
 
     // Insert asset snapshot using PostgreSQL gen_random_uuid() and capture the ID
     const tempSnapshotId = execSync(

@@ -17,6 +17,10 @@ const DOCS = [
     url: "https://raw.githubusercontent.com/gvergnaud/ts-pattern/refs/heads/main/README.md",
     filename: "ts-pattern-README.md",
   },
+  {
+    url: "https://effect.website/llms-full.txt",
+    filename: "effect-llms-full.txt",
+  },
 ]
 
 mkdirSync(TMP_DIR, { recursive: true })

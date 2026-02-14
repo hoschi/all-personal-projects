@@ -3,11 +3,13 @@
 import { z } from "zod"
 import Debug from "debug"
 import { updateTag } from "next/cache"
-import { Option } from "effect"
+import { redirect } from "next/navigation"
+import { Either, Option } from "effect"
 import {
   approveCurrentBalancesAsSnapshot,
   changeSettings,
   getLatestAssetSnapshot,
+  updateAccountCurrentBalances,
   updateForcastScenario,
 } from "./db"
 import { saveForecastSchema, SaveForecastSchema } from "./schemas"
@@ -18,6 +20,7 @@ import {
   calculateNextSnapshotDate,
 } from "../domain/snapshots"
 import { SnapshotNotApprovableError } from "../domain/approveErrors"
+import { parseCurrentBalanceValue } from "../domain/currentBalances"
 
 // =============================================================================
 // TypeScript Interfaces
@@ -32,6 +35,38 @@ export interface ServerActionResult {
     updatedScenarios?: number
     variableCostsUpdated?: boolean
   }
+}
+
+const currentBalanceUpdateEntrySchema = z.object({
+  accountId: z.uuid(),
+  currentBalance: z.number().int(),
+})
+
+const saveCurrentBalancesSchema = z.object({
+  updates: z.array(currentBalanceUpdateEntrySchema).min(1),
+})
+
+function extractCurrentBalanceUpdates(formData: FormData): {
+  accountId: string
+  currentBalance: number
+}[] {
+  return Array.from(formData.entries())
+    .filter(([key]) => key.startsWith("balance:"))
+    .map(([key, value]) => {
+      if (typeof value !== "string") {
+        throw new Error("Invalid form payload: expected text values")
+      }
+
+      const parsedBalance = parseCurrentBalanceValue(value)
+      if (Either.isLeft(parsedBalance)) {
+        throw new Error(parsedBalance.left)
+      }
+
+      return {
+        accountId: key.replace("balance:", ""),
+        currentBalance: parsedBalance.right,
+      }
+    })
 }
 
 export async function handleApproveSnapshot(): Promise<void> {
@@ -107,8 +142,7 @@ export async function handleSaveForecastDirect(
     await updateForecastData(inputData)
     debug("Atomic forecast update completed successfully")
 
-    // 6. Invalidate cache to refresh UI with immediate effect
-    // Using updateTag for read-your-own-writes scenario
+    // 6. Invalidate cache to refresh UI
     updateTag("scenarios")
 
     return {
@@ -173,7 +207,7 @@ export async function handleUpdateScenarioIsActive(
     await updateForcastScenario({ id: scenarioId, isActive })
     debug("updateForcastScenario completed successfully")
 
-    // 2. Invalidate cache to refresh UI with immediate effect
+    // 2. Invalidate cache to refresh UI
     updateTag("scenarios")
 
     return {
@@ -211,4 +245,50 @@ export async function handleUpdateScenarioIsActive(
       error: "Failed to update scenario status. Please try again later.",
     }
   }
+}
+
+/**
+ * Saves current balances from form data where fields are submitted as `balance:<accountId>` in EUR.
+ */
+export async function handleSaveCurrentBalances(
+  _prevState: ServerActionResult | null,
+  formData: FormData,
+): Promise<ServerActionResult> {
+  const debug = Debug("app:action:handleSaveCurrentBalances")
+  debug("Received save current balances request")
+
+  try {
+    const updates = extractCurrentBalanceUpdates(formData)
+    const parsed = saveCurrentBalancesSchema.parse({ updates })
+    debug("Validated %d account balance updates", parsed.updates.length)
+
+    await updateAccountCurrentBalances(parsed.updates)
+    updateTag("accounts")
+  } catch (error) {
+    debug("Saving current balances failed: %O", error)
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: "Validation failed",
+        data: {
+          fieldErrors: error.flatten().fieldErrors,
+        },
+      }
+    }
+
+    if (error instanceof Error) {
+      return {
+        success: false,
+        error: error.message,
+      }
+    }
+
+    return {
+      success: false,
+      error: "Failed to save current balances. Please try again later.",
+    }
+  }
+
+  redirect("/dashboard")
 }

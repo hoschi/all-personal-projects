@@ -10,32 +10,16 @@ import { getMatrixData } from "@/lib/data"
 import { Option, Array as EffectArray } from "effect"
 import { isNone } from "effect/Option"
 import { format } from "date-fns"
-import { eurFormatter } from "./format"
+import { eurFormatter, formatDelta, getDeltaColorClass } from "./format"
 import { Button } from "./ui/button"
 import { MatrixData } from "@/lib/types"
 import { cacheTag } from "next/cache"
 import { handleApproveSnapshot } from "@/lib/actions"
+import Link from "next/link"
 import {
   NoAccountsAvailableError,
   SnapshotNotApprovableError,
 } from "@/domain/approveErrors"
-
-function formatDelta(delta: number | null): string {
-  if (delta === null) {
-    return "—"
-  }
-
-  const formatted = eurFormatter.format(delta / 100)
-  return delta > 0 ? `+${formatted}` : formatted
-}
-
-function getDeltaColorClass(delta: number | null): string {
-  if (delta === null || delta === 0) {
-    return "text-muted-foreground"
-  }
-
-  return delta > 0 ? "text-emerald-700" : "text-red-600"
-}
 
 export async function Matrix() {
   "use cache"
@@ -84,9 +68,27 @@ async function TableView({ data }: { data: MatrixData }) {
       <Table className="table-layout-fixed text-md">
         <TableHeader>
           <TableRow>
-            {header.map((dateStr) => (
-              <TableHead key={dateStr} className="w-[150px]">
-                {dateStr}
+            {header.map((dateStr, index) => (
+              <TableHead key={`${dateStr}-${index}`} className="w-[150px]">
+                <div className="flex items-center gap-1">
+                  <span>{dateStr}</span>
+                  {dateStr === "Current" ? (
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                    >
+                      <Link
+                        href="/current/edit"
+                        aria-label="Edit current balances"
+                        title="Edit current balances"
+                      >
+                        ✏️
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
               </TableHead>
             ))}
             <TableHead className="w-auto">Konten</TableHead>

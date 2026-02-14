@@ -46,6 +46,8 @@ export const accountSchema = z.object({
   category: accountCategorySchema,
   /** Current account balance in cents (Integer) for performance optimization */
   currentBalance: z.number().int(),
+  /** Last timestamp when current balance was changed */
+  updatedAt: z.date(),
 })
 
 export type Account = z.infer<typeof accountSchema>
@@ -60,7 +62,7 @@ export const assetSnapshotSchema = z.object({
   id: z.uuid(),
   /** Date of the snapshot (Always the 1st of the month) */
   date: z.date(),
-  /** Total liquidity in cents (Sum of all LIQUID accounts at snapshot time) */
+  /** Total liquidity in cents (Sum of all accounts at snapshot time) */
   totalLiquidity: z.number().int(),
 })
 

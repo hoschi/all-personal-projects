@@ -1,5 +1,6 @@
 import { test, expect, mock, beforeEach } from "bun:test"
 import {
+  calculateAccountsTotalBalance,
   calculateApprovable,
   calculateEarliestApprovalDate,
   calculateInitialSnapshotDate,
@@ -51,4 +52,9 @@ test("calculateInitialSnapshotDate - should return first day of previous month",
 test("calculateEarliestApprovalDate - should return plus two months", () => {
   const result = calculateEarliestApprovalDate(new Date(2025, 2, 1))
   expect(result).toEqual(new Date(2025, 4, 1))
+})
+
+test("calculateAccountsTotalBalance - should sum all account balances", () => {
+  const result = calculateAccountsTotalBalance([125000, 450000, 12500000])
+  expect(result).toBe(13075000)
 })

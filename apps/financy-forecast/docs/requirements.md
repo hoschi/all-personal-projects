@@ -83,9 +83,12 @@ Am Anfang existiert kein Snapshot. Man trägt die Werte vom letzten Tag des Vorm
 
 **Interaktion:**
 
-- **Klick auf "+":** Provisorischen Monat anlegen. Öffnet Dialog "Werte für `Monat` eingeben", falls aktuell kein provisorischer Monat existiert
-  - Kein Datumswähler (Logik: `Letzter Snapshot + 1 Monat`).
-  - Eingabefelder für alle Konten.
+- **Klick auf "Bleistift Emoji" neben `Current`:**
+  - Geht zu /current/edit Route
+  - Hier sieht der user einen Side-by-side view. Links read only die Daten vom letzten Snapshots, rechts Eingabefelder um die aktuellen Werte der Konten einzutragen.
+  - Außerdem wird das `upated-at` Datum angezeigt wann der Kontostand für das Konto das letzte mal aktualisiert wurde. Relative Datumsangabe, on hover absolutes Datum.
+  - Zusätzlich wird für jedes Konto die Differenz zum Snapshot angezeigt mit den gleichen Farben wie im Matrix View.
+  - Ein "Save" Button speichert die Daten und kehrt wieder zur Dashboard Route zurück.
 
 ### 3.2 Forecast Engine (Server-Side Logic)
 

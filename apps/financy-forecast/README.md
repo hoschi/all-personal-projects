@@ -1,11 +1,15 @@
 # Financy Forecast
 
-Financy Forecast is a Next.js-based personal finance tracking tool focused on liquidity, burn-rate monitoring, and interactive runway simulation.
+Financy Forecast is a Next.js-based personal finance tracking tool with a matrix
+view for account balances, snapshot approval workflow, and scenario-based
+forecasting.
 [Currently Buggy!](./bug.md)
 
 **Key Features:**
 
-- **Financial Matrix Dashboard** - Overview of accounts and balances
+- **Financial Matrix Dashboard** - Snapshot history, current balances, and monthly deltas
+- **Current Balance Edit Flow** - Side-by-side edit view vs. latest snapshot with live deltas
+- **Snapshot Approval** - Persist current balances as monthly snapshots
 - **Forecast Engine** - Scenario planning with timeline visualization
 - **Settings** - Management of recurring items and fixed costs
 
@@ -18,51 +22,62 @@ Financy Forecast is a Next.js-based personal finance tracking tool focused on li
 
 - **App Router** - File-based routing in `app/` directory
 - **Server Actions** - `'use server'` directive for form processing
-- **Server Components** - Default for all pages
-- **Server-side rendering** - Async data fetching
-- **Server-side redirects** - `redirect()` function
-- **Cache Tags & Revalidation** - `updateTag` for data refresh
+- **Server Components** - Default for pages and async data loading
+- **Cache Tags** - `updateTag` for read-your-own-writes cache invalidation
+- **Suspense boundaries** - Used for uncached async data in route segments
+- **Server-side redirects** - `redirect()` after successful mutations
 - **Turbopack** - `next dev --turbopack` for faster development
 - **React Compiler** - Babel plugin enabled in `next.config.ts`
 - **`cacheComponents`** - Enabled for component caching
-- **Full URL logging** - All fetches log complete URLs
 
 ## File Overview
 
 ### Core App Files
 
-| File                                               | Purpose                                                           |
-| -------------------------------------------------- | ----------------------------------------------------------------- |
-| [`app/layout.tsx`](app/layout.tsx)                 | Root layout with sidebar provider, Jotai provider, and font setup |
-| [`app/page.tsx`](app/page.tsx)                     | Entry point → redirects to `/dashboard`                           |
-| [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Dashboard with Financial Matrix                                   |
-| [`app/forecast/page.tsx`](app/forecast/page.tsx)   | Forecast view with scenarios                                      |
-| [`app/settings/page.tsx`](app/settings/page.tsx)   | Settings page for recurring and scenario items                    |
+| File                                                     | Purpose                                                           |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| [`app/layout.tsx`](app/layout.tsx)                       | Root layout with sidebar provider, Jotai provider, and font setup |
+| [`app/page.tsx`](app/page.tsx)                           | Entry point, redirects to `/dashboard`                            |
+| [`app/dashboard/page.tsx`](app/dashboard/page.tsx)       | Dashboard with financial matrix                                   |
+| [`app/current/edit/page.tsx`](app/current/edit/page.tsx) | Current balances edit page (`Suspense` + async data load)         |
+| [`app/forecast/page.tsx`](app/forecast/page.tsx)         | Forecast view with scenarios                                      |
+| [`app/settings/page.tsx`](app/settings/page.tsx)         | Settings page for recurring and scenario items                    |
+| [`app/global-error.tsx`](app/global-error.tsx)           | Global runtime error boundary                                     |
 
 ### Server Actions & Data Layer
 
-| File                               | Purpose                                                  |
-| ---------------------------------- | -------------------------------------------------------- |
-| [`lib/actions.ts`](lib/actions.ts) | Server Actions - orchestrates logic and data access      |
-| [`lib/data.ts`](lib/data.ts)       | Data processing logic (MatrixData, ForecastTimelineData) |
-| [`lib/db.ts`](lib/db.ts)           | Data access layer (raw SQL queries)                      |
-| [`lib/schemas.ts`](lib/schemas.ts) | Zod schemas for validation and data types                |
-| [`lib/types.ts`](lib/types.ts)     | Additional TypeScript interfaces beyond schemas          |
+| File                               | Purpose                                                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------- |
+| [`lib/actions.ts`](lib/actions.ts) | Server Actions for forecast, snapshot approval, and saving current balances       |
+| [`lib/data.ts`](lib/data.ts)       | Data shaping for Matrix, Forecast, and Current Edit views                         |
+| [`lib/db.ts`](lib/db.ts)           | Raw SQL data access incl. transactional updates for account current balances      |
+| [`lib/schemas.ts`](lib/schemas.ts) | Zod schemas for validation and DB-result parsing (`Account` includes `updatedAt`) |
+| [`lib/types.ts`](lib/types.ts)     | Additional UI-facing TypeScript interfaces (incl. `CurrentEditData`)              |
+
+### Domain Logic
+
+| File                                                     | Purpose                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| [`domain/currentBalances.ts`](domain/currentBalances.ts) | Parsing localized numeric inputs and computing snapshot deltas |
+| [`domain/snapshots.ts`](domain/snapshots.ts)             | Snapshot date rules and total-balance calculation helpers      |
+| [`domain/approveErrors.ts`](domain/approveErrors.ts)     | Domain errors for snapshot approval constraints                |
 
 ### Components
 
-| File                                                       | Purpose                     |
-| ---------------------------------------------------------- | --------------------------- |
-| [`components/matrix.tsx`](components/matrix.tsx)           | Financial Matrix display    |
-| [`components/forecast.tsx`](components/forecast.tsx)       | Forecast form with timeline |
-| [`components/app-sidebar.tsx`](components/app-sidebar.tsx) | App navigation sidebar      |
+| File                                                         | Purpose                                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [`components/matrix.tsx`](components/matrix.tsx)             | Financial matrix display, snapshot approval trigger, link to current edit |
+| [`components/current-edit.tsx`](components/current-edit.tsx) | Form for editing current balances with live deltas and error feedback     |
+| [`components/forecast.tsx`](components/forecast.tsx)         | Forecast form with timeline                                               |
+| [`components/format.ts`](components/format.ts)               | Shared EUR and delta formatting helpers                                   |
+| [`components/app-sidebar.tsx`](components/app-sidebar.tsx)   | App navigation sidebar                                                    |
 
 ---
 
-## Disclaimer
+## Notes
 
-- Styling was only copied from AI-generated mockup and looks a bit wild in places, will stay like this for now, functional features are more important
-- Forms are missing and will remain so for simple things since I can do them directly in the DB
+- Styling is still intentionally secondary to functional correctness.
+- The app now includes form-based current-balance editing and validation in the UI.
 
 ## DB
 
@@ -97,11 +112,12 @@ bun run scripts/create-tables.ts drop
 
 **Sample data:**
 
-- **5 accounts:** 3 liquid (Sparkasse, ING DiBa, PayPal) + 2 retirement (Comdirect, DAX ETF)
+- **5 accounts:** liquid + retirement accounts with realistic balances
 - **6 months data:** July-December 2024 with realistic balance progressions
-- **15 Recurring Items:** Rent, salary, insurance, etc.
-- **9 Scenario Items:** Vacation, purchases, etc. (active/inactive)
-- **Settings:** Standard variable costs (1,200.00 €)
+- **15 recurring items:** Rent, salary, insurance, etc.
+- **9 scenario items:** Vacation, purchases, etc. (active/inactive)
+- **Settings:** Standard variable costs (1,200.00 EUR)
+- **Snapshots:** `totalLiquidity` is calculated as the sum over all account balances
 
 **Commands:**
 

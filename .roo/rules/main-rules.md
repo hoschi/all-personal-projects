@@ -12,6 +12,7 @@
 Im Ordner `tmp/ai-ref` müssen folgende Dateien sein:
 
 - `nextjs-llms-full.txt` enthält die komplette Dokumentation für Next.js v16.
+- `effect-llms-full.txt` enthält die komplette Dokumentation zu Effect
 - `tan-stack-llms.txt` enthält Links zur TanStack-Dokumentation für aktuelle und detailliertere Informationen.
 - `ts-pattern-README.md` enthält die wichtigsten Dokumentations- und API-Beispiele für die ts-pattern Bibliothek.
 - Führe `bun run packages/tools/src/fetch-ai-docs.ts` aus, um die Dateien nach `tmp/ai-ref` zu laden.
@@ -39,6 +40,58 @@ Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, be
 ```bash
 bunx shadcn@latest add button
 ```
+
+### React Compiler: Kein manuelles Memoizing
+
+- **Regel**: In React Components standardmäßig **kein** `useMemo` und **kein** `useCallback` verwenden.
+- **Begründung**: Der React Compiler übernimmt Optimierungen; unnötiges Memoizing erhöht Komplexität ohne Nutzen.
+- **Ausnahme**: Nur mit klarem Befehl vom Benutzer nachdem nach gefragt wurde!
+
+### Numerische Eingaben mit Komma
+
+- **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
+- **Lösung**: Immer globale Ersetzung (`replace(/,/g, ".")` oder `replaceAll(",", ".")`) vor `Number(...)` verwenden.
+
+## Next.js 16
+
+### Cache-Invalidation in Server Actions
+
+- **Read-your-own-writes**: In Server Actions bei Mutationen standardmäßig `updateTag(...)` verwenden.
+- **Keine sofortige Konsistenz nötig**: `revalidateTag(...)` nur für eventual consistency / stale-while-revalidate einsetzen.
+- **Kernzeilen aus `nextjs-llms-full.txt` (sinngemäß)**:
+  - `updateTag` ist speziell für Server Actions und read-your-own-writes (sofortige Expiration).
+  - `revalidateTag` unterstützt stale-while-revalidate (`"max"`) und ist für verzögerungstolerante Updates.
+  - Referenz: ca. Zeilen `4172-4219`, `2566-2594`, `23077-23081`.
+
+### Cache Components: Uncached Data
+
+- **Problem**: Seiten mit uncached Datenzugriff schlagen im Build fehl (`Uncached data was accessed outside of <Suspense>`).
+- **Lösung**: Uncached Data-Reads in eine async Unterkomponente auslagern und in `<Suspense>` rendern, statt direkt im Page-Root zu blockieren.
+- **Kernzeilen aus `nextjs-llms-full.txt` (sinngemäß)**:
+  - Wenn Arbeit beim Prerendern nicht abgeschlossen werden kann, muss sie explizit über `<Suspense>` auf Request-Time deferred werden.
+  - Ohne `<Suspense>` oder `use cache` entsteht der Fehler `Uncached data was accessed outside of <Suspense>`.
+  - Suspense-Grenzen möglichst nah an die betroffenen Komponenten setzen.
+  - Referenz: ca. Zeilen `2229`, `2275-2279`, `2377`, `18084`.
+
+### Server Action Fehlerbehandlung für Formulare
+
+- **Problem**: Unbehandelte Errors in Server Actions triggern Error Boundaries und geben dem Nutzer kein verwertbares Feedback.
+- **Lösung**: Erwartete Fehler als Rückgabewerte modellieren (`success/error/fieldErrors`) und mit `useActionState` im Formular anzeigen; nur unerwartete Fehler werfen.
+- **Pattern**: Business-Parsing/Validierung in Helper-Funktionen, UI-State/Anzeige im Client-Form-Component.
+- **Kernzeilen aus `nextjs-llms-full.txt` (sinngemäß)**:
+  - Für expected errors: nicht werfen, sondern als Return-Value modellieren.
+  - `useActionState` soll den Action-State im Formular anzeigen; Server-Action-Signatur erhält dabei `prevState` als ersten Parameter.
+  - Uncaught exceptions sind Bugs und sollen an Error Boundaries gehen.
+  - Referenz: ca. Zeilen `4368-4378`, `4418`, `4550`, `11530-11532`.
+
+### RSC Boundary: Date-Werte in Client Components
+
+- **Problem**: Date-Werte aus Server Components/DB können im Client als String ankommen und dann in `date-fns`-Formatierungen brechen.
+- **Lösung**: Date-Werte im Client am Boundary immer normalisieren (`new Date(value)` / `parseISO(value)`) oder bereits formatiert als String vom Server übergeben.
+- **Kernzeilen aus `nextjs-llms-full.txt` (sinngemäß)**:
+  - Props zwischen Server- und Client-Komponenten müssen serialisierbar sein.
+  - Bei gemischten Server/Client-Boundaries auf stabile Typen achten und bei Bedarf clientseitig deserialisieren.
+  - Referenz: ca. Zeilen `1528` (Props Server → Client), `1655-1657` (Passing data from Server to Client Components), `1704` (Props must be serializable).
 
 ## Clerk
 

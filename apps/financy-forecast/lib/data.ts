@@ -1,4 +1,5 @@
 import {
+  getBalanceDetailsBySnapshotId,
   getAccounts,
   getLatestAssetSnapshot,
   getRecurringItems,
@@ -11,13 +12,17 @@ import { format } from "date-fns"
 import {
   MatrixChangeCell,
   MatrixCell,
+  CurrentEditData,
   MatrixData,
   MatrixRow,
   ForecastTimelineData,
 } from "./types"
 import { last } from "ramda"
-import { sumAll } from "effect/Number"
-import { calculateApprovable } from "../domain/snapshots"
+import {
+  calculateAccountsTotalBalance,
+  calculateApprovable,
+} from "../domain/snapshots"
+import { calculateSnapshotDelta } from "../domain/currentBalances"
 
 function createMonthlyChangeCells(sumCells: MatrixCell[]): MatrixChangeCell[] {
   return sumCells.map((cell, index, cells) => ({
@@ -56,12 +61,16 @@ export async function getMatrixData(
   const sumCells: MatrixCell[] = details
     .map((detail) => ({
       id: `sum-${detail.snapshot.id}`,
-      amount: detail.snapshot.totalLiquidity,
+      amount: calculateAccountsTotalBalance(
+        Object.values(detail.accountBalances),
+      ),
     }))
     .concat([
       {
         id: "sum-current",
-        amount: sumAll(accounts.map((a) => a.currentBalance)),
+        amount: calculateAccountsTotalBalance(
+          accounts.map((a) => a.currentBalance),
+        ),
       },
     ])
   const changes = createMonthlyChangeCells(sumCells)
@@ -141,4 +150,41 @@ export async function getForecastData(): Promise<
     scenarios,
     lastSnapshotDate: snapshotData.date,
   })
+}
+
+export async function getCurrentEditData(): Promise<CurrentEditData> {
+  const [accounts, latestSnapshotResult] = await Promise.all([
+    getAccounts(),
+    getLatestAssetSnapshot(),
+  ])
+
+  let lastSnapshotDate: Date | null = null
+  const snapshotBalances: Record<string, number> = {}
+
+  if (Option.isSome(latestSnapshotResult)) {
+    const latestSnapshot = Option.getOrThrow(latestSnapshotResult)
+    lastSnapshotDate = latestSnapshot.date
+
+    const balanceDetails = await getBalanceDetailsBySnapshotId(
+      latestSnapshot.id,
+    )
+    for (const detail of balanceDetails) {
+      snapshotBalances[detail.accountId] = detail.amount
+    }
+  }
+
+  return {
+    lastSnapshotDate,
+    rows: accounts.map((account) => {
+      const snapshotBalance = snapshotBalances[account.id] ?? null
+      return {
+        id: account.id,
+        name: account.name,
+        currentBalance: account.currentBalance,
+        updatedAt: account.updatedAt,
+        snapshotBalance,
+        delta: calculateSnapshotDelta(account.currentBalance, snapshotBalance),
+      }
+    }),
+  }
 }
