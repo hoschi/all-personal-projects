@@ -93,6 +93,16 @@ bunx shadcn@latest add button
   - Bei gemischten Server/Client-Boundaries auf stabile Typen achten und bei Bedarf clientseitig deserialisieren.
   - Referenz: ca. Zeilen `1528` (Props Server → Client), `1655-1657` (Passing data from Server to Client Components), `1704` (Props must be serializable).
 
+## Clerk
+
+### `userId` bekommen in Komponenten
+
+- **Problem**: Man braucht die `userId` um diese mit geladenen Daten zu vergleichen, z.B. ob diese id der eigenen entspricht.
+- **Falsch**: `useUser` Hook von Clerk benutzen.
+- **Korrekt**: `userId` im `loader` vom `context` zurück geben.
+- **Lösung**: `useUser` braucht zwei Render Zyklen um einen Wert zu liefern, im ersten Zyklus ist die id _immer_ undefined. Die `userId` aus dem Router Kontext ist direkt da.
+- **Referenz-Implementierung**: [TableView](<apps/box-storage/src/routes/(authed)/table-view.tsx>)
+
 ## 🗄️ PostgreSQL-spezifische Erkenntnisse
 
 ### Schema-Parameter in URLs: PostgreSQL vs Prisma

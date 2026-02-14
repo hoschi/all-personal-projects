@@ -170,3 +170,18 @@ bun run scripts/seed-dev.ts clear
 ### Create .env file
 
 - Copy [.env.example](./.env.example) to `.env` and fill out Clerk credentials
+
+## Known Bugs
+
+### Clerk with client-side rendering
+
+The currently used Clerk version sometimes throws the following browser error: `Can't perform a React state update on a component that hasn't mounted yet. This indicates that you have a side-effect in your render function that asynchronously tries to update the component. Move this work to useEffect instead.` The error disappears if you remove `ssr:false` from the route. I think this happens because the Clerk `<->` TanStack integration is still in beta. Links on this topic were not helpful:
+
+- [Seit ich Clerk zu meiner Tanstack Start Applikation hinzugefügt habe, bekomme...](https://www.perplexity.ai/search/seit-ich-clerk-zu-meiner-tanst-LRONryPqRjCkkNrTpFzU0w)
+- [TanStack Router with Clerk · TanStack/router · Discussion #1119](https://github.com/TanStack/router/discussions/1119)
+- [Clerk integration broken on >= 1.70.2: useRouter must be used inside a <RouterProvider> component · Issue #2594 · TanStack/router](https://github.com/TanStack/router/issues/2594)
+- [Some server-side modules incorrectly bundled into the client? · Issue #5738 · TanStack/router](https://github.com/TanStack/router/issues/5738)
+- [@tanstack/react-start v1.134.7 causes import error with use-sync-external-store · Issue #5717 · TanStack/router](https://github.com/TanStack/router/issues/5717)
+- [clerk-tanstack-react-start-quickstart/src/routes/\\\_\\\_root.tsx at main · clerk/clerk-tanstack-react-start-quickstart](https://github.com/clerk/clerk-tanstack-react-start-quickstart/blob/main/src/routes/__root.tsx)
+
+In this repository, I changed the config so it matches the one used here, and the bug does not occur there. However, I copied how Clerk and Start are connected from that repo.
