@@ -4,6 +4,12 @@ import { z } from "zod"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "./prisma"
 import { authStateFn, getClerkUsername } from "@/lib/auth"
+import {
+  getLocationDisplay,
+  getStatusKey,
+  getStatusLabel,
+  sortInventoryItems,
+} from "./list-items-utils"
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -29,37 +35,7 @@ const filtersSchema = z
   })
   .optional()
 export type ListItemFilters = z.infer<typeof filtersSchema>
-export type ListItemStatusKey = "free" | "mine" | "others"
-
-type ListItemWithLocationRelations = {
-  box: {
-    name: string
-    furniture: {
-      name: string
-      room: {
-        name: string
-        floor: {
-          name: string
-        } | null
-      } | null
-    } | null
-  } | null
-  furniture: {
-    name: string
-    room: {
-      name: string
-      floor: {
-        name: string
-      } | null
-    } | null
-  } | null
-  room: {
-    name: string
-    floor: {
-      name: string
-    } | null
-  } | null
-}
+export type { ListItemStatusKey } from "./list-items-utils"
 
 const listItemsInclude = {
   box: {
@@ -108,87 +84,6 @@ const listItemsInclude = {
     },
   },
 } satisfies Prisma.ItemInclude
-
-export function getLocationDisplay(
-  item: ListItemWithLocationRelations,
-): string {
-  const segments = match(item)
-    .with(
-      {
-        box: {
-          name: P.string,
-          furniture: P.union(
-            {
-              name: P.string,
-              room: P.union(
-                {
-                  name: P.string,
-                  floor: P.union({ name: P.string }, P.nullish),
-                },
-                P.nullish,
-              ),
-            },
-            P.nullish,
-          ),
-        },
-      },
-      ({ box }) => [
-        box.furniture?.room?.floor?.name,
-        box.furniture?.room?.name,
-        box.furniture?.name,
-        box.name,
-      ],
-    )
-    .with(
-      {
-        furniture: {
-          name: P.string,
-          room: P.union(
-            {
-              name: P.string,
-              floor: P.union({ name: P.string }, P.nullish),
-            },
-            P.nullish,
-          ),
-        },
-      },
-      ({ furniture }) => [
-        furniture.room?.floor?.name,
-        furniture.room?.name,
-        furniture.name,
-      ],
-    )
-    .with(
-      {
-        room: {
-          name: P.string,
-          floor: P.union({ name: P.string }, P.nullish),
-        },
-      },
-      ({ room }) => [room.floor?.name, room.name],
-    )
-    .otherwise(() => [])
-
-  return segments.filter(Boolean).join(" > ") || "Unknown"
-}
-
-export function getStatusKey(
-  inMotionUserId: string | null,
-  userId: string,
-): ListItemStatusKey {
-  return match(inMotionUserId)
-    .with(P.nullish, () => "free" as const)
-    .with(userId, () => "mine" as const)
-    .otherwise(() => "others" as const)
-}
-
-export function getStatusLabel(statusKey: ListItemStatusKey): string {
-  return match(statusKey)
-    .with("free", () => "Free")
-    .with("mine", () => "In Motion (you)")
-    .with("others", () => "In Motion (others)")
-    .exhaustive()
-}
 
 const listItemsInputSchema = z.object({ filters: filtersSchema }).optional()
 const toggleItemSchema = z.object({ itemId: z.coerce.number() })
@@ -321,63 +216,7 @@ export const getListItems = createServerFn()
       }
     })
 
-    const statusRank: Record<ListItemStatusKey, number> = {
-      free: 0,
-      mine: 1,
-      others: 2,
-    }
-
-    const textSortOptions = { sensitivity: "base" as const }
-    const directionFactor = sortDirection === "desc" ? -1 : 1
-    const sortedItems = [...enrichedItems].sort((left, right) => {
-      const compareByName = left.name.localeCompare(
-        right.name,
-        undefined,
-        textSortOptions,
-      )
-      const compareById = left.id - right.id
-
-      return match(sortBy)
-        .with("name", () => {
-          if (compareByName !== 0) {
-            return compareByName * directionFactor
-          }
-          return compareById
-        })
-        .with("location", () => {
-          const locationCompare = left.locationDisplay.localeCompare(
-            right.locationDisplay,
-            undefined,
-            textSortOptions,
-          )
-          if (locationCompare !== 0) {
-            return locationCompare * directionFactor
-          }
-          if (compareByName !== 0) {
-            return compareByName
-          }
-          return compareById
-        })
-        .with("status", () => {
-          const statusCompare =
-            statusRank[left.statusKey] - statusRank[right.statusKey]
-          if (statusCompare !== 0) {
-            return statusCompare * directionFactor
-          }
-          if (compareByName !== 0) {
-            return compareByName
-          }
-          return compareById
-        })
-        .otherwise(() => {
-          if (compareByName !== 0) {
-            return compareByName * directionFactor
-          }
-          return compareById
-        })
-    })
-
-    return sortedItems
+    return sortInventoryItems(enrichedItems, sortBy, sortDirection)
   })
 
 export const getHierarchicalViewData = createServerFn().handler(async () => {
