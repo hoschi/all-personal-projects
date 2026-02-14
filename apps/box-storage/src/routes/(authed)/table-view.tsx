@@ -14,7 +14,9 @@ import {
   ListItemFilters,
   toggleItemInMotionFn,
 } from "@/data/actions"
+import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
+import { match } from "ts-pattern"
 import { z } from "zod"
 
 export const Search = z.object({
@@ -38,37 +40,15 @@ const defaultSearch: Search = {
 }
 
 function isStatusFilter(value: string): value is Search["statusFilter"] {
-  switch (value) {
-    case "all":
-    case "in-motion":
-    case "mine":
-    case "free":
-    case "others":
-      return true
-    default:
-      return false
-  }
+  return match(value)
+    .with("all", "in-motion", "mine", "free", "others", () => true)
+    .otherwise(() => false)
 }
 
 function isSortBy(value: string): value is Search["sortBy"] {
-  switch (value) {
-    case "name":
-    case "location":
-    case "status":
-      return true
-    default:
-      return false
-  }
-}
-
-function isSortDirection(value: string): value is Search["sortDirection"] {
-  switch (value) {
-    case "asc":
-    case "desc":
-      return true
-    default:
-      return false
-  }
+  return match(value)
+    .with("name", "location", "status", () => true)
+    .otherwise(() => false)
 }
 
 export const Route = createFileRoute("/(authed)/table-view")({
@@ -191,24 +171,44 @@ function RouteComponent() {
               <option value="status">Sortieren: Status</option>
             </select>
 
-            <select
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={search.sortDirection}
-              onChange={(event) => {
-                const value = event.target.value
-                if (!isSortDirection(value)) {
-                  return
-                }
-                updateSearch({ sortDirection: value })
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-50"
+              title={
+                search.sortDirection === "asc"
+                  ? "Sortierung: aufsteigend"
+                  : "Sortierung: absteigend"
+              }
+              aria-label={
+                search.sortDirection === "asc"
+                  ? "Sortierung aufsteigend"
+                  : "Sortierung absteigend"
+              }
+              onClick={() => {
+                updateSearch({
+                  sortDirection: match(search.sortDirection)
+                    .returnType<Search["sortDirection"]>()
+                    .with("asc", () => "desc")
+                    .with("desc", () => "asc")
+                    .exhaustive(),
+                })
               }}
             >
-              <option value="asc">Aufsteigend</option>
-              <option value="desc">Absteigend</option>
-            </select>
+              <ArrowUp
+                size={16}
+                className={match(search.sortDirection)
+                  .with("asc", () => "rotate-0")
+                  .with("desc", () => "rotate-180")
+                  .exhaustive()
+                  .concat(" transition-transform duration-200")}
+              />
+            </button>
 
             <button
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-50"
               type="button"
+              title="Filter zurücksetzen"
+              aria-label="Filter zurücksetzen"
               onClick={() => {
                 navigate({
                   replace: true,
@@ -216,7 +216,7 @@ function RouteComponent() {
                 })
               }}
             >
-              Zurücksetzen
+              <RotateCcw size={16} />
             </button>
           </div>
         </CardHeader>
