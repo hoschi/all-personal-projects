@@ -4,7 +4,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-15
 
 ## Active Technologies
 
-- TypeScript 5.x, Bun (not NPM, not Node), Prisma, Next.js 14+, React 19+, Tailwind CSS, ShadCN UI
+- TypeScript 5.x, Bun (not NPM, not Node), Prisma, Next.js 16+, React 19+, Tailwind CSS, ShadCN UI
 
 ## Commands
 
@@ -14,10 +14,6 @@ Use these commands at the top level to verify your changes:
 bun run check-types
 bun run lint
 ```
-
-## Tools
-
-- Use the effects-docs and context7 MCP Server to gather information about libraries
 
 ## Code Style
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
 import { spawnSync } from "child_process"
-import { dirname } from "path"
+import { existsSync } from "fs"
+import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { Command } from "commander"
 import { confirm } from "@inquirer/prompts"
@@ -12,7 +13,7 @@ const ROOT_DIR = dirname(dirname(dirname(dirname(SCRIPT_PATH))))
 const program = new Command()
   .name("init-fresh-clone")
   .description(
-    "Link workspace bins, fetch AI docs into ai-ref/, optionally run bun install.",
+    "Link bins, fetch AI docs, set up Husky hooks, and optionally run bun install.",
   )
   .option("-y, --yes", "Run bun install without prompting")
   .parse(process.argv)
@@ -29,6 +30,19 @@ function runCommand(command: string, commandArgs: string[]): void {
   if (result.status !== 0) {
     process.exit(result.status ?? 1)
   }
+}
+
+function setupHuskyHooks(): void {
+  console.log("Setting up Husky hooks...")
+
+  const localHuskyPackage = join(ROOT_DIR, "node_modules/husky/package.json")
+  if (existsSync(localHuskyPackage)) {
+    runCommand("bun", ["run", "prepare"])
+    return
+  }
+
+  // Fallback for cases where install is skipped but hooks should still be initialized.
+  runCommand("bunx", ["husky"])
 }
 
 async function askToRunInstall(): Promise<boolean> {
@@ -60,3 +74,5 @@ if (shouldInstall) {
 } else {
   console.log("Skipping bun install.")
 }
+
+setupHuskyHooks()

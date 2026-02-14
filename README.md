@@ -38,9 +38,10 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Init from fresh clone
 
-- run `bun run init-fresh-clone` to link workspace bins, fetch AI docs into `tmp/`, and optionally run `bun install` (`-y` to auto-confirm). This does:
+- run `bun run init-fresh-clone` to link workspace bins, fetch AI docs into `tmp/`, set up Husky hooks, and optionally run `bun install` (`-y` to auto-confirm). This does:
   - `bun run packages/tools/src/link-bins.ts` - Recreate workspace bin links (Bun workspace bin bug workaround).
   - `bun run packages/tools/src/fetch-ai-docs.ts` - Download Next.js and ts-pattern docs into `tmp/`.
+  - `bun run prepare` (or fallback `bunx husky`) - Initialize Git hooks in `.husky/`.
 - see `./packages/db/README.md`
 - copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
 - set up the git MCP server to match the [main-rules](/ai-assistants/main-rules.md) file, e.g. `.roo/mpc.json`:
@@ -65,6 +66,15 @@ This monorepo contains various personal projects including financial forecasting
 - `bun run initproject` - Initialize ESLint and TypeScript configuration
 
 ## Daily Work
+
+### main-rules Sync
+
+- `ai-assistants/main-rules.md` is the single source of truth.
+- A pre-commit hook syncs it to:
+  - `.roo/rules/main-rules.md`
+  - `.kilocode/rules/main-rules.md`
+- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the two target files automatically.
+- Manual sync is possible with: `bun run packages/tools/src/sync-main-rules.ts` or `cd packages/tools && bun run sync-main-rules`.
 
 ### Push data from prod over staging to dev
 
