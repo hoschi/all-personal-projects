@@ -18,6 +18,7 @@
     "build": "echo 'not implemented'",
     "init-fresh-clone": "bun run src/init-fresh-clone.ts",
     "fetch-ai-docs": "bun run src/fetch-ai-docs.ts",
+    "sync-main-rules": "bun run src/sync-main-rules.ts",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "fix": "bunx eslint --fix .; bun run format",
