@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -176,13 +176,8 @@ function RouteComponent() {
 
   return (
     <div className="space-y-6 mt-2">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold text-slate-900">Inventar</h1>
-      </div>
-
       <Card>
         <CardHeader className="flex flex-col gap-4">
-          <CardTitle>Gegenstände</CardTitle>
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             <input
               type="text"
