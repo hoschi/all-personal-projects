@@ -41,27 +41,42 @@ export type SortableInventoryItem = {
   statusKey: ListItemStatusKey
 }
 
+type FloorLocationNode = NonNullable<
+  NonNullable<ListItemWithLocationRelations["room"]>["floor"]
+>
+type RoomLocationNode = NonNullable<ListItemWithLocationRelations["room"]>
+type FurnitureLocationNode = NonNullable<
+  ListItemWithLocationRelations["furniture"]
+>
+type BoxLocationNode = NonNullable<ListItemWithLocationRelations["box"]>
+type LocationNode =
+  | FloorLocationNode
+  | RoomLocationNode
+  | FurnitureLocationNode
+  | BoxLocationNode
+
+function collectLocationSegments(node: LocationNode | null): string[] {
+  if (!node) {
+    return []
+  }
+
+  const childSegments = collectLocationSegments(
+    match(node)
+      .with({ furniture: P.nonNullable }, (item) => item.furniture)
+      .with({ room: P.nonNullable }, (item) => item.room)
+      .with({ floor: P.nonNullable }, (item) => item.floor)
+      .otherwise(() => null),
+  )
+  return [...childSegments, node.name]
+}
+
 export function getLocationDisplay(
   item: ListItemWithLocationRelations,
 ): string {
-  const segments = item.box
-    ? [
-        item.box.furniture?.room?.floor?.name,
-        item.box.furniture?.room?.name,
-        item.box.furniture?.name,
-        item.box.name,
-      ]
-    : item.furniture
-      ? [
-          item.furniture.room?.floor?.name,
-          item.furniture.room?.name,
-          item.furniture.name,
-        ]
-      : item.room
-        ? [item.room.floor?.name, item.room.name]
-        : []
+  const rootLocation = item.box ?? item.furniture ?? item.room
+  const segments = collectLocationSegments(rootLocation)
 
-  return segments.filter(Boolean).join(" > ") || "Unknown"
+  return segments.join(" > ") || "Unknown"
 }
 
 export function getStatusKey(

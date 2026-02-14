@@ -316,12 +316,6 @@ beforeEach(() => {
 - **Problem**: Wiederholter Mock-Daten-Code in Tests
 - **Lösung**: Factory Functions mit flexiblen Overrides verwenden
 
-### Hierarchie-Helper: Partial-Pfade mit testen
-
-- **Problem**: Nur "Happy Path"-Tests übersehen optionale Relationen (`null`-Zwischenknoten).
-- **Lösung**: Bei Hierarchie-Formatierung immer Full-Path + mindestens zwei Partial-Path-Fälle testen (z.B. room-only, box-without-furniture).
-- **Regel**: Optional-Chaining-Pfade dürfen nicht ungetestet bleiben.
-
 ### Date/Time Dependencies
 
 - **Problem**: Im Code wird `new Date()` verwendet, statt das util `now()`
@@ -412,8 +406,6 @@ function getStatusColor(status: OrderStatus) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 type OrderStatus = "draft" | "approved" | "rejected"
 
 function getStatusColor(status: OrderStatus) {
@@ -444,8 +436,6 @@ function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
   return match<[typeof role, boolean], string>([role, ownsProject])
     .with(["admin", true], () => "admin-owner")
@@ -475,8 +465,6 @@ try {
 Positives Beispiel:
 
 ```ts
-import { P, match } from "ts-pattern"
-
 class NotAuthenticatedError extends Error {}
 
 try {
@@ -552,8 +540,6 @@ Doku (Branch-Struktur): `ai-ref/ts-pattern-README.md:230`, `ai-ref/ts-pattern-RE
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const classes = match("sm" as "sm" | "md")
   .with("sm", () => "px-2 px-4 text-sm")
   .with("md", () => "px-4 text-base")
@@ -563,8 +549,6 @@ const classes = match("sm" as "sm" | "md")
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const classes = match("sm" as "sm" | "md")
   .with("sm", () => "px-2 text-sm")
   .with("md", () => "px-4 text-base")
@@ -572,26 +556,6 @@ const classes = match("sm" as "sm" | "md")
 ```
 
 ### donts
-
-#### Kein strukturelles `match` für reine Hierarchie-Projektion mit Optional-Chaining
-
-Wenn die Handler ohnehin `?.`-Zugriffe verwenden und nur Segmente zusammensetzen, ist `match` meist unnötig komplex. Dann direkte `if`-/ternary-Branches verwenden.
-
-Negatives Beispiel:
-
-```ts
-import { P, match } from "ts-pattern"
-
-const parts = match(item)
-  .with({ box: { name: P.string } }, ({ box }) => [box?.name])
-  .otherwise(() => [])
-```
-
-Positives Beispiel:
-
-```ts
-const parts = item.box ? [item.box.name] : []
-```
 
 #### Kein `match` nur als Guard mit Throw
 
@@ -601,8 +565,6 @@ Doku (wann `match` sinnvoll ist): `ai-ref/ts-pattern-README.md:209`, `ai-ref/ts-
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 match(locations.length)
   .with(1, () => undefined)
   .otherwise(() => {
@@ -625,8 +587,6 @@ Kein `match` für triviale Boolean-Auswahl wie `asChild ? Slot : "span"`.
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const Component = match(asChild)
   .with(true, () => Slot)
   .otherwise(() => "span")
@@ -645,8 +605,6 @@ Kein `match` für Node-Entry-Point Guards wie `require.main === module`; hier is
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 match(require.main === module)
   .with(true, () => startCli())
   .otherwise(() => undefined)
@@ -668,8 +626,6 @@ Doku (Tuples in einer Match-Struktur): `ai-ref/ts-pattern-README.md:143`, `ai-re
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getAction(state: "idle" | "loading", isDirty: boolean) {
   return match(state)
     .with("idle", () =>
@@ -685,8 +641,6 @@ function getAction(state: "idle" | "loading", isDirty: boolean) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getAction(state: "idle" | "loading", isDirty: boolean) {
   return match<[typeof state, boolean], string>([state, isDirty])
     .with(["idle", true], () => "save")
@@ -705,8 +659,6 @@ Doku: `ai-ref/ts-pattern-README.md:1318`.
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 try {
   throw new Error("MISSING_PERMISSION")
 } catch (error) {
@@ -720,8 +672,6 @@ try {
 Positives Beispiel:
 
 ```ts
-import { P, match } from "ts-pattern"
-
 class MissingPermissionError extends Error {}
 
 try {
@@ -759,8 +709,6 @@ function sanitizeTag(type: string): string {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function sanitizeTag(type: string): string {
   return match(type)
     .with("text", "span", "p", () => "text")
