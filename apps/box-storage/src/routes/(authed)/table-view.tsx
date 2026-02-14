@@ -16,6 +16,7 @@ import {
 } from "@/data/actions"
 import { ArrowUp, RotateCcw } from "lucide-react"
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
 import { match } from "ts-pattern"
 import { z } from "zod"
 
@@ -31,13 +32,15 @@ export const Search = z.object({
 export type Search = z.infer<typeof Search>
 type InventoryListItem = Awaited<ReturnType<typeof getListItems>>[number]
 
-const defaultSearch: Search = {
+export const defaultSearch: Search = {
   searchText: "",
   locationFilter: "",
   statusFilter: "all",
   sortBy: "name",
   sortDirection: "asc",
 }
+
+const INPUT_DEBOUNCE_MS = 300
 
 function isStatusFilter(value: string): value is Search["statusFilter"] {
   return match(value)
@@ -88,6 +91,10 @@ function RouteComponent() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { items, userId } = Route.useLoaderData()
   const search = Route.useSearch()
+  const [localSearchText, setLocalSearchText] = useState(search.searchText)
+  const [localLocationFilter, setLocalLocationFilter] = useState(
+    search.locationFilter,
+  )
 
   const toggleInMotion = async (item: Pick<InventoryListItem, "id">) => {
     console.log(`## updating item: ${item.id}`)
@@ -106,6 +113,50 @@ function RouteComponent() {
     })
   }
 
+  useEffect(() => {
+    setLocalSearchText(search.searchText)
+  }, [search.searchText])
+
+  useEffect(() => {
+    setLocalLocationFilter(search.locationFilter)
+  }, [search.locationFilter])
+
+  useEffect(() => {
+    if (localSearchText === search.searchText) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      navigate({
+        replace: true,
+        search: (prev) => ({
+          ...prev,
+          searchText: localSearchText,
+        }),
+      })
+    }, INPUT_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [localSearchText, navigate, search.searchText])
+
+  useEffect(() => {
+    if (localLocationFilter === search.locationFilter) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      navigate({
+        replace: true,
+        search: (prev) => ({
+          ...prev,
+          locationFilter: localLocationFilter,
+        }),
+      })
+    }, INPUT_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [localLocationFilter, navigate, search.locationFilter])
+
   return (
     <div className="space-y-6 mt-2">
       <div className="flex items-center justify-between gap-2">
@@ -120,18 +171,18 @@ function RouteComponent() {
               type="text"
               placeholder="Nach Name oder Beschreibung suchen..."
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={search.searchText}
+              value={localSearchText}
               onChange={(event) => {
-                updateSearch({ searchText: event.target.value })
+                setLocalSearchText(event.target.value)
               }}
             />
             <input
               type="text"
               placeholder="Nach Ort suchen..."
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
-              value={search.locationFilter}
+              value={localLocationFilter}
               onChange={(event) => {
-                updateSearch({ locationFilter: event.target.value })
+                setLocalLocationFilter(event.target.value)
               }}
             />
           </div>
@@ -210,6 +261,8 @@ function RouteComponent() {
               title="Filter zurücksetzen"
               aria-label="Filter zurücksetzen"
               onClick={() => {
+                setLocalSearchText(defaultSearch.searchText)
+                setLocalLocationFilter(defaultSearch.locationFilter)
                 navigate({
                   replace: true,
                   search: defaultSearch,
