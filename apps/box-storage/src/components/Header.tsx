@@ -33,7 +33,16 @@ export default function Header() {
       </span>
       <div className="flex gap-2 h-10 items-center">
         <Link to="/dashboard">Dashboard</Link>
-        <Link to="/table-view" search={{ onlyMine: false }}>
+        <Link
+          to="/table-view"
+          search={{
+            searchText: "",
+            locationFilter: "",
+            statusFilter: "all",
+            sortBy: "name",
+            sortDirection: "asc",
+          }}
+        >
           Items
         </Link>
         {/* Show the sign-in and sign-up buttons when the user is signed out */}

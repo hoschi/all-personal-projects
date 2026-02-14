@@ -5,12 +5,17 @@ import {
   toggleItemInMotionFn,
 } from "@/data/actions"
 import { Item } from "@/data/schema"
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
-import { match } from "ts-pattern"
+import { createFileRoute, useRouter } from "@tanstack/react-router"
 import { z } from "zod"
 
 export const Search = z.object({
-  onlyMine: z.boolean().catch(false),
+  searchText: z.string().catch(""),
+  locationFilter: z.string().catch(""),
+  statusFilter: z
+    .enum(["all", "in-motion", "mine", "free", "others"])
+    .catch("all"),
+  sortBy: z.enum(["name", "location", "status"]).catch("name"),
+  sortDirection: z.enum(["asc", "desc"]).catch("asc"),
 })
 export type Search = z.infer<typeof Search>
 
@@ -18,11 +23,26 @@ export const Route = createFileRoute("/(authed)/table-view")({
   component: RouteComponent,
   ssr: false,
   validateSearch: Search.parse,
-  loaderDeps: ({ search: { onlyMine } }) => ({ onlyMine }),
-  loader: async ({ deps: { onlyMine }, context }) => {
-    const filters: ListItemFilters = match(onlyMine)
-      .with(true, () => ({ statusFilter: "mine" as const }))
-      .otherwise(() => ({}))
+  loaderDeps: ({
+    search: { searchText, locationFilter, statusFilter, sortBy, sortDirection },
+  }) => ({
+    searchText,
+    locationFilter,
+    statusFilter,
+    sortBy,
+    sortDirection,
+  }),
+  loader: async ({
+    deps: { searchText, locationFilter, statusFilter, sortBy, sortDirection },
+    context,
+  }) => {
+    const filters: ListItemFilters = {
+      searchText,
+      locationFilter,
+      sortBy,
+      sortDirection,
+      ...(statusFilter === "all" ? {} : { statusFilter }),
+    }
 
     const items = await getListItems({
       data: { filters },
@@ -34,8 +54,6 @@ export const Route = createFileRoute("/(authed)/table-view")({
 function RouteComponent() {
   const router = useRouter()
   const { items, userId } = Route.useLoaderData()
-  const search = Route.useSearch()
-  const navigate = useNavigate({ from: Route.fullPath })
 
   const toggleInMotion = async (item: Item) => {
     console.log(`## updating item: ${item.id}`)
@@ -46,16 +64,6 @@ function RouteComponent() {
 
   return (
     <div>
-      <div>
-        <Switch
-          checked={search.onlyMine}
-          onCheckedChange={() => {
-            navigate({
-              search: { onlyMine: !search.onlyMine },
-            })
-          }}
-        />
-      </div>
       <div>
         {items.map((item) => (
           <div key={item.id} className="my-2 p-2 outline-amber-300 outline-1">
