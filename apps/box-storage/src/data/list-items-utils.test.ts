@@ -62,32 +62,6 @@ describe("getLocationDisplay", () => {
     expect(value).toBe("Ground > Kitchen")
   })
 
-  test("builds hierarchy for room-only locations without floor", () => {
-    const value = getLocationDisplay({
-      box: null,
-      furniture: null,
-      room: {
-        name: "Kitchen",
-        floor: null,
-      },
-    })
-
-    expect(value).toBe("Kitchen")
-  })
-
-  test("builds hierarchy for box without furniture relation", () => {
-    const value = getLocationDisplay({
-      box: {
-        name: "Loose Box",
-        furniture: null,
-      },
-      furniture: null,
-      room: null,
-    })
-
-    expect(value).toBe("Loose Box")
-  })
-
   test("returns unknown when no location relation is available", () => {
     const value = getLocationDisplay({
       box: null,

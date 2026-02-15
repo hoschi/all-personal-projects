@@ -219,6 +219,12 @@ CREATE TABLE settings (
 - **Lösung**: Erstelle prisma.config.ts im Projekt-Root mit korrektem defineConfig, siehe `apps/box-storage/prisma.config.ts`
 - **Erkenntnis**: Schema.prisma enthält nur provider und Models, keine URL
 
+### Prisma Typen-Konsistenz
+
+- **Regel**: Wenn Prisma im Projekt verwendet wird, nutze bevorzugt Prisma-generierte Typen (`Prisma.*`, `ModelGetPayload`, `ModelInclude`, `validator`) statt eigener manuell duplizierter Typdefinitionen.
+- **Ziel**: Bessere Konsistenz zwischen Query-Definitionen und Result-Shape, weniger Drift bei Schema-Änderungen.
+- **Ausnahme**: Manuelle Typen nur wenn bewusst vom Prisma-Schema abgewichen werden muss (z.B. UI-only View-Model), dann Abweichung kurz dokumentieren.
+
 ### Testing-Praktiken für Migrationen
 
 - **Problem**: Große Migrationen brauchen Validierung vor Ausführung

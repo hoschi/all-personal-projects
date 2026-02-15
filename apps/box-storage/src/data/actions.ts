@@ -10,6 +10,7 @@ import {
   getStatusLabel,
   sortInventoryItems,
 } from "./list-items-utils"
+import { listItemsInclude } from "./item-location-include"
 import {
   defaultInventorySortBy,
   defaultInventorySortDirection,
@@ -45,54 +46,6 @@ const filtersSchema = z
   .optional()
 export type ListItemFilters = z.infer<typeof filtersSchema>
 export type { ListItemStatusKey } from "./list-items-utils"
-
-const listItemsInclude = {
-  box: {
-    select: {
-      name: true,
-      furniture: {
-        select: {
-          name: true,
-          room: {
-            select: {
-              name: true,
-              floor: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  furniture: {
-    select: {
-      name: true,
-      room: {
-        select: {
-          name: true,
-          floor: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  },
-  room: {
-    select: {
-      name: true,
-      floor: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  },
-} satisfies Prisma.ItemInclude
 
 const listItemsInputSchema = z.object({ filters: filtersSchema }).optional()
 const toggleItemSchema = z.object({ itemId: z.coerce.number() })

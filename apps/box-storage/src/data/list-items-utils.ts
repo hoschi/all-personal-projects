@@ -1,39 +1,10 @@
 import { P, match } from "ts-pattern"
 import type { InventorySortBy, InventorySortDirection } from "./inventory-query"
+import type { ListItemWithLocationRelations } from "./item-location-include"
 
 export type ListItemStatusKey = "free" | "mine" | "others"
 export type { InventorySortBy, InventorySortDirection } from "./inventory-query"
 export type InventoryComputedSortBy = Exclude<InventorySortBy, "name">
-
-export type ListItemWithLocationRelations = {
-  box: {
-    name: string
-    furniture: {
-      name: string
-      room: {
-        name: string
-        floor: {
-          name: string
-        } | null
-      } | null
-    } | null
-  } | null
-  furniture: {
-    name: string
-    room: {
-      name: string
-      floor: {
-        name: string
-      } | null
-    } | null
-  } | null
-  room: {
-    name: string
-    floor: {
-      name: string
-    } | null
-  } | null
-}
 
 export type SortableInventoryItem = {
   id: number
