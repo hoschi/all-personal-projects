@@ -2,6 +2,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -129,29 +137,26 @@ function RouteComponent() {
   return (
     <div className="space-y-6 mt-2">
       <Card>
-        <CardHeader className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            <input
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
               type="text"
               placeholder="Nach Name oder Beschreibung suchen..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
+              className="w-full flex-1 basis-64 sm:w-auto"
               value={localSearchText}
               onChange={(event) => {
                 setLocalSearchText(event.target.value)
               }}
             />
-            <input
+            <Input
               type="text"
               placeholder="Nach Ort suchen..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-offset-white focus-visible:ring-2 focus-visible:ring-slate-300"
+              className="w-full flex-1 basis-56 sm:w-auto"
               value={localLocationFilter}
               onChange={(event) => {
                 setLocalLocationFilter(event.target.value)
               }}
             />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-700">In Bewegung:</span>
               <ButtonGroup>
@@ -167,37 +172,37 @@ function RouteComponent() {
                           ? "default"
                           : "outline"
                       }
-                      size="sm"
                       aria-pressed={search.statusFilter === option.value}
                       onClick={() => {
                         updateSearch({ statusFilter: option.value })
                       }}
                     >
-                      {Icon ? <Icon className="size-4" /> : null}
-                      {option.label}
+                      {Icon ? <Icon className="size-4" /> : option.label}
                     </Button>
                   )
                 })}
               </ButtonGroup>
             </div>
 
-            <select
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            <Select
               value={search.sortBy}
-              onChange={(event) =>
+              onValueChange={(value) =>
                 updateSearch({
-                  sortBy: inventorySortBySchema.parse(
-                    event.currentTarget.value,
-                  ),
+                  sortBy: inventorySortBySchema.parse(value),
                 })
               }
             >
-              {sortByOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortByOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Button
               type="button"
