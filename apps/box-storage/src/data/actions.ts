@@ -123,7 +123,7 @@ function getItemOrderByForSort(
     return undefined
   }
 
-  return [{ name: sortDirection }, { id: "asc" }]
+  return [{ name: sortDirection }, { id: sortDirection }]
 }
 
 export const getListItems = createServerFn()

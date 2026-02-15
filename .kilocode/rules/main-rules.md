@@ -41,7 +41,7 @@ Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, be
 bunx shadcn@latest add button
 ```
 
-Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Scrollblocker der bestehende Scrollbars ausblendet was zu layout shifts führt. Siehe [Bug Ticket](https://github.com/shadcn-ui/ui/issues/4227) das geschlossen wurde obwohl das Verhalten noch existiert.
+Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Scrollblocker, der bestehende Scrollbars ausblendet, was zu Layout-Shifts führt. Siehe [Bug Ticket](https://github.com/shadcn-ui/ui/issues/4227) das geschlossen wurde obwohl das Verhalten noch existiert.
 
 ### React Compiler: Kein manuelles Memoizing
 

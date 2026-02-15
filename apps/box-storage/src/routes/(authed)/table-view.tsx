@@ -124,9 +124,9 @@ function RouteComponent() {
   }
 
   const [localSearchText, setLocalSearchText] =
-    useDebouncedSearchParam<typeof search>("searchText")
+    useDebouncedSearchParam("searchText")
   const [localLocationFilter, setLocalLocationFilter] =
-    useDebouncedSearchParam<typeof search>("locationFilter")
+    useDebouncedSearchParam("locationFilter")
 
   return (
     <div className="space-y-6 mt-2">

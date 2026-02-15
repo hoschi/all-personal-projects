@@ -43,8 +43,7 @@ export function createUseDebouncedSearchParam<
   const useUpdateSearch = createUseUpdateSearch(route)
 
   return function useDebouncedSearchParam<
-    TCurrentSearch extends TSearch,
-    TKey extends keyof TCurrentSearch & string = keyof TCurrentSearch & string,
+    TKey extends keyof TSearch & string = keyof TSearch & string,
   >(searchKey: TKey, debounceMs = defaultDebounceMs) {
     const { updateSearchKey } = useUpdateSearch()
     const search = route.useSearch()
