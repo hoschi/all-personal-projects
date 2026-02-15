@@ -1,8 +1,6 @@
 import { INPUT_DEBOUNCE_MS } from "@/constants"
 import { useEffect, useEffectEvent, useState } from "react"
 
-// TODO Die TS Typen in den hooks sind nicht gut. Die creator Funktionen sind gut, da sie die konkrete Route bekommen. Das ist sinnvoll, aber nur wenn man das route object bzw den konkreten Typen übernimmt um dann die erzeugten Funktionen zu sichern! Ziel des ganzen ist das in die erzeugten Funktionen nur valide Argumente die zur route passen hineingereicht werden können. `searchKey` muss einen TS Fehler melden wenn man einen string rein gibt der eben nicht im `search` Objekt der Routen enthalten ist. Das beim aufrufen der Funktion `<typeof search>` überhaupt mit gegeben werden muss um das zu erreichen ist falsch, da `route` diese Typinformationen ja schon hat.
-
 type RouteSearchApi<TSearch extends Record<string, string>> = {
   useSearch: () => TSearch
   useNavigate: () => (options: { replace: true; search: TSearch }) => void
