@@ -13,6 +13,8 @@ import {
 import {
   defaultInventorySortBy,
   defaultInventorySortDirection,
+  type InventorySortBy,
+  type InventorySortDirection,
   inventorySortBySchema,
   inventorySortDirectionSchema,
   inventoryStatusFilterSchema,
@@ -112,6 +114,18 @@ const updateItemSchema = z.object({
   roomId: z.coerce.number().nullable(),
 })
 
+function getItemOrderByForSort(
+  sortBy: InventorySortBy,
+  sortDirection: InventorySortDirection,
+): Prisma.ItemOrderByWithRelationInput[] | undefined {
+  // "name" is a persisted column and can be sorted directly in the database.
+  if (sortBy !== "name") {
+    return undefined
+  }
+
+  return [{ name: sortDirection }, { id: "asc" }]
+}
+
 export const getListItems = createServerFn()
   .inputValidator((data) => listItemsInputSchema.parse(data))
   .handler(async ({ data }) => {
@@ -209,6 +223,7 @@ export const getListItems = createServerFn()
         AND: andConditions,
       },
       include: listItemsInclude,
+      orderBy: getItemOrderByForSort(sortBy, sortDirection),
     })
 
     const enrichedItems = result.map((item) => {
@@ -223,6 +238,12 @@ export const getListItems = createServerFn()
       }
     })
 
+    // Keep DB ordering for plain column sort; no second pass in memory.
+    if (sortBy === "name") {
+      return enrichedItems
+    }
+
+    // Computed sort keys (location/status) are derived after enrichment.
     return sortInventoryItems(enrichedItems, sortBy, sortDirection)
   })
 

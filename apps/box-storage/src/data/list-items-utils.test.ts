@@ -135,22 +135,45 @@ describe("sortInventoryItems", () => {
     },
   ]
 
-  test("sorts by name asc and desc", () => {
-    const asc = sortInventoryItems(items, "name", "asc").map((item) => item.id)
-    const desc = sortInventoryItems(items, "name", "desc").map(
-      (item) => item.id,
-    )
-
-    expect(asc).toEqual([2, 3, 1])
-    expect(desc).toEqual([1, 3, 2])
-  })
-
   test("sorts by location asc", () => {
     const sorted = sortInventoryItems(items, "location", "asc").map(
       (item) => item.id,
     )
 
     expect(sorted).toEqual([3, 1, 2])
+  })
+
+  test("sorts location ties with direction-aware name/id tiebreakers", () => {
+    const tiedItems: SortableInventoryItem[] = [
+      {
+        id: 1,
+        name: "Alpha",
+        locationDisplay: "Kitchen > Drawer",
+        statusKey: "free",
+      },
+      {
+        id: 2,
+        name: "Bravo",
+        locationDisplay: "Kitchen > Drawer",
+        statusKey: "free",
+      },
+      {
+        id: 3,
+        name: "Bravo",
+        locationDisplay: "Kitchen > Drawer",
+        statusKey: "free",
+      },
+    ]
+
+    const asc = sortInventoryItems(tiedItems, "location", "asc").map(
+      (item) => item.id,
+    )
+    const desc = sortInventoryItems(tiedItems, "location", "desc").map(
+      (item) => item.id,
+    )
+
+    expect(asc).toEqual([1, 2, 3])
+    expect(desc).toEqual([3, 2, 1])
   })
 
   test("sorts by status asc and desc", () => {
@@ -163,5 +186,38 @@ describe("sortInventoryItems", () => {
 
     expect(asc).toEqual([2, 3, 1])
     expect(desc).toEqual([1, 3, 2])
+  })
+
+  test("sorts status ties with direction-aware name/id tiebreakers", () => {
+    const tiedItems: SortableInventoryItem[] = [
+      {
+        id: 1,
+        name: "Alpha",
+        locationDisplay: "Room A",
+        statusKey: "mine",
+      },
+      {
+        id: 2,
+        name: "Bravo",
+        locationDisplay: "Room B",
+        statusKey: "mine",
+      },
+      {
+        id: 3,
+        name: "Bravo",
+        locationDisplay: "Room C",
+        statusKey: "mine",
+      },
+    ]
+
+    const asc = sortInventoryItems(tiedItems, "status", "asc").map(
+      (item) => item.id,
+    )
+    const desc = sortInventoryItems(tiedItems, "status", "desc").map(
+      (item) => item.id,
+    )
+
+    expect(asc).toEqual([1, 2, 3])
+    expect(desc).toEqual([3, 2, 1])
   })
 })

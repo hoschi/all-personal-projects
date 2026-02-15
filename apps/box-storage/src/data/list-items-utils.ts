@@ -3,6 +3,7 @@ import type { InventorySortBy, InventorySortDirection } from "./inventory-query"
 
 export type ListItemStatusKey = "free" | "mine" | "others"
 export type { InventorySortBy, InventorySortDirection } from "./inventory-query"
+export type InventoryComputedSortBy = Exclude<InventorySortBy, "name">
 
 export type ListItemWithLocationRelations = {
   box: {
@@ -99,7 +100,7 @@ export function getStatusLabel(statusKey: ListItemStatusKey): string {
 
 export function sortInventoryItems<T extends SortableInventoryItem>(
   items: T[],
-  sortBy: InventorySortBy,
+  sortBy: InventoryComputedSortBy,
   sortDirection: InventorySortDirection,
 ): T[] {
   const statusRank: Record<ListItemStatusKey, number> = {
@@ -119,12 +120,6 @@ export function sortInventoryItems<T extends SortableInventoryItem>(
     const compareById = left.id - right.id
 
     return match(sortBy)
-      .with("name", () => {
-        if (compareByName !== 0) {
-          return compareByName * directionFactor
-        }
-        return compareById
-      })
       .with("location", () => {
         const locationCompare = left.locationDisplay.localeCompare(
           right.locationDisplay,
@@ -134,10 +129,11 @@ export function sortInventoryItems<T extends SortableInventoryItem>(
         if (locationCompare !== 0) {
           return locationCompare * directionFactor
         }
+        // Tie-breakers in the "location" branch must keep sortDirection.
         if (compareByName !== 0) {
-          return compareByName
+          return compareByName * directionFactor
         }
-        return compareById
+        return compareById * directionFactor
       })
       .with("status", () => {
         const statusCompare =
@@ -145,10 +141,11 @@ export function sortInventoryItems<T extends SortableInventoryItem>(
         if (statusCompare !== 0) {
           return statusCompare * directionFactor
         }
+        // Tie-breakers in the "status" branch must keep sortDirection.
         if (compareByName !== 0) {
-          return compareByName
+          return compareByName * directionFactor
         }
-        return compareById
+        return compareById * directionFactor
       })
       .exhaustive()
   })
