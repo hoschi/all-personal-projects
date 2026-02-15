@@ -41,11 +41,20 @@ Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, be
 bunx shadcn@latest add button
 ```
 
+Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Scrollblocker der bestehende Scrollbars ausblendet was zu layout shifts führt.
+
 ### React Compiler: Kein manuelles Memoizing
 
 - **Regel**: In React Components standardmäßig **kein** `useMemo` und **kein** `useCallback` verwenden.
 - **Begründung**: Der React Compiler übernimmt Optimierungen; unnötiges Memoizing erhöht Komplexität ohne Nutzen.
 - **Ausnahme**: Nur mit klarem Befehl vom Benutzer nachdem nach gefragt wurde!
+
+### `useEffect`: Nur für Synchronisation von Side Effects
+
+- **Problem**: `useEffect` wird oft für reine Datenableitung genutzt oder hängt an instabilen Funktions-Identitäten, wodurch z.B. Debounce-Timer bei jedem Render unnötig neu starten.
+- **Regel**: `useEffect` nur verwenden, wenn externe Side Effects synchronisiert werden müssen (Timer, Netzwerk, Subscriptions, URL/Navigate-Sync, DOM-Integrationen). Reine Ableitungen gehören in Render/State, nicht in `useEffect`.
+- **Regel**: Bei Debounce-/Timer-Logik mit wechselnden Callback-Identitäten `useEffectEvent` verwenden, damit der Timer die neuesten Werte liest, ohne dass der Effect wegen der Callback-Referenz neu ausgeführt wird.
+- **Lösung**: Dependencies auf die fachlich relevanten Trigger begrenzen (z.B. `debounceMs`, `localValue`, `searchKey`, `searchValue`) und Cleanup (`clearTimeout`/`unsubscribe`) immer im Rückgabewert des Effects sicherstellen.
 
 ### Numerische Eingaben mit Komma
 

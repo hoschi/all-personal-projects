@@ -1,5 +1,5 @@
 import { INPUT_DEBOUNCE_MS } from "@/constants"
-import { useEffect, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 
 type RouteSearchApi<TSearch extends Record<string, string>> = {
   useSearch: () => TSearch
@@ -50,6 +50,9 @@ export function createUseDebouncedSearchParam<
     const search = route.useSearch()
     const searchValue = search[searchKey]
     const [localValue, setLocalValue] = useState(searchValue)
+    const commitDebouncedSearch = useEffectEvent(() => {
+      updateSearchKey(searchKey, localValue)
+    })
 
     useEffect(() => {
       setLocalValue(searchValue)
@@ -61,11 +64,11 @@ export function createUseDebouncedSearchParam<
       }
 
       const timer = setTimeout(() => {
-        updateSearchKey(searchKey, localValue)
+        commitDebouncedSearch()
       }, debounceMs)
 
       return () => clearTimeout(timer)
-    }, [debounceMs, localValue, searchKey, searchValue, updateSearchKey])
+    }, [debounceMs, localValue, searchKey, searchValue])
 
     return [localValue, setLocalValue] as const
   }

@@ -4,12 +4,9 @@ import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -190,25 +187,21 @@ function RouteComponent() {
               </ButtonGroup>
             </div>
 
-            <Select
+            <NativeSelect
+              className="w-45"
               value={search.sortBy}
-              onValueChange={(value) =>
+              onChange={(event) =>
                 updateSearch({
-                  sortBy: inventorySortBySchema.parse(value),
+                  sortBy: inventorySortBySchema.parse(event.currentTarget.value),
                 })
               }
             >
-              <SelectTrigger className="w-45">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {sortByOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {sortByOptions.map((option) => (
+                <NativeSelectOption key={option.value} value={option.value}>
+                  {option.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
 
             <Button
               type="button"
