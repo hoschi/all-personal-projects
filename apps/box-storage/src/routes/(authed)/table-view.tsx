@@ -174,7 +174,13 @@ function RouteComponent() {
                       }
                       aria-pressed={search.statusFilter === option.value}
                       onClick={() => {
-                        updateSearch({ statusFilter: option.value })
+                        if (search.statusFilter === option.value) {
+                          updateSearch({
+                            statusFilter: defaultSearch.statusFilter,
+                          })
+                        } else {
+                          updateSearch({ statusFilter: option.value })
+                        }
                       }}
                     >
                       {Icon ? <Icon className="size-4" /> : option.label}
@@ -192,7 +198,7 @@ function RouteComponent() {
                 })
               }
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-45">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
