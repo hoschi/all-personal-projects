@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -182,9 +183,11 @@ function RouteComponent() {
               ))}
             </select>
 
-            <button
+            <Button
               type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-50"
+              variant="outline"
+              size="icon"
+              className="text-slate-700"
               title={
                 search.sortDirection === "asc"
                   ? "Sortierung: aufsteigend"
@@ -213,11 +216,13 @@ function RouteComponent() {
                   .exhaustive()
                   .concat(" transition-transform duration-200")}
               />
-            </button>
+            </Button>
 
-            <button
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-50"
+            <Button
               type="button"
+              variant="outline"
+              size="icon"
+              className="text-slate-700"
               title="Filter zurücksetzen"
               aria-label="Filter zurücksetzen"
               onClick={() => {
@@ -227,7 +232,7 @@ function RouteComponent() {
               }}
             >
               <RotateCcw size={16} />
-            </button>
+            </Button>
           </div>
         </CardHeader>
 
