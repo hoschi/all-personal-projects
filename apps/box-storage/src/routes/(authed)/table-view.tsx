@@ -3,10 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -192,7 +189,9 @@ function RouteComponent() {
               value={search.sortBy}
               onChange={(event) =>
                 updateSearch({
-                  sortBy: inventorySortBySchema.parse(event.currentTarget.value),
+                  sortBy: inventorySortBySchema.parse(
+                    event.currentTarget.value,
+                  ),
                 })
               }
             >

@@ -42,13 +42,13 @@ Box Storage is a TanStack Start-based web application for organizing household i
 
 ### Server Actions & Data Layer
 
-| File                                                           | Purpose                                                                 |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [`src/data/actions.ts`](src/data/actions.ts)                   | Server Actions - orchestrates business logic and data access            |
-| [`src/data/inventory-query.ts`](src/data/inventory-query.ts)   | Shared inventory filter/sort constants and Zod schemas for UI + backend |
+| File                                                           | Purpose                                                                               |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`src/data/actions.ts`](src/data/actions.ts)                   | Server Actions - orchestrates business logic and data access                          |
+| [`src/data/inventory-query.ts`](src/data/inventory-query.ts)   | Shared inventory filter/sort constants and Zod schemas for UI + backend               |
 | [`src/data/list-items-utils.ts`](src/data/list-items-utils.ts) | Inventory helper logic (location display, status mapping, computed in-memory sorting) |
-| [`src/data/prisma.ts`](src/data/prisma.ts)                     | Prisma client instantiation with connection management                  |
-| [`src/data/schema.ts`](src/data/schema.ts)                     | Zod schemas and TypeScript types for all data models                    |
+| [`src/data/prisma.ts`](src/data/prisma.ts)                     | Prisma client instantiation with connection management                                |
+| [`src/data/schema.ts`](src/data/schema.ts)                     | Zod schemas and TypeScript types for all data models                                  |
 
 ### Components
 
