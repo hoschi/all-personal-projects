@@ -7,7 +7,6 @@ import { authStateFn, getClerkUsername } from "@/lib/auth"
 import {
   getLocationDisplay,
   getStatusKey,
-  getStatusLabel,
   sortInventoryItems,
 } from "./list-items-utils"
 import { listItemsInclude } from "./item-location-include"
@@ -186,8 +185,8 @@ export const getListItems = createServerFn()
       return {
         ...rest,
         locationDisplay: getLocationDisplay({ box, furniture, room }),
+        // perf: calculate status key for sorting once and not for every sort action
         statusKey,
-        statusLabel: getStatusLabel(statusKey),
       }
     })
 

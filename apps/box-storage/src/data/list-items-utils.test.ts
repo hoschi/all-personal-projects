@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test"
 import {
   getLocationDisplay,
   getStatusKey,
-  getStatusLabel,
   sortInventoryItems,
   type SortableInventoryItem,
 } from "./list-items-utils"
+import { USER_ID } from "@/test/fake-data"
 
 describe("getLocationDisplay", () => {
   test("builds full hierarchy for box locations", () => {
@@ -61,30 +61,12 @@ describe("getLocationDisplay", () => {
 
     expect(value).toBe("Ground > Kitchen")
   })
-
-  test("returns unknown when no location relation is available", () => {
-    const value = getLocationDisplay({
-      box: null,
-      furniture: null,
-      room: null,
-    })
-
-    expect(value).toBe("Unknown")
-  })
 })
 
-describe("status helpers", () => {
-  test("maps status keys correctly", () => {
-    expect(getStatusKey(null, "me")).toBe("free")
-    expect(getStatusKey("me", "me")).toBe("mine")
-    expect(getStatusKey("other-user", "me")).toBe("others")
-  })
-
-  test("maps status labels correctly", () => {
-    expect(getStatusLabel("free")).toBe("Free")
-    expect(getStatusLabel("mine")).toBe("In Motion (you)")
-    expect(getStatusLabel("others")).toBe("In Motion (others)")
-  })
+test("`getStatusKey` maps status keys correctly", () => {
+  expect(getStatusKey(null, USER_ID)).toBe("free")
+  expect(getStatusKey(USER_ID, USER_ID)).toBe("mine")
+  expect(getStatusKey("user_abc123", USER_ID)).toBe("others")
 })
 
 describe("sortInventoryItems", () => {

@@ -48,7 +48,7 @@ export function getLocationDisplay(
   const rootLocation = item.box ?? item.furniture ?? item.room
   const segments = collectLocationSegments(rootLocation)
 
-  return segments.join(" > ") || "Unknown"
+  return segments.join(" > ")
 }
 
 export function getStatusKey(
@@ -59,14 +59,6 @@ export function getStatusKey(
     .with(P.nullish, () => "free" as const)
     .with(userId, () => "mine" as const)
     .otherwise(() => "others" as const)
-}
-
-export function getStatusLabel(statusKey: ListItemStatusKey): string {
-  return match(statusKey)
-    .with("free", () => "Free")
-    .with("mine", () => "In Motion (you)")
-    .with("others", () => "In Motion (others)")
-    .exhaustive()
 }
 
 export function sortInventoryItems<T extends SortableInventoryItem>(

@@ -49,6 +49,7 @@ export const Search = z.object({
   ),
 })
 export type Search = z.infer<typeof Search>
+// TODO this is the wrong direction! frontend should define a UI type which the service layer needs to fullfill see https://www.perplexity.ai/search/wie-strukturiert-man-code-fur-LR6DUQC8QiCROtjqi24QsA
 type InventoryListItem = Awaited<ReturnType<typeof getListItems>>[number]
 
 export const defaultSearch: Search = {
@@ -124,9 +125,9 @@ function RouteComponent() {
   }
 
   const [localSearchText, setLocalSearchText] =
-    useDebouncedSearchParam("searchText")
+    useDebouncedSearchParam<typeof search>("searchText")
   const [localLocationFilter, setLocalLocationFilter] =
-    useDebouncedSearchParam("locationFilter")
+    useDebouncedSearchParam<typeof search>("locationFilter")
 
   return (
     <div className="space-y-6 mt-2">
@@ -245,8 +246,6 @@ function RouteComponent() {
               title="Filter zurücksetzen"
               aria-label="Filter zurücksetzen"
               onClick={() => {
-                setLocalSearchText(defaultSearch.searchText)
-                setLocalLocationFilter(defaultSearch.locationFilter)
                 updateSearch(defaultSearch)
               }}
             >
