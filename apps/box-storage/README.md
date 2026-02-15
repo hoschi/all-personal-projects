@@ -5,7 +5,7 @@ Box Storage is a TanStack Start-based web application for organizing household i
 **Key Features:**
 
 - **Hierarchical Storage Management** - Organize items in a structured hierarchy: House → Floor → Room → Furniture → Box → Item
-- **Inventory View** - Table-based view of all visible items with filtering and sorting capabilities
+- **Inventory View** - Table-based view with URL-driven filters/sorting, debounced text filters, and split sorting (`name` in DB, computed `location`/`status` in memory)
 - **Hierarchical View** - Tree-based visualization of the storage structure
 - **Dashboard** - Overview of personal items, other users' items, and recently modified items
 - **In Motion Status** - Track which Clerk user currently has an item in use
@@ -32,21 +32,23 @@ Box Storage is a TanStack Start-based web application for organizing household i
 
 ### Core App Files
 
-| File                                                                         | Purpose                                                          |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [`src/routes/__root.tsx`](src/routes/__root.tsx)                             | Root layout with authentication wrapper                          |
-| [`src/routes/index.tsx`](src/routes/index.tsx)                               | Entry point → redirects to `/dashboard`                          |
-| [`src/routes/(authed)/dashboard.tsx`](<src/routes/(authed)/dashboard.tsx>)   | Dashboard with personal items, others' items, and recent changes |
-| [`src/routes/(authed)/table-view.tsx`](<src/routes/(authed)/table-view.tsx>) | Table view of all items with In Motion toggle                    |
-| [`src/router.tsx`](src/router.tsx)                                           | Main router configuration                                        |
+| File                                                                         | Purpose                                                                        |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [`src/routes/__root.tsx`](src/routes/__root.tsx)                             | Root layout with authentication wrapper                                        |
+| [`src/routes/index.tsx`](src/routes/index.tsx)                               | Entry point → redirects to `/dashboard`                                        |
+| [`src/routes/(authed)/dashboard.tsx`](<src/routes/(authed)/dashboard.tsx>)   | Dashboard with personal items, others' items, and recent changes               |
+| [`src/routes/(authed)/table-view.tsx`](<src/routes/(authed)/table-view.tsx>) | Inventory table with debounced filters, URL search state, and In Motion toggle |
+| [`src/router.tsx`](src/router.tsx)                                           | Main router configuration                                                      |
 
 ### Server Actions & Data Layer
 
-| File                                         | Purpose                                                      |
-| -------------------------------------------- | ------------------------------------------------------------ |
-| [`src/data/actions.ts`](src/data/actions.ts) | Server Actions - orchestrates business logic and data access |
-| [`src/data/prisma.ts`](src/data/prisma.ts)   | Prisma client instantiation with connection management       |
-| [`src/data/schema.ts`](src/data/schema.ts)   | Zod schemas and TypeScript types for all data models         |
+| File                                                           | Purpose                                                                               |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`src/data/actions.ts`](src/data/actions.ts)                   | Server Actions - orchestrates business logic and data access                          |
+| [`src/data/inventory-query.ts`](src/data/inventory-query.ts)   | Shared inventory filter/sort constants and Zod schemas for UI + backend               |
+| [`src/data/list-items-utils.ts`](src/data/list-items-utils.ts) | Inventory helper logic (location display, status mapping, computed in-memory sorting) |
+| [`src/data/prisma.ts`](src/data/prisma.ts)                     | Prisma client instantiation with connection management                                |
+| [`src/data/schema.ts`](src/data/schema.ts)                     | Zod schemas and TypeScript types for all data models                                  |
 
 ### Components
 
@@ -85,9 +87,10 @@ The application follows a strict layered architecture with clear separation of r
    - Provides database connection management
    - Only here is the database client imported and executed
 
-4. **Schema Definition (`schema.ts`):**
-   - Central repository for TypeScript types and Zod validation schemas
-   - Ensures type safety across all layers
+4. **Shared Query Contracts & Helpers (`inventory-query.ts`, `list-items-utils.ts`, `schema.ts`):**
+   - `inventory-query.ts` defines shared, typed filter/sort contracts for route search + server filters
+   - `list-items-utils.ts` contains deterministic helper logic used by server actions
+   - `schema.ts` remains the central repository for model-level types and Zod schemas
 
 ---
 
@@ -151,12 +154,11 @@ bun run scripts/seed-dev.ts clear
 ## Todo
 
 - error handling for async functions in React components, e.g. `toggleInMotion` in table-view.tsx, [see comment](https://github.com/hoschi/all-personal-projects/pull/8#pullrequestreview-3772423363)
-- replace if/else with ts-pattern, AI doesn't do this by itself so far, add rules for this
 - **UI Enhancements:**
   - Move sidebar toggle from content header to sidebar header
   - Create icon sidebar in collapsed version
   - Add "screen too small" message for mobile devices
-- **Testing:** Add unit tests for business logic functions
+- **Testing:** Add integration tests for inventory filters/toggles across route + server action boundaries
 
 ---
 

@@ -4,6 +4,21 @@ import { z } from "zod"
 import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "./prisma"
 import { authStateFn, getClerkUsername } from "@/lib/auth"
+import {
+  getLocationDisplay,
+  getStatusKey,
+  sortInventoryItems,
+} from "./list-items-utils"
+import { listItemsInclude } from "./item-location-include"
+import {
+  defaultInventorySortBy,
+  defaultInventorySortDirection,
+  type InventorySortBy,
+  type InventorySortDirection,
+  inventorySortBySchema,
+  inventorySortDirectionSchema,
+  inventoryStatusFilterSchema,
+} from "./inventory-query"
 
 // Hilfsfunktion zur Validierung der Location Constraints
 function validateLocationConstraints(
@@ -23,10 +38,13 @@ const filtersSchema = z
   .object({
     searchText: z.string().optional(),
     locationFilter: z.string().optional(),
-    statusFilter: z.enum(["in-motion", "mine", "free", "others"]).optional(),
+    statusFilter: inventoryStatusFilterSchema.optional(),
+    sortBy: inventorySortBySchema.optional(),
+    sortDirection: inventorySortDirectionSchema.optional(),
   })
   .optional()
 export type ListItemFilters = z.infer<typeof filtersSchema>
+export type { ListItemStatusKey } from "./list-items-utils"
 
 const listItemsInputSchema = z.object({ filters: filtersSchema }).optional()
 const toggleItemSchema = z.object({ itemId: z.coerce.number() })
@@ -48,6 +66,18 @@ const updateItemSchema = z.object({
   roomId: z.coerce.number().nullable(),
 })
 
+function getItemOrderByForSort(
+  sortBy: InventorySortBy,
+  sortDirection: InventorySortDirection,
+): Prisma.ItemOrderByWithRelationInput[] | undefined {
+  // "name" is a persisted column and can be sorted directly in the database.
+  if (sortBy !== "name") {
+    return undefined
+  }
+
+  return [{ name: sortDirection }, { id: sortDirection }]
+}
+
 export const getListItems = createServerFn()
   .inputValidator((data) => listItemsInputSchema.parse(data))
   .handler(async ({ data }) => {
@@ -55,7 +85,13 @@ export const getListItems = createServerFn()
     const { userId } = await authStateFn()
     console.log("list items server - AUTHED", userId)
     const { filters = {} } = data || {}
-    const { searchText = "", locationFilter = "", statusFilter = "" } = filters
+    const {
+      searchText = "",
+      locationFilter = "",
+      statusFilter,
+      sortBy = defaultInventorySortBy,
+      sortDirection = defaultInventorySortDirection,
+    } = filters
     const searchTerm = searchText.trim()
     const locationTerm = locationFilter.trim()
 
@@ -138,10 +174,29 @@ export const getListItems = createServerFn()
         OR: [{ isPrivate: false }, { ownerId: userId }],
         AND: andConditions,
       },
-      orderBy: { name: "asc" },
+      include: listItemsInclude,
+      orderBy: getItemOrderByForSort(sortBy, sortDirection),
     })
 
-    return result
+    const enrichedItems = result.map((item) => {
+      const statusKey = getStatusKey(item.inMotionUserId, userId)
+      const { box, furniture, room, ...rest } = item
+
+      return {
+        ...rest,
+        locationDisplay: getLocationDisplay({ box, furniture, room }),
+        // perf: calculate status key for sorting once and not for every sort action
+        statusKey,
+      }
+    })
+
+    // Keep DB ordering for plain column sort; no second pass in memory.
+    if (sortBy === "name") {
+      return enrichedItems
+    }
+
+    // Computed sort keys (location/status) are derived after enrichment.
+    return sortInventoryItems(enrichedItems, sortBy, sortDirection)
   })
 
 export const getHierarchicalViewData = createServerFn().handler(async () => {

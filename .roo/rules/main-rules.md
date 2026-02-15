@@ -41,16 +41,37 @@ Verwende die neueste Version von Shadcn, um neue Komponenten zu installieren, be
 bunx shadcn@latest add button
 ```
 
+Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Scrollblocker, der bestehende Scrollbars ausblendet, was zu Layout-Shifts führt. Siehe [Bug Ticket](https://github.com/shadcn-ui/ui/issues/4227) das geschlossen wurde obwohl das Verhalten noch existiert.
+
 ### React Compiler: Kein manuelles Memoizing
 
 - **Regel**: In React Components standardmäßig **kein** `useMemo` und **kein** `useCallback` verwenden.
 - **Begründung**: Der React Compiler übernimmt Optimierungen; unnötiges Memoizing erhöht Komplexität ohne Nutzen.
 - **Ausnahme**: Nur mit klarem Befehl vom Benutzer nachdem nach gefragt wurde!
 
+### `useEffect`: Nur für Synchronisation von Side Effects
+
+- **Problem**: `useEffect` wird oft für reine Datenableitung genutzt oder hängt an instabilen Funktions-Identitäten, wodurch z.B. Debounce-Timer bei jedem Render unnötig neu starten.
+- **Regel**: `useEffect` nur verwenden, wenn externe Side Effects synchronisiert werden müssen (Timer, Netzwerk, Subscriptions, URL/Navigate-Sync, DOM-Integrationen). Reine Ableitungen gehören in Render/State, nicht in `useEffect`.
+- **Regel**: Bei Debounce-/Timer-Logik mit wechselnden Callback-Identitäten `useEffectEvent` verwenden, damit der Timer die neuesten Werte liest, ohne dass der Effect wegen der Callback-Referenz neu ausgeführt wird.
+- **Lösung**: Dependencies auf die fachlich relevanten Trigger begrenzen (z.B. `debounceMs`, `localValue`, `searchKey`, `searchValue`) und Cleanup (`clearTimeout`/`unsubscribe`) immer im Rückgabewert des Effects sicherstellen.
+
 ### Numerische Eingaben mit Komma
 
 - **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
 - **Lösung**: Immer globale Ersetzung (`replace(/,/g, ".")` oder `replaceAll(",", ".")`) vor `Number(...)` verwenden.
+
+### Select-Inputs: Keine `selectedIndex`-Logik
+
+- **Problem**: `selectedIndex` ist fragil (Reordering, Placeholder, dynamische Optionen).
+- **Lösung**: Immer `event.currentTarget.value` lesen und den String gegen die erlaubten Werte validieren (`zod.safeParse` oder Lookup in getypten `options`-Arrays).
+- **Regel**: Keine `as`-Casts in `onChange` für Selects; Typableitung muss über die Option-Typen oder Schema-Parsing passieren.
+
+### Zentrale Filter-/Sort-Contracts
+
+- **Problem**: UI und Backend driften bei String-Literalen (`"free"`, `"mine"`, ...).
+- **Lösung**: Gemeinsame Konstanten + Zod-Schemas in einem dedizierten Modul pflegen und in Route/Search sowie Server-Actions importieren.
+- **Regel**: Enum-ähnliche Query-Werte nicht doppelt als Literale in mehreren Dateien definieren.
 
 ## Next.js 16
 
@@ -197,6 +218,12 @@ CREATE TABLE settings (
 - **Problem**: Prisma 7 erfordert datasource URL in prisma.config.ts, nicht in schema.prisma
 - **Lösung**: Erstelle prisma.config.ts im Projekt-Root mit korrektem defineConfig, siehe `apps/box-storage/prisma.config.ts`
 - **Erkenntnis**: Schema.prisma enthält nur provider und Models, keine URL
+
+### Prisma Typen-Konsistenz
+
+- **Regel**: Wenn Prisma im Projekt verwendet wird, nutze bevorzugt Prisma-generierte Typen (`Prisma.*`, `ModelGetPayload`, `ModelInclude`, `validator`) statt eigener manuell duplizierter Typdefinitionen.
+- **Ziel**: Bessere Konsistenz zwischen Query-Definitionen und Result-Shape, weniger Drift bei Schema-Änderungen.
+- **Ausnahme**: Manuelle Typen nur wenn bewusst vom Prisma-Schema abgewichen werden muss (z.B. UI-only View-Model), dann Abweichung kurz dokumentieren.
 
 ### Testing-Praktiken für Migrationen
 
@@ -394,8 +421,6 @@ function getStatusColor(status: OrderStatus) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 type OrderStatus = "draft" | "approved" | "rejected"
 
 function getStatusColor(status: OrderStatus) {
@@ -426,8 +451,6 @@ function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getVisiblePanel(role: "admin" | "member", ownsProject: boolean) {
   return match<[typeof role, boolean], string>([role, ownsProject])
     .with(["admin", true], () => "admin-owner")
@@ -457,8 +480,6 @@ try {
 Positives Beispiel:
 
 ```ts
-import { P, match } from "ts-pattern"
-
 class NotAuthenticatedError extends Error {}
 
 try {
@@ -534,8 +555,6 @@ Doku (Branch-Struktur): `ai-ref/ts-pattern-README.md:230`, `ai-ref/ts-pattern-RE
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const classes = match("sm" as "sm" | "md")
   .with("sm", () => "px-2 px-4 text-sm")
   .with("md", () => "px-4 text-base")
@@ -545,8 +564,6 @@ const classes = match("sm" as "sm" | "md")
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const classes = match("sm" as "sm" | "md")
   .with("sm", () => "px-2 text-sm")
   .with("md", () => "px-4 text-base")
@@ -563,8 +580,6 @@ Doku (wann `match` sinnvoll ist): `ai-ref/ts-pattern-README.md:209`, `ai-ref/ts-
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 match(locations.length)
   .with(1, () => undefined)
   .otherwise(() => {
@@ -587,8 +602,6 @@ Kein `match` für triviale Boolean-Auswahl wie `asChild ? Slot : "span"`.
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 const Component = match(asChild)
   .with(true, () => Slot)
   .otherwise(() => "span")
@@ -607,8 +620,6 @@ Kein `match` für Node-Entry-Point Guards wie `require.main === module`; hier is
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 match(require.main === module)
   .with(true, () => startCli())
   .otherwise(() => undefined)
@@ -630,8 +641,6 @@ Doku (Tuples in einer Match-Struktur): `ai-ref/ts-pattern-README.md:143`, `ai-re
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getAction(state: "idle" | "loading", isDirty: boolean) {
   return match(state)
     .with("idle", () =>
@@ -647,8 +656,6 @@ function getAction(state: "idle" | "loading", isDirty: boolean) {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function getAction(state: "idle" | "loading", isDirty: boolean) {
   return match<[typeof state, boolean], string>([state, isDirty])
     .with(["idle", true], () => "save")
@@ -667,8 +674,6 @@ Doku: `ai-ref/ts-pattern-README.md:1318`.
 Negatives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 try {
   throw new Error("MISSING_PERMISSION")
 } catch (error) {
@@ -682,8 +687,6 @@ try {
 Positives Beispiel:
 
 ```ts
-import { P, match } from "ts-pattern"
-
 class MissingPermissionError extends Error {}
 
 try {
@@ -721,8 +724,6 @@ function sanitizeTag(type: string): string {
 Positives Beispiel:
 
 ```ts
-import { match } from "ts-pattern"
-
 function sanitizeTag(type: string): string {
   return match(type)
     .with("text", "span", "p", () => "text")
