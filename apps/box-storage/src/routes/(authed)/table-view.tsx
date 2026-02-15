@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -28,8 +29,9 @@ import {
   createUseUpdateSearch,
 } from "@/hooks/use-debounced-search-param"
 import { SelectOption } from "@/types"
-import { ArrowUp, RotateCcw } from "lucide-react"
+import { ArrowUp, CircleOff, RotateCcw, Users } from "lucide-react"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { type ComponentType } from "react"
 import { match } from "ts-pattern"
 import { z } from "zod"
 
@@ -55,12 +57,15 @@ export const defaultSearch: Search = {
   sortDirection: defaultInventorySortDirection,
 }
 
-const statusOptions: ReadonlyArray<SelectOption<Search["statusFilter"]>> = [
-  { value: inventoryAllStatusFilter, label: "Alle Stati" },
-  { value: "free", label: "Frei" },
-  { value: "mine", label: "In Bewegung (du)" },
-  { value: "others", label: "In Bewegung (andere)" },
-  { value: "in-motion", label: "In Bewegung (alle)" },
+type StatusOption = SelectOption<Search["statusFilter"]> & {
+  icon?: ComponentType<{ className?: string }>
+}
+
+const statusOptions: ReadonlyArray<StatusOption> = [
+  { value: "free", label: "nicht", icon: CircleOff },
+  { value: "mine", label: "ich" },
+  { value: "others", label: "andere" },
+  { value: "in-motion", label: "alle", icon: Users },
 ]
 
 const sortByOptions: ReadonlyArray<SelectOption<Search["sortBy"]>> = [
@@ -147,23 +152,34 @@ function RouteComponent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              value={search.statusFilter}
-              onChange={(event) =>
-                updateSearch({
-                  statusFilter: inventoryStatusFilterWithAllSchema.parse(
-                    event.currentTarget.value,
-                  ),
-                })
-              }
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-700">In Bewegung:</span>
+              <ButtonGroup>
+                {statusOptions.map((option) => {
+                  const Icon = option.icon
+
+                  return (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant={
+                        search.statusFilter === option.value
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                      aria-pressed={search.statusFilter === option.value}
+                      onClick={() => {
+                        updateSearch({ statusFilter: option.value })
+                      }}
+                    >
+                      {Icon ? <Icon className="size-4" /> : null}
+                      {option.label}
+                    </Button>
+                  )
+                })}
+              </ButtonGroup>
+            </div>
 
             <select
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
