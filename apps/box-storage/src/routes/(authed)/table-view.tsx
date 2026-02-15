@@ -149,17 +149,13 @@ function RouteComponent() {
             <select
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.statusFilter}
-              onChange={(event) => {
-                const parsed = inventoryStatusFilterWithAllSchema.safeParse(
-                  event.currentTarget.value,
-                )
-                if (!parsed.success) {
-                  throw new Error(
-                    `Invalid status filter value: ${event.currentTarget.value}`,
-                  )
-                }
-                updateSearch({ statusFilter: parsed.data })
-              }}
+              onChange={(event) =>
+                updateSearch({
+                  statusFilter: inventoryStatusFilterWithAllSchema.parse(
+                    event.currentTarget.value,
+                  ),
+                })
+              }
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -171,17 +167,13 @@ function RouteComponent() {
             <select
               className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
               value={search.sortBy}
-              onChange={(event) => {
-                const parsed = inventorySortBySchema.safeParse(
-                  event.currentTarget.value,
-                )
-                if (!parsed.success) {
-                  throw new Error(
-                    `Invalid sort field value: ${event.currentTarget.value}`,
-                  )
-                }
-                updateSearch({ sortBy: parsed.data })
-              }}
+              onChange={(event) =>
+                updateSearch({
+                  sortBy: inventorySortBySchema.parse(
+                    event.currentTarget.value,
+                  ),
+                })
+              }
             >
               {sortByOptions.map((option) => (
                 <option key={option.value} value={option.value}>
