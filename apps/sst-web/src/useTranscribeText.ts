@@ -1,6 +1,15 @@
 import { useState } from "react";
 
-const WHISPER_ENDPOINT = "http://localhost:9100/inference";
+const WHISPER_PORT = 9100;
+const WHISPER_PATH = "/inference";
+
+const getWhisperEndpoint = (): string => {
+  if (typeof window === "undefined") {
+    return `http://localhost:${WHISPER_PORT}${WHISPER_PATH}`;
+  }
+  const host = window.location.hostname || "localhost";
+  return `http://${host}:${WHISPER_PORT}${WHISPER_PATH}`;
+};
 
 type WhisperResponse = {
   text?: string;
@@ -26,7 +35,7 @@ export function useTranscribeText() {
       formData.append("language", language);
       formData.append("temperature", "0.0");
 
-      const response = await fetch(WHISPER_ENDPOINT, {
+      const response = await fetch(getWhisperEndpoint(), {
         method: "POST",
         body: formData,
       });
