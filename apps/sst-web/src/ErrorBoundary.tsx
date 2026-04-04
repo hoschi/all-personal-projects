@@ -1,15 +1,19 @@
 // ErrorCatcher-Komponente, die ErrorBoundary kapselt und Fehler an Callback weitergibt
 import React from "react";
 
-export function ErrorCatcher({ children }: { children: React.ReactNode }) {
-  // Diese Komponente kann erweitert werden, um Fehler zu melden
-  // Aktuell wird nur ErrorBoundary verwendet
-  return <ErrorBoundary>{children}</ErrorBoundary>;
+interface ErrorCatcherProps {
+  children: React.ReactNode;
+  onError?: (error: Error, info?: React.ErrorInfo) => void;
+}
+
+export function ErrorCatcher({ children, onError }: ErrorCatcherProps) {
+  return <ErrorBoundary onError={onError}>{children}</ErrorBoundary>;
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  onError?: (error: Error) => void;
+  onError?: (error: Error, info?: React.ErrorInfo) => void;
+  fallback?: React.ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -30,16 +34,13 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  override componentDidCatch(error: Error /* errorInfo: React.ErrorInfo */) {
-    this.props.onError?.(error);
-    // Optional: Logging
-    // console.error('ErrorBoundary caught an error');
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.props.onError?.(error, errorInfo);
   }
 
   override render() {
-    if (this.state.hasError && this.state.error) {
-      // Fehler wird im App angezeigt, nicht hier
-      return this.props.children;
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
     }
     return this.props.children;
   }

@@ -4,7 +4,7 @@ import type { RecordingInfo } from "./RecordingInfo";
 
 type OurState = "idle" | "recording";
 interface MicButtonProps {
-  onRecordingStop: (info: RecordingInfo) => void;
+  onRecordingStop: (info: RecordingInfo) => void | Promise<void>;
 }
 
 export const MicButton: React.FC<MicButtonProps> = ({ onRecordingStop }) => {
@@ -13,14 +13,15 @@ export const MicButton: React.FC<MicButtonProps> = ({ onRecordingStop }) => {
   const text = { idle: "start", recording: "recording" }[state];
   const handleClick = async () => {
     if (state === "idle") {
-      // start
+      await startRecording();
       setState("recording");
-      startRecording();
-    } else if (state === "recording") {
-      // stop
+      return;
+    }
+
+    if (state === "recording") {
       setState("idle");
       const info = await stopRecording();
-      onRecordingStop(info);
+      await onRecordingStop(info);
     }
   };
   return <button onClick={handleClick}>{text}</button>;

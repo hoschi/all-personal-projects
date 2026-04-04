@@ -121,18 +121,7 @@ export const MarketingPage: React.FC = () => (
 
     <footer>
       <div className="container">
-        <p>
-          <span>
-            © Stefan Gojan -{" "}
-            <a href="/imprint" title="Impressum">
-              Impressum
-            </a>{" "}
-            -{" "}
-            <a href="/dataprivacy" title="Datenschutzerklärung">
-              Datenschutzerklärung
-            </a>
-          </span>
-        </p>
+        <p>© Stefan Gojan</p>
       </div>
     </footer>
   </div>

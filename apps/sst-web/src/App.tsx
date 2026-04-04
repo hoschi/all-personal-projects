@@ -81,12 +81,8 @@ const TranscriptionApp: React.FC = () => {
   };
   const handleRecordingStop = async (info: RecordingInfo) => {
     setSize(info.size);
-    try {
-      const response = await transcribeText(info.audioBlob);
-      setEditableText(response.text);
-    } catch (ex) {
-      setError(normalizeUnknownError(ex));
-    }
+    const response = await transcribeText(info.audioBlob);
+    setEditableText(response.text);
   };
 
   const handleCloseError = () => {
@@ -98,41 +94,43 @@ const TranscriptionApp: React.FC = () => {
       await navigator.clipboard.writeText(sumText);
       handleClear();
     } catch (e) {
-      alert(`Kopieren fehlgeschlagen: ${e}`);
+      throw normalizeUnknownError(e);
     }
   };
 
   return (
-    <ErrorBoundary onError={(caughtError) => setError(caughtError)}>
-      <Shell>
-        <TopArea>
-          <EditingBox text={editableText} onTextChange={setEditableText} />
-        </TopArea>
-        <MiddleStrip>
-          <a href="/">Home</a>
-          <div>▲ Transcription ▲</div>
-          <div className="buttons-text">
-            <div className="buttons">
-              <MicButton onRecordingStop={handleRecordingStop} />
-              <button onClick={handlePut}>put ▼</button>
-              <button onClick={handleClear}>clear</button>
+    <>
+      <ErrorBoundary onError={(caughtError) => setError(caughtError)}>
+        <Shell>
+          <TopArea>
+            <EditingBox text={editableText} onTextChange={setEditableText} />
+          </TopArea>
+          <MiddleStrip>
+            <a href="/">Home</a>
+            <div>▲ Transcription ▲</div>
+            <div className="buttons-text">
+              <div className="buttons">
+                <MicButton onRecordingStop={handleRecordingStop} />
+                <button onClick={handlePut}>put ▼</button>
+                <button onClick={handleClear}>clear</button>
+              </div>
+              <div className="state">
+                <div>{size ? `uploaded: ${size}` : ""}</div>
+                <div className="loading">{isLoading ? "loading" : ""}</div>
+              </div>
             </div>
-            <div className="state">
-              <div>{size ? `uploaded: ${size}` : ""}</div>
-              <div className="loading">{isLoading ? "loading" : ""}</div>
-            </div>
-          </div>
-          <div>▼ Summary ▼</div>
-          <button className="icon-button" onClick={handleCutAndClear}>
-            ✂️
-          </button>
-        </MiddleStrip>
-        <DownArea>
-          <EditingBox text={sumText} onTextChange={setSumText} />
-        </DownArea>
-      </Shell>
+            <div>▼ Summary ▼</div>
+            <button className="icon-button" onClick={handleCutAndClear}>
+              ✂️
+            </button>
+          </MiddleStrip>
+          <DownArea>
+            <EditingBox text={sumText} onTextChange={setSumText} />
+          </DownArea>
+        </Shell>
+      </ErrorBoundary>
       <ErrorModal error={error} onClose={handleCloseError} />
-    </ErrorBoundary>
+    </>
   );
 };
 
