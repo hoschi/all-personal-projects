@@ -30,7 +30,7 @@
     "dotenv": "^17.2.3",
     "effect": "^3.19.15",
     "jotai": "^2.16.0",
-    "lucide-react": "^0.561.0",
+    "lucide-react": "^0.562.0",
     "next": "16.0.10",
     "postgres": "^3.4.7",
     "ramda": "^0.32.0",

@@ -100,7 +100,7 @@ const TranscriptionApp: React.FC = () => {
 
 export const App: React.FC = () => {
   const pathname = window.location.pathname;
-  if (pathname === "/app") {
+  if (pathname === "/app" || pathname === "/app/") {
     return <TranscriptionApp />;
   }
 

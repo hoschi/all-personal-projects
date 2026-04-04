@@ -29,12 +29,14 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(/* error: Error, errorInfo: React.ErrorInfo */) {
+  override componentDidCatch(
+    /* error: Error, errorInfo: React.ErrorInfo */
+  ) {
     // Optional: Logging
     // console.error('ErrorBoundary caught an error');
   }
 
-  render() {
+  override render() {
     if (this.state.hasError && this.state.error) {
       // Fehler wird im App angezeigt, nicht hier
       return this.props.children;
