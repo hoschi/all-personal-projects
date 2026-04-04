@@ -45,7 +45,7 @@ export const useAudioRecorder = () => {
   };
 
   /**
-   * Stoppt die Audioaufnahme und gibt den Base64-codierten String als Promise zurück.
+   * Stoppt die Audioaufnahme und gibt einen WAV-Blob als Promise zurück.
    */
   const stopRecording = (): Promise<RecordingInfo> => {
     return new Promise((resolve, reject) => {
@@ -70,39 +70,7 @@ export const useAudioRecorder = () => {
           return reject("audio blob is zero");
         }
 
-        // --- Umwandlung von Blob -> ArrayBuffer -> Base64 ---
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          try {
-            const arrayBuffer = reader.result as ArrayBuffer;
-
-            // Ein ArrayBuffer kann nicht direkt in Base64 umgewandelt werden.
-            // Er muss zuerst in einen String aus Binärdaten konvertiert werden.
-            const uint8Array = new Uint8Array(arrayBuffer);
-            let binaryString = "";
-            for (let i = 0; i < uint8Array.length; i++) {
-              binaryString += String.fromCharCode(uint8Array[i]);
-            }
-
-            // Die btoa() Funktion codiert den Binär-String zu Base64
-            const base64Data = btoa(binaryString);
-
-            console.log("Base64 data created.");
-            resolve({ base64Data, size: bytesToSize(audioBlob.size) });
-          } catch (error) {
-            console.error("Failed to convert ArrayBuffer to Base64", error);
-            reject(error);
-          }
-        };
-
-        reader.onerror = () => {
-          console.error("FileReader error:", reader.error);
-          reject(reader.error);
-        };
-
-        // Lese den Blob als ArrayBuffer
-        reader.readAsArrayBuffer(audioBlob);
+        resolve({ audioBlob, size: bytesToSize(audioBlob.size) });
       });
     });
   };

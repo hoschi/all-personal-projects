@@ -1,4 +1,4 @@
 export type RecordingInfo = {
-  base64Data: string;
+  audioBlob: Blob;
   size: string;
 };

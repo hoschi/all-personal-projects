@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { getTextFromResponse, useTranscribeText } from "./useTranscribeText";
+import { useTranscribeText } from "./useTranscribeText";
 import { MicButton } from "./MicButton";
 import { EditingBox } from "./EditingBox";
 import { Shell, TopArea, DownArea, MiddleStrip } from "./Shell";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { RecordingInfo } from "./RecordingInfo";
-import { TokenInput } from "./TokenInput";
+import { MarketingPage } from "./TokenInput";
 import { ErrorModal } from "./ErrorModal";
 import "./App.css";
 
-export const App: React.FC = () => {
+const TranscriptionApp: React.FC = () => {
   const [sumText, _setSumText] = useState<string>(
     () => localStorage.getItem("sumText") || "",
   );
@@ -29,10 +29,6 @@ export const App: React.FC = () => {
   const [size, setSize] = useState<string>("");
   const { isLoading, transcribeText } = useTranscribeText();
   const [error, setError] = useState<Error | null>(null);
-  const [token, setToken] = useState<string>(
-    () => localStorage.getItem("token") || "",
-  );
-  const [inputToken, setInputToken] = useState<string>("");
 
   const handlePut = () => {
     setSumText(sumText === "" ? editableText : `${sumText} ${editableText}`);
@@ -48,9 +44,8 @@ export const App: React.FC = () => {
   const handleRecordingStop = async (info: RecordingInfo) => {
     setSize(info.size);
     try {
-      const response = await transcribeText(info.base64Data);
-      const text = getTextFromResponse(response);
-      setEditableText(text);
+      const response = await transcribeText(info.audioBlob);
+      setEditableText(response.text);
     } catch (ex) {
       setError(ex as Error);
     }
@@ -58,19 +53,6 @@ export const App: React.FC = () => {
 
   const handleCloseError = () => {
     setError(null);
-  };
-
-  const handleSaveToken = () => {
-    if (inputToken.trim()) {
-      localStorage.setItem("token", inputToken.trim());
-      setToken(inputToken.trim());
-    }
-  };
-
-  const handleClearToken = () => {
-    // only reset toket and not input token makes it easy to save the same token again in case the user clicked on accident on the button. Reloading the page removes the token of the box
-    setToken("");
-    localStorage.removeItem("token");
   };
 
   const handleCutAndClear = async () => {
@@ -82,16 +64,6 @@ export const App: React.FC = () => {
     }
   };
 
-  if (!token) {
-    return (
-      <TokenInput
-        value={inputToken}
-        onChange={setInputToken}
-        onSave={handleSaveToken}
-      />
-    );
-  }
-
   return (
     <ErrorBoundary>
       <Shell>
@@ -99,9 +71,7 @@ export const App: React.FC = () => {
           <EditingBox text={editableText} onTextChange={setEditableText} />
         </TopArea>
         <MiddleStrip>
-          <button className="icon-button" onClick={handleClearToken}>
-            🚪
-          </button>
+          <a href="/">Home</a>
           <div>▲ Transcription ▲</div>
           <div className="buttons-text">
             <div className="buttons">
@@ -126,6 +96,15 @@ export const App: React.FC = () => {
       <ErrorModal error={error} onClose={handleCloseError} />
     </ErrorBoundary>
   );
+};
+
+export const App: React.FC = () => {
+  const pathname = window.location.pathname;
+  if (pathname === "/app") {
+    return <TranscriptionApp />;
+  }
+
+  return <MarketingPage />;
 };
 
 export default App;

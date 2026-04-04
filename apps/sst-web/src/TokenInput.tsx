@@ -1,20 +1,13 @@
 import type React from "react";
 import imgUrl from "./screenshot.png";
 
-type TokenInputProps = {
-  value: string;
-  onChange: (v: string) => void;
-  onSave: () => void;
-};
-export const StaticPart: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
+export const MarketingPage: React.FC = () => (
   <div>
     <header>
       <div className="container">
-        <h1>Voxtral Client</h1>
+        <h1>Whisper Notes</h1>
         <p className="tagline">
-          Intelligente Sprach-zu-Text Konvertierung mit KI-Unterstützung
+          Lokale Speech-to-Text Verarbeitung mit whisper.cpp
         </p>
       </div>
     </header>
@@ -23,19 +16,16 @@ export const StaticPart: React.FC<{ children: React.ReactNode }> = ({
       <section className="hero-section">
         <img
           src={imgUrl}
-          alt="Voxtral Client App Interface"
+          alt="Whisper Notes App Interface"
           className="app-preview"
         />
 
         <p className="description">
-          <strong>Voxtral Client</strong> ist eine innovative
-          Client-Side-Anwendung, die Sprache in Text umwandelt – und das mit
-          beeindruckender Präzision. Powered by Mistrals Voxtral-Modell,
-          übernimmt die KI automatisch Zeichensetzung, Rechtschreibung und
-          Grammatikverbesserung. Perfekt für asynchrone Spracheingaben wie
-          YouTube-Notizen oder Gedankensammlungen. Mit einer geschätzten Word
-          Error Rate von nur 1% und hervorragendem Code-Switching zwischen
-          Deutsch und Englisch setzt Voxtral neue Maßstäbe.
+          <strong>Whisper Notes</strong> ist eine Client-Side-Anwendung, die
+          Audionotizen direkt gegen deinen lokal laufenden
+          <code> whisper-server </code>
+          transkribiert. Es wird kein API-Key und kein zusätzlicher Proxy
+          benötigt.
         </p>
       </section>
 
@@ -43,133 +33,88 @@ export const StaticPart: React.FC<{ children: React.ReactNode }> = ({
         <h2>Features</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <h3>🎯 Herausragende Genauigkeit</h3>
+            <h3>Direkte whisper.cpp Integration</h3>
             <p>
-              Mit einer geschätzten Word Error Rate von nur 1% übertrifft
-              Voxtral führende Systeme von Apple und Google deutlich (ca. 8-12%
-              WER).
+              Browser und whisper-server kommunizieren direkt per
+              multipart/form-data.
             </p>
           </div>
 
           <div className="feature-card">
-            <h3>✨ Automatische Verbesserung</h3>
+            <h3>Keine Token-Verwaltung</h3>
             <p>
-              Keine manuelle Zeichensetzung nötig! Die KI fügt Satzzeichen
-              komplett automatisch ein, korrigiert Rechtschreibung und optimiert
-              die Grammatik – subtil und präzise.
+              Kein Login, kein API-Key und keine lokale Schlüsselverwaltung
+              nötig.
             </p>
           </div>
 
           <div className="feature-card">
-            <h3>🌍 Perfektes Code-Switching</h3>
+            <h3>Lokale Datenhaltung</h3>
             <p>
-              Wechsel mühelos zwischen Deutsch und Englisch. Fremdwörter und
-              komplexe Eigennamen werden erstaunlich gut erkannt.
+              Transkripte und Zusammenfassungen bleiben im Browser gespeichert.
             </p>
           </div>
 
           <div className="feature-card">
-            <h3>🔒 100% Client-seitig</h3>
+            <h3>Für asynchrone Notizen</h3>
             <p>
-              Alle Daten werden lokal im Browser gespeichert. Deine Notizen
-              bleiben nach der Transkribierung lokal gespeichert und gehen
-              selbst bei versehentlichem Schließen nicht verloren.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <h3>⚡ Asynchrone Verarbeitung</h3>
-            <p>
-              Sprich einen Abschnitt ein und arbeite weiter, während die
-              Umwandlung im Hintergrund läuft. Ideal für mehrstufige Workflows
-              und paralleles Arbeiten.
-            </p>
-          </div>
-
-          <div className="feature-card">
-            <h3>💰 Kostenlos, überall</h3>
-            <p>
-              Erstelle einen Mistral-Account ohne Zahlungsmittel und teste
-              Voxtral völlig unverbindlich. Die UI ist für Tablets optimiert,
-              aber auf allen Geräten sehr gut benutzbar.
+              Abschnitt für Abschnitt einsprechen, korrigieren und in den
+              Gesamttext übernehmen.
             </p>
           </div>
         </div>
       </section>
 
       <section className="usage-section">
-        <h2>So verwendest du Voxtral Client</h2>
+        <h2>So funktioniert es</h2>
         <ol className="usage-steps">
           <li>
-            <strong>Notizen einsprechen:</strong> Drücke auf START und sprich
-            deine Gedanken oder Notizen zum aktuellen Abschnitt ein.
+            <strong>Server starten:</strong> Starte lokal den whisper-server auf
+            Port 9100.
           </li>
           <li>
-            <strong>Weitermachen:</strong> Schau weiter, lies weiter oder
-            arbeite weiter – die Sprachdatei wird hochgeladen und vom
-            Mistral-Server verarbeitet.
+            <strong>Zur App wechseln:</strong> Öffne die App unter
+            <code> /app </code> und starte die Aufnahme.
           </li>
           <li>
-            <strong>Korrekturlesen:</strong> Nach kurzer Zeit erscheint der
-            transkribierte Text im oberen Bereich. Prüfe und bearbeite ihn bei
-            Bedarf.
+            <strong>Transkript prüfen:</strong> Das Ergebnis erscheint im Bereich
+            "Transcription" und kann direkt bearbeitet werden.
           </li>
           <li>
-            <strong>Text übernehmen:</strong> Mit dem PUT-Button fügst du den
-            korrekturgelesenen Text zu deinen Gesamtnotizen hinzu.
+            <strong>Text übernehmen:</strong> Mit "PUT" fügst du den Abschnitt
+            dem Bereich "Summary" hinzu.
           </li>
           <li>
-            <strong>Wiederholen:</strong> Sprich den nächsten Abschnitt ein,
-            während die vorherigen Notizen bereits gesichert sind.
+            <strong>Exportieren:</strong> Mit dem Scheren-Button kannst du den
+            Summary-Text kopieren und gleichzeitig leeren.
           </li>
         </ol>
         <div className="usage-tip">
-          <strong>Tipp:</strong> Die Trennung zwischen "Transcription" und
-          "Summary" ermöglicht es dir, schnell zu erkennen, welcher Text noch
-          durchgesehen werden muss und welcher bereits fertig ist. Perfekt für
-          Multitasking und längere Sitzungen!
+          <strong>Hinweis:</strong> whisper.cpp liefert segmentierten Text. Die
+          App normalisiert Whitespace automatisch, damit keine störenden
+          Zeilenumbrüche im Ergebnis bleiben.
         </div>
       </section>
 
       <section className="api-section">
-        <h2>Starte jetzt!</h2>
+        <h2>Starten</h2>
         <div className="cta-section">
-          <h3>Mistral-Account erstellen</h3>
+          <h3>Direkt zur App</h3>
           <p>
-            Um Voxtral Client nutzen zu können, benötigst du einen kostenlosen
-            Mistral-Account und einen API-Key. Du kannst einen Account ohne
-            Hinterlegung eines Zahlungsmittels erstellen.
+            Wenn dein whisper-server läuft, kannst du sofort mit der Aufnahme
+            beginnen.
           </p>
-          <p>
-            Erstelle deinen Account und generiere einen API-Key hier:
-            <br />
-            <a
-              href="https://console.mistral.ai/home?workspace_dialog=apiKeys"
-              target="_blank"
-            >
-              https://console.mistral.ai/home?workspace_dialog=apiKeys
+          <div className="api-input-section">
+            <a className="save-button" href="/app">
+              Zur App
             </a>
-          </p>
+          </div>
         </div>
         <div className="disclaimer">
           <p>
-            <strong>Hinweis:</strong> Das Upload-Limit beträgt 20 MB pro Datei.
-            Bitte informiere dich auf der Mistral-Website über die
-            Datenverarbeitung und Nutzungsbedingungen. Nach letztem Stand ist
-            auch der Opt-Out möglich, um die Audiodateien nicht zum Training des
-            Modells zu nutzen.
+            <strong>Wichtig:</strong> Falls die Anfrage fehlschlägt, prüfe ob
+            dein whisper-server CORS für Browser-Requests erlaubt.
           </p>
-        </div>
-        <div className="api-key-section">
-          <h3>API-Key speichern</h3>
-          <p>
-            Gib deinen Mistral API-Key ein und speichere ihn für die Verwendung
-            mit Voxtral Client:
-          </p>
-          <div className="api-input-section">{children}</div>
-          <div className="success-message" id="successMessage">
-            ✓ API-Key erfolgreich gespeichert!
-          </div>
         </div>
       </section>
     </div>
@@ -183,8 +128,7 @@ export const StaticPart: React.FC<{ children: React.ReactNode }> = ({
               Impressum
             </a>{" "}
             -{" "}
-            <a href="/dataprivacy" title=" Datenschutzerklärung">
-              {" "}
+            <a href="/dataprivacy" title="Datenschutzerklärung">
               Datenschutzerklärung
             </a>
           </span>
@@ -192,23 +136,4 @@ export const StaticPart: React.FC<{ children: React.ReactNode }> = ({
       </div>
     </footer>
   </div>
-);
-
-export const TokenInput: React.FC<TokenInputProps> = ({
-  value,
-  onChange,
-  onSave,
-}) => (
-  <StaticPart>
-    <input
-      id="token-input"
-      className="api-input"
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-    <button className="save-button" onClick={onSave}>
-      Speichern
-    </button>
-  </StaticPart>
 );
