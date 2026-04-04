@@ -1,80 +1,91 @@
-# Plan: `main-rules.md` mit Tools-Logik + Husky orchestrieren
+# Plan: Migrate SST Web From Voxtral to whisper.cpp (No Extra Server)
 
-## Ziel
+## Goal
 
-Bei jedem Commit soll eine Änderung in `ai-assistants/main-rules.md` automatisch nach
+Replace the current Voxtral/Mistral transcription flow with direct calls to `whisper-server` (whisper.cpp) **without** adding any Python or proxy server.
 
-- `.roo/rules/main-rules.md`
-- `.kilocode/rules/main-rules.md`
+## Scope
 
-kopiert und direkt dem selben Commit hinzugefügt werden.
+- Only the **no-wrapper** variant (browser → `whisper-server` via multipart/form-data).
+- Introduce a **marketing page** and a separate **app page**.
+- App page is **directly accessible** (no token gate).
+- Keep changes minimal so the diff stays readable.
 
-## Umsetzungsschritte
+## Inputs From Existing Markdown
 
-1. Tool-Logik im `packages/tools` implementieren
-- Neue Datei in `packages/tools/src` anlegen (z. B. `sync-main-rules.ts`).
-- Diese Datei enthält **nur** die Dateisynchronisierung:
-  - Source: `ai-assistants/main-rules.md`
-  - Targets: `.roo/rules/main-rules.md`, `.kilocode/rules/main-rules.md`
-- Keine Git-Befehle in der Tool-Logik.
-- Optionalen Script-Eintrag in `packages/tools/package.json` ergänzen (`sync-main-rules`).
+From `current/needs-guidance.md`:
 
-2. Husky nur für Git-Teil einrichten
-- `husky` als `devDependency` im Repo-Root ergänzen.
-- Root-`package.json`: `prepare` Script für Husky hinzufügen.
-- `.husky/pre-commit` anlegen:
-  - Prüft per `git diff --cached --name-only -- ai-assistants/main-rules.md`, ob Source staged geändert ist.
-  - Führt nur dann `bun run packages/tools/src/sync-main-rules.ts` aus.
-  - Führt danach `git add .roo/rules/main-rules.md .kilocode/rules/main-rules.md` aus.
-- Damit bleibt die Trennung sauber: Tool = Dateiinhalt, Husky = Git-Index/Hook-Orchestrierung.
+- `whisper-server` runs on `http://127.0.0.1:9100/inference` and expects `multipart/form-data`.
+- Required whitespace normalization: replace `\s+` with a single space after transcription.
+- Request parameters: `response_format=json`, `language`, `temperature`.
 
-3. Verifikation der Hook-Kette
-- Positivfall:
-  - Source ändern, `git add ai-assistants/main-rules.md`, commit.
-  - Prüfen, dass beide Target-Dateien automatisch synchronisiert und im Commit enthalten sind.
-- No-Op:
-  - Commit ohne staged Änderung an der Source.
-  - Hook darf nichts ändern.
-- Integrität:
-  - Alle drei Dateien müssen bytegleich sein.
+## Current State (Code)
 
-4. README-Anpassungen am Schluss
-- Root-`README.md` ergänzen:
-  - Hinweis auf automatische Spiegelung der `main-rules.md` via pre-commit Hook.
-  - Single Source of Truth klar benennen.
-- `packages/tools/README.md` ergänzen:
-  - neues Tool-Skript dokumentieren (`sync-main-rules`).
-  - Rollenaufteilung Tool vs. Husky kurz beschreiben.
+- `apps/sst-web/src/useTranscribeText.ts` uses Mistral SDK and `voxtral-mini-latest`.
+- `apps/sst-web/src/useAudioRecorder.ts` returns Base64 WAV data.
+- `apps/sst-web/src/App.tsx` gates the app behind a token and uses Voxtral UI copy.
 
-## Commit-Strategie (inkrementell)
+## Migration Steps (Minimal-Change Path)
 
-1. Commit 1: Plan erweitert (`current/plan.md`).
-2. Commit 2: Tool-Logik in `packages/tools` + ggf. Script-Eintrag.
-3. Commit 3: Husky-Setup + pre-commit Git-Orchestrierung.
-4. Commit 4: README-Updates (Root + `packages/tools`).
+1. **Transcription API switch (no server):**
+   - Replace Mistral SDK usage in `apps/sst-web/src/useTranscribeText.ts` with a `fetch` to `http://localhost:9100/inference`.
+   - Build `FormData` with:
+     - `file`: WAV data
+     - `response_format=json`
+     - `language` (default `de`)
+     - `temperature=0.0`
+   - Parse JSON response and normalize whitespace (`/\s+/g` → single space).
+   - Return a `{ text: string }` payload instead of `ChatCompletionResponse`.
 
-## Verifikation
+2. **WAV payload handling:**
+   - Keep `useAudioRecorder.ts` largely as-is.
+   - Decide on the smallest change to feed `FormData`:
+     - Option A: add the `Blob` to `RecordingInfo` (preferred for performance).
+     - Option B: reconstruct a `Blob` from Base64 inside `useTranscribeText.ts`.
+   - Choose the minimal diff that avoids re-encoding work.
 
-1. Positivfall
-- `ai-assistants/main-rules.md` ändern, committen.
-- Erwartung:
-  - `.roo/rules/main-rules.md` und `.kilocode/rules/main-rules.md` enthalten denselben Inhalt.
-  - Beide Dateien sind im selben Commit enthalten.
+3. **Remove token gating:**
+   - Delete the token gate in `apps/sst-web/src/App.tsx`.
+   - Remove API key storage in `localStorage` and the token-related state.
 
-2. No-Op-Fall
-- Commit ohne Änderung an `ai-assistants/main-rules.md`.
-- Erwartung:
-  - Hook verändert nichts.
-  - Commit läuft normal durch.
+4. **Marketing page + app page:**
+   - Reuse the existing `TokenInput` static content as the marketing page component.
+   - Remove the API key input UI and Mistral-specific onboarding copy.
+   - Add a simple CTA link/button to `/app`.
+   - Keep the transcription UI as the app page component.
 
-3. Integritätscheck
-- Nach Test-Commit:
-  - `cmp`/`diff` zwischen allen drei Dateien zeigt keine Unterschiede.
+5. **Routing (minimal):**
+   - Implement a lightweight route switch in `apps/sst-web/src/App.tsx` using `window.location.pathname`:
+     - `/` → Marketing page
+     - `/app` → App page
+   - Avoid adding `react-router` to keep the diff small.
 
-## Akzeptanzkriterien
+6. **Copy updates (minimal wording):**
+   - Replace Voxtral/Mistral-specific text with whisper.cpp references where needed.
+   - Keep structure intact to minimize the diff.
 
-- Single Source of Truth ist `ai-assistants/main-rules.md`.
-- Jede committe Änderung an dieser Datei synchronisiert automatisch in die beiden anderen Dateien.
-- Die synchronisierten Dateien werden ohne manuelles `git add` mitcommitted.
-- Sync-Logik liegt im `packages/tools`-Code, Git-Logik nur im Husky Hook.
-- Commits ohne relevante Änderung werden nicht beeinflusst.
+7. **Docs:**
+   - Update `apps/sst-web/README.md` with:
+     - `whisper-server` start command
+     - `models/ggml-large-v3-turbo.bin` download instructions
+     - Expected local endpoint `http://localhost:9100/inference`
+
+## Risks / Checks
+
+- **CORS:** If `whisper-server` does not allow CORS, the browser call will fail. This must be validated. If it fails, the “no-server” constraint cannot be satisfied unless `whisper-server` can be configured to send CORS headers.
+- **Text quality:** Voxtral previously did grammar/punctuation corrections. whisper.cpp does not. If this behavior is needed, define a post-processing strategy separately.
+
+## Definition of Done (for the no-wrapper migration)
+
+- App page transcribes via `whisper-server` without any token.
+- Marketing page and app page are reachable at `/` and `/app`.
+- No Mistral SDK usage remains in `apps/sst-web`.
+- README describes local whisper.cpp setup.
+
+## Testing Readiness
+
+Once the changes above are implemented, testing should include:
+
+- Start `whisper-server` locally and open `/app`.
+- Record audio → verify text output and whitespace normalization.
+- Navigate between `/` and `/app` to confirm routing.
