@@ -41,6 +41,10 @@ export const useAudioRecorder = () => {
       console.log("Recording started. State:", recorder.state);
     } catch (error) {
       console.error("Failed to start recording:", error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(String(error));
     }
   };
 

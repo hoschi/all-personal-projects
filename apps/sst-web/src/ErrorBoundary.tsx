@@ -9,6 +9,7 @@ export function ErrorCatcher({ children }: { children: React.ReactNode }) {
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
+  onError?: (error: Error) => void;
 }
 
 interface ErrorBoundaryState {
@@ -29,9 +30,8 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  override componentDidCatch(
-    /* error: Error, errorInfo: React.ErrorInfo */
-  ) {
+  override componentDidCatch(error: Error /* errorInfo: React.ErrorInfo */) {
+    this.props.onError?.(error);
     // Optional: Logging
     // console.error('ErrorBoundary caught an error');
   }

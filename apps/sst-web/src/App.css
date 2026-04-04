@@ -527,6 +527,20 @@ footer {
   overflow-x: auto;
 }
 
+.error-stack {
+  white-space: pre-wrap;
+  color: #393e46;
+  font-family: "Courier New", monospace;
+  font-size: 0.85em;
+  background: #ffffff;
+  border: 1px solid #d2d5dd;
+  padding: 10px;
+  border-radius: 2px;
+  margin-top: 10px;
+  max-height: 220px;
+  overflow: auto;
+}
+
 .error-modal-footer {
   padding: 20px;
   border-top: 1px solid #d2d5dd;

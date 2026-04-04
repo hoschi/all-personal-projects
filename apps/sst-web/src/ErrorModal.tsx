@@ -12,14 +12,15 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({ error, onClose }) => {
     <div className="error-modal-overlay">
       <div className="error-modal">
         <div className="error-modal-header">
-          <h3>Fehler bei der Transkription</h3>
+          <h3>Runtime Error</h3>
           <button className="error-modal-close" onClick={onClose}>
             ✕
           </button>
         </div>
         <div className="error-modal-body">
-          <p>Die Transkription ist fehlgeschlagen.</p>
+          <p>Es ist ein Laufzeitfehler aufgetreten.</p>
           <p className="error-message">{error.message}</p>
+          {error.stack ? <pre className="error-stack">{error.stack}</pre> : null}
         </div>
         <div className="error-modal-footer">
           <button className="error-modal-button" onClick={onClose}>
