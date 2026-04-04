@@ -6,7 +6,7 @@ Erstelle einen Python-Server (FastAPI), der als Wrapper um den `whisper-server` 
 
 ## Technischer Hintergrund
 
-whisper.cpp bietet einen eingebauten HTTP-Server (`whisper-server`), der ueber `brew install whisper-cpp` installiert wird. Dieser Server laeuft auf Apple Silicon mit Metal-GPU-Beschleunigung und nutzt das Modell `ggml-large-v3-turbo`. Er liefert in Benchmarks eine normierte Levenshtein-Distanz von 3-20 bei 0.6-1.3s Inferenzzeit und ist die einzige getestete Server-Loesung ohne Repetitions-Bugs.
+whisper.cpp bietet einen eingebauten HTTP-Server (`whisper-server`), der ueber `brew install whisper-cpp` installiert wurde. Dieser Server laeuft auf Apple Silicon mit Metal-GPU-Beschleunigung und nutzt das Modell `ggml-large-v3-turbo`. Er liefert in Benchmarks eine normierte Levenshtein-Distanz von 3-20 bei 0.6-1.3s Inferenzzeit und ist die einzige getestete Server-Loesung ohne Repetitions-Bugs.
 
 ### whisper-server starten
 
