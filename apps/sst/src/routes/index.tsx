@@ -192,7 +192,10 @@ function RouteComponent() {
   const canReplayRecording =
     hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
   const canImproveText =
-    hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
+    activeTab !== null &&
+    hasActiveTabRecording &&
+    !isRecordingInProgress &&
+    pendingAction === null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
   const recordButtonLabel =
@@ -791,7 +794,7 @@ function RouteComponent() {
               onClick={() => {
                 void handleImproveText()
               }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
               disabled={!canImproveText}
             >
               Improve Text
