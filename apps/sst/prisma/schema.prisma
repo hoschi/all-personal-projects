@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ModelRunStage {
+  transcription
+  correction
+}
+
+enum ModelProvider {
+  whisper
+  ollama
+  unknown
+}
+
+model Tab {
+  id       String @id @default(cuid())
+  title    String
+  topText  String @default("")
+  bottomText String @default("")
+
+  titleVersion  Int @default(1)
+  topTextVersion Int @default(1)
+  bottomTextVersion Int @default(1)
+
+  titleUpdatedAt  DateTime @default(now())
+  topTextUpdatedAt DateTime @default(now())
+  bottomTextUpdatedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  syncStates TabSyncState[]
+  modelRuns  ModelRunLog[]
+
+  @@map("tabs")
+  @@index([updatedAt])
+}
+
+model TabSyncState {
+  id       String @id @default(cuid())
+  tabId    String
+  clientId String
+
+  knownTitleVersion  Int @default(1)
+  knownTopTextVersion Int @default(1)
+  knownBottomTextVersion Int @default(1)
+
+  lastPulledAt DateTime @default(now())
+  lastPushedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+
+  @@map("tab_sync_states")
+  @@unique([tabId, clientId])
+  @@index([clientId])
+  @@index([updatedAt])
+}
+
+model ModelRunLog {
+  id       String @id @default(cuid())
+  tabId    String?
+  stage    ModelRunStage
+  provider ModelProvider
+  modelId  String
+
+  modelInput  String @db.Text
+  modelOutput String @db.Text
+  durationMs  Int?
+
+  gitCommitHash String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  tab Tab? @relation(fields: [tabId], references: [id], onDelete: SetNull)
+
+  @@map("model_run_logs")
+  @@index([tabId, createdAt])
+  @@index([stage, createdAt])
+  @@index([modelId])
+}
