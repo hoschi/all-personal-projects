@@ -19,7 +19,9 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Sync transport for v0: polling (`3a` confirmed).
 - SSL domain/port convention includes new `sst` app (`dev:3059`, `prod:4059`).
 - Client rendering only (`ssr: false` in routes) to avoid SSR-specific runtime issues.
+- CSR-only route runtime can use browser APIs directly (`window`, `localStorage`) without SSR guards.
 - Active tab is persisted per client and restored on reload.
+- Runtime exceptions in route UI flow are surfaced via TanStack route error boundaries (`errorComponent`) instead of being silently swallowed.
 
 ## Mandatory Project Rules Applied (`main-rules.md`)
 
@@ -30,6 +32,8 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Follow React Compiler rule: no default manual memoization (`useMemo`/`useCallback`) unless explicitly required later.
 - Use `useEffect` only for real side effects; keep pure derivations in render/state logic.
 - Reuse shared Zod/contracts for enum-like values to avoid UI/backend drift.
+- Use `UPPER_SNAKE_CASE` + `as const` for module-level constants.
+- Do not silently swallow runtime exceptions; propagate unexpected errors to route/global error boundaries.
 
 ## Progress Snapshot
 

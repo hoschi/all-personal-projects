@@ -1,4 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router"
+import {
+  ErrorComponent,
+  createFileRoute,
+  type ErrorComponentProps,
+} from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 
 import type {
@@ -18,67 +22,54 @@ import {
   updateTabFieldFn,
 } from "@/data/tab-sync-actions"
 
-const clientIdStorageKey = "sst-client-id"
-const activeTabStoragePrefix = "sst-active-tab-id"
+const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
+const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
 
 function createFallbackClientId() {
   return `sst-client-${Math.random().toString(36).slice(2)}`
 }
 
 function getActiveTabStorageKey(clientId: string) {
-  return `${activeTabStoragePrefix}:${clientId}`
+  return `${ACTIVE_TAB_STORAGE_PREFIX}:${clientId}`
 }
 
 function readPersistedActiveTabId(clientId: string) {
-  if (typeof window === "undefined") {
-    return null
-  }
-
-  try {
-    return window.localStorage.getItem(getActiveTabStorageKey(clientId))
-  } catch {
-    return null
-  }
+  return window.localStorage.getItem(getActiveTabStorageKey(clientId))
 }
 
 function persistActiveTabId(clientId: string, tabId: string) {
-  if (typeof window === "undefined") {
+  const storageKey = getActiveTabStorageKey(clientId)
+
+  if (tabId.length === 0) {
+    window.localStorage.removeItem(storageKey)
     return
   }
 
-  try {
-    const storageKey = getActiveTabStorageKey(clientId)
-
-    if (tabId.length === 0) {
-      window.localStorage.removeItem(storageKey)
-      return
-    }
-
-    window.localStorage.setItem(storageKey, tabId)
-  } catch {
-    return
-  }
+  window.localStorage.setItem(storageKey, tabId)
 }
 
 function getOrCreateClientId() {
-  if (typeof window === "undefined") {
-    return createFallbackClientId()
+  const existingClientId = window.localStorage.getItem(CLIENT_ID_STORAGE_KEY)
+
+  if (existingClientId) {
+    return existingClientId
   }
 
-  try {
-    const existingClientId = window.localStorage.getItem(clientIdStorageKey)
+  const nextClientId = window.crypto?.randomUUID?.() ?? createFallbackClientId()
+  window.localStorage.setItem(CLIENT_ID_STORAGE_KEY, nextClientId)
+  return nextClientId
+}
 
-    if (existingClientId) {
-      return existingClientId
-    }
-
-    const nextClientId =
-      window.crypto?.randomUUID?.() ?? createFallbackClientId()
-    window.localStorage.setItem(clientIdStorageKey, nextClientId)
-    return nextClientId
-  } catch {
-    return createFallbackClientId()
+function toRuntimeError(error: unknown, fallbackMessage: string) {
+  if (error instanceof Error) {
+    return error
   }
+
+  return new Error(fallbackMessage, { cause: error })
+}
+
+function IndexRouteErrorComponent({ error }: ErrorComponentProps) {
+  return <ErrorComponent error={error} />
 }
 
 function toTabListItem(tab: TabSnapshot): TabListItem {
@@ -121,6 +112,7 @@ export const Route = createFileRoute("/")({
       initialActiveTabId: createdTab.id,
     }
   },
+  errorComponent: IndexRouteErrorComponent,
   component: RouteComponent,
 })
 
@@ -148,6 +140,11 @@ function RouteComponent() {
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [conflict, setConflict] = useState<TabFieldConflict | null>(null)
+  const [runtimeError, setRuntimeError] = useState<Error | null>(null)
+
+  if (runtimeError) {
+    throw runtimeError
+  }
 
   const activeTabTitle = activeTab?.title ?? "No active tab"
 
@@ -249,8 +246,8 @@ function RouteComponent() {
 
       applyActiveTab(selectedTab)
       setConflict(null)
-    } catch {
-      setStatusMessage("Failed to load selected tab.")
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to load selected tab."))
     } finally {
       setPendingAction(null)
     }
@@ -267,8 +264,8 @@ function RouteComponent() {
       applyActiveTab(createdTab)
       setConflict(null)
       setStatusMessage("Created a new tab.")
-    } catch {
-      setStatusMessage("Failed to create a new tab.")
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to create a new tab."))
     } finally {
       setPendingAction(null)
     }
@@ -299,8 +296,8 @@ function RouteComponent() {
       })
 
       updateFromWriteResult(result, "title")
-    } catch {
-      setStatusMessage("Failed to save title.")
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to save title."))
     } finally {
       setPendingAction(null)
     }
@@ -332,8 +329,8 @@ function RouteComponent() {
       })
 
       updateFromWriteResult(result, field)
-    } catch {
-      setStatusMessage(`Failed to save ${field}.`)
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, `Failed to save ${field}.`))
     } finally {
       setPendingAction(null)
     }
@@ -363,8 +360,8 @@ function RouteComponent() {
       } else if (result.status === "not_found") {
         setStatusMessage("Tab no longer exists on the server.")
       }
-    } catch {
-      setStatusMessage("Failed to apply Use Server Data.")
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to apply Use Server Data."))
     } finally {
       setPendingAction(null)
     }
@@ -395,8 +392,10 @@ function RouteComponent() {
       } else if (result.status === "not_found") {
         setStatusMessage("Tab no longer exists on the server.")
       }
-    } catch {
-      setStatusMessage("Failed to apply Write Client to Server.")
+    } catch (error) {
+      setRuntimeError(
+        toRuntimeError(error, "Failed to apply Write Client to Server."),
+      )
     } finally {
       setPendingAction(null)
     }

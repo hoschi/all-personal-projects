@@ -131,6 +131,15 @@ flowchart TD
 
 SST runs as a client-rendered app for v0. Route definitions use `ssr: false` to avoid SSR-related issues for this workflow.
 
+For CSR-only routes, browser APIs (`window`, `localStorage`) are used directly in route runtime logic without SSR guards.
+
+### Runtime error handling
+
+Runtime exceptions are not silently swallowed in UI route logic.
+
+- Unexpected client/runtime failures are forwarded to the TanStack route error boundary (`errorComponent`).
+- Local fallback status messages are only used for expected domain results (`conflict`, `not_found`), not for unexpected exceptions.
+
 ## Model Eval Data Storage
 
 ### Why these logs exist
