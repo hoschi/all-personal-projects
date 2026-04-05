@@ -26,7 +26,6 @@ import { improveTabRecordingFn } from "@/data/text-improvement-actions"
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
 const DEFAULT_IMPROVE_LANGUAGE = "de" as const
-const WAV_MIME_TYPE = "audio/wav" as const
 
 type RecordingStatus = "idle" | "recording"
 
@@ -34,78 +33,6 @@ type TabLocalRecording = {
   audioBlob: Blob
   objectUrl: string
   sizeLabel: string
-}
-
-function writeAsciiString(view: DataView, byteOffset: number, value: string) {
-  for (let index = 0; index < value.length; index += 1) {
-    view.setUint8(byteOffset + index, value.charCodeAt(index))
-  }
-}
-
-function encodeAudioBufferAsWav(audioBuffer: AudioBuffer) {
-  const channelCount = audioBuffer.numberOfChannels
-  const sampleRate = audioBuffer.sampleRate
-  const frameCount = audioBuffer.length
-  const bytesPerSample = 2
-  const blockAlign = channelCount * bytesPerSample
-  const byteRate = sampleRate * blockAlign
-  const dataByteLength = frameCount * blockAlign
-  const wavBuffer = new ArrayBuffer(44 + dataByteLength)
-  const wavView = new DataView(wavBuffer)
-
-  writeAsciiString(wavView, 0, "RIFF")
-  wavView.setUint32(4, 36 + dataByteLength, true)
-  writeAsciiString(wavView, 8, "WAVE")
-  writeAsciiString(wavView, 12, "fmt ")
-  wavView.setUint32(16, 16, true)
-  wavView.setUint16(20, 1, true)
-  wavView.setUint16(22, channelCount, true)
-  wavView.setUint32(24, sampleRate, true)
-  wavView.setUint32(28, byteRate, true)
-  wavView.setUint16(32, blockAlign, true)
-  wavView.setUint16(34, 16, true)
-  writeAsciiString(wavView, 36, "data")
-  wavView.setUint32(40, dataByteLength, true)
-
-  let dataOffset = 44
-
-  for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
-    for (let channelIndex = 0; channelIndex < channelCount; channelIndex += 1) {
-      const sample = audioBuffer.getChannelData(channelIndex)[frameIndex] ?? 0
-      const clampedSample = Math.max(-1, Math.min(1, sample))
-      const int16Sample =
-        clampedSample < 0
-          ? Math.round(clampedSample * 0x8000)
-          : Math.round(clampedSample * 0x7fff)
-
-      wavView.setInt16(dataOffset, int16Sample, true)
-      dataOffset += bytesPerSample
-    }
-  }
-
-  return new Blob([wavBuffer], { type: WAV_MIME_TYPE })
-}
-
-async function convertBlobToWav(blob: Blob): Promise<Blob> {
-  if (blob.type === WAV_MIME_TYPE) {
-    return blob
-  }
-
-  if (typeof AudioContext === "undefined") {
-    throw new Error("AudioContext API is not available in this browser.")
-  }
-
-  const audioContext = new AudioContext()
-
-  try {
-    const encodedBuffer = await blob.arrayBuffer()
-    const decodedAudio = await audioContext.decodeAudioData(
-      encodedBuffer.slice(0),
-    )
-    return encodeAudioBufferAsWav(decodedAudio)
-  } finally {
-    await audioContext.close()
-  }
 }
 
 function bytesToSize(bytes: number) {
@@ -118,34 +45,6 @@ function bytesToSize(bytes: number) {
   const sizeIndex = Math.floor(Math.log(bytes) / Math.log(BASE))
   const normalizedBytes = bytes / BASE ** sizeIndex
   return `${normalizedBytes.toPrecision(3)} ${SIZE_UNITS[sizeIndex]}`
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const fileReader = new FileReader()
-
-    fileReader.onerror = () => {
-      reject(new Error("Failed to read recording blob."))
-    }
-
-    fileReader.onloadend = () => {
-      if (typeof fileReader.result !== "string") {
-        reject(new Error("Recording blob conversion failed."))
-        return
-      }
-
-      const [, base64Payload] = fileReader.result.split(",", 2)
-
-      if (!base64Payload) {
-        reject(new Error("Recording base64 payload is empty."))
-        return
-      }
-
-      resolve(base64Payload)
-    }
-
-    fileReader.readAsDataURL(blob)
-  })
 }
 
 function createFallbackClientId() {
@@ -340,16 +239,14 @@ function RouteComponent() {
     setStatusMessage(null)
 
     try {
-      const wavBlob = await convertBlobToWav(activeTabRecording.audioBlob)
-      const audioBase64 = await blobToBase64(wavBlob)
+      const formData = new FormData()
+      formData.append("file", activeTabRecording.audioBlob, "audio.wav")
+      formData.append("tabId", activeTab.id)
+      formData.append("contextText", bottomTextDraft)
+      formData.append("language", DEFAULT_IMPROVE_LANGUAGE)
+
       const improveResult = await improveTabRecordingFn({
-        data: {
-          tabId: activeTab.id,
-          audioBase64,
-          audioMimeType: wavBlob.type || WAV_MIME_TYPE,
-          contextText: bottomTextDraft,
-          language: DEFAULT_IMPROVE_LANGUAGE,
-        },
+        data: formData,
       })
 
       setTopTextDraft(improveResult.correctedText)

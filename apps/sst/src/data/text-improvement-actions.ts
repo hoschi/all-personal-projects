@@ -9,7 +9,7 @@ import {
 
 const DEFAULT_WHISPER_MODEL_ID = "whisper-unknown" as const
 const DEFAULT_LANGUAGE = "de" as const
-const WAV_FILE_NAME = "recording.wav" as const
+const UPLOAD_FILE_NAME = "audio.wav" as const
 
 const whisperVerboseJsonResponseSchema = z.object({
   text: z.string().optional(),
@@ -31,19 +31,23 @@ function readTextImprovementEnv() {
   })
 }
 
-function decodeAudioBlob(input: {
-  audioBase64: string
-  audioMimeType: string
-}) {
-  const bytes = Buffer.from(input.audioBase64, "base64")
+function parseRecordingFormData(formData: FormData) {
+  const recordingInput = processTabRecordingInputSchema.parse({
+    tabId: formData.get("tabId"),
+    contextText: formData.get("contextText"),
+    language: formData.get("language") ?? undefined,
+  })
 
-  if (bytes.length === 0) {
-    throw new Error("Audio payload is empty.")
+  const fileEntry = formData.get("file")
+
+  if (!(fileEntry instanceof Blob) || fileEntry.size === 0) {
+    throw new Error("Audio file is required.")
   }
 
-  return new Blob([bytes], {
-    type: input.audioMimeType,
-  })
+  return {
+    ...recordingInput,
+    audioBlob: fileEntry,
+  }
 }
 
 function normalizeWhisperText(text: string) {
@@ -80,7 +84,7 @@ async function transcribeWithWhisper(input: {
 }): Promise<{ text: string; modelId: string }> {
   const formData = new FormData()
 
-  formData.append("file", input.audioBlob, WAV_FILE_NAME)
+  formData.append("file", input.audioBlob, UPLOAD_FILE_NAME)
   formData.append("response_format", "verbose_json")
   formData.append("language", input.language)
   formData.append("temperature", "0.0")
@@ -154,20 +158,16 @@ async function correctWithOllama(input: {
 }
 
 export const improveTabRecordingFn = createServerFn({ method: "POST" })
-  .inputValidator((data) => processTabRecordingInputSchema.parse(data))
+  .inputValidator((data) => z.instanceof(FormData).parse(data))
   .handler(async ({ data }) => {
     const env = readTextImprovementEnv()
-
-    const audioBlob = decodeAudioBlob({
-      audioBase64: data.audioBase64,
-      audioMimeType: data.audioMimeType,
-    })
+    const recordingInput = parseRecordingFormData(data)
 
     const transcriptionStartAtMs = Date.now()
     const transcriptionResult = await transcribeWithWhisper({
       whisperEndpoint: env.SST_WHISPER_ENDPOINT,
-      audioBlob,
-      language: data.language ?? DEFAULT_LANGUAGE,
+      audioBlob: recordingInput.audioBlob,
+      language: recordingInput.language ?? DEFAULT_LANGUAGE,
     })
     const transcriptionDurationMs = Date.now() - transcriptionStartAtMs
 
@@ -176,12 +176,12 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
       ollamaEndpoint: env.SST_OLLAMA_ENDPOINT,
       ollamaModelId: env.SST_OLLAMA_MODEL_ID,
       transcriptionText: transcriptionResult.text,
-      contextText: data.contextText,
+      contextText: recordingInput.contextText,
     })
     const correctionDurationMs = Date.now() - correctionStartAtMs
 
     const improveTextResult: ImproveTextResult = {
-      tabId: data.tabId,
+      tabId: recordingInput.tabId,
       rawTranscriptionText: transcriptionResult.text,
       correctedText: correctionResult.text,
       whisperModelId: transcriptionResult.modelId,

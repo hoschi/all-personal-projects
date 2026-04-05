@@ -145,8 +145,6 @@ export type CreateModelRunInput = z.infer<typeof createModelRunInputSchema>
 
 export const processTabRecordingInputSchema = z.object({
   tabId: tabIdSchema,
-  audioBase64: z.string().min(1),
-  audioMimeType: z.string().trim().min(1),
   contextText: z.string(),
   language: z.string().trim().min(2).max(12).optional(),
 })

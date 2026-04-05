@@ -162,6 +162,8 @@ Runtime exceptions are not silently swallowed in UI route logic.
 
 When `Improve Text` is triggered, SST runs a server-side two-step pipeline:
 
+- Client sends `multipart/form-data` to the BFF server function (`file`, `tabId`, `contextText`, `language`).
+
 1. Whisper transcription request with `response_format=verbose_json`
 2. Text normalization (including line-break artifact cleanup)
 3. Ollama correction with context from the lower textbox (`gemma3:latest` by default)
