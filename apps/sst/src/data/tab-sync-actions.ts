@@ -49,6 +49,7 @@ function toTabSnapshot(tab: TabModel): TabSnapshot {
   }
 }
 
+// TODO after v0 features implemented: eval if ts-patterns makes this code better looking and undestandable
 function readTabFieldValue(tab: TabModel, field: TabSyncField): string {
   if (field === "title") {
     return tab.title
