@@ -65,6 +65,8 @@ This allows conflicts to be detected per field instead of per full tab document.
 
 Each client periodically fetches the active tab state and updates its local cursor (`tab_sync_states`).
 
+The active tab selection is persisted per client in local storage and restored on reload.
+
 ```mermaid
 sequenceDiagram
   participant C as Client
@@ -106,8 +108,8 @@ sequenceDiagram
 
 When conflict is returned, the UI must force an explicit choice:
 
-- `Overwrite Server`: discard local pending value and accept server truth.
-- `Overwrite Client`: force-write local value as next server version.
+- `Use Server Data`: overwrite local draft state with the latest server value.
+- `Write Client to Server`: force-write local value as next server version.
 
 No silent merges are performed in v0.
 
@@ -118,12 +120,16 @@ flowchart TD
   Compare -->|Yes| Save[Persist value and increment version]
   Compare -->|No| Conflict[Return conflict payload]
   Conflict --> Choice{User decision}
-  Choice -->|Overwrite Server| Pull[Load server value into client]
-  Choice -->|Overwrite Client| Force[Write client value as new version]
+  Choice -->|Use Server Data| Pull[Load server value into client]
+  Choice -->|Write Client to Server| Force[Write client value as new version]
   Pull --> Done[Sync state resolved]
   Force --> Done
   Save --> Done
 ```
+
+### Rendering mode
+
+SST runs as a client-rendered app for v0. Route definitions use `ssr: false` to avoid SSR-related issues for this workflow.
 
 ## Model Eval Data Storage
 
@@ -233,10 +239,11 @@ Implemented in this repository:
 - TanStack Start app scaffold (`apps/sst`)
 - Prisma schema + migration for tabs, sync states, and model-run logs
 - Shared typed contracts for sync and telemetry payloads
+- Tab server functions for create/select/rename/update and conflict handling
+- Tabbed UI with per-client active-tab restore and conflict resolution actions
 
 Planned next:
 
-- Server functions for tab operations and conflict handling
 - Full polling runtime in UI
 - Whisper + Ollama pipeline integration in server layer
 - Debug diff UI and timing display

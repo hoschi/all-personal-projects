@@ -19,9 +19,45 @@ import {
 } from "@/data/tab-sync-actions"
 
 const clientIdStorageKey = "sst-client-id"
+const activeTabStoragePrefix = "sst-active-tab-id"
 
 function createFallbackClientId() {
   return `sst-client-${Math.random().toString(36).slice(2)}`
+}
+
+function getActiveTabStorageKey(clientId: string) {
+  return `${activeTabStoragePrefix}:${clientId}`
+}
+
+function readPersistedActiveTabId(clientId: string) {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  try {
+    return window.localStorage.getItem(getActiveTabStorageKey(clientId))
+  } catch {
+    return null
+  }
+}
+
+function persistActiveTabId(clientId: string, tabId: string) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  try {
+    const storageKey = getActiveTabStorageKey(clientId)
+
+    if (tabId.length === 0) {
+      window.localStorage.removeItem(storageKey)
+      return
+    }
+
+    window.localStorage.setItem(storageKey, tabId)
+  } catch {
+    return
+  }
 }
 
 function getOrCreateClientId() {
@@ -93,7 +129,18 @@ function RouteComponent() {
 
   const [clientId] = useState(() => getOrCreateClientId())
   const [tabs, setTabs] = useState(initialTabs)
-  const [activeTabId, setActiveTabId] = useState(initialActiveTabId)
+  const [activeTabId, setActiveTabId] = useState(() => {
+    const persistedActiveTabId = readPersistedActiveTabId(clientId)
+
+    if (
+      persistedActiveTabId &&
+      initialTabs.some((tab) => tab.id === persistedActiveTabId)
+    ) {
+      return persistedActiveTabId
+    }
+
+    return initialActiveTabId
+  })
   const [activeTab, setActiveTab] = useState<TabSnapshot | null>(null)
   const [titleDraft, setTitleDraft] = useState("")
   const [topTextDraft, setTopTextDraft] = useState("")
@@ -141,7 +188,7 @@ function RouteComponent() {
       updateServerTabSnapshot(result.tab)
       setConflict(result.conflict)
       setStatusMessage(
-        `Conflict detected for ${field}. Choose overwrite action.`,
+        `Conflict detected for ${field}. Choose "Use Server Data" or "Write Client to Server".`,
       )
       return false
     }
@@ -149,9 +196,15 @@ function RouteComponent() {
     setStatusMessage("This tab no longer exists on the server.")
     setConflict(null)
     setActiveTab(null)
-    setTabs((currentTabs) =>
-      currentTabs.filter((tab) => tab.id !== result.tabId),
-    )
+    const remainingTabs = tabs.filter((tab) => tab.id !== result.tabId)
+    setTabs(remainingTabs)
+
+    if (remainingTabs.length > 0) {
+      setActiveTabId(remainingTabs[0].id)
+    } else {
+      setActiveTabId("")
+    }
+
     return false
   }
 
@@ -182,7 +235,15 @@ function RouteComponent() {
       if (!selectedTab) {
         setStatusMessage("The selected tab could not be loaded.")
         setActiveTab(null)
-        setTabs((currentTabs) => currentTabs.filter((tab) => tab.id !== tabId))
+        const remainingTabs = tabs.filter((tab) => tab.id !== tabId)
+        setTabs(remainingTabs)
+
+        if (remainingTabs.length > 0) {
+          setActiveTabId(remainingTabs[0].id)
+        } else {
+          setActiveTabId("")
+        }
+
         return
       }
 
@@ -298,12 +359,12 @@ function RouteComponent() {
       if (result.status === "updated") {
         applyActiveTab(result.tab)
         setConflict(null)
-        setStatusMessage("Server state accepted.")
+        setStatusMessage("Server data loaded into client.")
       } else if (result.status === "not_found") {
         setStatusMessage("Tab no longer exists on the server.")
       }
     } catch {
-      setStatusMessage("Failed to apply Overwrite Server.")
+      setStatusMessage("Failed to apply Use Server Data.")
     } finally {
       setPendingAction(null)
     }
@@ -330,16 +391,20 @@ function RouteComponent() {
       if (result.status === "updated") {
         applyActiveTab(result.tab)
         setConflict(null)
-        setStatusMessage("Client state forced to server.")
+        setStatusMessage("Client draft written to server.")
       } else if (result.status === "not_found") {
         setStatusMessage("Tab no longer exists on the server.")
       }
     } catch {
-      setStatusMessage("Failed to apply Overwrite Client.")
+      setStatusMessage("Failed to apply Write Client to Server.")
     } finally {
       setPendingAction(null)
     }
   }
+
+  useEffect(() => {
+    persistActiveTabId(clientId, activeTabId)
+  }, [activeTabId, clientId])
 
   useEffect(() => {
     if (!activeTabId) {
@@ -555,7 +620,7 @@ function RouteComponent() {
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={pendingAction !== null}
               >
-                Overwrite Server
+                Use Server Data
               </button>
               <button
                 type="button"
@@ -563,7 +628,7 @@ function RouteComponent() {
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={pendingAction !== null}
               >
-                Overwrite Client
+                Write Client to Server
               </button>
             </div>
           </div>

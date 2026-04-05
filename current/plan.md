@@ -18,6 +18,8 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Audio replay is local-only and not synchronized.
 - Sync transport for v0: polling (`3a` confirmed).
 - SSL domain/port convention includes new `sst` app (`dev:3059`, `prod:4059`).
+- Client rendering only (`ssr: false` in routes) to avoid SSR-specific runtime issues.
+- Active tab is persisted per client and restored on reload.
 
 ## Mandatory Project Rules Applied (`main-rules.md`)
 
@@ -62,13 +64,13 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Implement create/rename/list/select tab operations.
    - Implement field-level update endpoints with optimistic concurrency checks.
    - Return conflict payloads with clear server/client freshness info.
-   - Add explicit overwrite operations (`Overwrite Server`, `Overwrite Client`).
+   - Add explicit conflict resolution operations (`Use Server Data`, `Write Client to Server`).
    - Commit: `feat(sst): implement tab sync server functions with field-level conflict handling`
 
 5. [x] Build v0 UI for Tabs + Editing + Conflict Flows
    - Create tabbed UI with auto-naming + rename support.
    - Connect top and bottom textboxes to server-synced data model.
-   - Add conflict UX and overwrite actions in each tab context.
+   - Add conflict UX and explicit actions in each tab context (`Use Server Data`, `Write Client to Server`).
    - Keep rough `sst-web` UX structure while using Shadcn/Tailwind components.
    - If select controls are added, use `NativeSelect` (not `Select`).
    - Commit: `feat(sst): build tabbed editor ui with sync and conflict resolution actions`

@@ -28,7 +28,7 @@
     - field-level conflict detection (title, top textbox, bottom textbox)
     - abort writes on conflicts to prevent silent overwrite
     - show explicit conflict error with source-of-truth details and freshness
-    - provide actions per tab: `Overwrite Server` and `Overwrite Client`
+    - provide actions per tab: `Use Server Data` and `Write Client to Server`
   - v0 transport: polling-based sync.
 
 - Replay Recorded Audio
