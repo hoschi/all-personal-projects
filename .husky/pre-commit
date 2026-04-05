@@ -10,4 +10,4 @@ if [ -z "$STAGED_SOURCE_FILE" ]; then
 fi
 
 bun run packages/tools/src/sync-main-rules.ts
-git add .roo/rules/main-rules.md .kilocode/rules/main-rules.md
+git add .roo/rules/main-rules.md .kilocode/rules/main-rules.md AGENTS.md

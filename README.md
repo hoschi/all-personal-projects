@@ -73,7 +73,8 @@ This monorepo contains various personal projects including financial forecasting
 - A pre-commit hook syncs it to:
   - `.roo/rules/main-rules.md`
   - `.kilocode/rules/main-rules.md`
-- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the two target files automatically.
+  - `AGENTS.md`
+- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the three target files automatically.
 - Manual sync is possible with: `bun run packages/tools/src/sync-main-rules.ts` or `cd packages/tools && bun run sync-main-rules`.
 
 ### Push data from prod over staging to dev
