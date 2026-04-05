@@ -26,6 +26,7 @@ import { improveTabRecordingFn } from "@/data/text-improvement-actions"
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
 const DEFAULT_IMPROVE_LANGUAGE = "de" as const
+const WAV_MIME_TYPE = "audio/wav" as const
 
 type RecordingStatus = "idle" | "recording"
 
@@ -33,6 +34,78 @@ type TabLocalRecording = {
   audioBlob: Blob
   objectUrl: string
   sizeLabel: string
+}
+
+function writeAsciiString(view: DataView, byteOffset: number, value: string) {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(byteOffset + index, value.charCodeAt(index))
+  }
+}
+
+function encodeAudioBufferAsWav(audioBuffer: AudioBuffer) {
+  const channelCount = audioBuffer.numberOfChannels
+  const sampleRate = audioBuffer.sampleRate
+  const frameCount = audioBuffer.length
+  const bytesPerSample = 2
+  const blockAlign = channelCount * bytesPerSample
+  const byteRate = sampleRate * blockAlign
+  const dataByteLength = frameCount * blockAlign
+  const wavBuffer = new ArrayBuffer(44 + dataByteLength)
+  const wavView = new DataView(wavBuffer)
+
+  writeAsciiString(wavView, 0, "RIFF")
+  wavView.setUint32(4, 36 + dataByteLength, true)
+  writeAsciiString(wavView, 8, "WAVE")
+  writeAsciiString(wavView, 12, "fmt ")
+  wavView.setUint32(16, 16, true)
+  wavView.setUint16(20, 1, true)
+  wavView.setUint16(22, channelCount, true)
+  wavView.setUint32(24, sampleRate, true)
+  wavView.setUint32(28, byteRate, true)
+  wavView.setUint16(32, blockAlign, true)
+  wavView.setUint16(34, 16, true)
+  writeAsciiString(wavView, 36, "data")
+  wavView.setUint32(40, dataByteLength, true)
+
+  let dataOffset = 44
+
+  for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+    for (let channelIndex = 0; channelIndex < channelCount; channelIndex += 1) {
+      const sample = audioBuffer.getChannelData(channelIndex)[frameIndex] ?? 0
+      const clampedSample = Math.max(-1, Math.min(1, sample))
+      const int16Sample =
+        clampedSample < 0
+          ? Math.round(clampedSample * 0x8000)
+          : Math.round(clampedSample * 0x7fff)
+
+      wavView.setInt16(dataOffset, int16Sample, true)
+      dataOffset += bytesPerSample
+    }
+  }
+
+  return new Blob([wavBuffer], { type: WAV_MIME_TYPE })
+}
+
+async function convertBlobToWav(blob: Blob): Promise<Blob> {
+  if (blob.type === WAV_MIME_TYPE) {
+    return blob
+  }
+
+  if (typeof AudioContext === "undefined") {
+    throw new Error("AudioContext API is not available in this browser.")
+  }
+
+  const audioContext = new AudioContext()
+
+  try {
+    const encodedBuffer = await blob.arrayBuffer()
+    const decodedAudio = await audioContext.decodeAudioData(
+      encodedBuffer.slice(0),
+    )
+    return encodeAudioBufferAsWav(decodedAudio)
+  } finally {
+    await audioContext.close()
+  }
 }
 
 function bytesToSize(bytes: number) {
@@ -213,6 +286,14 @@ function RouteComponent() {
   const activeTabRecording = activeTab
     ? (tabRecordings[activeTab.id] ?? null)
     : null
+  const hasActiveTabRecording =
+    activeTabRecording !== null && activeTabRecording.audioBlob.size > 0
+  const isRecordingInProgress =
+    recordingStatus === "recording" || recordingTabId !== null
+  const canReplayRecording =
+    hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
+  const canImproveText =
+    hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
   const recordButtonLabel =
@@ -259,12 +340,13 @@ function RouteComponent() {
     setStatusMessage(null)
 
     try {
-      const audioBase64 = await blobToBase64(activeTabRecording.audioBlob)
+      const wavBlob = await convertBlobToWav(activeTabRecording.audioBlob)
+      const audioBase64 = await blobToBase64(wavBlob)
       const improveResult = await improveTabRecordingFn({
         data: {
           tabId: activeTab.id,
           audioBase64,
-          audioMimeType: activeTabRecording.audioBlob.type || "audio/webm",
+          audioMimeType: wavBlob.type || WAV_MIME_TYPE,
           contextText: bottomTextDraft,
           language: DEFAULT_IMPROVE_LANGUAGE,
         },
@@ -818,11 +900,7 @@ function RouteComponent() {
                 void handleReplayButton()
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                activeTabRecording === null ||
-                recordingStatus === "recording" ||
-                pendingAction !== null
-              }
+              disabled={!canReplayRecording}
             >
               {replayButtonLabel}
             </button>
@@ -832,11 +910,7 @@ function RouteComponent() {
                 void handleImproveText()
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled={
-                activeTabRecording === null ||
-                recordingStatus === "recording" ||
-                pendingAction !== null
-              }
+              disabled={!canImproveText}
             >
               Improve Text
             </button>

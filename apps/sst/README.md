@@ -27,13 +27,15 @@ Run repository checks:
 bun run ci
 ```
 
-Optional endpoint/model overrides for local AI services:
+Required AI pipeline env vars (loaded from `.env.base` and overridden by `.env`):
 
 ```bash
 SST_WHISPER_ENDPOINT=http://localhost:9100/inference
 SST_OLLAMA_ENDPOINT=http://localhost:11434/api/generate
 SST_OLLAMA_MODEL_ID=gemma3:latest
 ```
+
+If one of these values is missing or invalid, SST fails fast at server startup.
 
 ## Architecture Overview
 

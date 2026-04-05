@@ -1,38 +1,34 @@
 import { createServerFn } from "@tanstack/react-start"
+import { z } from "zod"
 
+import { textImprovementEnvSchema } from "@/contracts/text-improvement-env"
 import {
-  improveTextResultSchema,
+  type ImproveTextResult,
   processTabRecordingInputSchema,
 } from "@/contracts/tab-sync"
 
-type WhisperVerboseJsonResponse = {
-  text?: string
-  model?: string
-  error?: string
-}
-
-type OllamaGenerateResponse = {
-  model?: string
-  response?: string
-  error?: string
-}
-
-const DEFAULT_WHISPER_ENDPOINT = "http://localhost:9100/inference" as const
-const DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434/api/generate" as const
-const DEFAULT_OLLAMA_MODEL_ID = "gemma3:latest" as const
 const DEFAULT_WHISPER_MODEL_ID = "whisper-unknown" as const
 const DEFAULT_LANGUAGE = "de" as const
+const WAV_FILE_NAME = "recording.wav" as const
 
-function getWhisperEndpoint() {
-  return process.env.SST_WHISPER_ENDPOINT ?? DEFAULT_WHISPER_ENDPOINT
-}
+const whisperVerboseJsonResponseSchema = z.object({
+  text: z.string().optional(),
+  model: z.string().optional(),
+  error: z.string().optional(),
+})
 
-function getOllamaEndpoint() {
-  return process.env.SST_OLLAMA_ENDPOINT ?? DEFAULT_OLLAMA_ENDPOINT
-}
+const ollamaGenerateResponseSchema = z.object({
+  model: z.string().optional(),
+  response: z.string().optional(),
+  error: z.string().optional(),
+})
 
-function getOllamaModelId() {
-  return process.env.SST_OLLAMA_MODEL_ID ?? DEFAULT_OLLAMA_MODEL_ID
+function readTextImprovementEnv() {
+  return textImprovementEnvSchema.parse({
+    SST_WHISPER_ENDPOINT: process.env.SST_WHISPER_ENDPOINT,
+    SST_OLLAMA_ENDPOINT: process.env.SST_OLLAMA_ENDPOINT,
+    SST_OLLAMA_MODEL_ID: process.env.SST_OLLAMA_MODEL_ID,
+  })
 }
 
 function decodeAudioBlob(input: {
@@ -78,17 +74,18 @@ function buildCorrectionPrompt(input: {
 }
 
 async function transcribeWithWhisper(input: {
+  whisperEndpoint: string
   audioBlob: Blob
   language: string
 }): Promise<{ text: string; modelId: string }> {
   const formData = new FormData()
 
-  formData.append("file", input.audioBlob, "recording.webm")
+  formData.append("file", input.audioBlob, WAV_FILE_NAME)
   formData.append("response_format", "verbose_json")
   formData.append("language", input.language)
   formData.append("temperature", "0.0")
 
-  const response = await fetch(getWhisperEndpoint(), {
+  const response = await fetch(input.whisperEndpoint, {
     method: "POST",
     body: formData,
   })
@@ -100,7 +97,8 @@ async function transcribeWithWhisper(input: {
     )
   }
 
-  const data = (await response.json()) as WhisperVerboseJsonResponse
+  const rawResponseData: unknown = await response.json()
+  const data = whisperVerboseJsonResponseSchema.parse(rawResponseData)
   const rawText = data.text?.trim()
 
   if (!rawText) {
@@ -114,13 +112,15 @@ async function transcribeWithWhisper(input: {
 }
 
 async function correctWithOllama(input: {
+  ollamaEndpoint: string
+  ollamaModelId: string
   transcriptionText: string
   contextText: string
 }): Promise<{ text: string; modelId: string }> {
-  const modelId = getOllamaModelId()
+  const modelId = input.ollamaModelId
   const prompt = buildCorrectionPrompt(input)
 
-  const response = await fetch(getOllamaEndpoint(), {
+  const response = await fetch(input.ollamaEndpoint, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -139,7 +139,8 @@ async function correctWithOllama(input: {
     )
   }
 
-  const data = (await response.json()) as OllamaGenerateResponse
+  const rawResponseData: unknown = await response.json()
+  const data = ollamaGenerateResponseSchema.parse(rawResponseData)
   const correctedText = data.response?.trim()
 
   if (!correctedText) {
@@ -155,6 +156,8 @@ async function correctWithOllama(input: {
 export const improveTabRecordingFn = createServerFn({ method: "POST" })
   .inputValidator((data) => processTabRecordingInputSchema.parse(data))
   .handler(async ({ data }) => {
+    const env = readTextImprovementEnv()
+
     const audioBlob = decodeAudioBlob({
       audioBase64: data.audioBase64,
       audioMimeType: data.audioMimeType,
@@ -162,6 +165,7 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
 
     const transcriptionStartAtMs = Date.now()
     const transcriptionResult = await transcribeWithWhisper({
+      whisperEndpoint: env.SST_WHISPER_ENDPOINT,
       audioBlob,
       language: data.language ?? DEFAULT_LANGUAGE,
     })
@@ -169,12 +173,14 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
 
     const correctionStartAtMs = Date.now()
     const correctionResult = await correctWithOllama({
+      ollamaEndpoint: env.SST_OLLAMA_ENDPOINT,
+      ollamaModelId: env.SST_OLLAMA_MODEL_ID,
       transcriptionText: transcriptionResult.text,
       contextText: data.contextText,
     })
     const correctionDurationMs = Date.now() - correctionStartAtMs
 
-    return improveTextResultSchema.parse({
+    const improveTextResult: ImproveTextResult = {
       tabId: data.tabId,
       rawTranscriptionText: transcriptionResult.text,
       correctedText: correctionResult.text,
@@ -183,5 +189,7 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
       transcriptionDurationMs,
       correctionDurationMs,
       totalDurationMs: transcriptionDurationMs + correctionDurationMs,
-    })
+    }
+
+    return improveTextResult
   })

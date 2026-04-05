@@ -72,6 +72,18 @@ Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Sc
 - **Regel**: Modulweite Konstanten (Storage Keys, Event-Namen, feste IDs/Präfixe) immer in `UPPER_SNAKE_CASE` benennen.
 - **Regel**: String-Literal-Konstanten mit `as const` deklarieren, um versehentliche Aufweichung der Typen zu vermeiden.
 
+### Externe Daten im BFF typisieren: `unknown` + Zod-Parsing
+
+- **Regel**: Daten aus z.B. `await response.json()` die im BFF von einer Quelle angezogen werden, sind immer `unknown` und müssen per Zod-Schema geparsed werden.
+- **Verboten**: Type-Assertions wie `(await response.json()) as SomeType` für externe Daten.
+- **Begründung**: Type-Casts umgehen die Laufzeitvalidierung und hebeln Typsicherheit bei unsicheren Inputs aus. Im BFF wird alles geparsed, damit zwischen BFF und Client und damit innerhalb des Client Codes alles so type safe wie möglich ist.
+
+### Pflicht-Env für Server-Integrationen: Fail Fast beim Start
+
+- **Regel**: Externe Service-Endpunkte/Modelle (z.B. Whisper/Ollama) dürfen keine harten Fallback-Defaults im Code haben.
+- **Regel**: Werte aus `.env.base` + optional `.env` laden (wie in `box-storage`) und bei fehlenden/ungültigen Pflichtwerten den Server-Start sofort fehlschlagen lassen.
+- **Begründung**: Fehlkonfigurationen sollen früh sichtbar sein und nicht erst zur Laufzeit beim ersten Request.
+
 ### Numerische Eingaben mit Komma
 
 - **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
