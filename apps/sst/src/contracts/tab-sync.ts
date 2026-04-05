@@ -143,6 +143,31 @@ export const createModelRunInputSchema = z.object({
 })
 export type CreateModelRunInput = z.infer<typeof createModelRunInputSchema>
 
+export const processTabRecordingInputSchema = z.object({
+  tabId: tabIdSchema,
+  audioBase64: z.string().min(1),
+  audioMimeType: z.string().trim().min(1),
+  contextText: z.string(),
+  language: z.string().trim().min(2).max(12).optional(),
+})
+export type ProcessTabRecordingInput = z.infer<
+  typeof processTabRecordingInputSchema
+>
+
+const durationMsSchema = z.number().int().nonnegative()
+
+export const improveTextResultSchema = z.object({
+  tabId: tabIdSchema,
+  rawTranscriptionText: z.string().min(1),
+  correctedText: z.string().min(1),
+  whisperModelId: z.string().trim().min(1),
+  ollamaModelId: z.string().trim().min(1),
+  transcriptionDurationMs: durationMsSchema,
+  correctionDurationMs: durationMsSchema,
+  totalDurationMs: durationMsSchema,
+})
+export type ImproveTextResult = z.infer<typeof improveTextResultSchema>
+
 export const modelRunLogSchema = z.object({
   id: z.string().min(1),
   tabId: tabIdSchema.nullable(),

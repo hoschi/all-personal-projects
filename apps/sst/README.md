@@ -27,6 +27,14 @@ Run repository checks:
 bun run ci
 ```
 
+Optional endpoint/model overrides for local AI services:
+
+```bash
+SST_WHISPER_ENDPOINT=http://localhost:9100/inference
+SST_OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+SST_OLLAMA_MODEL_ID=gemma3:latest
+```
+
 ## Architecture Overview
 
 ```mermaid
@@ -148,6 +156,16 @@ Runtime exceptions are not silently swallowed in UI route logic.
 - Unexpected client/runtime failures are forwarded to the TanStack route error boundary (`errorComponent`).
 - Local fallback status messages are only used for expected domain results (`conflict`, `not_found`), not for unexpected exceptions.
 
+### Improve Text pipeline (server-side)
+
+When `Improve Text` is triggered, SST runs a server-side two-step pipeline:
+
+1. Whisper transcription request with `response_format=verbose_json`
+2. Text normalization (including line-break artifact cleanup)
+3. Ollama correction with context from the lower textbox (`gemma3:latest` by default)
+
+The server action returns both `rawTranscriptionText` and `correctedText`.
+
 ## Model Eval Data Storage
 
 ### Why these logs exist
@@ -259,11 +277,11 @@ Implemented in this repository:
 - Tab server functions for create/select/rename/update and conflict handling
 - Tabbed UI with per-client active-tab restore and conflict resolution actions
 - Local per-tab microphone recording with play/stop replay controls
+- Server-side Whisper (`verbose_json`) + Ollama correction pipeline wired to `Improve Text`
 
 Planned next:
 
 - Full polling runtime in UI
-- Whisper + Ollama pipeline integration in server layer
 - Debug diff UI and timing display
 
 ## Out of Scope for v0

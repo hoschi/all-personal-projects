@@ -43,6 +43,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): implement tab sync server functions with field-level conflict handling`
 - [x] `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 - [x] `feat(sst): add microphone recording and local play-stop replay`
+- [x] `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 
 ## Commit-by-Commit Execution Plan
 
@@ -86,7 +87,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Keep recorded audio local-only in client state/storage for v0.
    - Commit: `feat(sst): add microphone recording and local play-stop replay`
 
-7. [ ] Implement Server-side Whisper + Ollama Pipeline
+7. [x] Implement Server-side Whisper + Ollama Pipeline
    - Add server-side transcription endpoint/function using Whisper `response_format=verbose_json`.
    - Normalize whitespace artifacts before correction.
    - Add Ollama correction step (`gemma3:latest`) with context from lower textbox.
@@ -94,7 +95,15 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Return both raw and corrected outputs.
    - Commit: `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 
-8. [ ] Add Debug and Timing Observability in UI
+8. [ ] Add SSL Infrastructure Files and Monorepo Scripts
+   - Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
+   - Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
+   - Add `.gitignore` entry for generated local root certificate.
+   - Add/extend `start:prod` scripts for app packages and root scripts.
+   - Ensure setup supports tablet-device testing over LAN aliases.
+   - Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
+
+9. [ ] Add Debug and Timing Observability in UI
    - Add `Debug` action showing diff between raw Whisper text and corrected text.
    - Replace upload-size indicator with timing metrics:
      - transcription duration
@@ -102,29 +111,22 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
      - total duration
    - Commit: `feat(sst): add debug diff view and transcription-correction timing metrics`
 
-9. [ ] Persist Model Run Logs for Future Evaluation
-   - Store model run records including:
-     - model input/output
-     - model id
-     - correction duration
-     - git commit hash
-   - Ensure logging is non-blocking for UX and resilient to partial failures.
-   - Commit: `feat(sst): persist model run telemetry with git commit traceability`
+10. [ ] Persist Model Run Logs for Future Evaluation
 
-10. [ ] Add Polling Sync Runtime
+- Store model run records including:
+  - model input/output
+  - model id
+  - correction duration
+  - git commit hash
+- Ensure logging is non-blocking for UX and resilient to partial failures.
+- Commit: `feat(sst): persist model run telemetry with git commit traceability`
+
+11. [ ] Add Polling Sync Runtime
 
 - Implement periodic polling and selective refresh for active tab state.
 - Handle stale-client detection and conflict state transitions.
 - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
 - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
-
-11. [ ] Add SSL Infrastructure Files and Monorepo Scripts
-
-- Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
-- Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
-- Add `.gitignore` entry for generated local root certificate.
-- Add/extend `start:prod` scripts for app packages and root scripts.
-- Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 
 12. [ ] Documentation + Verification
 
@@ -132,6 +134,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Cross-link SSL doc and setup steps from `infra` docs.
 - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
 - Verify docs are English and implementation follows the mandatory project rules above.
+- Include tablet smoke-test instructions after SSL/LAN setup.
 - Commit: `docs(sst): add v0 readme and verification notes`
 
 ## Acceptance Criteria

@@ -21,9 +21,11 @@ import {
   selectTabFn,
   updateTabFieldFn,
 } from "@/data/tab-sync-actions"
+import { improveTabRecordingFn } from "@/data/text-improvement-actions"
 
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
+const DEFAULT_IMPROVE_LANGUAGE = "de" as const
 
 type RecordingStatus = "idle" | "recording"
 
@@ -43,6 +45,34 @@ function bytesToSize(bytes: number) {
   const sizeIndex = Math.floor(Math.log(bytes) / Math.log(BASE))
   const normalizedBytes = bytes / BASE ** sizeIndex
   return `${normalizedBytes.toPrecision(3)} ${SIZE_UNITS[sizeIndex]}`
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader()
+
+    fileReader.onerror = () => {
+      reject(new Error("Failed to read recording blob."))
+    }
+
+    fileReader.onloadend = () => {
+      if (typeof fileReader.result !== "string") {
+        reject(new Error("Recording blob conversion failed."))
+        return
+      }
+
+      const [, base64Payload] = fileReader.result.split(",", 2)
+
+      if (!base64Payload) {
+        reject(new Error("Recording base64 payload is empty."))
+        return
+      }
+
+      resolve(base64Payload)
+    }
+
+    fileReader.readAsDataURL(blob)
+  })
 }
 
 function createFallbackClientId() {
@@ -217,6 +247,52 @@ function RouteComponent() {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop())
       mediaStreamRef.current = null
+    }
+  }
+
+  async function handleImproveText() {
+    if (!activeTab || !activeTabRecording) {
+      return
+    }
+
+    setPendingAction("improve-text")
+    setStatusMessage(null)
+
+    try {
+      const audioBase64 = await blobToBase64(activeTabRecording.audioBlob)
+      const improveResult = await improveTabRecordingFn({
+        data: {
+          tabId: activeTab.id,
+          audioBase64,
+          audioMimeType: activeTabRecording.audioBlob.type || "audio/webm",
+          contextText: bottomTextDraft,
+          language: DEFAULT_IMPROVE_LANGUAGE,
+        },
+      })
+
+      setTopTextDraft(improveResult.correctedText)
+
+      const writeResult = await updateTabFieldFn({
+        data: {
+          tabId: activeTab.id,
+          field: "topText",
+          value: improveResult.correctedText,
+          expectedVersion: activeTab.topTextVersion,
+          clientId,
+        },
+      })
+
+      const wasSaved = updateFromWriteResult(writeResult, "topText")
+
+      if (wasSaved) {
+        setStatusMessage(
+          `Improve Text finished (${improveResult.totalDurationMs} ms total).`,
+        )
+      }
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to improve text."))
+    } finally {
+      setPendingAction(null)
     }
   }
 
@@ -752,8 +828,15 @@ function RouteComponent() {
             </button>
             <button
               type="button"
+              onClick={() => {
+                void handleImproveText()
+              }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled
+              disabled={
+                activeTabRecording === null ||
+                recordingStatus === "recording" ||
+                pendingAction !== null
+              }
             >
               Improve Text
             </button>
