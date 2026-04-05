@@ -7,6 +7,7 @@ import RecordRTC from "recordrtc"
 import { useEffect, useRef, useState } from "react"
 
 import type {
+  ImproveTextResult,
   TabFieldConflict,
   TabListItem,
   TabSnapshot,
@@ -116,6 +117,100 @@ function mergeTabListItem(items: ReadonlyArray<TabListItem>, tab: TabSnapshot) {
   return items.map((item) => (item.id === tab.id ? nextItem : item))
 }
 
+type WordDiffSegment = {
+  kind: "same" | "added" | "removed"
+  text: string
+}
+
+function toWords(text: string) {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+}
+
+function buildWordDiffSegments(rawText: string, correctedText: string) {
+  const sourceWords = toWords(rawText)
+  const targetWords = toWords(correctedText)
+  const sourceLength = sourceWords.length
+  const targetLength = targetWords.length
+  const lcsTable = Array.from({ length: sourceLength + 1 }, () =>
+    Array<number>(targetLength + 1).fill(0),
+  )
+
+  for (let sourceIndex = 1; sourceIndex <= sourceLength; sourceIndex += 1) {
+    for (let targetIndex = 1; targetIndex <= targetLength; targetIndex += 1) {
+      if (sourceWords[sourceIndex - 1] === targetWords[targetIndex - 1]) {
+        lcsTable[sourceIndex][targetIndex] =
+          (lcsTable[sourceIndex - 1]?.[targetIndex - 1] ?? 0) + 1
+      } else {
+        lcsTable[sourceIndex][targetIndex] = Math.max(
+          lcsTable[sourceIndex - 1]?.[targetIndex] ?? 0,
+          lcsTable[sourceIndex]?.[targetIndex - 1] ?? 0,
+        )
+      }
+    }
+  }
+
+  const operations: Array<WordDiffSegment> = []
+  let sourceIndex = sourceLength
+  let targetIndex = targetLength
+
+  while (sourceIndex > 0 && targetIndex > 0) {
+    const sourceWord = sourceWords[sourceIndex - 1]
+    const targetWord = targetWords[targetIndex - 1]
+
+    if (sourceWord === targetWord) {
+      operations.push({ kind: "same", text: sourceWord })
+      sourceIndex -= 1
+      targetIndex -= 1
+      continue
+    }
+
+    const sourceLcs = lcsTable[sourceIndex - 1]?.[targetIndex] ?? 0
+    const targetLcs = lcsTable[sourceIndex]?.[targetIndex - 1] ?? 0
+
+    if (sourceLcs >= targetLcs) {
+      operations.push({ kind: "removed", text: sourceWord ?? "" })
+      sourceIndex -= 1
+      continue
+    }
+
+    operations.push({ kind: "added", text: targetWord ?? "" })
+    targetIndex -= 1
+  }
+
+  while (sourceIndex > 0) {
+    operations.push({
+      kind: "removed",
+      text: sourceWords[sourceIndex - 1] ?? "",
+    })
+    sourceIndex -= 1
+  }
+
+  while (targetIndex > 0) {
+    operations.push({ kind: "added", text: targetWords[targetIndex - 1] ?? "" })
+    targetIndex -= 1
+  }
+
+  operations.reverse()
+
+  return operations.reduce<Array<WordDiffSegment>>((segments, operation) => {
+    if (operation.text.length === 0) {
+      return segments
+    }
+
+    const previousSegment = segments[segments.length - 1]
+
+    if (previousSegment?.kind === operation.kind) {
+      previousSegment.text = `${previousSegment.text} ${operation.text}`
+      return segments
+    }
+
+    return [...segments, { ...operation }]
+  }, [])
+}
+
 export const Route = createFileRoute("/")({
   ssr: false,
   loader: async () => {
@@ -175,6 +270,10 @@ function RouteComponent() {
   const [tabRecordings, setTabRecordings] = useState<
     Record<string, TabLocalRecording>
   >({})
+  const [tabImproveResults, setTabImproveResults] = useState<
+    Record<string, ImproveTextResult>
+  >({})
+  const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false)
   const [runtimeError, setRuntimeError] = useState<Error | null>(null)
 
   if (runtimeError) {
@@ -184,6 +283,9 @@ function RouteComponent() {
   const activeTabTitle = activeTab?.title ?? "No active tab"
   const activeTabRecording = activeTab
     ? (tabRecordings[activeTab.id] ?? null)
+    : null
+  const activeTabImproveResult = activeTab
+    ? (tabImproveResults[activeTab.id] ?? null)
     : null
   const hasActiveTabRecording =
     activeTabRecording !== null && activeTabRecording.audioBlob.size > 0
@@ -196,11 +298,19 @@ function RouteComponent() {
     hasActiveTabRecording &&
     !isRecordingInProgress &&
     pendingAction === null
+  const canDebugImproveResult = activeTabImproveResult !== null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
   const recordButtonLabel =
     recordingStatus === "recording" ? "Stop Recording" : "Record"
   const replayButtonLabel = isActiveTabReplayRunning ? "Stop" : "Play"
+  const debugDiffSegments =
+    activeTabImproveResult === null
+      ? []
+      : buildWordDiffSegments(
+          activeTabImproveResult.rawTranscriptionText,
+          activeTabImproveResult.correctedText,
+        )
 
   const canSaveTitle =
     activeTab !== null &&
@@ -252,6 +362,11 @@ function RouteComponent() {
         data: formData,
       })
 
+      setTabImproveResults((currentImproveResults) => ({
+        ...currentImproveResults,
+        [activeTab.id]: improveResult,
+      }))
+
       setTopTextDraft(improveResult.correctedText)
 
       const writeResult = await updateTabFieldFn({
@@ -302,6 +417,18 @@ function RouteComponent() {
       const nextRecordings = { ...currentRecordings }
       delete nextRecordings[tabId]
       return nextRecordings
+    })
+  }
+
+  function removeTabImproveResult(tabId: string) {
+    setTabImproveResults((currentImproveResults) => {
+      if (!(tabId in currentImproveResults)) {
+        return currentImproveResults
+      }
+
+      const nextImproveResults = { ...currentImproveResults }
+      delete nextImproveResults[tabId]
+      return nextImproveResults
     })
   }
 
@@ -463,6 +590,7 @@ function RouteComponent() {
     setActiveTab(null)
     const remainingTabs = tabs.filter((tab) => tab.id !== result.tabId)
     removeTabRecording(result.tabId)
+    removeTabImproveResult(result.tabId)
     setTabs(remainingTabs)
 
     if (remainingTabs.length > 0) {
@@ -503,6 +631,7 @@ function RouteComponent() {
         setActiveTab(null)
         const remainingTabs = tabs.filter((tab) => tab.id !== tabId)
         removeTabRecording(tabId)
+        removeTabImproveResult(tabId)
         setTabs(remainingTabs)
 
         if (remainingTabs.length > 0) {
@@ -801,19 +930,94 @@ function RouteComponent() {
             </button>
             <button
               type="button"
+              onClick={() => {
+                setIsDebugPanelOpen((currentValue) => !currentValue)
+              }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled
+              disabled={!canDebugImproveResult}
             >
-              Debug
+              {isDebugPanelOpen ? "Hide Debug" : "Debug"}
             </button>
           </div>
         </div>
 
-        <div className="mt-3 text-xs text-muted-foreground">
-          {activeTabRecording
-            ? `Latest local recording: ${activeTabRecording.sizeLabel}`
-            : "No local recording available for this tab."}
+        <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs text-muted-foreground">
+          {activeTabImproveResult ? (
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span>
+                Transcription: {activeTabImproveResult.transcriptionDurationMs}{" "}
+                ms
+              </span>
+              <span>
+                Correction: {activeTabImproveResult.correctionDurationMs} ms
+              </span>
+              <span>Total: {activeTabImproveResult.totalDurationMs} ms</span>
+            </div>
+          ) : (
+            "No timing metrics yet. Run Improve Text once."
+          )}
         </div>
+
+        {isDebugPanelOpen && activeTabImproveResult ? (
+          <div className="mt-3 space-y-3 rounded-xl border border-border bg-background p-4">
+            <h2 className="text-sm font-semibold">Debug Diff</h2>
+            <div className="rounded-md border border-border bg-card p-3 text-sm leading-6">
+              {debugDiffSegments.length === 0 ? (
+                <span className="text-muted-foreground">
+                  No text changes detected.
+                </span>
+              ) : (
+                debugDiffSegments.map((segment, index) => {
+                  if (segment.kind === "removed") {
+                    return (
+                      <span
+                        key={`diff-segment-${index}`}
+                        className="mr-1 rounded-sm bg-red-500/10 px-1 text-red-700 line-through"
+                      >
+                        {segment.text}
+                      </span>
+                    )
+                  }
+
+                  if (segment.kind === "added") {
+                    return (
+                      <span
+                        key={`diff-segment-${index}`}
+                        className="mr-1 rounded-sm bg-emerald-500/10 px-1 text-emerald-700"
+                      >
+                        {segment.text}
+                      </span>
+                    )
+                  }
+
+                  return (
+                    <span key={`diff-segment-${index}`} className="mr-1 px-1">
+                      {segment.text}
+                    </span>
+                  )
+                })
+              )}
+            </div>
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Whisper Raw
+                </p>
+                <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
+                  {activeTabImproveResult.rawTranscriptionText}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Corrected
+                </p>
+                <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
+                  {activeTabImproveResult.correctedText}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-4 flex flex-col gap-2">
           <label className="text-sm font-medium" htmlFor="tab-title-input">

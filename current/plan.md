@@ -45,6 +45,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): add microphone recording and local play-stop replay`
 - [x] `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 - [x] `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
+- [x] `feat(sst): add debug diff view and transcription-correction timing metrics`
 
 ## Commit-by-Commit Execution Plan
 
@@ -104,7 +105,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Ensure setup supports tablet-device testing over LAN aliases.
    - Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 
-9. [ ] Add Debug and Timing Observability in UI
+9. [x] Add Debug and Timing Observability in UI
    - Add `Debug` action showing diff between raw Whisper text and corrected text.
    - Replace upload-size indicator with timing metrics:
      - transcription duration
