@@ -99,6 +99,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 
 8. [x] Add SSL Infrastructure Files and Monorepo Scripts
    - Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
+   - Create `infra/README.md` based on `current/ssl-infrastructure-plan.md` with setup and test instructions.
    - Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
    - Add `.gitignore` entry for generated local root certificate.
    - Add/extend `start:prod` scripts for app packages and root scripts.
