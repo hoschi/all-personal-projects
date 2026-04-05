@@ -29,29 +29,41 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Use `useEffect` only for real side effects; keep pure derivations in render/state logic.
 - Reuse shared Zod/contracts for enum-like values to avoid UI/backend drift.
 
+## Progress Snapshot
+
+- [x] `feat(sst): scaffold new tanstack-start app on port 3059`
+- [x] `feat(sst): add prisma schema for tabs sync and model run logging`
+- [x] `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
+
 ## Commit-by-Commit Execution Plan
 
-1. Scaffold New App `apps/sst`
+1. [x] Scaffold New App `apps/sst`
    - Copy the proven TanStack Start baseline from `box-storage` (without Clerk-specific code).
    - Set app metadata/scripts (`dev --port 3059`, build, lint, check-types, fix, format) with Bun/Turbo conventions.
    - Add base Tailwind/Shadcn wiring and route shell with two text areas + control strip.
    - Ensure app runs independently and does not modify `sst-web`.
    - Commit: `feat(sst): scaffold new tanstack-start app on port 3059`
 
-2. Define Domain Model + Prisma Schema for `sst`
+2. [x] Define Domain Model + Prisma Schema for `sst`
    - Add Prisma config/schema for tabs, tab content fields, sync metadata, and model run logs.
    - Include per-field versioning metadata for conflict-safe updates.
    - Add migration files and typed Zod contracts for route/server-function boundaries.
    - Commit: `feat(sst): add prisma schema for tabs sync and model run logging`
 
-3. Implement Server Functions for Tabs and Sync
+3. [x] Document Sync + Telemetry Behavior for Reviewer Readability
+   - Expand `apps/sst/README.md` so sync and model telemetry behavior can be understood without reading code.
+   - Add Mermaid diagrams for polling sync flow, conflict resolution, logging flow, and persistence model.
+   - Update this plan so commit history and plan stay aligned.
+   - Commit: `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
+
+4. [ ] Implement Server Functions for Tabs and Sync
    - Implement create/rename/list/select tab operations.
    - Implement field-level update endpoints with optimistic concurrency checks.
    - Return conflict payloads with clear server/client freshness info.
    - Add explicit overwrite operations (`Overwrite Server`, `Overwrite Client`).
    - Commit: `feat(sst): implement tab sync server functions with field-level conflict handling`
 
-4. Build v0 UI for Tabs + Editing + Conflict Flows
+5. [ ] Build v0 UI for Tabs + Editing + Conflict Flows
    - Create tabbed UI with auto-naming + rename support.
    - Connect top and bottom textboxes to server-synced data model.
    - Add conflict UX and overwrite actions in each tab context.
@@ -59,13 +71,13 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - If select controls are added, use `NativeSelect` (not `Select`).
    - Commit: `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 
-5. Port Audio Recording + Local Replay
+6. [ ] Port Audio Recording + Local Replay
    - Port microphone recording behavior from `sst-web`.
    - Add simple replay control (`Play`/`Stop`) for latest recording in active tab session.
    - Keep recorded audio local-only in client state/storage for v0.
    - Commit: `feat(sst): add microphone recording and local play-stop replay`
 
-6. Implement Server-side Whisper + Ollama Pipeline
+7. [ ] Implement Server-side Whisper + Ollama Pipeline
    - Add server-side transcription endpoint/function using Whisper `response_format=verbose_json`.
    - Normalize whitespace artifacts before correction.
    - Add Ollama correction step (`gemma3:latest`) with context from lower textbox.
@@ -73,7 +85,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Return both raw and corrected outputs.
    - Commit: `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 
-7. Add Debug and Timing Observability in UI
+8. [ ] Add Debug and Timing Observability in UI
    - Add `Debug` action showing diff between raw Whisper text and corrected text.
    - Replace upload-size indicator with timing metrics:
      - transcription duration
@@ -81,7 +93,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
      - total duration
    - Commit: `feat(sst): add debug diff view and transcription-correction timing metrics`
 
-8. Persist Model Run Logs for Future Evaluation
+9. [ ] Persist Model Run Logs for Future Evaluation
    - Store model run records including:
      - model input/output
      - model id
@@ -90,20 +102,20 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Ensure logging is non-blocking for UX and resilient to partial failures.
    - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
-9. Add Polling Sync Runtime
+10. [ ] Add Polling Sync Runtime
    - Implement periodic polling and selective refresh for active tab state.
    - Handle stale-client detection and conflict state transitions.
    - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
    - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
 
-10. Add SSL Infrastructure Files and Monorepo Scripts
+11. [ ] Add SSL Infrastructure Files and Monorepo Scripts
    - Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
    - Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
    - Add `.gitignore` entry for generated local root certificate.
    - Add/extend `start:prod` scripts for app packages and root scripts.
    - Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 
-11. Documentation + Verification
+12. [ ] Documentation + Verification
    - Add `apps/sst/README.md` draft based on `features-sst-v0.md`.
    - Cross-link SSL doc and setup steps from `infra` docs.
    - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
