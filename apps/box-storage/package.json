@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev --port 3058",
     "build": "vite build",
+    "start:prod": "PORT=4058 HOST=0.0.0.0 node .output/server/index.mjs",
     "preview": "vite preview --port 3058",
     "test": "bun test",
     "lint": "bunx eslint .",

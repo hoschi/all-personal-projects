@@ -45,3 +45,4 @@ tmp/
 ai-ref/nextjs-llms-full.txt
 ai-ref/ts-pattern-README.md
 ai-ref/effect-llms-full.txt
+infra/caddy-root-ca.crt

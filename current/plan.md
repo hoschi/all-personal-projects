@@ -44,6 +44,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 - [x] `feat(sst): add microphone recording and local play-stop replay`
 - [x] `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
+- [x] `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 
 ## Commit-by-Commit Execution Plan
 
@@ -95,7 +96,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Return both raw and corrected outputs.
    - Commit: `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 
-8. [ ] Add SSL Infrastructure Files and Monorepo Scripts
+8. [x] Add SSL Infrastructure Files and Monorepo Scripts
    - Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
    - Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
    - Add `.gitignore` entry for generated local root certificate.
