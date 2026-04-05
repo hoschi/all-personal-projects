@@ -34,6 +34,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): scaffold new tanstack-start app on port 3059`
 - [x] `feat(sst): add prisma schema for tabs sync and model run logging`
 - [x] `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
+- [x] `feat(sst): implement tab sync server functions with field-level conflict handling`
 
 ## Commit-by-Commit Execution Plan
 
@@ -56,7 +57,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Update this plan so commit history and plan stay aligned.
    - Commit: `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
 
-4. [ ] Implement Server Functions for Tabs and Sync
+4. [x] Implement Server Functions for Tabs and Sync
    - Implement create/rename/list/select tab operations.
    - Implement field-level update endpoints with optimistic concurrency checks.
    - Return conflict payloads with clear server/client freshness info.
@@ -103,24 +104,27 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
 10. [ ] Add Polling Sync Runtime
-   - Implement periodic polling and selective refresh for active tab state.
-   - Handle stale-client detection and conflict state transitions.
-   - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
-   - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
+
+- Implement periodic polling and selective refresh for active tab state.
+- Handle stale-client detection and conflict state transitions.
+- Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
+- Commit: `feat(sst): add polling-based multi-client synchronization runtime`
 
 11. [ ] Add SSL Infrastructure Files and Monorepo Scripts
-   - Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
-   - Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
-   - Add `.gitignore` entry for generated local root certificate.
-   - Add/extend `start:prod` scripts for app packages and root scripts.
-   - Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
+
+- Create `infra/caddy/Caddyfile`, `infra/docker-compose.yml`, `infra/setup-trust.sh`.
+- Add `sst` routes (`dev.sst.localhost`, `prod.sst.localhost`) and optional LAN aliases via `sslip.io`.
+- Add `.gitignore` entry for generated local root certificate.
+- Add/extend `start:prod` scripts for app packages and root scripts.
+- Commit: `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 
 12. [ ] Documentation + Verification
-   - Add `apps/sst/README.md` draft based on `features-sst-v0.md`.
-   - Cross-link SSL doc and setup steps from `infra` docs.
-   - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
-   - Verify docs are English and implementation follows the mandatory project rules above.
-   - Commit: `docs(sst): add v0 readme and verification notes`
+
+- Add `apps/sst/README.md` draft based on `features-sst-v0.md`.
+- Cross-link SSL doc and setup steps from `infra` docs.
+- Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
+- Verify docs are English and implementation follows the mandatory project rules above.
+- Commit: `docs(sst): add v0 readme and verification notes`
 
 ## Acceptance Criteria
 
