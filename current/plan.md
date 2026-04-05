@@ -35,6 +35,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): add prisma schema for tabs sync and model run logging`
 - [x] `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
 - [x] `feat(sst): implement tab sync server functions with field-level conflict handling`
+- [x] `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 
 ## Commit-by-Commit Execution Plan
 
@@ -64,7 +65,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Add explicit overwrite operations (`Overwrite Server`, `Overwrite Client`).
    - Commit: `feat(sst): implement tab sync server functions with field-level conflict handling`
 
-5. [ ] Build v0 UI for Tabs + Editing + Conflict Flows
+5. [x] Build v0 UI for Tabs + Editing + Conflict Flows
    - Create tabbed UI with auto-naming + rename support.
    - Connect top and bottom textboxes to server-synced data model.
    - Add conflict UX and overwrite actions in each tab context.
