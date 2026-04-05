@@ -42,6 +42,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `docs(sst): explain sync logic and model telemetry storage with mermaid diagrams`
 - [x] `feat(sst): implement tab sync server functions with field-level conflict handling`
 - [x] `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
+- [x] `feat(sst): add microphone recording and local play-stop replay`
 
 ## Commit-by-Commit Execution Plan
 
@@ -79,7 +80,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - If select controls are added, use `NativeSelect` (not `Select`).
    - Commit: `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 
-6. [ ] Port Audio Recording + Local Replay
+6. [x] Port Audio Recording + Local Replay
    - Port microphone recording behavior from `sst-web`.
    - Add simple replay control (`Play`/`Stop`) for latest recording in active tab session.
    - Keep recorded audio local-only in client state/storage for v0.

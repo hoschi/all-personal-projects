@@ -3,7 +3,7 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import type {
   TabFieldConflict,
@@ -24,6 +24,26 @@ import {
 
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
+
+type RecordingStatus = "idle" | "recording"
+
+type TabLocalRecording = {
+  audioBlob: Blob
+  objectUrl: string
+  sizeLabel: string
+}
+
+function bytesToSize(bytes: number) {
+  if (bytes === 0) {
+    return "0 Bytes"
+  }
+
+  const BASE = 1_000
+  const SIZE_UNITS = ["Bytes", "KB", "MB", "GB", "TB"] as const
+  const sizeIndex = Math.floor(Math.log(bytes) / Math.log(BASE))
+  const normalizedBytes = bytes / BASE ** sizeIndex
+  return `${normalizedBytes.toPrecision(3)} ${SIZE_UNITS[sizeIndex]}`
+}
 
 function createFallbackClientId() {
   return `sst-client-${Math.random().toString(36).slice(2)}`
@@ -119,6 +139,12 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   const { initialTabs, initialActiveTabId } = Route.useLoaderData()
 
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const audioChunksRef = useRef<Array<BlobPart>>([])
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
+  const tabRecordingsRef = useRef<Record<string, TabLocalRecording>>({})
+
   const [clientId] = useState(() => getOrCreateClientId())
   const [tabs, setTabs] = useState(initialTabs)
   const [activeTabId, setActiveTabId] = useState(() => {
@@ -140,6 +166,13 @@ function RouteComponent() {
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [conflict, setConflict] = useState<TabFieldConflict | null>(null)
+  const [recordingStatus, setRecordingStatus] =
+    useState<RecordingStatus>("idle")
+  const [recordingTabId, setRecordingTabId] = useState<string | null>(null)
+  const [playingTabId, setPlayingTabId] = useState<string | null>(null)
+  const [tabRecordings, setTabRecordings] = useState<
+    Record<string, TabLocalRecording>
+  >({})
   const [runtimeError, setRuntimeError] = useState<Error | null>(null)
 
   if (runtimeError) {
@@ -147,6 +180,14 @@ function RouteComponent() {
   }
 
   const activeTabTitle = activeTab?.title ?? "No active tab"
+  const activeTabRecording = activeTab
+    ? (tabRecordings[activeTab.id] ?? null)
+    : null
+  const isActiveTabReplayRunning =
+    activeTab !== null && playingTabId === activeTab.id
+  const recordButtonLabel =
+    recordingStatus === "recording" ? "Stop Recording" : "Record"
+  const replayButtonLabel = isActiveTabReplayRunning ? "Stop" : "Play"
 
   const canSaveTitle =
     activeTab !== null &&
@@ -168,6 +209,192 @@ function RouteComponent() {
   function updateServerTabSnapshot(nextTab: TabSnapshot) {
     setActiveTab(nextTab)
     setTabs((currentTabs) => mergeTabListItem(currentTabs, nextTab))
+  }
+
+  function stopActiveMediaStream() {
+    const stream = mediaStreamRef.current
+
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop())
+      mediaStreamRef.current = null
+    }
+  }
+
+  function stopActivePlayback() {
+    const audioPlayer = audioPlayerRef.current
+
+    if (audioPlayer) {
+      audioPlayer.pause()
+      audioPlayer.currentTime = 0
+      audioPlayerRef.current = null
+    }
+
+    setPlayingTabId(null)
+  }
+
+  function removeTabRecording(tabId: string) {
+    setTabRecordings((currentRecordings) => {
+      const recordingToRemove = currentRecordings[tabId]
+
+      if (!recordingToRemove) {
+        return currentRecordings
+      }
+
+      URL.revokeObjectURL(recordingToRemove.objectUrl)
+      const nextRecordings = { ...currentRecordings }
+      delete nextRecordings[tabId]
+      return nextRecordings
+    })
+  }
+
+  function storeTabRecording(tabId: string, audioBlob: Blob) {
+    setTabRecordings((currentRecordings) => {
+      const existingRecording = currentRecordings[tabId]
+
+      if (existingRecording) {
+        URL.revokeObjectURL(existingRecording.objectUrl)
+      }
+
+      return {
+        ...currentRecordings,
+        [tabId]: {
+          audioBlob,
+          objectUrl: URL.createObjectURL(audioBlob),
+          sizeLabel: bytesToSize(audioBlob.size),
+        },
+      }
+    })
+  }
+
+  async function startRecordingForActiveTab() {
+    if (!activeTab) {
+      return
+    }
+
+    if (typeof MediaRecorder === "undefined") {
+      throw new Error("MediaRecorder API is not available in this browser.")
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Audio recording is not supported in this browser.")
+    }
+
+    stopActivePlayback()
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    })
+    const mediaRecorder = new MediaRecorder(mediaStream)
+
+    mediaStreamRef.current = mediaStream
+    mediaRecorderRef.current = mediaRecorder
+    audioChunksRef.current = []
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunksRef.current.push(event.data)
+      }
+    }
+
+    mediaRecorder.start()
+    setRecordingTabId(activeTab.id)
+    setRecordingStatus("recording")
+    setStatusMessage("Recording started.")
+  }
+
+  async function stopRecording() {
+    const mediaRecorder = mediaRecorderRef.current
+
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+      throw new Error("Recording is not active.")
+    }
+
+    const targetTabId = recordingTabId ?? activeTab?.id
+
+    if (!targetTabId) {
+      throw new Error("No tab is available to store the recording.")
+    }
+
+    const audioBlob = await new Promise<Blob>((resolve, reject) => {
+      mediaRecorder.onstop = () => {
+        const nextAudioBlob = new Blob(audioChunksRef.current, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        })
+
+        if (nextAudioBlob.size === 0) {
+          reject(new Error("Recorded audio blob is empty."))
+          return
+        }
+
+        resolve(nextAudioBlob)
+      }
+
+      mediaRecorder.onerror = () => {
+        reject(new Error("Recording failed while stopping."))
+      }
+
+      mediaRecorder.stop()
+    })
+
+    stopActiveMediaStream()
+    mediaRecorderRef.current = null
+    audioChunksRef.current = []
+    setRecordingStatus("idle")
+    setRecordingTabId(null)
+    storeTabRecording(targetTabId, audioBlob)
+    setStatusMessage(`Saved local recording (${bytesToSize(audioBlob.size)}).`)
+  }
+
+  async function handleRecordButton() {
+    setStatusMessage(null)
+
+    try {
+      if (recordingStatus === "recording") {
+        await stopRecording()
+        return
+      }
+
+      await startRecordingForActiveTab()
+    } catch (error) {
+      stopActiveMediaStream()
+      mediaRecorderRef.current = null
+      audioChunksRef.current = []
+      setRecordingStatus("idle")
+      setRecordingTabId(null)
+      setRuntimeError(
+        toRuntimeError(error, "Failed to handle audio recording."),
+      )
+    }
+  }
+
+  async function handleReplayButton() {
+    if (!activeTab || !activeTabRecording) {
+      return
+    }
+
+    setStatusMessage(null)
+
+    try {
+      if (playingTabId === activeTab.id) {
+        stopActivePlayback()
+        return
+      }
+
+      stopActivePlayback()
+      const audioPlayer = new Audio(activeTabRecording.objectUrl)
+
+      audioPlayerRef.current = audioPlayer
+      setPlayingTabId(activeTab.id)
+      audioPlayer.onended = () => {
+        setPlayingTabId((currentPlayingTabId) =>
+          currentPlayingTabId === activeTab.id ? null : currentPlayingTabId,
+        )
+        audioPlayerRef.current = null
+      }
+
+      await audioPlayer.play()
+    } catch (error) {
+      stopActivePlayback()
+      setRuntimeError(toRuntimeError(error, "Failed to replay recording."))
+    }
   }
 
   function updateFromWriteResult(
@@ -194,6 +421,7 @@ function RouteComponent() {
     setConflict(null)
     setActiveTab(null)
     const remainingTabs = tabs.filter((tab) => tab.id !== result.tabId)
+    removeTabRecording(result.tabId)
     setTabs(remainingTabs)
 
     if (remainingTabs.length > 0) {
@@ -233,6 +461,7 @@ function RouteComponent() {
         setStatusMessage("The selected tab could not be loaded.")
         setActiveTab(null)
         const remainingTabs = tabs.filter((tab) => tab.id !== tabId)
+        removeTabRecording(tabId)
         setTabs(remainingTabs)
 
         if (remainingTabs.length > 0) {
@@ -402,8 +631,18 @@ function RouteComponent() {
   }
 
   useEffect(() => {
+    tabRecordingsRef.current = tabRecordings
+  }, [tabRecordings])
+
+  useEffect(() => {
     persistActiveTabId(clientId, activeTabId)
   }, [activeTabId, clientId])
+
+  useEffect(() => {
+    if (playingTabId && playingTabId !== activeTabId) {
+      stopActivePlayback()
+    }
+  }, [activeTabId, playingTabId])
 
   useEffect(() => {
     if (!activeTabId) {
@@ -413,6 +652,22 @@ function RouteComponent() {
 
     void loadActiveTab(activeTabId)
   }, [activeTabId])
+
+  useEffect(() => {
+    return () => {
+      const mediaRecorder = mediaRecorderRef.current
+
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop()
+      }
+
+      stopActiveMediaStream()
+      stopActivePlayback()
+      Object.values(tabRecordingsRef.current).forEach((recording) => {
+        URL.revokeObjectURL(recording.objectUrl)
+      })
+    }
+  }, [])
 
   return (
     <main className="space-y-6">
@@ -449,6 +704,7 @@ function RouteComponent() {
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-background text-foreground hover:bg-accent",
                 ].join(" ")}
+                disabled={recordingStatus === "recording"}
               >
                 {tab.title}
               </button>
@@ -458,7 +714,7 @@ function RouteComponent() {
             type="button"
             onClick={handleCreateTab}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-            disabled={pendingAction !== null}
+            disabled={pendingAction !== null || recordingStatus === "recording"}
           >
             + New Tab
           </button>
@@ -472,10 +728,27 @@ function RouteComponent() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
+              onClick={() => {
+                void handleRecordButton()
+              }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled
+              disabled={activeTab === null || pendingAction !== null}
             >
-              Record
+              {recordButtonLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void handleReplayButton()
+              }}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                activeTabRecording === null ||
+                recordingStatus === "recording" ||
+                pendingAction !== null
+              }
+            >
+              {replayButtonLabel}
             </button>
             <button
               type="button"
@@ -492,6 +765,12 @@ function RouteComponent() {
               Debug
             </button>
           </div>
+        </div>
+
+        <div className="mt-3 text-xs text-muted-foreground">
+          {activeTabRecording
+            ? `Latest local recording: ${activeTabRecording.sizeLabel}`
+            : "No local recording available for this tab."}
         </div>
 
         <div className="mt-4 flex flex-col gap-2">

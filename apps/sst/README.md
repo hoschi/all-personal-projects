@@ -133,6 +133,14 @@ SST runs as a client-rendered app for v0. Route definitions use `ssr: false` to 
 
 For CSR-only routes, browser APIs (`window`, `localStorage`) are used directly in route runtime logic without SSR guards.
 
+### Local recording and replay (v0)
+
+- Recording uses browser `MediaRecorder` in the active tab context.
+- Each tab keeps its own latest local recording in client memory.
+- Replay controls are explicit (`Play` / `Stop`) and only affect the active tab recording.
+- Audio blobs are local-only and are not synchronized to the server or other clients.
+- Local recordings are transient and are reset on page reload.
+
 ### Runtime error handling
 
 Runtime exceptions are not silently swallowed in UI route logic.
@@ -250,6 +258,7 @@ Implemented in this repository:
 - Shared typed contracts for sync and telemetry payloads
 - Tab server functions for create/select/rename/update and conflict handling
 - Tabbed UI with per-client active-tab restore and conflict resolution actions
+- Local per-tab microphone recording with play/stop replay controls
 
 Planned next:
 
