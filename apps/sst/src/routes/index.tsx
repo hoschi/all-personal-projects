@@ -3,6 +3,7 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from "@tanstack/react-router"
+import RecordRTC from "recordrtc"
 import { useEffect, useRef, useState } from "react"
 
 import type {
@@ -141,9 +142,8 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   const { initialTabs, initialActiveTabId } = Route.useLoaderData()
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const mediaRecorderRef = useRef<RecordRTC | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
-  const audioChunksRef = useRef<Array<BlobPart>>([])
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
   const tabRecordingsRef = useRef<Record<string, TabLocalRecording>>({})
 
@@ -326,10 +326,6 @@ function RouteComponent() {
       return
     }
 
-    if (typeof MediaRecorder === "undefined") {
-      throw new Error("MediaRecorder API is not available in this browser.")
-    }
-
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error("Audio recording is not supported in this browser.")
     }
@@ -338,18 +334,15 @@ function RouteComponent() {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
     })
-    const mediaRecorder = new MediaRecorder(mediaStream)
+    const mediaRecorder = new RecordRTC(mediaStream, {
+      type: "audio",
+      mimeType: "audio/wav",
+      recorderType: RecordRTC.StereoAudioRecorder,
+    })
 
     mediaStreamRef.current = mediaStream
     mediaRecorderRef.current = mediaRecorder
-    audioChunksRef.current = []
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        audioChunksRef.current.push(event.data)
-      }
-    }
-
-    mediaRecorder.start()
+    mediaRecorder.startRecording()
     setRecordingTabId(activeTab.id)
     setRecordingStatus("recording")
     setStatusMessage("Recording started.")
@@ -358,7 +351,7 @@ function RouteComponent() {
   async function stopRecording() {
     const mediaRecorder = mediaRecorderRef.current
 
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+    if (!mediaRecorder || mediaRecorder.state === "stopped") {
       throw new Error("Recording is not active.")
     }
 
@@ -369,29 +362,20 @@ function RouteComponent() {
     }
 
     const audioBlob = await new Promise<Blob>((resolve, reject) => {
-      mediaRecorder.onstop = () => {
-        const nextAudioBlob = new Blob(audioChunksRef.current, {
-          type: mediaRecorder.mimeType || "audio/webm",
-        })
+      mediaRecorder.stopRecording(() => {
+        const nextAudioBlob = mediaRecorder.getBlob()
 
-        if (nextAudioBlob.size === 0) {
+        if (!nextAudioBlob || nextAudioBlob.size === 0) {
           reject(new Error("Recorded audio blob is empty."))
           return
         }
 
         resolve(nextAudioBlob)
-      }
-
-      mediaRecorder.onerror = () => {
-        reject(new Error("Recording failed while stopping."))
-      }
-
-      mediaRecorder.stop()
+      })
     })
 
     stopActiveMediaStream()
     mediaRecorderRef.current = null
-    audioChunksRef.current = []
     setRecordingStatus("idle")
     setRecordingTabId(null)
     storeTabRecording(targetTabId, audioBlob)
@@ -411,7 +395,6 @@ function RouteComponent() {
     } catch (error) {
       stopActiveMediaStream()
       mediaRecorderRef.current = null
-      audioChunksRef.current = []
       setRecordingStatus("idle")
       setRecordingTabId(null)
       setRuntimeError(
@@ -712,8 +695,10 @@ function RouteComponent() {
     return () => {
       const mediaRecorder = mediaRecorderRef.current
 
-      if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop()
+      if (mediaRecorder && mediaRecorder.state !== "stopped") {
+        mediaRecorder.stopRecording(() => {
+          mediaRecorderRef.current = null
+        })
       }
 
       stopActiveMediaStream()
