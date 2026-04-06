@@ -63,6 +63,17 @@ SST_OLLAMA_MODEL_ID=gemma3:latest
 
 If one of these values is missing or invalid, SST fails fast at server startup.
 
+### Prod Setup
+
+Prisma reads `DATABASE_URL` and `DATABASE_SCHEMA_NAME` from `apps/sst/.env.base`, then overrides with `apps/sst/.env` when present.
+
+Apply the schema/migrations to the DB:
+
+```bash
+bunx prisma migrate deploy
+bun run generate:prisma
+```
+
 ## Architecture Overview
 
 ```mermaid
