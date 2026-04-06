@@ -71,6 +71,9 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Daily Work
 
+- infra helpers at root:
+  - `bun run infra:up`
+  - `bun run infra:down`
 - for day-to-day Caddy/HTTPS operations (start/restart and LAN routes), see:
   - [`infra/README.md#start-and-stop-caddy`](/infra/README.md#start-and-stop-caddy)
   - [`infra/README.md#run-apps-behind-https`](/infra/README.md#run-apps-behind-https)

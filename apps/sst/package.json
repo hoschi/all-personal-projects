@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3059",
+    "dev": "vite dev --port 3059 --strictPort",
     "build": "vite build",
     "start:prod": "PORT=4059 HOST=0.0.0.0 node .output/server/index.mjs",
     "preview": "vite preview --port 3059",

@@ -11,6 +11,10 @@
     "SST_OLLAMA_MODEL_ID"
   ],
   "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -58,6 +62,11 @@
         "syncpack:check",
         "test"
       ]
+    },
+    "start:prod": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"],
