@@ -117,6 +117,40 @@ Stop:
 docker compose -f infra/docker-compose.yml down
 ```
 
+## App integration requirements
+
+For any app that should be reachable through this Caddy setup (desktop + LAN), the app must follow these rules.
+
+### General requirements (all frameworks)
+
+- Use fixed ports for dev/prod (`--strictPort` or equivalent fail-fast behavior).
+- Bind servers to host network (`0.0.0.0` / `--host`) so Docker/Caddy can reach them.
+- Keep prod port mapping stable (`prod = dev + 1000` in this repo convention).
+- If a framework has host allow-listing, include `FRITZBOX_DEVICE_HOSTNAME` from `infra/.env`.
+
+### Vite-specific requirements
+
+In `package.json` scripts:
+
+- `dev`: `vite dev --host --port <dev-port> --strictPort`
+- `preview`: `vite preview --host --port <dev-port> --strictPort`
+
+In `vite.config.ts`:
+
+- Load env files in this order:
+  - `.env.base`
+  - `.env` (override)
+  - `../../infra/.env`
+- Read `FRITZBOX_DEVICE_HOSTNAME` and set `server.allowedHosts` and `preview.allowedHosts`.
+- Allow both variants when useful:
+  - `<hostname>` (for example `stefan`)
+  - `<hostname>.fritz.box`
+
+After changing `infra/.env` hostnames:
+
+- regenerate/restart Caddy (`bun run infra:up` or restart flow), and
+- restart the affected app dev server so Vite reloads the allow-list.
+
 ## Run apps behind HTTPS
 
 ### Dev mode

@@ -11,6 +11,16 @@ import { textImprovementEnvSchema } from "./src/contracts/text-improvement-env"
 
 dotenvConfig({ path: ".env.base", quiet: true })
 dotenvConfig({ path: ".env", override: true, quiet: true })
+dotenvConfig({ path: "../../infra/.env", quiet: true })
+
+const fritzboxDeviceHostname =
+  process.env.FRITZBOX_DEVICE_HOSTNAME?.trim() ?? ""
+const viteAllowedHosts = [
+  fritzboxDeviceHostname,
+  fritzboxDeviceHostname.includes(".")
+    ? ""
+    : `${fritzboxDeviceHostname}.fritz.box`,
+].filter((host) => host.length > 0)
 
 textImprovementEnvSchema.parse({
   SST_WHISPER_ENDPOINT: process.env.SST_WHISPER_ENDPOINT,
@@ -19,6 +29,12 @@ textImprovementEnvSchema.parse({
 })
 
 const config = defineConfig({
+  server: {
+    allowedHosts: viteAllowedHosts.length > 0 ? viteAllowedHosts : undefined,
+  },
+  preview: {
+    allowedHosts: viteAllowedHosts.length > 0 ? viteAllowedHosts : undefined,
+  },
   plugins: [
     devtools(),
     nitro(),
