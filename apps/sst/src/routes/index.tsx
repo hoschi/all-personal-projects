@@ -320,9 +320,14 @@ function RouteComponent() {
   const canSaveTitle =
     activeTab !== null &&
     titleDraft.trim().length > 0 &&
-    titleDraft.trim() !== activeTab.title
+    titleDraft.trim() !== activeTab.title &&
+    conflict === null
   const canPutText =
-    activeTab !== null && topTextDraft.length > 0 && pendingAction === null
+    activeTab !== null &&
+    topTextDraft.length > 0 &&
+    pendingAction === null &&
+    conflict === null
+  const isConflictActive = conflict !== null
   const isAnyAutoSaveInProgress =
     autoSaveState.topText || autoSaveState.bottomText
 
@@ -720,7 +725,17 @@ function RouteComponent() {
       if (field === "title") {
         setTitleDraft(result.tab.title)
       }
-      setConflict(null)
+      setConflict((currentConflict) => {
+        if (!currentConflict) {
+          return null
+        }
+
+        if (currentConflict.field === field) {
+          return null
+        }
+
+        return currentConflict
+      })
 
       if (showSavedMessage) {
         setStatusMessage(`${field} was saved.`)
@@ -860,7 +875,7 @@ function RouteComponent() {
       return
     }
 
-    if (pendingAction !== null || conflict?.field === field) {
+    if (pendingAction !== null || conflict !== null) {
       return
     }
 
@@ -1003,7 +1018,7 @@ function RouteComponent() {
       return
     }
 
-    if (pendingAction !== null || conflict?.field === "topText") {
+    if (pendingAction !== null || conflict !== null) {
       return
     }
 
@@ -1065,7 +1080,14 @@ function RouteComponent() {
         </p>
       </header>
 
-      <section className="rounded-xl border border-border bg-card p-4 shadow-xs sm:p-6">
+      <section
+        className={[
+          "rounded-xl border p-4 shadow-xs sm:p-6",
+          conflict
+            ? "border-amber-500/30 bg-amber-500/5"
+            : "border-border bg-card",
+        ].join(" ")}
+      >
         <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-4">
           {tabs.map((tab) => {
             const isActive = tab.id === activeTabId
@@ -1085,7 +1107,7 @@ function RouteComponent() {
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-background text-foreground hover:bg-accent",
                 ].join(" ")}
-                disabled={recordingStatus === "recording"}
+                disabled={recordingStatus === "recording" || isConflictActive}
               >
                 {tab.title}
               </button>
@@ -1095,7 +1117,11 @@ function RouteComponent() {
             type="button"
             onClick={handleCreateTab}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-            disabled={pendingAction !== null || recordingStatus === "recording"}
+            disabled={
+              pendingAction !== null ||
+              recordingStatus === "recording" ||
+              isConflictActive
+            }
           >
             + New Tab
           </button>
@@ -1113,7 +1139,9 @@ function RouteComponent() {
                 void handleRecordButton()
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled={activeTab === null || pendingAction !== null}
+              disabled={
+                activeTab === null || pendingAction !== null || isConflictActive
+              }
             >
               {recordButtonLabel}
             </button>
@@ -1123,7 +1151,7 @@ function RouteComponent() {
                 void handleReplayButton()
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canReplayRecording}
+              disabled={!canReplayRecording || isConflictActive}
             >
               {replayButtonLabel}
             </button>
@@ -1143,7 +1171,7 @@ function RouteComponent() {
                 setIsDebugPanelOpen((currentValue) => !currentValue)
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-              disabled={!canDebugImproveResult}
+              disabled={!canDebugImproveResult || isConflictActive}
             >
               {isDebugPanelOpen ? "Hide Debug" : "Debug"}
             </button>
@@ -1156,7 +1184,8 @@ function RouteComponent() {
               disabled={
                 activeTab === null ||
                 pendingAction !== null ||
-                recordingStatus === "recording"
+                recordingStatus === "recording" ||
+                isConflictActive
               }
             >
               Delete Tab
@@ -1237,12 +1266,18 @@ function RouteComponent() {
               onChange={(event) => {
                 setTitleDraft(event.currentTarget.value)
               }}
-              disabled={activeTab === null || pendingAction !== null}
+              disabled={
+                activeTab === null ||
+                pendingAction !== null ||
+                conflict !== null
+              }
             />
             <button
               type="button"
               onClick={handleSaveTitle}
-              disabled={!canSaveTitle || pendingAction !== null}
+              disabled={
+                !canSaveTitle || pendingAction !== null || isConflictActive
+              }
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
             >
               Save Title
@@ -1270,7 +1305,11 @@ function RouteComponent() {
                 setTopTextDraft(event.currentTarget.value)
               }}
               placeholder="Live transcription output..."
-              disabled={activeTab === null || pendingAction !== null}
+              disabled={
+                activeTab === null ||
+                pendingAction !== null ||
+                conflict !== null
+              }
             />
           </label>
 
@@ -1291,7 +1330,11 @@ function RouteComponent() {
                 setBottomTextDraft(event.currentTarget.value)
               }}
               placeholder="Context and corrected terms..."
-              disabled={activeTab === null || pendingAction !== null}
+              disabled={
+                activeTab === null ||
+                pendingAction !== null ||
+                conflict !== null
+              }
             />
             <div className="flex justify-end">
               <button
@@ -1302,7 +1345,8 @@ function RouteComponent() {
                 disabled={
                   activeTab === null ||
                   pendingAction !== null ||
-                  bottomTextDraft.length === 0
+                  bottomTextDraft.length === 0 ||
+                  isConflictActive
                 }
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label="Copy bottom text and delete tab"
@@ -1314,7 +1358,7 @@ function RouteComponent() {
         </div>
 
         {conflict ? (
-          <div className="mt-4 space-y-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <div className="mt-4 space-y-3 rounded-xl border border-amber-500/50 bg-amber-500/15 p-4">
             <div>
               <p className="text-sm font-semibold">
                 Conflict detected: {conflict.field}

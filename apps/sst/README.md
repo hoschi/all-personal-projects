@@ -145,6 +145,9 @@ When conflict is returned, the UI enforces an explicit choice:
 
 - `Use Server Data`: overwrite local draft state with the latest server value.
 - `Write Client to Server`: force-write local value as next server version.
+- While a conflict is active, editable inputs (`title`, `topText`, `bottomText`) are locked.
+- While a conflict is active, non-resolution actions are disabled (`tab switch`, `new tab`, `record`, `replay`, `put`, `debug`, `delete tab`, `scissors`).
+- Autosave is paused for all editable fields until the conflict is resolved.
 
 No silent merges are performed in v0.
 
