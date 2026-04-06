@@ -1164,23 +1164,6 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs text-muted-foreground">
-          {activeTabImproveResult ? (
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <span>
-                Transcription: {activeTabImproveResult.transcriptionDurationMs}{" "}
-                ms
-              </span>
-              <span>
-                Correction: {activeTabImproveResult.correctionDurationMs} ms
-              </span>
-              <span>Total: {activeTabImproveResult.totalDurationMs} ms</span>
-            </div>
-          ) : (
-            "No timing metrics yet."
-          )}
-        </div>
-
         {isDebugPanelOpen && activeTabImproveResult ? (
           <div className="mt-3 space-y-3 rounded-xl border border-border bg-background p-4">
             <h2 className="text-sm font-semibold">Debug Diff</h2>
@@ -1269,9 +1252,17 @@ function RouteComponent() {
 
         <div className="mt-4 flex flex-col gap-4">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">
-              Top Textbox (transcription)
-            </span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium">
+                Top Textbox (transcription)
+              </span>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>Version: {activeTab?.topTextVersion ?? "-"}</span>
+                <span>
+                  {autoSaveState.topText ? "Autosaving..." : "Auto-saved"}
+                </span>
+              </div>
+            </div>
             <textarea
               className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={topTextDraft}
@@ -1281,18 +1272,18 @@ function RouteComponent() {
               placeholder="Live transcription output..."
               disabled={activeTab === null || pendingAction !== null}
             />
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">
-                Version: {activeTab?.topTextVersion ?? "-"}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {autoSaveState.topText ? "Autosaving..." : "Auto-saved"}
-              </span>
-            </div>
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Bottom Textbox</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium">Bottom Textbox</span>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>Version: {activeTab?.bottomTextVersion ?? "-"}</span>
+                <span>
+                  {autoSaveState.bottomText ? "Autosaving..." : "Auto-saved"}
+                </span>
+              </div>
+            </div>
             <textarea
               className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={bottomTextDraft}
@@ -1302,10 +1293,7 @@ function RouteComponent() {
               placeholder="Context and corrected terms..."
               disabled={activeTab === null || pendingAction !== null}
             />
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">
-                Version: {activeTab?.bottomTextVersion ?? "-"}
-              </span>
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -1378,6 +1366,23 @@ function RouteComponent() {
             </div>
           </div>
         ) : null}
+
+        <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs text-muted-foreground">
+          {activeTabImproveResult ? (
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span>
+                Transcription: {activeTabImproveResult.transcriptionDurationMs}{" "}
+                ms
+              </span>
+              <span>
+                Correction: {activeTabImproveResult.correctionDurationMs} ms
+              </span>
+              <span>Total: {activeTabImproveResult.totalDurationMs} ms</span>
+            </div>
+          ) : (
+            "No timing metrics yet."
+          )}
+        </div>
 
         {statusMessage ? (
           <p className="mt-4 text-sm text-muted-foreground">{statusMessage}</p>
