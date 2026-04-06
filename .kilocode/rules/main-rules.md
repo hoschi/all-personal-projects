@@ -398,6 +398,12 @@ beforeEach(() => {
 - **Problem**: Env-Variablen beeinflussen Outputs, aber landen nicht im Cache-Key
 - **Lösung**: Relevante Variablen in `globalEnv` aufnehmen (z.B. `DATABASE_SCHEMA_NAME`, `DATABASE_URL`, `DB_SCHEMA`, `YOUTUBE_API_KEY`)
 
+### Vite Dev Ports in Apps
+
+- **Regel**: Wenn in einem App-`package.json` ein Vite-Dev-Script mit festem Port genutzt wird (`vite dev --port ...`), muss immer `--strictPort` gesetzt sein.
+- **Begründung**: Sonst wechselt Vite bei Port-Konflikten still auf einen anderen Port und Caddy-/Reverse-Proxy-Routen zeigen auf den falschen Target-Port.
+- **Beispiel**: `"dev": "vite dev --port 3059 --strictPort"`
+
 ### Syncpack Usage
 
 - **Ziel**: Dependency-Versionen im Monorepo konsistent halten

@@ -199,6 +199,25 @@ Expected:
 - HTTPS works on the device without `sslip.io`.
 - App can access microphone in secure context.
 
+### Known limitation (FRITZ!Box hostname mode)
+
+In FRITZ!Box hostname mode, all apps currently share one hostname (for example `stefan`).
+Because of that, app routing is separated by HTTPS ports (`8447-8449`, `9447-9449`) instead of per-app hostnames.
+
+Examples:
+
+- `https://stefan:8449` (`sst` dev)
+- `https://stefan:9449` (`sst` prod)
+
+Why no `https://sst.stefan/` right now:
+
+- FRITZ!Box DNS typically resolves device hostnames, but does not provide per-app subdomain records for this setup.
+
+Possible future improvement:
+
+- Add local DNS (for example Pi-hole/AdGuard/dnsmasq) with app-specific hostnames.
+- Then route all apps on standard HTTPS `443` by hostname (no custom port in URL).
+
 ### 4) LAN/mobile test (`sslip.io`, optional alternative)
 
 If you prefer `sslip.io`, add aliases in `infra/caddy/Caddyfile` and restart Caddy.
