@@ -715,7 +715,11 @@ function RouteComponent() {
     const showSavedMessage = options?.showSavedMessage ?? true
 
     if (result.status === "updated") {
-      applyActiveTab(result.tab)
+      updateServerTabSnapshot(result.tab)
+
+      if (field === "title") {
+        setTitleDraft(result.tab.title)
+      }
       setConflict(null)
 
       if (showSavedMessage) {
