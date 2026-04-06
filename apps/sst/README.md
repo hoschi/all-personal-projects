@@ -32,6 +32,34 @@ This is the current intended workflow in the app:
 9. Use `Delete Tab` (next to `Debug`) to delete the active tab.
 10. Or use scissors (`✂️`) to copy bottom text and delete the active tab.
 
+## Whisper Server Setup (Local)
+
+Run these steps from `apps/sst`.
+
+Install Whisper server tooling via Homebrew:
+
+```bash
+brew install whisper-cpp
+```
+
+Download the model file:
+
+```bash
+mkdir -p models
+curl -L -o models/ggml-large-v3-turbo.bin \
+  "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin"
+```
+
+Start the local Whisper server:
+
+```bash
+whisper-server \
+  -m models/ggml-large-v3-turbo.bin \
+  --port 9100 \
+  -l de \
+  -t 4
+```
+
 ## Development
 
 Run the app on port `3059`:
