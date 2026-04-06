@@ -46,6 +46,9 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): add server-side whisper verbose-json and ollama correction pipeline`
 - [x] `feat(infra): add caddy tls-internal reverse-proxy setup including sst domains`
 - [x] `feat(sst): add debug diff view and transcription-correction timing metrics`
+- [x] `feat(sst): align editor interactions with autosave put and cut-delete flow`
+- [x] `feat(sst): auto-run improve on recording stop and add active tab delete control`
+- [x] `docs(sst): refresh readme with recording-first flow and current feature set`
 
 ## Commit-by-Commit Execution Plan
 
@@ -114,7 +117,32 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
      - total duration
    - Commit: `feat(sst): add debug diff view and transcription-correction timing metrics`
 
-10. [ ] Persist Model Run Logs for Future Evaluation
+10. [x] Align Editor Interaction Design with `sst-web` Flow
+
+- Remove manual save actions for top/bottom text and auto-save on content changes.
+- Switch top and bottom textboxes to a stacked vertical layout.
+- Replace `Improve Text` action with `Put` (`top` → append to `bottom`, then clear `top`).
+- Replace `Save Bottom Text` with scissors action (`✂️`) that copies bottom text and deletes the current tab.
+- Tune textbox font size to sit between current `sst` and `sst-web` baseline.
+- Commit: `feat(sst): align editor interactions with autosave put and cut-delete flow`
+
+11. [x] Automate Recording-Stop Processing and Active Tab Deletion
+
+- Switch recording button labels to `start` / `recording`.
+- Trigger `improveTabRecordingFn` automatically when recording stops.
+- Write corrected result to top text and persist it immediately.
+- Throttle top-text manual auto-save to 1 second.
+- Add dedicated `Delete Tab` control next to `Debug` and keep local state in sync after deletion.
+- Commit: `feat(sst): auto-run improve on recording stop and add active tab delete control`
+
+12. [x] Refresh `apps/sst` README to Match Implemented Flow
+
+- Rewrite README around the recording-first workflow.
+- Document auto-improve-on-stop, top/bottom autosave behavior, `Put`, scissors copy+delete flow, and dedicated delete-tab action.
+- Keep architecture/data model/env/dev command sections aligned with current runtime behavior.
+- Commit: `docs(sst): refresh readme with recording-first flow and current feature set`
+
+13. [ ] Persist Model Run Logs for Future Evaluation
 
 - Store model run records including:
   - model input/output
@@ -124,21 +152,20 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Ensure logging is non-blocking for UX and resilient to partial failures.
 - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
-11. [ ] Add Polling Sync Runtime
+14. [ ] Add Polling Sync Runtime
 
 - Implement periodic polling and selective refresh for active tab state.
 - Handle stale-client detection and conflict state transitions.
 - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
 - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
 
-12. [ ] Documentation + Verification
+15. [ ] Final Documentation + Verification Sweep
 
-- Add `apps/sst/README.md` draft based on `features-sst-v0.md`.
 - Cross-link SSL doc and setup steps from `infra` docs.
 - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
 - Verify docs are English and implementation follows the mandatory project rules above.
 - Include tablet smoke-test instructions after SSL/LAN setup.
-- Commit: `docs(sst): add v0 readme and verification notes`
+- Commit: `docs(sst): finalize verification notes and cross-links`
 
 ## Acceptance Criteria
 

@@ -49,6 +49,23 @@ export const createTabInputSchema = z.object({
 })
 export type CreateTabInput = z.infer<typeof createTabInputSchema>
 
+export const deleteTabInputSchema = z.object({
+  tabId: tabIdSchema,
+})
+export type DeleteTabInput = z.infer<typeof deleteTabInputSchema>
+
+export const deleteTabResultSchema = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("deleted"),
+    tabId: tabIdSchema,
+  }),
+  z.object({
+    status: z.literal("not_found"),
+    tabId: tabIdSchema,
+  }),
+])
+export type DeleteTabResult = z.infer<typeof deleteTabResultSchema>
+
 export const renameTabInputSchema = z.object({
   tabId: tabIdSchema,
   title: z.string().trim().min(1).max(120),

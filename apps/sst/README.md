@@ -8,10 +8,29 @@ The original `apps/sst-web` app remains untouched. `apps/sst` is the new v0 impl
 
 - Multiple tabs for parallel thought streams.
 - Field-level conflict protection for tab title, top text, and bottom text.
-- Polling-based multi-client synchronization.
+- Polling-based multi-client synchronization runtime.
 - Local audio replay (not synchronized).
-- Server-side transcription + correction pipeline.
+- Automatic recording-stop processing (Whisper + Ollama) into top text.
 - Persisted model-run telemetry for future quality/cost evaluation.
+
+## Current Editor + Recording Flow
+
+This is the current intended workflow in the app:
+
+1. Start recording with the `start` button.
+2. While recording, the button label is `recording`.
+3. Press `recording` again to stop.
+4. On stop, SST automatically:
+   - keeps the local audio blob for replay,
+   - calls `improveTabRecordingFn`,
+   - writes `correctedText` into the top textbox,
+   - persists that top text to the server.
+5. Review and edit top text.
+6. Top text edits are auto-saved with a 1-second throttle.
+7. Press `Put` to append top text to bottom text and clear top text.
+8. Bottom text changes are auto-saved on change.
+9. Use `Delete Tab` (next to `Debug`) to delete the active tab.
+10. Or use scissors (`✂️`) to copy bottom text and delete the active tab.
 
 ## Development
 
@@ -25,6 +44,13 @@ Run repository checks:
 
 ```bash
 bun run ci
+```
+
+Run app-local checks:
+
+```bash
+bun run check-types --filter=@repo/sst
+bun run lint --filter=@repo/sst
 ```
 
 Required AI pipeline env vars (loaded from `.env.base` and overridden by `.env`):
@@ -41,7 +67,8 @@ If one of these values is missing or invalid, SST fails fast at server startup.
 
 ```mermaid
 flowchart LR
-  User[User] --> UI[Web UI\nTab editor + controls]
+  User[User] --> UI[Web UI
+Tab editor + controls]
   UI -->|Server Functions| API[Server layer]
   API --> DB[(PostgreSQL via Prisma)]
 
@@ -73,9 +100,7 @@ This allows conflicts to be detected per field instead of per full tab document.
 
 ### Polling-based sync model
 
-Each client periodically fetches the active tab state and updates its local cursor (`tab_sync_states`).
-
-The active tab selection is persisted per client in local storage and restored on reload.
+The server-side contracts and sync state model are polling-ready. Full active polling runtime in the UI remains a planned step.
 
 ```mermaid
 sequenceDiagram
@@ -116,7 +141,7 @@ sequenceDiagram
 
 ### Explicit conflict resolution actions
 
-When conflict is returned, the UI must force an explicit choice:
+When conflict is returned, the UI enforces an explicit choice:
 
 - `Use Server Data`: overwrite local draft state with the latest server value.
 - `Write Client to Server`: force-write local value as next server version.
@@ -139,17 +164,18 @@ flowchart TD
 
 ### Rendering mode
 
-SST runs as a client-rendered app for v0. Route definitions use `ssr: false` to avoid SSR-related issues for this workflow.
+SST runs as a client-rendered app for v0. Route definitions use `ssr: false`.
 
 For CSR-only routes, browser APIs (`window`, `localStorage`) are used directly in route runtime logic without SSR guards.
 
-### Local recording and replay (v0)
+### Local recording and replay
 
 - Recording uses browser `MediaRecorder` in the active tab context.
+- Button labels follow `start` → `recording` while active.
 - Each tab keeps its own latest local recording in client memory.
 - Replay controls are explicit (`Play` / `Stop`) and only affect the active tab recording.
 - Audio blobs are local-only and are not synchronized to the server or other clients.
-- Local recordings are transient and are reset on page reload.
+- Local recordings are transient and reset on page reload.
 
 ### Runtime error handling
 
@@ -158,9 +184,9 @@ Runtime exceptions are not silently swallowed in UI route logic.
 - Unexpected client/runtime failures are forwarded to the TanStack route error boundary (`errorComponent`).
 - Local fallback status messages are only used for expected domain results (`conflict`, `not_found`), not for unexpected exceptions.
 
-### Improve Text pipeline (server-side)
+### Improve pipeline (automatic on recording stop)
 
-When `Improve Text` is triggered, SST runs a server-side two-step pipeline:
+When recording stops, SST runs a server-side two-step pipeline automatically (manual `Improve Text` button is removed):
 
 - Client sends `multipart/form-data` to the BFF server function (`file`, `tabId`, `contextText`, `language`).
 
@@ -168,29 +194,20 @@ When `Improve Text` is triggered, SST runs a server-side two-step pipeline:
 2. Text normalization (including line-break artifact cleanup)
 3. Ollama correction with context from the lower textbox (`gemma3:latest` by default)
 
-The server action returns both `rawTranscriptionText` and `correctedText`.
+The server action returns both `rawTranscriptionText` and `correctedText`, then top text is persisted.
 
 ## Model Eval Data Storage
 
 ### Why these logs exist
 
-SST v0 stores structured run data so future evaluation can compare model quality, latency, and cost trade-offs without changing the product flow.
+SST v0 keeps structured run data so future evaluation can compare model quality, latency, and cost trade-offs without changing product flow.
 
-### Stored telemetry
+### Current implementation state
 
-Each model run record can include:
+- Prisma schema + contracts for model run logs are in place.
+- Full runtime persistence for each processing step is still planned as a follow-up implementation step.
 
-- stage (`transcription` or `correction`)
-- provider (`whisper`, `ollama`, `unknown`)
-- model id (for example `whisper-1`, `gemma3:latest`)
-- model input
-- model output
-- duration in milliseconds
-- current git commit hash
-- optional metadata payload
-- optional `tabId` relation
-
-### Logging flow
+### Logging flow (target model)
 
 ```mermaid
 sequenceDiagram
@@ -264,7 +281,7 @@ The server/client boundary is defined by typed contracts in:
 
 Main contract groups:
 
-- tab lifecycle inputs (create, rename, update)
+- tab lifecycle inputs (create, rename, update, delete)
 - conflict payloads (`updated`, `conflict`, `not_found`)
 - sync cursor payloads for polling
 - model-run log creation payloads
@@ -278,15 +295,21 @@ Implemented in this repository:
 - TanStack Start app scaffold (`apps/sst`)
 - Prisma schema + migration for tabs, sync states, and model-run logs
 - Shared typed contracts for sync and telemetry payloads
-- Tab server functions for create/select/rename/update and conflict handling
+- Tab server functions for create/select/rename/update/delete and conflict handling
 - Tabbed UI with per-client active-tab restore and conflict resolution actions
 - Local per-tab microphone recording with play/stop replay controls
-- Server-side Whisper (`verbose_json`) + Ollama correction pipeline wired to `Improve Text`
+- Automatic recording-stop processing via Whisper (`verbose_json`) + Ollama correction
+- Auto-save for top/bottom text, with top-text throttled at 1 second
+- `Put` flow (`top` appended to `bottom`, then `top` cleared)
+- Scissors flow (`✂️`) to copy bottom text and delete active tab
+- Dedicated `Delete Tab` control next to `Debug`
+- Debug diff UI and timing display
 
 Planned next:
 
-- Full polling runtime in UI
-- Debug diff UI and timing display
+- Persist model run logs from runtime processing steps
+- Add active polling runtime in UI for multi-client sync
+- Final documentation cross-links and verification sweep
 
 ## Out of Scope for v0
 

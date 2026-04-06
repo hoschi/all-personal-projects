@@ -3,6 +3,8 @@ import { z } from "zod"
 
 import {
   createTabInputSchema,
+  deleteTabInputSchema,
+  deleteTabResultSchema,
   overwriteClientInputSchema,
   overwriteServerInputSchema,
   renameTabInputSchema,
@@ -371,6 +373,28 @@ export const createTabFn = createServerFn({ method: "POST" })
     })
 
     return tabSnapshotSchema.parse(toTabSnapshot(createdTab))
+  })
+
+export const deleteTabFn = createServerFn({ method: "POST" })
+  .inputValidator((data) => deleteTabInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const deleteResult = await prisma.tab.deleteMany({
+      where: {
+        id: data.tabId,
+      },
+    })
+
+    if (deleteResult.count === 0) {
+      return deleteTabResultSchema.parse({
+        status: "not_found",
+        tabId: data.tabId,
+      })
+    }
+
+    return deleteTabResultSchema.parse({
+      status: "deleted",
+      tabId: data.tabId,
+    })
   })
 
 export const selectTabFn = createServerFn({ method: "GET" })

@@ -4,7 +4,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router"
 import RecordRTC from "recordrtc"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 
 import type {
   ImproveTextResult,
@@ -16,6 +16,7 @@ import type {
 } from "@/contracts/tab-sync"
 import {
   createTabFn,
+  deleteTabFn,
   listTabsFn,
   overwriteClientFn,
   overwriteServerFn,
@@ -28,6 +29,7 @@ import { improveTabRecordingFn } from "@/data/text-improvement-actions"
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
 const DEFAULT_IMPROVE_LANGUAGE = "de" as const
+const TOP_TEXT_AUTOSAVE_THROTTLE_MS = 1_000 as const
 
 type RecordingStatus = "idle" | "recording"
 
@@ -241,6 +243,10 @@ function RouteComponent() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
   const tabRecordingsRef = useRef<Record<string, TabLocalRecording>>({})
+  const autoSaveInFlightRef = useRef({
+    topText: false,
+    bottomText: false,
+  })
 
   const [clientId] = useState(() => getOrCreateClientId())
   const [tabs, setTabs] = useState(initialTabs)
@@ -275,6 +281,10 @@ function RouteComponent() {
   >({})
   const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false)
   const [runtimeError, setRuntimeError] = useState<Error | null>(null)
+  const [autoSaveState, setAutoSaveState] = useState({
+    topText: false,
+    bottomText: false,
+  })
 
   if (runtimeError) {
     throw runtimeError
@@ -293,16 +303,11 @@ function RouteComponent() {
     recordingStatus === "recording" || recordingTabId !== null
   const canReplayRecording =
     hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
-  const canImproveText =
-    activeTab !== null &&
-    hasActiveTabRecording &&
-    !isRecordingInProgress &&
-    pendingAction === null
   const canDebugImproveResult = activeTabImproveResult !== null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
   const recordButtonLabel =
-    recordingStatus === "recording" ? "Stop Recording" : "Record"
+    recordingStatus === "recording" ? "recording" : "start"
   const replayButtonLabel = isActiveTabReplayRunning ? "Stop" : "Play"
   const debugDiffSegments =
     activeTabImproveResult === null
@@ -316,10 +321,10 @@ function RouteComponent() {
     activeTab !== null &&
     titleDraft.trim().length > 0 &&
     titleDraft.trim() !== activeTab.title
-  const canSaveTopText =
-    activeTab !== null && topTextDraft !== activeTab.topText
-  const canSaveBottomText =
-    activeTab !== null && bottomTextDraft !== activeTab.bottomText
+  const canPutText =
+    activeTab !== null && topTextDraft.length > 0 && pendingAction === null
+  const isAnyAutoSaveInProgress =
+    autoSaveState.topText || autoSaveState.bottomText
 
   function applyActiveTab(nextTab: TabSnapshot) {
     setActiveTab(nextTab)
@@ -343,51 +348,122 @@ function RouteComponent() {
     }
   }
 
-  async function handleImproveText() {
-    if (!activeTab || !activeTabRecording) {
+  function setAutoSaveFieldState(
+    field: "topText" | "bottomText",
+    isSaving: boolean,
+  ) {
+    setAutoSaveState((currentState) => ({
+      ...currentState,
+      [field]: isSaving,
+    }))
+  }
+
+  function handlePutText() {
+    if (!activeTab || topTextDraft.length === 0 || pendingAction !== null) {
       return
     }
 
-    setPendingAction("improve-text")
+    setBottomTextDraft((currentBottomText) =>
+      currentBottomText === ""
+        ? topTextDraft
+        : `${currentBottomText} ${topTextDraft}`,
+    )
+    setTopTextDraft("")
+    setConflict((currentConflict) => {
+      if (
+        currentConflict &&
+        (currentConflict.field === "topText" ||
+          currentConflict.field === "bottomText")
+      ) {
+        return null
+      }
+
+      return currentConflict
+    })
+    setStatusMessage("Moved top text into bottom textbox.")
+  }
+
+  function removeTabFromLocalState(tabIdToDelete: string) {
+    const remainingTabs = tabs.filter((tab) => tab.id !== tabIdToDelete)
+
+    removeTabRecording(tabIdToDelete)
+    removeTabImproveResult(tabIdToDelete)
+    setTabs(remainingTabs)
+    setConflict(null)
+
+    if (remainingTabs.length > 0) {
+      setActiveTabId(remainingTabs[0].id)
+      return
+    }
+
+    setActiveTabId("")
+    setActiveTab(null)
+    setTitleDraft("")
+    setTopTextDraft("")
+    setBottomTextDraft("")
+  }
+
+  async function handleCutBottomTextAndDeleteTab() {
+    if (!activeTab) {
+      return
+    }
+
+    const tabIdToDelete = activeTab.id
+    const textToCopy = bottomTextDraft
+
+    setPendingAction("cut-bottom-text-and-delete-tab")
     setStatusMessage(null)
 
     try {
-      const formData = new FormData()
-      formData.append("file", activeTabRecording.audioBlob, "audio.wav")
-      formData.append("tabId", activeTab.id)
-      formData.append("contextText", bottomTextDraft)
-      formData.append("language", DEFAULT_IMPROVE_LANGUAGE)
-
-      const improveResult = await improveTabRecordingFn({
-        data: formData,
-      })
-
-      setTabImproveResults((currentImproveResults) => ({
-        ...currentImproveResults,
-        [activeTab.id]: improveResult,
-      }))
-
-      setTopTextDraft(improveResult.correctedText)
-
-      const writeResult = await updateTabFieldFn({
+      await navigator.clipboard.writeText(textToCopy)
+      const deleteResult = await deleteTabFn({
         data: {
-          tabId: activeTab.id,
-          field: "topText",
-          value: improveResult.correctedText,
-          expectedVersion: activeTab.topTextVersion,
-          clientId,
+          tabId: tabIdToDelete,
         },
       })
 
-      const wasSaved = updateFromWriteResult(writeResult, "topText")
+      removeTabFromLocalState(tabIdToDelete)
 
-      if (wasSaved) {
-        setStatusMessage(
-          `Improve Text finished (${improveResult.totalDurationMs} ms total).`,
-        )
+      if (deleteResult.status === "not_found") {
+        setStatusMessage("Tab no longer exists on the server.")
+      } else {
+        setStatusMessage("Bottom text copied to clipboard. Tab deleted.")
       }
     } catch (error) {
-      setRuntimeError(toRuntimeError(error, "Failed to improve text."))
+      setRuntimeError(
+        toRuntimeError(error, "Failed to copy bottom text and delete tab."),
+      )
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handleDeleteActiveTab() {
+    if (!activeTab) {
+      return
+    }
+
+    const tabIdToDelete = activeTab.id
+
+    setPendingAction("delete-active-tab")
+    setStatusMessage(null)
+
+    try {
+      const deleteResult = await deleteTabFn({
+        data: {
+          tabId: tabIdToDelete,
+        },
+      })
+
+      removeTabFromLocalState(tabIdToDelete)
+
+      if (deleteResult.status === "not_found") {
+        setStatusMessage("Tab no longer exists on the server.")
+      } else {
+        setStatusMessage("Active tab deleted.")
+      }
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to delete the active tab."))
     } finally {
       setPendingAction(null)
     }
@@ -509,7 +585,70 @@ function RouteComponent() {
     setRecordingStatus("idle")
     setRecordingTabId(null)
     storeTabRecording(targetTabId, audioBlob)
-    setStatusMessage(`Saved local recording (${bytesToSize(audioBlob.size)}).`)
+
+    return {
+      tabId: targetTabId,
+      audioBlob,
+      sizeLabel: bytesToSize(audioBlob.size),
+    }
+  }
+
+  async function handleImproveFromRecording(input: {
+    tabId: string
+    audioBlob: Blob
+    sizeLabel: string
+  }) {
+    if (!activeTab || activeTab.id !== input.tabId) {
+      return
+    }
+
+    const tabSnapshot = activeTab
+
+    setPendingAction("process-recording")
+    setStatusMessage("Recording captured. Processing speech-to-text...")
+
+    try {
+      const formData = new FormData()
+      formData.append("file", input.audioBlob, "audio.wav")
+      formData.append("tabId", tabSnapshot.id)
+      formData.append("contextText", bottomTextDraft)
+      formData.append("language", DEFAULT_IMPROVE_LANGUAGE)
+
+      const improveResult = await improveTabRecordingFn({
+        data: formData,
+      })
+
+      setTabImproveResults((currentImproveResults) => ({
+        ...currentImproveResults,
+        [tabSnapshot.id]: improveResult,
+      }))
+
+      setTopTextDraft(improveResult.correctedText)
+
+      const writeResult = await updateTabFieldFn({
+        data: {
+          tabId: tabSnapshot.id,
+          field: "topText",
+          value: improveResult.correctedText,
+          expectedVersion: tabSnapshot.topTextVersion,
+          clientId,
+        },
+      })
+
+      const wasSaved = updateFromWriteResult(writeResult, "topText", {
+        showSavedMessage: false,
+      })
+
+      if (wasSaved) {
+        setStatusMessage(
+          `Saved recording (${input.sizeLabel}) and processed text (${improveResult.totalDurationMs} ms).`,
+        )
+      }
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to process recording."))
+    } finally {
+      setPendingAction(null)
+    }
   }
 
   async function handleRecordButton() {
@@ -517,7 +656,8 @@ function RouteComponent() {
 
     try {
       if (recordingStatus === "recording") {
-        await stopRecording()
+        const finishedRecording = await stopRecording()
+        await handleImproveFromRecording(finishedRecording)
         return
       }
 
@@ -568,11 +708,20 @@ function RouteComponent() {
   function updateFromWriteResult(
     result: TabWriteResult,
     field: TabSyncField,
+    options?: {
+      showSavedMessage?: boolean
+    },
   ): boolean {
+    const showSavedMessage = options?.showSavedMessage ?? true
+
     if (result.status === "updated") {
       applyActiveTab(result.tab)
       setConflict(null)
-      setStatusMessage(`${field} was saved.`)
+
+      if (showSavedMessage) {
+        setStatusMessage(`${field} was saved.`)
+      }
+
       return true
     }
 
@@ -702,8 +851,12 @@ function RouteComponent() {
     }
   }
 
-  async function handleSaveTextField(field: "topText" | "bottomText") {
+  async function handleAutoSaveTextField(field: "topText" | "bottomText") {
     if (!activeTab) {
+      return
+    }
+
+    if (pendingAction !== null || conflict?.field === field) {
       return
     }
 
@@ -713,8 +866,19 @@ function RouteComponent() {
         : activeTab.bottomTextVersion
     const value = field === "topText" ? topTextDraft : bottomTextDraft
 
-    setPendingAction(`save-${field}`)
-    setStatusMessage(null)
+    if (autoSaveInFlightRef.current[field]) {
+      return
+    }
+
+    const serverValue =
+      field === "topText" ? activeTab.topText : activeTab.bottomText
+
+    if (value === serverValue) {
+      return
+    }
+
+    autoSaveInFlightRef.current[field] = true
+    setAutoSaveFieldState(field, true)
 
     try {
       const result = await updateTabFieldFn({
@@ -727,13 +891,20 @@ function RouteComponent() {
         },
       })
 
-      updateFromWriteResult(result, field)
+      updateFromWriteResult(result, field, {
+        showSavedMessage: false,
+      })
     } catch (error) {
-      setRuntimeError(toRuntimeError(error, `Failed to save ${field}.`))
+      setRuntimeError(toRuntimeError(error, `Failed to auto-save ${field}.`))
     } finally {
-      setPendingAction(null)
+      autoSaveInFlightRef.current[field] = false
+      setAutoSaveFieldState(field, false)
     }
   }
+
+  const runThrottledTopTextAutoSave = useEffectEvent(() => {
+    void handleAutoSaveTextField("topText")
+  })
 
   async function handleOverwriteServer() {
     if (!activeTab || !conflict) {
@@ -822,6 +993,40 @@ function RouteComponent() {
 
     void loadActiveTab(activeTabId)
   }, [activeTabId])
+
+  useEffect(() => {
+    if (!activeTab) {
+      return
+    }
+
+    if (pendingAction !== null || conflict?.field === "topText") {
+      return
+    }
+
+    if (topTextDraft === activeTab.topText) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      runThrottledTopTextAutoSave()
+    }, TOP_TEXT_AUTOSAVE_THROTTLE_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [activeTab, topTextDraft, pendingAction, conflict?.field])
+
+  useEffect(() => {
+    if (!activeTab) {
+      return
+    }
+
+    if (bottomTextDraft === activeTab.bottomText) {
+      return
+    }
+
+    void handleAutoSaveTextField("bottomText")
+  }, [activeTab, bottomTextDraft, pendingAction, conflict?.field])
 
   useEffect(() => {
     return () => {
@@ -921,12 +1126,12 @@ function RouteComponent() {
             <button
               type="button"
               onClick={() => {
-                void handleImproveText()
+                handlePutText()
               }}
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canImproveText}
+              disabled={!canPutText}
             >
-              Improve Text
+              Put
             </button>
             <button
               type="button"
@@ -937,6 +1142,20 @@ function RouteComponent() {
               disabled={!canDebugImproveResult}
             >
               {isDebugPanelOpen ? "Hide Debug" : "Debug"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void handleDeleteActiveTab()
+              }}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                activeTab === null ||
+                pendingAction !== null ||
+                recordingStatus === "recording"
+              }
+            >
+              Delete Tab
             </button>
           </div>
         </div>
@@ -954,7 +1173,7 @@ function RouteComponent() {
               <span>Total: {activeTabImproveResult.totalDurationMs} ms</span>
             </div>
           ) : (
-            "No timing metrics yet. Run Improve Text once."
+            "No timing metrics yet."
           )}
         </div>
 
@@ -1044,13 +1263,13 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="mt-4 flex flex-col gap-4">
           <label className="flex flex-col gap-2">
             <span className="text-sm font-medium">
               Top Textbox (transcription)
             </span>
             <textarea
-              className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={topTextDraft}
               onChange={(event) => {
                 setTopTextDraft(event.currentTarget.value)
@@ -1062,23 +1281,16 @@ function RouteComponent() {
               <span className="text-xs text-muted-foreground">
                 Version: {activeTab?.topTextVersion ?? "-"}
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  void handleSaveTextField("topText")
-                }}
-                disabled={!canSaveTopText || pendingAction !== null}
-                className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Save Top Text
-              </button>
+              <span className="text-xs text-muted-foreground">
+                {autoSaveState.topText ? "Autosaving..." : "Auto-saved"}
+              </span>
             </div>
           </label>
 
           <label className="flex flex-col gap-2">
             <span className="text-sm font-medium">Bottom Textbox</span>
             <textarea
-              className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={bottomTextDraft}
               onChange={(event) => {
                 setBottomTextDraft(event.currentTarget.value)
@@ -1093,12 +1305,17 @@ function RouteComponent() {
               <button
                 type="button"
                 onClick={() => {
-                  void handleSaveTextField("bottomText")
+                  void handleCutBottomTextAndDeleteTab()
                 }}
-                disabled={!canSaveBottomText || pendingAction !== null}
+                disabled={
+                  activeTab === null ||
+                  pendingAction !== null ||
+                  bottomTextDraft.length === 0
+                }
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Copy bottom text and delete tab"
               >
-                Save Bottom Text
+                ✂️
               </button>
             </div>
           </label>
@@ -1165,6 +1382,12 @@ function RouteComponent() {
         {pendingAction ? (
           <p className="mt-1 text-xs text-muted-foreground">
             Working: {pendingAction}
+          </p>
+        ) : null}
+
+        {isAnyAutoSaveInProgress ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Autosaving text...
           </p>
         ) : null}
       </section>
