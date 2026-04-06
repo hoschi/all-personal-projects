@@ -5,8 +5,15 @@ services:
     ports:
       - "443:443"
       - "80:80"
+      - "8447:8447"
+      - "8448:8448"
+      - "8449:8449"
+      - "9447:9447"
+      - "9448:9448"
+      - "9449:9449"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/Caddyfile.local:/etc/caddy/Caddyfile.local:ro
       - caddy_data:/data
       - caddy_config:/config
     extra_hosts:

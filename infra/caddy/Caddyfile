@@ -41,3 +41,5 @@ prod.sst.localhost {
 #   tls internal
 #   reverse_proxy host.docker.internal:4059
 # }
+
+import /etc/caddy/Caddyfile.local

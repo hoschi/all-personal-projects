@@ -4,6 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CERT_FILE="$SCRIPT_DIR/caddy-root-ca.crt"
 
+echo "==> Generating machine-local Caddy config..."
+bash "$SCRIPT_DIR/generate-caddy-local.sh"
+
 echo "==> Starting Caddy to generate internal CA..."
 docker compose -f "$SCRIPT_DIR/docker-compose.yml" up -d caddy
 sleep 3

@@ -44,6 +44,10 @@ This monorepo contains various personal projects including financial forecasting
   - `bun run prepare` (or fallback `bunx husky`) - Initialize Git hooks in `.husky/`.
 - see `./packages/db/README.md`
 - copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
+- for local HTTPS/LAN testing (including FRITZ!Box hostname), see:
+  - [`infra/README.md#machine-local-config-infraenv`](/infra/README.md#machine-local-config-infraenv)
+  - [`infra/README.md#initial-setup`](/infra/README.md#initial-setup)
+  - [`infra/README.md#how-to-test-the-setup`](/infra/README.md#how-to-test-the-setup)
 - set up the git MCP server to match the [main-rules](/ai-assistants/main-rules.md) file, e.g. `.roo/mpc.json`:
 
 ```json
@@ -66,6 +70,11 @@ This monorepo contains various personal projects including financial forecasting
 - `bun run initproject` - Initialize ESLint and TypeScript configuration
 
 ## Daily Work
+
+- for day-to-day Caddy/HTTPS operations (start/restart and LAN routes), see:
+  - [`infra/README.md#start-and-stop-caddy`](/infra/README.md#start-and-stop-caddy)
+  - [`infra/README.md#run-apps-behind-https`](/infra/README.md#run-apps-behind-https)
+  - [`infra/README.md#3-lanmobile-test-fritzbox-hostname`](/infra/README.md#3-lanmobile-test-fritzbox-hostname)
 
 ### main-rules Sync
 
