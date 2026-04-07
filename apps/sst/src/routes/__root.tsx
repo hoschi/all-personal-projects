@@ -21,6 +21,22 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
+        name: "theme-color",
+        content: "#0f172a",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "default",
+      },
+      {
+        name: "apple-mobile-web-app-title",
+        content: "SST v0",
+      },
+      {
         title: "SST v0",
       },
     ],
@@ -28,6 +44,15 @@ export const Route = createRootRoute({
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "manifest",
+        href: "/site.webmanifest",
+      },
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/icons/sst-icon.svg",
       },
     ],
   }),

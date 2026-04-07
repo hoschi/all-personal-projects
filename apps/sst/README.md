@@ -55,10 +55,17 @@ Start the local Whisper server:
 ```bash
 whisper-server \
   -m models/ggml-large-v3-turbo.bin \
+  --host 0.0.0.0 \
   --port 9100 \
   -l de \
   -t 4
 ```
+
+## Install as App (Manifest)
+
+SST now includes a web manifest (`/site.webmanifest`) and app icon (`/icons/sst-icon.svg`).
+
+After opening SST in the browser, use the browser install flow (for example `Add to Home Screen` / `Install app`) to create an app-style home-screen entry instead of only a plain bookmark.
 
 ## Development
 

@@ -301,8 +301,7 @@ function RouteComponent() {
     activeTabRecording !== null && activeTabRecording.audioBlob.size > 0
   const isRecordingInProgress =
     recordingStatus === "recording" || recordingTabId !== null
-  const canReplayRecording =
-    hasActiveTabRecording && !isRecordingInProgress && pendingAction === null
+  const canReplayRecording = hasActiveTabRecording && !isRecordingInProgress
   const canDebugImproveResult = activeTabImproveResult !== null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
@@ -657,6 +656,11 @@ function RouteComponent() {
   }
 
   async function handleRecordButton() {
+    if (!activeTab) {
+      setStatusMessage("Create or select a tab before recording.")
+      return
+    }
+
     setStatusMessage(null)
 
     try {
@@ -1102,7 +1106,7 @@ function RouteComponent() {
                   setActiveTabId(tab.id)
                 }}
                 className={[
-                  "rounded-md border px-3 py-2 text-sm font-medium transition",
+                  "rounded-md border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
                   isActive
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-background text-foreground hover:bg-accent",
@@ -1116,7 +1120,7 @@ function RouteComponent() {
           <button
             type="button"
             onClick={handleCreateTab}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
             disabled={
               pendingAction !== null ||
               recordingStatus === "recording" ||
@@ -1138,7 +1142,7 @@ function RouteComponent() {
               onClick={() => {
                 void handleRecordButton()
               }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
               disabled={
                 activeTab === null || pendingAction !== null || isConflictActive
               }
@@ -1170,7 +1174,7 @@ function RouteComponent() {
               onClick={() => {
                 setIsDebugPanelOpen((currentValue) => !currentValue)
               }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
               disabled={!canDebugImproveResult || isConflictActive}
             >
               {isDebugPanelOpen ? "Hide Debug" : "Debug"}
@@ -1286,11 +1290,11 @@ function RouteComponent() {
         </div>
 
         <div className="mt-4 flex flex-col gap-4">
-          <label className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium">
+              <label htmlFor="top-textarea" className="text-sm font-medium">
                 Top Textbox (transcription)
-              </span>
+              </label>
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span>Version: {activeTab?.topTextVersion ?? "-"}</span>
                 <span>
@@ -1299,6 +1303,7 @@ function RouteComponent() {
               </div>
             </div>
             <textarea
+              id="top-textarea"
               className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={topTextDraft}
               onChange={(event) => {
@@ -1311,11 +1316,13 @@ function RouteComponent() {
                 conflict !== null
               }
             />
-          </label>
+          </div>
 
-          <label className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium">Bottom Textbox</span>
+              <label htmlFor="bottom-textarea" className="text-sm font-medium">
+                Bottom Textbox
+              </label>
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span>Version: {activeTab?.bottomTextVersion ?? "-"}</span>
                 <span>
@@ -1324,6 +1331,7 @@ function RouteComponent() {
               </div>
             </div>
             <textarea
+              id="bottom-textarea"
               className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
               value={bottomTextDraft}
               onChange={(event) => {
@@ -1354,7 +1362,7 @@ function RouteComponent() {
                 ✂️
               </button>
             </div>
-          </label>
+          </div>
         </div>
 
         {conflict ? (
