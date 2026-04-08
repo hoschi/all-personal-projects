@@ -55,11 +55,13 @@ Start the local Whisper server:
 ```bash
 whisper-server \
   -m models/ggml-large-v3-turbo.bin \
-  --host 0.0.0.0 \
   --port 9100 \
   -l de \
   -t 4
 ```
+
+For this local same-host setup, do not add `--host 0.0.0.0`.
+Only add an explicit host binding when you intentionally want network access from other devices.
 
 ## Install as App (Manifest)
 

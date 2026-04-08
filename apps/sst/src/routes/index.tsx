@@ -25,6 +25,7 @@ import {
   updateTabFieldFn,
 } from "@/data/tab-sync-actions"
 import { improveTabRecordingFn } from "@/data/text-improvement-actions"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
@@ -301,12 +302,17 @@ function RouteComponent() {
     activeTabRecording !== null && activeTabRecording.audioBlob.size > 0
   const isRecordingInProgress =
     recordingStatus === "recording" || recordingTabId !== null
+  const isProcessingRecording = pendingAction === "process-recording"
   const canReplayRecording = hasActiveTabRecording && !isRecordingInProgress
   const canDebugImproveResult = activeTabImproveResult !== null
   const isActiveTabReplayRunning =
     activeTab !== null && playingTabId === activeTab.id
   const recordButtonLabel =
-    recordingStatus === "recording" ? "recording" : "start"
+    recordingStatus === "recording"
+      ? "recording"
+      : isProcessingRecording
+        ? "loading"
+        : "start"
   const replayButtonLabel = isActiveTabReplayRunning ? "Stop" : "Play"
   const debugDiffSegments =
     activeTabImproveResult === null
@@ -1092,43 +1098,46 @@ function RouteComponent() {
             : "border-border bg-card",
         ].join(" ")}
       >
-        <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-4">
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTabId
+        <div className="mb-4 border-b border-border pb-4">
+          <div className="flex flex-wrap items-start gap-2">
+            <Tabs
+              value={activeTabId}
+              onValueChange={(nextTabId) => {
+                setStatusMessage(null)
+                setConflict(null)
+                setActiveTabId(nextTabId)
+              }}
+              className="min-w-0 flex-1"
+            >
+              <TabsList className="h-auto w-full max-w-full flex-wrap justify-start">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    disabled={
+                      recordingStatus === "recording" || isConflictActive
+                    }
+                    className="flex-none"
+                  >
+                    {tab.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setStatusMessage(null)
-                  setConflict(null)
-                  setActiveTabId(tab.id)
-                }}
-                className={[
-                  "rounded-md border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
-                  isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-foreground hover:bg-accent",
-                ].join(" ")}
-                disabled={recordingStatus === "recording" || isConflictActive}
-              >
-                {tab.title}
-              </button>
-            )
-          })}
-          <button
-            type="button"
-            onClick={handleCreateTab}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={
-              pendingAction !== null ||
-              recordingStatus === "recording" ||
-              isConflictActive
-            }
-          >
-            + New Tab
-          </button>
+            <button
+              type="button"
+              onClick={handleCreateTab}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                pendingAction !== null ||
+                recordingStatus === "recording" ||
+                isConflictActive
+              }
+            >
+              + New Tab
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1340,7 +1349,7 @@ function RouteComponent() {
               placeholder="Context and corrected terms..."
               disabled={
                 activeTab === null ||
-                pendingAction !== null ||
+                (pendingAction !== null && !isProcessingRecording) ||
                 conflict !== null
               }
             />
