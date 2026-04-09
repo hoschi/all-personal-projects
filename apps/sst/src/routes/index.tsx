@@ -31,6 +31,7 @@ const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
 const DEFAULT_IMPROVE_LANGUAGE = "de" as const
 const TOP_TEXT_AUTOSAVE_THROTTLE_MS = 1_000 as const
+const BOTTOM_TEXT_AUTOSAVE_THROTTLE_MS = 1_000 as const
 
 type RecordingStatus = "idle" | "recording"
 
@@ -935,6 +936,10 @@ function RouteComponent() {
     void handleAutoSaveTextField("topText")
   })
 
+  const runThrottledBottomTextAutoSave = useEffectEvent(() => {
+    void handleAutoSaveTextField("bottomText")
+  })
+
   async function handleOverwriteServer() {
     if (!activeTab || !conflict) {
       return
@@ -1050,11 +1055,21 @@ function RouteComponent() {
       return
     }
 
+    if (pendingAction !== null || conflict !== null) {
+      return
+    }
+
     if (bottomTextDraft === activeTab.bottomText) {
       return
     }
 
-    void handleAutoSaveTextField("bottomText")
+    const timeoutId = window.setTimeout(() => {
+      runThrottledBottomTextAutoSave()
+    }, BOTTOM_TEXT_AUTOSAVE_THROTTLE_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
   }, [activeTab, bottomTextDraft, pendingAction, conflict?.field])
 
   useEffect(() => {
