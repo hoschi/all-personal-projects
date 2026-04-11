@@ -3,8 +3,6 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from "@tanstack/react-router"
-import { Pause, Play, Square } from "lucide-react"
-import { ArrowDown, Bug, Pencil, Plus, Save, Scissors, X } from "lucide-react"
 import RecordRTC from "recordrtc"
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
@@ -1203,7 +1201,7 @@ function RouteComponent() {
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label="Save tab title"
                 >
-                  <Save className="size-4" aria-hidden="true" />
+                  <span aria-hidden="true">💾</span>
                 </button>
               </div>
             ) : (
@@ -1248,7 +1246,7 @@ function RouteComponent() {
                   }
                   aria-label="Create new tab"
                 >
-                  <Plus className="size-4" aria-hidden="true" />
+                  <span aria-hidden="true">➕</span>
                 </button>
                 <button
                   type="button"
@@ -1264,7 +1262,7 @@ function RouteComponent() {
                   }
                   aria-label="Delete active tab"
                 >
-                  <X className="size-4" aria-hidden="true" />
+                  <span aria-hidden="true">🗑️</span>
                 </button>
                 <button
                   type="button"
@@ -1280,7 +1278,7 @@ function RouteComponent() {
                   }
                   aria-label="Edit active tab title"
                 >
-                  <Pencil className="size-4" aria-hidden="true" />
+                  <span aria-hidden="true">✏️</span>
                 </button>
               </>
             )}
@@ -1344,7 +1342,7 @@ function RouteComponent() {
                 }
                 aria-label="Play recording"
               >
-                <Play className="size-4" aria-hidden="true" />
+                <span aria-hidden="true">▶️</span>
               </button>
               {isActiveTabReplayRunning || isActiveTabReplayPaused ? (
                 <>
@@ -1355,7 +1353,7 @@ function RouteComponent() {
                     disabled={!isActiveTabReplayRunning || isConflictActive}
                     aria-label="Pause recording"
                   >
-                    <Pause className="size-4" aria-hidden="true" />
+                    <span aria-hidden="true">⏸️</span>
                   </button>
                   <button
                     type="button"
@@ -1367,7 +1365,7 @@ function RouteComponent() {
                     }
                     aria-label="Stop recording playback"
                   >
-                    <Square className="size-4" aria-hidden="true" />
+                    <span aria-hidden="true">⏹️</span>
                   </button>
                 </>
               ) : null}
@@ -1378,7 +1376,7 @@ function RouteComponent() {
                 disabled={!canPutText}
                 aria-label="Put transcription into summary"
               >
-                <ArrowDown className="size-4" aria-hidden="true" />
+                <span aria-hidden="true">⬇️</span>
               </button>
               <button
                 type="button"
@@ -1391,7 +1389,7 @@ function RouteComponent() {
                   isDebugPanelOpen ? "Hide debug panel" : "Show debug panel"
                 }
               >
-                <Bug className="size-4" aria-hidden="true" />
+                <span aria-hidden="true">🐞</span>
               </button>
             </div>
 
@@ -1583,7 +1581,7 @@ function RouteComponent() {
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="Copy bottom text and delete tab"
             >
-              <Scissors className="size-4" aria-hidden="true" />
+              <span aria-hidden="true">✂️</span>
             </button>
           </div>
         </div>
