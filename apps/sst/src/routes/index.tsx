@@ -1215,9 +1215,9 @@ function RouteComponent() {
                   setActiveTabId(nextTabId)
                   setIsTabTitleEditMode(false)
                 }}
-                className="min-w-0 flex-1"
+                className="min-w-0 basis-full sm:basis-auto sm:flex-1"
               >
-                <TabsList className="h-auto w-full max-w-full flex-wrap justify-start">
+                <TabsList className="w-full max-w-full flex-wrap items-start content-start justify-start group-data-[orientation=horizontal]/tabs:h-auto group-data-[orientation=horizontal]/tabs:min-h-9">
                   {tabs.map((tab) => (
                     <TabsTrigger
                       key={tab.id}
@@ -1225,9 +1225,10 @@ function RouteComponent() {
                       disabled={
                         recordingStatus === "recording" || isConflictActive
                       }
-                      className="flex-none"
+                      className="flex-none h-8 max-w-28 overflow-hidden sm:max-w-none"
+                      title={tab.title}
                     >
-                      {tab.title}
+                      <span className="truncate">{tab.title}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
