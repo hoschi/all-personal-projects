@@ -247,6 +247,7 @@ function RouteComponent() {
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
   const tabRecordingsRef = useRef<Record<string, TabLocalRecording>>({})
+  const activeTabIdRef = useRef<string>("")
   const autoSaveInFlightRef = useRef({
     topText: false,
     bottomText: false,
@@ -354,7 +355,13 @@ function RouteComponent() {
   }
 
   function updateServerTabSnapshot(nextTab: TabSnapshot) {
-    setActiveTab(nextTab)
+    setActiveTab((currentActiveTab) => {
+      if (!currentActiveTab || currentActiveTab.id !== nextTab.id) {
+        return currentActiveTab
+      }
+
+      return nextTab
+    })
     setTabs((currentTabs) => mergeTabListItem(currentTabs, nextTab))
   }
 
@@ -630,11 +637,11 @@ function RouteComponent() {
     audioBlob: Blob
     sizeLabel: string
   }) {
-    if (!activeTab || activeTab.id !== input.tabId) {
+    const tabSnapshot = activeTab
+
+    if (!tabSnapshot || tabSnapshot.id !== input.tabId) {
       return
     }
-
-    const tabSnapshot = activeTab
 
     setPendingAction("process-recording")
     setStatusMessage("Recording captured. Processing speech-to-text...")
@@ -655,7 +662,9 @@ function RouteComponent() {
         [tabSnapshot.id]: improveResult,
       }))
 
-      setTopTextDraft(improveResult.correctedText)
+      if (activeTabIdRef.current === tabSnapshot.id) {
+        setTopTextDraft(improveResult.correctedText)
+      }
 
       const writeResult = await updateTabFieldFn({
         data: {
@@ -1067,6 +1076,7 @@ function RouteComponent() {
   }, [tabRecordings])
 
   useEffect(() => {
+    activeTabIdRef.current = activeTabId
     persistActiveTabId(clientId, activeTabId)
   }, [activeTabId, clientId])
 
