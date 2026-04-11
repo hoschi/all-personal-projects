@@ -18,6 +18,7 @@ import {
   createTabFn,
   deleteTabFn,
   listTabsFn,
+  moveTopTextToBottomFn,
   overwriteClientFn,
   overwriteServerFn,
   renameTabFn,
@@ -382,37 +383,61 @@ function RouteComponent() {
     }))
   }
 
-  function handlePutText() {
+  async function handlePutText() {
     if (!activeTab || topTextDraft.length === 0 || pendingAction !== null) {
       return
     }
 
-    const normalizedTopText = topTextDraft.trimStart()
+    const tabSnapshot = activeTab
 
-    setBottomTextDraft((currentBottomText) => {
-      if (currentBottomText === "") {
-        return normalizedTopText
+    setPendingAction("put-text")
+    setStatusMessage(null)
+
+    try {
+      const result = await moveTopTextToBottomFn({
+        data: {
+          tabId: tabSnapshot.id,
+          topText: topTextDraft,
+          bottomText: bottomTextDraft,
+          topTextExpectedVersion: tabSnapshot.topTextVersion,
+          bottomTextExpectedVersion: tabSnapshot.bottomTextVersion,
+          clientId,
+        },
+      })
+
+      if (result.status === "updated") {
+        applyActiveTab(result.tab)
+        setConflict((currentConflict) => {
+          if (
+            currentConflict &&
+            (currentConflict.field === "topText" ||
+              currentConflict.field === "bottomText")
+          ) {
+            return null
+          }
+
+          return currentConflict
+        })
+        setStatusMessage("Moved top text into bottom textbox.")
+        return
       }
 
-      if (/\s$/.test(currentBottomText)) {
-        return `${currentBottomText}${normalizedTopText}`
+      if (result.status === "conflict") {
+        updateServerTabSnapshot(result.tab)
+        setConflict(result.conflict)
+        setStatusMessage(
+          `Conflict detected for ${result.conflict.field}. Choose "Use Server Data" or "Write Client to Server".`,
+        )
+        return
       }
 
-      return `${currentBottomText} ${normalizedTopText}`
-    })
-    setTopTextDraft("")
-    setConflict((currentConflict) => {
-      if (
-        currentConflict &&
-        (currentConflict.field === "topText" ||
-          currentConflict.field === "bottomText")
-      ) {
-        return null
-      }
-
-      return currentConflict
-    })
-    setStatusMessage("Moved top text into bottom textbox.")
+      removeTabFromLocalState(result.tabId)
+      setStatusMessage("This tab no longer exists on the server.")
+    } catch (error) {
+      setRuntimeError(toRuntimeError(error, "Failed to move top text."))
+    } finally {
+      setPendingAction(null)
+    }
   }
 
   function removeTabFromLocalState(tabIdToDelete: string) {
@@ -845,7 +870,7 @@ function RouteComponent() {
     return bottomTextDraft
   }
 
-  async function loadActiveTab(tabId: string) {
+  async function loadActiveTab(tabId: string, isCancelled?: () => boolean) {
     setPendingAction("select-tab")
     setStatusMessage(null)
 
@@ -856,6 +881,10 @@ function RouteComponent() {
           clientId,
         },
       })
+
+      if (isCancelled?.()) {
+        return
+      }
 
       if (!selectedTab) {
         setStatusMessage("The selected tab could not be loaded.")
@@ -877,9 +906,13 @@ function RouteComponent() {
       applyActiveTab(selectedTab)
       setConflict(null)
     } catch (error) {
-      setRuntimeError(toRuntimeError(error, "Failed to load selected tab."))
+      if (!isCancelled?.()) {
+        setRuntimeError(toRuntimeError(error, "Failed to load selected tab."))
+      }
     } finally {
-      setPendingAction(null)
+      if (!isCancelled?.()) {
+        setPendingAction(null)
+      }
     }
   }
 
@@ -1026,6 +1059,7 @@ function RouteComponent() {
         setConflict(null)
         setStatusMessage("Server data loaded into client.")
       } else if (result.status === "not_found") {
+        removeTabFromLocalState(activeTab.id)
         setStatusMessage("Tab no longer exists on the server.")
       }
     } catch (error) {
@@ -1058,6 +1092,7 @@ function RouteComponent() {
         setConflict(null)
         setStatusMessage("Client draft written to server.")
       } else if (result.status === "not_found") {
+        removeTabFromLocalState(activeTab.id)
         setStatusMessage("Tab no longer exists on the server.")
       }
     } catch (error) {
@@ -1090,7 +1125,13 @@ function RouteComponent() {
       return
     }
 
-    void loadActiveTab(activeTabId)
+    let cancelled = false
+
+    void loadActiveTab(activeTabId, () => cancelled)
+
+    return () => {
+      cancelled = true
+    }
   }, [activeTabId])
 
   useEffect(() => {
@@ -1113,7 +1154,7 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, topTextDraft, pendingAction, conflict?.field])
+  }, [activeTab, topTextDraft, pendingAction, conflict])
 
   useEffect(() => {
     if (!activeTab) {
@@ -1135,7 +1176,7 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, bottomTextDraft, pendingAction, conflict?.field])
+  }, [activeTab, bottomTextDraft, pendingAction, conflict])
 
   useEffect(() => {
     return () => {

@@ -154,17 +154,21 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 
 14. [ ] Persist Model Run Logs for Future Evaluation
 
-- Store model run records including:
+- Store model run records locally after the corrected text is put into the top text box:
   - model input/output
   - model id
   - correction duration
-  - git commit hash
-- Ensure logging is non-blocking for UX and resilient to partial failures.
+  - git commit hash to know the source code state
+- When the user uses the "put" button, save the top text box content into the stored model data
+- With this information at hand, save it as one run log
+- This way we can evaluate the model performance in the future: what input came from the ASR, what did the LLM and finally what wanted the user.
+- Another use case for this logs is to create a long term memory of fixes
 - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
-15. [ ] Add Polling Sync Runtime
+1.  [ ] Add Polling Sync Runtime
 
 - Implement periodic polling and selective refresh for active tab state.
+- Update the data when the tab is focused again (browser events)
 - Handle stale-client detection and conflict state transitions.
 - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
 - Commit: `feat(sst): add polling-based multi-client synchronization runtime`

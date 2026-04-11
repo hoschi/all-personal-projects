@@ -83,6 +83,18 @@ export const updateTabFieldInputSchema = z.object({
 })
 export type UpdateTabFieldInput = z.infer<typeof updateTabFieldInputSchema>
 
+export const moveTopTextToBottomInputSchema = z.object({
+  tabId: tabIdSchema,
+  topText: z.string(),
+  bottomText: z.string(),
+  topTextExpectedVersion: fieldVersionSchema,
+  bottomTextExpectedVersion: fieldVersionSchema,
+  clientId: z.string().trim().min(1),
+})
+export type MoveTopTextToBottomInput = z.infer<
+  typeof moveTopTextToBottomInputSchema
+>
+
 export const overwriteServerInputSchema = z.object({
   tabId: tabIdSchema,
   field: tabSyncFieldSchema,

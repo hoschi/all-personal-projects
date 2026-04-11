@@ -5,6 +5,7 @@ import {
   createTabInputSchema,
   deleteTabInputSchema,
   deleteTabResultSchema,
+  moveTopTextToBottomInputSchema,
   overwriteClientInputSchema,
   overwriteServerInputSchema,
   renameTabInputSchema,
@@ -15,6 +16,7 @@ import {
   tabWriteResultSchema,
   updateTabFieldInputSchema,
   upsertSyncCursorInputSchema,
+  type MoveTopTextToBottomInput,
   type OverwriteClientInput,
   type TabSnapshot,
   type TabSyncField,
@@ -86,6 +88,22 @@ function readTabFieldUpdatedAt(tab: TabModel, field: TabSyncField): Date {
   }
 
   return tab.bottomTextUpdatedAt
+}
+
+function appendTopTextToBottomText(bottomText: string, topText: string) {
+  if (topText.length === 0) {
+    return bottomText
+  }
+
+  if (bottomText.length === 0) {
+    return topText
+  }
+
+  if (/\s$/.test(bottomText)) {
+    return `${bottomText}${topText}`
+  }
+
+  return `${bottomText} ${topText}`
 }
 
 async function upsertSyncStateFromTab(params: {
@@ -230,6 +248,80 @@ async function writeTabFieldWithExpectedVersion(
       field: input.field,
       expectedVersion: input.expectedVersion,
       clientValue: input.value,
+    })
+  }
+
+  await upsertSyncStateFromTab({
+    tab: latestTab,
+    clientId: input.clientId,
+    lastPulledAt: now,
+    lastPushedAt: now,
+  })
+
+  return {
+    status: "updated",
+    tab: toTabSnapshot(latestTab),
+  }
+}
+
+async function moveTopTextToBottom(
+  input: MoveTopTextToBottomInput,
+): Promise<TabWriteResult> {
+  const now = new Date()
+  const normalizedTopText = input.topText.trimStart()
+  const nextBottomText = appendTopTextToBottomText(
+    input.bottomText,
+    normalizedTopText,
+  )
+
+  const updateResult = await prisma.tab.updateMany({
+    where: {
+      id: input.tabId,
+      topTextVersion: input.topTextExpectedVersion,
+      bottomTextVersion: input.bottomTextExpectedVersion,
+    },
+    data: {
+      topText: "",
+      topTextVersion: {
+        increment: 1,
+      },
+      topTextUpdatedAt: now,
+      bottomText: nextBottomText,
+      bottomTextVersion: {
+        increment: 1,
+      },
+      bottomTextUpdatedAt: now,
+    },
+  })
+
+  const latestTab = await prisma.tab.findUnique({
+    where: {
+      id: input.tabId,
+    },
+  })
+
+  if (!latestTab) {
+    return {
+      status: "not_found",
+      tabId: input.tabId,
+    }
+  }
+
+  if (updateResult.count === 0) {
+    const topTextVersionMatched =
+      latestTab.topTextVersion === input.topTextExpectedVersion
+    const conflictField: TabSyncField = topTextVersionMatched
+      ? "bottomText"
+      : "topText"
+
+    return createFieldConflictResult({
+      tab: latestTab,
+      field: conflictField,
+      expectedVersion:
+        conflictField === "topText"
+          ? input.topTextExpectedVersion
+          : input.bottomTextExpectedVersion,
+      clientValue: conflictField === "topText" ? "" : nextBottomText,
     })
   }
 
@@ -437,6 +529,13 @@ export const updateTabFieldFn = createServerFn({ method: "POST" })
   .inputValidator((data) => updateTabFieldInputSchema.parse(data))
   .handler(async ({ data }) => {
     const result = await writeTabFieldWithExpectedVersion(data)
+    return tabWriteResultSchema.parse(result)
+  })
+
+export const moveTopTextToBottomFn = createServerFn({ method: "POST" })
+  .inputValidator((data) => moveTopTextToBottomInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const result = await moveTopTextToBottom(data)
     return tabWriteResultSchema.parse(result)
   })
 
