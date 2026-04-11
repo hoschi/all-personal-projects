@@ -49,6 +49,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - [x] `feat(sst): align editor interactions with autosave put and cut-delete flow`
 - [x] `feat(sst): auto-run improve on recording stop and add active tab delete control`
 - [x] `docs(sst): refresh readme with recording-first flow and current feature set`
+- [ ] `refactor(sst): decompose route index into feature modules`
 
 ## Commit-by-Commit Execution Plan
 
@@ -142,7 +143,16 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Keep architecture/data model/env/dev command sections aligned with current runtime behavior.
 - Commit: `docs(sst): refresh readme with recording-first flow and current feature set`
 
-13. [ ] Persist Model Run Logs for Future Evaluation
+13. [ ] Decompose `apps/sst/src/routes/index.tsx` into Feature Modules
+
+- Follow the approved `/react-componize` decomposition plan from `current/sst-react-componize-plan.md`.
+- Extract presentation sections into focused components under `src/features/sst/components`.
+- Extract side-effect/state orchestration into dedicated hooks under `src/features/sst/hooks`.
+- Move pure helpers (`diff`, `tab mappers`, browser storage helpers) into `src/features/sst/utils`.
+- Keep behavior parity strictly unchanged while reducing file size and responsibility coupling.
+- Commit: `refactor(sst): decompose route index into feature modules`
+
+14. [ ] Persist Model Run Logs for Future Evaluation
 
 - Store model run records including:
   - model input/output
@@ -152,14 +162,14 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Ensure logging is non-blocking for UX and resilient to partial failures.
 - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
-14. [ ] Add Polling Sync Runtime
+15. [ ] Add Polling Sync Runtime
 
 - Implement periodic polling and selective refresh for active tab state.
 - Handle stale-client detection and conflict state transitions.
 - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
 - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
 
-15. [ ] Final Documentation + Verification Sweep
+16. [ ] Final Documentation + Verification Sweep
 
 - Cross-link SSL doc and setup steps from `infra` docs.
 - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
