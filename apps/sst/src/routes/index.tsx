@@ -390,6 +390,8 @@ function RouteComponent() {
 
     const tabSnapshot = activeTab
 
+    setIsDebugPanelOpen(false)
+
     setPendingAction("put-text")
     setStatusMessage(null)
 

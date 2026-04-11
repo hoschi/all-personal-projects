@@ -143,7 +143,14 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Keep architecture/data model/env/dev command sections aligned with current runtime behavior.
 - Commit: `docs(sst): refresh readme with recording-first flow and current feature set`
 
-13. [ ] Decompose `apps/sst/src/routes/index.tsx` into Feature Modules
+13. [ ] Resolve Remaining PR #19 Review Comments
+
+- Implement the remaining deferred comments listed in `current/pr-19-non-frontend-comments.md`.
+- Prioritize infra/monorepo items separately from SST backend/config/doc adjustments.
+- Keep changes scoped to each comment and validate with targeted checks per affected area.
+- Commit: `chore(sst): resolve remaining deferred pr-19 review comments`
+
+14. [ ] Decompose `apps/sst/src/routes/index.tsx` into Feature Modules
 
 - Follow the approved `/react-componize` decomposition plan from `current/sst-react-componize-plan.md`.
 - Extract presentation sections into focused components under `src/features/sst/components`.
@@ -152,7 +159,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Keep behavior parity strictly unchanged while reducing file size and responsibility coupling.
 - Commit: `refactor(sst): decompose route index into feature modules`
 
-14. [ ] Persist Model Run Logs for Future Evaluation
+15. [ ] Persist Model Run Logs for Future Evaluation
 
 - Store model run records locally after the corrected text is put into the top text box:
   - model input/output
@@ -165,7 +172,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Another use case for this logs is to create a long term memory of fixes
 - Commit: `feat(sst): persist model run telemetry with git commit traceability`
 
-1.  [ ] Add Polling Sync Runtime
+16. [ ] Add Polling Sync Runtime
 
 - Implement periodic polling and selective refresh for active tab state.
 - Update the data when the tab is focused again (browser events)
@@ -173,7 +180,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 - Prevent silent overwrite and ensure deterministic merge policy (explicit overwrite only).
 - Commit: `feat(sst): add polling-based multi-client synchronization runtime`
 
-16. [ ] Final Documentation + Verification Sweep
+17. [ ] Final Documentation + Verification Sweep
 
 - Cross-link SSL doc and setup steps from `infra` docs.
 - Validate with targeted checks (`check-types`, lint, relevant tests) and smoke run instructions.
