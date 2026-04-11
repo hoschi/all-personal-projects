@@ -3,6 +3,8 @@ import {
   createFileRoute,
   type ErrorComponentProps,
 } from "@tanstack/react-router"
+import { Pause, Play, Square } from "lucide-react"
+import { ArrowDown, Bug, Pencil, Plus, Save, Scissors, X } from "lucide-react"
 import RecordRTC from "recordrtc"
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
@@ -275,6 +277,7 @@ function RouteComponent() {
     useState<RecordingStatus>("idle")
   const [recordingTabId, setRecordingTabId] = useState<string | null>(null)
   const [playingTabId, setPlayingTabId] = useState<string | null>(null)
+  const [isPlaybackPaused, setIsPlaybackPaused] = useState(false)
   const [tabRecordings, setTabRecordings] = useState<
     Record<string, TabLocalRecording>
   >({})
@@ -282,6 +285,7 @@ function RouteComponent() {
     Record<string, ImproveTextResult>
   >({})
   const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false)
+  const [isTabTitleEditMode, setIsTabTitleEditMode] = useState(false)
   const [runtimeError, setRuntimeError] = useState<Error | null>(null)
   const [autoSaveState, setAutoSaveState] = useState({
     topText: false,
@@ -292,7 +296,6 @@ function RouteComponent() {
     throw runtimeError
   }
 
-  const activeTabTitle = activeTab?.title ?? "No active tab"
   const activeTabRecording = activeTab
     ? (tabRecordings[activeTab.id] ?? null)
     : null
@@ -307,14 +310,15 @@ function RouteComponent() {
   const canReplayRecording = hasActiveTabRecording && !isRecordingInProgress
   const canDebugImproveResult = activeTabImproveResult !== null
   const isActiveTabReplayRunning =
-    activeTab !== null && playingTabId === activeTab.id
+    activeTab !== null && playingTabId === activeTab.id && !isPlaybackPaused
+  const isActiveTabReplayPaused =
+    activeTab !== null && playingTabId === activeTab.id && isPlaybackPaused
   const recordButtonLabel =
     recordingStatus === "recording"
       ? "recording"
       : isProcessingRecording
         ? "loading"
         : "start"
-  const replayButtonLabel = isActiveTabReplayRunning ? "Stop" : "Play"
   const debugDiffSegments =
     activeTabImproveResult === null
       ? []
@@ -333,9 +337,13 @@ function RouteComponent() {
     topTextDraft.length > 0 &&
     pendingAction === null &&
     conflict === null
+  const isStartBlockedByTopText =
+    recordingStatus !== "recording" && topTextDraft.trim().length > 0
   const isConflictActive = conflict !== null
-  const isAnyAutoSaveInProgress =
-    autoSaveState.topText || autoSaveState.bottomText
+  const isTopTextDirty =
+    activeTab !== null && topTextDraft !== activeTab.topText
+  const isBottomTextDirty =
+    activeTab !== null && bottomTextDraft !== activeTab.bottomText
 
   function applyActiveTab(nextTab: TabSnapshot) {
     setActiveTab(nextTab)
@@ -374,11 +382,19 @@ function RouteComponent() {
       return
     }
 
-    setBottomTextDraft((currentBottomText) =>
-      currentBottomText === ""
-        ? topTextDraft
-        : `${currentBottomText} ${topTextDraft}`,
-    )
+    const normalizedTopText = topTextDraft.trimStart()
+
+    setBottomTextDraft((currentBottomText) => {
+      if (currentBottomText === "") {
+        return normalizedTopText
+      }
+
+      if (/\s$/.test(currentBottomText)) {
+        return `${currentBottomText}${normalizedTopText}`
+      }
+
+      return `${currentBottomText} ${normalizedTopText}`
+    })
     setTopTextDraft("")
     setConflict((currentConflict) => {
       if (
@@ -454,6 +470,10 @@ function RouteComponent() {
       return
     }
 
+    if (!window.confirm("Delete the active tab?")) {
+      return
+    }
+
     const tabIdToDelete = activeTab.id
 
     setPendingAction("delete-active-tab")
@@ -490,6 +510,7 @@ function RouteComponent() {
     }
 
     setPlayingTabId(null)
+    setIsPlaybackPaused(false)
   }
 
   function removeTabRecording(tabId: string) {
@@ -689,7 +710,7 @@ function RouteComponent() {
     }
   }
 
-  async function handleReplayButton() {
+  async function handlePlayButton() {
     if (!activeTab || !activeTabRecording) {
       return
     }
@@ -698,7 +719,14 @@ function RouteComponent() {
 
     try {
       if (playingTabId === activeTab.id) {
-        stopActivePlayback()
+        const activeAudioPlayer = audioPlayerRef.current
+
+        if (!activeAudioPlayer || !activeAudioPlayer.paused) {
+          return
+        }
+
+        await activeAudioPlayer.play()
+        setIsPlaybackPaused(false)
         return
       }
 
@@ -707,10 +735,12 @@ function RouteComponent() {
 
       audioPlayerRef.current = audioPlayer
       setPlayingTabId(activeTab.id)
+      setIsPlaybackPaused(false)
       audioPlayer.onended = () => {
         setPlayingTabId((currentPlayingTabId) =>
           currentPlayingTabId === activeTab.id ? null : currentPlayingTabId,
         )
+        setIsPlaybackPaused(false)
         audioPlayerRef.current = null
       }
 
@@ -719,6 +749,21 @@ function RouteComponent() {
       stopActivePlayback()
       setRuntimeError(toRuntimeError(error, "Failed to replay recording."))
     }
+  }
+
+  function handlePauseButton() {
+    if (!activeTab || playingTabId !== activeTab.id) {
+      return
+    }
+
+    const activeAudioPlayer = audioPlayerRef.current
+
+    if (!activeAudioPlayer || activeAudioPlayer.paused) {
+      return
+    }
+
+    activeAudioPlayer.pause()
+    setIsPlaybackPaused(true)
   }
 
   function updateFromWriteResult(
@@ -879,6 +924,18 @@ function RouteComponent() {
     } finally {
       setPendingAction(null)
     }
+  }
+
+  async function handleSaveTitleAndCloseEditor() {
+    if (!activeTab) {
+      return
+    }
+
+    if (canSaveTitle) {
+      await handleSaveTitle()
+    }
+
+    setIsTabTitleEditMode(false)
   }
 
   async function handleAutoSaveTextField(field: "topText" | "bottomText") {
@@ -1091,269 +1148,311 @@ function RouteComponent() {
   }, [])
 
   return (
-    <main className="space-y-6">
-      <header className="rounded-xl border border-border bg-card p-4 shadow-xs sm:p-6">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          SST v0
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">
+    <main className="space-y-2">
+      <header className="text-center shadow-xs">
+        <h1 className="text-2xl font-semibold sm:text-3xl">
           Speech-To-Structured-Text Workspace
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Tabbed editor with server-backed sync and explicit conflict
-          resolution.
-        </p>
       </header>
 
       <section
         className={[
-          "rounded-xl border p-4 shadow-xs sm:p-6",
+          "rounded-xl p-2",
           conflict
             ? "border-amber-500/30 bg-amber-500/5"
             : "border-border bg-card",
         ].join(" ")}
       >
-        <div className="mb-4 border-b border-border pb-4">
+        <div>
           <div className="flex flex-wrap items-start gap-2">
-            <Tabs
-              value={activeTabId}
-              onValueChange={(nextTabId) => {
-                setStatusMessage(null)
-                setConflict(null)
-                setActiveTabId(nextTabId)
-              }}
-              className="min-w-0 flex-1"
-            >
-              <TabsList className="h-auto w-full max-w-full flex-wrap justify-start">
-                {tabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    disabled={
-                      recordingStatus === "recording" || isConflictActive
-                    }
-                    className="flex-none"
+            {isTabTitleEditMode ? (
+              <div className="flex min-w-0 flex-1 gap-2">
+                <input
+                  id="tab-title-input"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+                  value={titleDraft}
+                  onChange={(event) => {
+                    setTitleDraft(event.currentTarget.value)
+                  }}
+                  disabled={
+                    activeTab === null ||
+                    pendingAction !== null ||
+                    conflict !== null
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleSaveTitleAndCloseEditor()
+                  }}
+                  disabled={
+                    activeTab === null ||
+                    pendingAction !== null ||
+                    isConflictActive
+                  }
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Save tab title"
+                >
+                  <Save className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            ) : (
+              <Tabs
+                value={activeTabId}
+                onValueChange={(nextTabId) => {
+                  setStatusMessage(null)
+                  setConflict(null)
+                  setActiveTabId(nextTabId)
+                  setIsTabTitleEditMode(false)
+                }}
+                className="min-w-0 flex-1"
+              >
+                <TabsList className="h-auto w-full max-w-full flex-wrap justify-start">
+                  {tabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      disabled={
+                        recordingStatus === "recording" || isConflictActive
+                      }
+                      className="flex-none"
+                    >
+                      {tab.title}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
+
+            {isTabTitleEditMode ? null : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCreateTab}
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    pendingAction !== null ||
+                    recordingStatus === "recording" ||
+                    isConflictActive
+                  }
+                  aria-label="Create new tab"
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleDeleteActiveTab()
+                  }}
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    activeTab === null ||
+                    pendingAction !== null ||
+                    recordingStatus === "recording" ||
+                    isConflictActive
+                  }
+                  aria-label="Delete active tab"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTabTitleEditMode(true)
+                  }}
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    activeTab === null ||
+                    pendingAction !== null ||
+                    recordingStatus === "recording" ||
+                    isConflictActive
+                  }
+                  aria-label="Edit active tab title"
+                >
+                  <Pencil className="size-4" aria-hidden="true" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-col gap-2">
+          <textarea
+            id="top-textarea"
+            className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+            value={topTextDraft}
+            onChange={(event) => {
+              setTopTextDraft(event.currentTarget.value)
+            }}
+            placeholder="Live transcription output..."
+            disabled={
+              activeTab === null || pendingAction !== null || conflict !== null
+            }
+          />
+
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium">Transcription</span>
+              <span className="text-xs text-muted-foreground">
+                V{activeTab?.topTextVersion ?? "-"}{" "}
+                {isTopTextDirty || autoSaveState.topText ? "⊛" : "💾"}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void handleRecordButton()
+                }}
+                className={[
+                  "rounded-md border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+                  recordingStatus === "recording"
+                    ? "border-red-500/60 bg-red-500/15 text-red-700"
+                    : "border-border bg-background hover:bg-accent",
+                ].join(" ")}
+                disabled={
+                  activeTab === null ||
+                  pendingAction !== null ||
+                  isConflictActive ||
+                  isStartBlockedByTopText
+                }
+              >
+                {recordButtonLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handlePlayButton()
+                }}
+                className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={
+                  !canReplayRecording ||
+                  isConflictActive ||
+                  isActiveTabReplayRunning
+                }
+                aria-label="Play recording"
+              >
+                <Play className="size-4" aria-hidden="true" />
+              </button>
+              {isActiveTabReplayRunning || isActiveTabReplayPaused ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePauseButton}
+                    className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!isActiveTabReplayRunning || isConflictActive}
+                    aria-label="Pause recording"
                   >
-                    {tab.title}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+                    <Pause className="size-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopActivePlayback}
+                    className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={
+                      (!isActiveTabReplayRunning && !isActiveTabReplayPaused) ||
+                      isConflictActive
+                    }
+                    aria-label="Stop recording playback"
+                  >
+                    <Square className="size-4" aria-hidden="true" />
+                  </button>
+                </>
+              ) : null}
+              <button
+                type="button"
+                onClick={handlePutText}
+                className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!canPutText}
+                aria-label="Put transcription into summary"
+              >
+                <ArrowDown className="size-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDebugPanelOpen((currentValue) => !currentValue)
+                }}
+                className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!canDebugImproveResult || isConflictActive}
+                aria-label={
+                  isDebugPanelOpen ? "Hide debug panel" : "Show debug panel"
+                }
+              >
+                <Bug className="size-4" aria-hidden="true" />
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={handleCreateTab}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                pendingAction !== null ||
-                recordingStatus === "recording" ||
-                isConflictActive
-              }
-            >
-              + New Tab
-            </button>
+            <div className="flex items-center justify-end gap-2 text-sm">
+              <span className="text-xs text-muted-foreground">
+                V{activeTab?.bottomTextVersion ?? "-"}{" "}
+                {isBottomTextDirty || autoSaveState.bottomText ? "⊛" : "💾"}
+              </span>
+              <span className="font-medium">Summary</span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium">Active Tab</p>
-            <p className="text-sm text-muted-foreground">{activeTabTitle}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                void handleRecordButton()
-              }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                activeTab === null || pendingAction !== null || isConflictActive
-              }
-            >
-              {recordButtonLabel}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                void handleReplayButton()
-              }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canReplayRecording || isConflictActive}
-            >
-              {replayButtonLabel}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                handlePutText()
-              }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canPutText}
-            >
-              Put
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsDebugPanelOpen((currentValue) => !currentValue)
-              }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={!canDebugImproveResult || isConflictActive}
-            >
-              {isDebugPanelOpen ? "Hide Debug" : "Debug"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                void handleDeleteActiveTab()
-              }}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                activeTab === null ||
-                pendingAction !== null ||
-                recordingStatus === "recording" ||
-                isConflictActive
-              }
-            >
-              Delete Tab
-            </button>
-          </div>
-        </div>
+          {isDebugPanelOpen && activeTabImproveResult ? (
+            <div className="space-y-3 rounded-xl border border-border bg-background p-4">
+              <h2 className="text-sm font-semibold">Debug Diff</h2>
+              <div className="rounded-md border border-border bg-card p-3 text-sm leading-6">
+                {debugDiffSegments.length === 0 ? (
+                  <span className="text-muted-foreground">
+                    No text changes detected.
+                  </span>
+                ) : (
+                  debugDiffSegments.map((segment, index) => {
+                    if (segment.kind === "removed") {
+                      return (
+                        <span
+                          key={`diff-segment-${index}`}
+                          className="mr-1 rounded-sm bg-red-500/10 px-1 text-red-700 line-through"
+                        >
+                          {segment.text}
+                        </span>
+                      )
+                    }
 
-        {isDebugPanelOpen && activeTabImproveResult ? (
-          <div className="mt-3 space-y-3 rounded-xl border border-border bg-background p-4">
-            <h2 className="text-sm font-semibold">Debug Diff</h2>
-            <div className="rounded-md border border-border bg-card p-3 text-sm leading-6">
-              {debugDiffSegments.length === 0 ? (
-                <span className="text-muted-foreground">
-                  No text changes detected.
-                </span>
-              ) : (
-                debugDiffSegments.map((segment, index) => {
-                  if (segment.kind === "removed") {
+                    if (segment.kind === "added") {
+                      return (
+                        <span
+                          key={`diff-segment-${index}`}
+                          className="mr-1 rounded-sm bg-emerald-500/10 px-1 text-emerald-700"
+                        >
+                          {segment.text}
+                        </span>
+                      )
+                    }
+
                     return (
-                      <span
-                        key={`diff-segment-${index}`}
-                        className="mr-1 rounded-sm bg-red-500/10 px-1 text-red-700 line-through"
-                      >
+                      <span key={`diff-segment-${index}`} className="mr-1 px-1">
                         {segment.text}
                       </span>
                     )
-                  }
-
-                  if (segment.kind === "added") {
-                    return (
-                      <span
-                        key={`diff-segment-${index}`}
-                        className="mr-1 rounded-sm bg-emerald-500/10 px-1 text-emerald-700"
-                      >
-                        {segment.text}
-                      </span>
-                    )
-                  }
-
-                  return (
-                    <span key={`diff-segment-${index}`} className="mr-1 px-1">
-                      {segment.text}
-                    </span>
-                  )
-                })
-              )}
-            </div>
-            <div className="grid gap-3 lg:grid-cols-2">
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Whisper Raw
-                </p>
-                <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
-                  {activeTabImproveResult.rawTranscriptionText}
-                </div>
+                  })
+                )}
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Corrected
-                </p>
-                <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
-                  {activeTabImproveResult.correctedText}
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Whisper Raw
+                  </p>
+                  <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
+                    {activeTabImproveResult.rawTranscriptionText}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Corrected
+                  </p>
+                  <div className="max-h-36 overflow-auto rounded-md border border-border bg-card p-2 text-sm">
+                    {activeTabImproveResult.correctedText}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex flex-col gap-2">
-          <label className="text-sm font-medium" htmlFor="tab-title-input">
-            Tab Title
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              id="tab-title-input"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-              value={titleDraft}
-              onChange={(event) => {
-                setTitleDraft(event.currentTarget.value)
-              }}
-              disabled={
-                activeTab === null ||
-                pendingAction !== null ||
-                conflict !== null
-              }
-            />
-            <button
-              type="button"
-              onClick={handleSaveTitle}
-              disabled={
-                !canSaveTitle || pendingAction !== null || isConflictActive
-              }
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Save Title
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="top-textarea" className="text-sm font-medium">
-                Top Textbox (transcription)
-              </label>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span>Version: {activeTab?.topTextVersion ?? "-"}</span>
-                <span>
-                  {autoSaveState.topText ? "Autosaving..." : "Auto-saved"}
-                </span>
-              </div>
-            </div>
-            <textarea
-              id="top-textarea"
-              className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
-              value={topTextDraft}
-              onChange={(event) => {
-                setTopTextDraft(event.currentTarget.value)
-              }}
-              placeholder="Live transcription output..."
-              disabled={
-                activeTab === null ||
-                pendingAction !== null ||
-                conflict !== null
-              }
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="bottom-textarea" className="text-sm font-medium">
-                Bottom Textbox
-              </label>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span>Version: {activeTab?.bottomTextVersion ?? "-"}</span>
-                <span>
-                  {autoSaveState.bottomText ? "Autosaving..." : "Auto-saved"}
-                </span>
-              </div>
-            </div>
+          ) : (
             <textarea
               id="bottom-textarea"
               className="min-h-56 rounded-md border border-input bg-background px-3 py-2 text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
@@ -1368,25 +1467,7 @@ function RouteComponent() {
                 conflict !== null
               }
             />
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  void handleCutBottomTextAndDeleteTab()
-                }}
-                disabled={
-                  activeTab === null ||
-                  pendingAction !== null ||
-                  bottomTextDraft.length === 0 ||
-                  isConflictActive
-                }
-                className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-                aria-label="Copy bottom text and delete tab"
-              >
-                ✂️
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {conflict ? (
@@ -1444,37 +1525,57 @@ function RouteComponent() {
         ) : null}
 
         <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs text-muted-foreground">
-          {activeTabImproveResult ? (
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <span>
-                Transcription: {activeTabImproveResult.transcriptionDurationMs}{" "}
-                ms
-              </span>
-              <span>
-                Correction: {activeTabImproveResult.correctionDurationMs} ms
-              </span>
-              <span>Total: {activeTabImproveResult.totalDurationMs} ms</span>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              {pendingAction || statusMessage ? (
+                <div className="space-y-1">
+                  {statusMessage ? (
+                    <p className="text-sm text-muted-foreground">
+                      {statusMessage}
+                    </p>
+                  ) : null}
+                  {pendingAction ? (
+                    <p className="text-xs text-muted-foreground">
+                      Working: {pendingAction}
+                    </p>
+                  ) : null}
+                </div>
+              ) : activeTabImproveResult ? (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <span>
+                    Transcription:{" "}
+                    {activeTabImproveResult.transcriptionDurationMs} ms
+                  </span>
+                  <span>
+                    Correction: {activeTabImproveResult.correctionDurationMs} ms
+                  </span>
+                  <span>
+                    Total: {activeTabImproveResult.totalDurationMs} ms
+                  </span>
+                </div>
+              ) : (
+                "No timing metrics yet."
+              )}
             </div>
-          ) : (
-            "No timing metrics yet."
-          )}
+
+            <button
+              type="button"
+              onClick={() => {
+                void handleCutBottomTextAndDeleteTab()
+              }}
+              disabled={
+                activeTab === null ||
+                pendingAction !== null ||
+                bottomTextDraft.length === 0 ||
+                isConflictActive
+              }
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Copy bottom text and delete tab"
+            >
+              <Scissors className="size-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-
-        {statusMessage ? (
-          <p className="mt-4 text-sm text-muted-foreground">{statusMessage}</p>
-        ) : null}
-
-        {pendingAction ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Working: {pendingAction}
-          </p>
-        ) : null}
-
-        {isAnyAutoSaveInProgress ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Autosaving text...
-          </p>
-        ) : null}
       </section>
     </main>
   )

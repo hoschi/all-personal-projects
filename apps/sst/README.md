@@ -28,9 +28,44 @@ This is the current intended workflow in the app:
 5. Review and edit top text.
 6. Top text edits are auto-saved with a 1-second throttle.
 7. Press `Put` to append top text to bottom text and clear top text.
-8. Bottom text changes are auto-saved on change.
+8. Bottom text edits are auto-saved with a 1-second throttle.
 9. Use `Delete Tab` (next to `Debug`) to delete the active tab.
 10. Or use scissors (`✂️`) to copy bottom text and delete the active tab.
+
+### Button State Transitions
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle
+
+  Idle --> Recording: press start
+  Recording --> Processing: press recording (stop)
+  Processing --> Idle: correction finished
+
+  Idle --> Playing: press play
+  Playing --> Paused: press pause
+  Paused --> Playing: press play
+  Playing --> Idle: press stop
+  Paused --> Idle: press stop
+  Playing --> Idle: audio ended
+
+  state ConflictLock {
+    [*] --> Locked
+    Locked --> [*]: conflict resolved
+  }
+
+  Idle --> ConflictLock: conflict detected
+  Recording --> ConflictLock: conflict detected
+  Processing --> ConflictLock: conflict detected
+  Playing --> ConflictLock: conflict detected
+  Paused --> ConflictLock: conflict detected
+
+  note right of Processing
+    Top textbox is locked while processing.
+    Bottom textbox remains editable.
+    Record button label shows "loading".
+  end note
+```
 
 ## Whisper Server Setup (Local)
 

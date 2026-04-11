@@ -66,7 +66,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-background text-foreground">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl px-2 py-2">
           <Outlet />
         </div>
         <TanStackDevtools
