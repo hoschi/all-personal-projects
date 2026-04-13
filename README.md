@@ -18,7 +18,11 @@ This monorepo contains various personal projects including financial forecasting
   - Conflict-safe tab syncing for title, top text, and bottom text
   - Model-run telemetry and debug diff tooling
 
-## SST v1 WIP
+## WIP
+
+Work in progress that is already planned and can be picked up is stored in the `wip/` dir.
+
+### SST v1
 
 The in-progress planning and handover artifacts were moved from `current/` to `wip/sst-v1/`.
 This work is not finished yet, but it is already planned and can be resumed immediately.
