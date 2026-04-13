@@ -13,6 +13,10 @@ This monorepo contains various personal projects including financial forecasting
   - PostgreSQL database with Prisma ORM
   - Multi-level storage hierarchy (Floor → Room → Furniture → Box → Item)
   - In Motion status tracking for items
+- [sst](/apps/sst/README.md) - Speech-to-Structured-Text workspace (v0)
+  - Recording-first speech processing flow (Whisper + Ollama)
+  - Conflict-safe tab syncing for title, top text, and bottom text
+  - Model-run telemetry and debug diff tooling
 
 ### Tests
 

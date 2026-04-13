@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic/features and rough UI direction, but with the `box-storage` technical stack and monorepo conventions (TanStack Start, Tailwind/Shadcn, Turbo/Bun workflows). Keep `apps/sst-web` untouched.
+Build a new app `apps/sst` from scratch as v0, using the former `sst-web` product logic/features and rough UI direction, but with the `box-storage` technical stack and monorepo conventions (TanStack Start, Tailwind/Shadcn, Turbo/Bun workflows).
 
 ## Source Documents
 
@@ -57,7 +57,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Copy the proven TanStack Start baseline from `box-storage` (without Clerk-specific code).
    - Set app metadata/scripts (`dev --port 3059`, build, lint, check-types, fix, format) with Bun/Turbo conventions.
    - Add base Tailwind/Shadcn wiring and route shell with two text areas + control strip.
-   - Ensure app runs independently and does not modify `sst-web`.
+   - Ensure app runs independently with no dependency on the former `sst-web` app.
    - Commit: `feat(sst): scaffold new tanstack-start app on port 3059`
 
 2. [x] Define Domain Model + Prisma Schema for `sst`
@@ -83,12 +83,12 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
    - Create tabbed UI with auto-naming + rename support.
    - Connect top and bottom textboxes to server-synced data model.
    - Add conflict UX and explicit actions in each tab context (`Use Server Data`, `Write Client to Server`).
-   - Keep rough `sst-web` UX structure while using Shadcn/Tailwind components.
+   - Keep rough legacy UX structure while using Shadcn/Tailwind components.
    - If select controls are added, use `NativeSelect` (not `Select`).
    - Commit: `feat(sst): build tabbed editor ui with sync and conflict resolution actions`
 
 6. [x] Port Audio Recording + Local Replay
-   - Port microphone recording behavior from `sst-web`.
+   - Port microphone recording behavior from the former prototype.
    - Add simple replay control (`Play`/`Stop`) for latest recording in active tab session.
    - Keep recorded audio local-only in client state/storage for v0.
    - Commit: `feat(sst): add microphone recording and local play-stop replay`
@@ -118,13 +118,13 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
      - total duration
    - Commit: `feat(sst): add debug diff view and transcription-correction timing metrics`
 
-10. [x] Align Editor Interaction Design with `sst-web` Flow
+10. [x] Align Editor Interaction Design with Legacy Flow
 
 - Remove manual save actions for top/bottom text and auto-save on content changes.
 - Switch top and bottom textboxes to a stacked vertical layout.
 - Replace `Improve Text` action with `Put` (`top` → append to `bottom`, then clear `top`).
 - Replace `Save Bottom Text` with scissors action (`✂️`) that copies bottom text and deletes the current tab.
-- Tune textbox font size to sit between current `sst` and `sst-web` baseline.
+- Tune textbox font size to keep a compact, readable baseline.
 - Commit: `feat(sst): align editor interactions with autosave put and cut-delete flow`
 
 11. [x] Automate Recording-Stop Processing and Active Tab Deletion
@@ -190,7 +190,7 @@ Build a new app `apps/sst` from scratch as v0, using the `sst-web` product logic
 
 ## Acceptance Criteria
 
-- `apps/sst` exists and works independently of `apps/sst-web`.
+- `apps/sst` exists and works independently.
 - Features in `features-sst-v0.md` are implemented for v0 scope.
 - Polling-based cross-client sync works with field-level conflict detection and explicit overwrite actions.
 - Debug diff and timing UI are available.

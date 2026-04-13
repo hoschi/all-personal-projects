@@ -2,7 +2,7 @@
 
 SST is a TanStack Start app for speech-to-text workflows with conflict-safe tab syncing and model-run telemetry.
 
-The original `apps/sst-web` app remains untouched. `apps/sst` is the new v0 implementation with a server-backed architecture.
+`apps/sst` is the active server-backed implementation for this workflow.
 
 ## Goals of v0
 
