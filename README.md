@@ -18,6 +18,28 @@ This monorepo contains various personal projects including financial forecasting
   - Conflict-safe tab syncing for title, top text, and bottom text
   - Model-run telemetry and debug diff tooling
 
+## SST v1 WIP
+
+The in-progress planning and handover artifacts were moved from `current/` to `wip/sst-v1/`.
+This work is not finished yet, but it is already planned and can be resumed immediately.
+
+- Main plan: [`wip/sst-v1/plan.md`](/wip/sst-v1/plan.md)
+- Frontend decomposition plan: [`wip/sst-v1/sst-react-componize-plan.md`](/wip/sst-v1/sst-react-componize-plan.md)
+- Deferred PR comments: [`wip/sst-v1/pr-19-non-frontend-comments.md`](/wip/sst-v1/pr-19-non-frontend-comments.md)
+
+Completed so far (short):
+
+- `apps/sst` v0 scaffold and core architecture are implemented.
+- Recording-first flow, conflict-safe tab sync, and compact UI refactor are implemented.
+- `apps/sst-web` was removed and docs were aligned to the active `apps/sst` app.
+
+Still open (short):
+
+- Resolve remaining deferred PR comments.
+- Decompose `apps/sst/src/routes/index.tsx` into feature modules.
+- Implement persisted model-run logging and polling sync runtime.
+- Final verification/documentation sweep.
+
 ### Tests
 
 - [rest-server](/apps/rest-server/README.md) - Effet-based REST API server, combines services from package directory
