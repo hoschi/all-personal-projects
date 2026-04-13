@@ -1,0 +1,19 @@
+{
+  "name": "SST",
+  "short_name": "SST",
+  "description": "Speech-to-structured-text workspace with tabbed editing and recording workflow.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/sst-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ const SOURCE_PATH = join(ROOT_DIR, "ai-assistants/main-rules.md")
 const TARGET_PATHS = [
   join(ROOT_DIR, ".roo/rules/main-rules.md"),
   join(ROOT_DIR, ".kilocode/rules/main-rules.md"),
+  join(ROOT_DIR, "AGENTS.md"),
 ]
 
 if (!existsSync(SOURCE_PATH)) {

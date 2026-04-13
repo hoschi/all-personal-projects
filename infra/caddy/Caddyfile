@@ -1,0 +1,45 @@
+{
+  local_certs
+}
+
+dev.switch-test.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:3057
+}
+
+prod.switch-test.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:4057
+}
+
+dev.box-storage.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:3058
+}
+
+prod.box-storage.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:4058
+}
+
+dev.sst.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:3059
+}
+
+prod.sst.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:4059
+}
+
+# Optional LAN aliases for tablet/mobile testing (replace with your LAN IP)
+# sst.192.168.1.100.sslip.io {
+#   tls internal
+#   reverse_proxy host.docker.internal:3059
+# }
+# sst-prod.192.168.1.100.sslip.io {
+#   tls internal
+#   reverse_proxy host.docker.internal:4059
+# }
+
+import /etc/caddy/Caddyfile.local

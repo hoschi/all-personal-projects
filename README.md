@@ -13,6 +13,36 @@ This monorepo contains various personal projects including financial forecasting
   - PostgreSQL database with Prisma ORM
   - Multi-level storage hierarchy (Floor → Room → Furniture → Box → Item)
   - In Motion status tracking for items
+- [sst](/apps/sst/README.md) - Speech-to-Structured-Text workspace (v0)
+  - Recording-first speech processing flow (Whisper + Ollama)
+  - Conflict-safe tab syncing for title, top text, and bottom text
+  - Model-run telemetry and debug diff tooling
+
+## WIP
+
+Work in progress that is already planned and can be picked up is stored in the `wip/` dir.
+
+### SST v1
+
+The in-progress planning and handover artifacts were moved from `current/` to `wip/sst-v1/`.
+This work is not finished yet, but it is already planned and can be resumed immediately.
+
+- Main plan: [`wip/sst-v1/plan.md`](/wip/sst-v1/plan.md)
+- Frontend decomposition plan: [`wip/sst-v1/sst-react-componize-plan.md`](/wip/sst-v1/sst-react-componize-plan.md)
+- Deferred PR comments: [`wip/sst-v1/pr-19-non-frontend-comments.md`](/wip/sst-v1/pr-19-non-frontend-comments.md)
+
+Completed so far (short):
+
+- `apps/sst` v0 scaffold and core architecture are implemented.
+- Recording-first flow, conflict-safe tab sync, and compact UI refactor are implemented.
+- `apps/sst-web` was removed and docs were aligned to the active `apps/sst` app.
+
+Still open (short):
+
+- Resolve remaining deferred PR comments.
+- Decompose `apps/sst/src/routes/index.tsx` into feature modules.
+- Implement persisted model-run logging and polling sync runtime.
+- Final verification/documentation sweep.
 
 ### Tests
 
@@ -44,6 +74,10 @@ This monorepo contains various personal projects including financial forecasting
   - `bun run prepare` (or fallback `bunx husky`) - Initialize Git hooks in `.husky/`.
 - see `./packages/db/README.md`
 - copy your `.env` files from one clone to another: `rsync -av --include='*.env' --include='*/' --exclude='*'  ~/repos/personal-one/ ~/repos/personal-two/`
+- for local HTTPS/LAN testing (including FRITZ!Box hostname), see:
+  - [`infra/README.md#machine-local-config-infraenv`](/infra/README.md#machine-local-config-infraenv)
+  - [`infra/README.md#initial-setup`](/infra/README.md#initial-setup)
+  - [`infra/README.md#how-to-test-the-setup`](/infra/README.md#how-to-test-the-setup)
 - set up the git MCP server to match the [main-rules](/ai-assistants/main-rules.md) file, e.g. `.roo/mpc.json`:
 
 ```json
@@ -67,13 +101,22 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Daily Work
 
+- infra helpers at root:
+  - `bun run infra:up`
+  - `bun run infra:down`
+- for day-to-day Caddy/HTTPS operations (start/restart and LAN routes), see:
+  - [`infra/README.md#start-and-stop-caddy`](/infra/README.md#start-and-stop-caddy)
+  - [`infra/README.md#run-apps-behind-https`](/infra/README.md#run-apps-behind-https)
+  - [`infra/README.md#3-lanmobile-test-fritzbox-hostname`](/infra/README.md#3-lanmobile-test-fritzbox-hostname)
+
 ### main-rules Sync
 
 - `ai-assistants/main-rules.md` is the single source of truth.
 - A pre-commit hook syncs it to:
   - `.roo/rules/main-rules.md`
   - `.kilocode/rules/main-rules.md`
-- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the two target files automatically.
+  - `AGENTS.md`
+- The hook only runs the sync when `ai-assistants/main-rules.md` is staged and then stages the three target files automatically.
 - Manual sync is possible with: `bun run packages/tools/src/sync-main-rules.ts` or `cd packages/tools && bun run sync-main-rules`.
 
 ### Push data from prod over staging to dev

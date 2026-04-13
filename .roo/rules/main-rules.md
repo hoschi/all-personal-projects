@@ -56,6 +56,34 @@ Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Sc
 - **Regel**: Bei Debounce-/Timer-Logik mit wechselnden Callback-Identitäten `useEffectEvent` verwenden, damit der Timer die neuesten Werte liest, ohne dass der Effect wegen der Callback-Referenz neu ausgeführt wird.
 - **Lösung**: Dependencies auf die fachlich relevanten Trigger begrenzen (z.B. `debounceMs`, `localValue`, `searchKey`, `searchValue`) und Cleanup (`clearTimeout`/`unsubscribe`) immer im Rückgabewert des Effects sicherstellen.
 
+### TanStack Start: Error Boundaries statt silent catch
+
+- **Regel**: Runtime Exceptions dürfen nicht still geschluckt werden (`catch {}` / `catch { return ... }` ohne Re-throw/Propagation).
+- **Lösung**: Unerwartete Fehler in UI/Route-Logik an die TanStack Route Error Boundary weitergeben (`errorComponent` pro Route oder `defaultErrorComponent` im Router).
+- **Hinweis**: Für erwartete Fachfälle (z.B. `not_found`, `conflict`) sind normale UI-States erlaubt; für unerwartete Exceptions nicht.
+
+### CSR-only Routes: Browser APIs direkt nutzen
+
+- **Regel**: Wenn eine TanStack-Route explizit `ssr: false` ist, keine unnötigen `typeof window === "undefined"` Guards in dieser Route einbauen.
+- **Begründung**: Diese Guards verschleiern echte Laufzeitprobleme und fördern stilles Fehlerhandling.
+
+### Konstanten: `UPPER_SNAKE_CASE` + `as const`
+
+- **Regel**: Modulweite Konstanten (Storage Keys, Event-Namen, feste IDs/Präfixe) immer in `UPPER_SNAKE_CASE` benennen.
+- **Regel**: String-Literal-Konstanten mit `as const` deklarieren, um versehentliche Aufweichung der Typen zu vermeiden.
+
+### Externe Daten im BFF typisieren: `unknown` + Zod-Parsing
+
+- **Regel**: Daten aus z.B. `await response.json()` die im BFF von einer Quelle angezogen werden, sind immer `unknown` und müssen per Zod-Schema geparsed werden.
+- **Verboten**: Type-Assertions wie `(await response.json()) as SomeType` für externe Daten.
+- **Begründung**: Type-Casts umgehen die Laufzeitvalidierung und hebeln Typsicherheit bei unsicheren Inputs aus. Im BFF wird alles geparsed, damit zwischen BFF und Client und damit innerhalb des Client Codes alles so type safe wie möglich ist.
+
+### Pflicht-Env für Server-Integrationen: Fail Fast beim Start
+
+- **Regel**: Externe Service-Endpunkte/Modelle (z.B. Whisper/Ollama) dürfen keine harten Fallback-Defaults im Code haben.
+- **Regel**: Werte aus `.env.base` + optional `.env` laden (wie in `box-storage`) und bei fehlenden/ungültigen Pflichtwerten den Server-Start sofort fehlschlagen lassen.
+- **Begründung**: Fehlkonfigurationen sollen früh sichtbar sein und nicht erst zur Laufzeit beim ersten Request.
+
 ### Numerische Eingaben mit Komma
 
 - **Problem**: `replace(",", ".")` ersetzt nur das erste Komma.
@@ -369,6 +397,15 @@ beforeEach(() => {
 
 - **Problem**: Env-Variablen beeinflussen Outputs, aber landen nicht im Cache-Key
 - **Lösung**: Relevante Variablen in `globalEnv` aufnehmen (z.B. `DATABASE_SCHEMA_NAME`, `DATABASE_URL`, `DB_SCHEMA`, `YOUTUBE_API_KEY`)
+
+### Fixed Ports for Dev and Prod Serving
+
+- **Regel**: Wenn in einem App-`package.json` ein Vite-Script mit festem Port genutzt wird (`vite dev --port ...` oder `vite preview --port ...`), muss immer `--strictPort` gesetzt sein.
+- **Regel**: `start:prod`-Skripte müssen einen festen `PORT` setzen und bei Port-Konflikten fail-fast bleiben (kein Fallback auf andere Ports).
+- **Begründung**: Sonst wechseln Prozesse bei Port-Konflikten auf andere Ports und Caddy-/Reverse-Proxy-Routen zeigen auf den falschen Target-Port.
+- **Beispiel Dev**: `"dev": "vite dev --port 3059 --strictPort"`
+- **Beispiel Preview**: `"preview": "vite preview --port 3059 --strictPort"`
+- **Beispiel Prod**: `"start:prod": "PORT=4059 HOST=0.0.0.0 node .output/server/index.mjs"`
 
 ### Syncpack Usage
 

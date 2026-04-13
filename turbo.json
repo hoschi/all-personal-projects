@@ -5,9 +5,17 @@
     "DATABASE_SCHEMA_NAME",
     "DATABASE_URL",
     "DB_SCHEMA",
-    "YOUTUBE_API_KEY"
+    "YOUTUBE_API_KEY",
+    "SST_WHISPER_ENDPOINT",
+    "SST_OLLAMA_ENDPOINT",
+    "SST_OLLAMA_MODEL_ID",
+    "FRITZBOX_DEVICE_HOSTNAME"
   ],
   "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -48,7 +56,18 @@
       "outputLogs": "new-only"
     },
     "ci": {
-      "dependsOn": ["build", "check-types", "format:check", "syncpack:check", "test"]
+      "dependsOn": [
+        "build",
+        "check-types",
+        "format:check",
+        "syncpack:check",
+        "test"
+      ]
+    },
+    "start:prod": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
     },
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"],
