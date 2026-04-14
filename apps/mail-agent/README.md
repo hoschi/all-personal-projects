@@ -4,8 +4,8 @@ This workspace migrates the former n8n mail workflow into versioned monorepo cod
 
 ## Current Status
 
-- Implemented: **Step 2** from `current/plan.md`
-- The workspace now includes a Prisma PostgreSQL baseline for schema `mail`.
+- Implemented: **Step 3** from `current/plan.md`
+- The workspace now fails fast on missing/invalid runtime configuration.
 
 ## Usable After Step 1
 
@@ -51,6 +51,53 @@ The codebase already exposes stable module boundaries for later implementation:
 - `src/data/prisma.ts` exposes a Prisma client with `@prisma/adapter-pg`.
 - Adapter schema binding uses `DATABASE_SCHEMA_NAME` from `prisma.config.ts`.
 - `src/data/prisma-smoke.ts` performs an insert/read smoke check for both tables.
+
+## Usable After Step 3
+
+### Fail-fast runtime configuration
+
+- `src/config/index.ts` loads `.env.base` first, then optional `.env` override.
+- Startup validates env with Zod and throws a clear error on the first boot when values are missing or invalid.
+- `DATABASE_SCHEMA_NAME` is strictly validated as `mail`.
+- Parsed config is exposed through `createBootstrapConfig()` for all runtime modules.
+
+### Runtime bootstrap wiring
+
+- `src/index.ts` now uses validated config values in the startup payload.
+- Runtime logs include only non-sensitive configuration summary (schema, labels, poll interval, telegram parse mode).
+- Secret values (API keys, client secrets, tokens) are never logged.
+
+### Required environment variables
+
+- `DATABASE_URL`
+- `DATABASE_SCHEMA_NAME` (`mail`)
+- `MAIL_AGENT_OPENAI_API_KEY`
+- `MAIL_AGENT_OPENAI_MODEL`
+- `MAIL_AGENT_PUBLIC_BASE_URL`
+- `MAIL_AGENT_GMAIL_CLIENT_ID`
+- `MAIL_AGENT_GMAIL_CLIENT_SECRET`
+- `MAIL_AGENT_GMAIL_REFRESH_TOKEN`
+- `MAIL_AGENT_POLL_INTERVAL_MS`
+- `MAIL_AGENT_LABEL_AI_MANAGED`
+- `MAIL_AGENT_LABEL_KEEP`
+- `MAIL_AGENT_LABEL_DELETE`
+- `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
+- `MAIL_AGENT_TELEGRAM_CHAT_ID`
+- `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
+- `MAIL_AGENT_TELEGRAM_PARSE_MODE`
+
+## Config Bootstrap Flow (Step 3)
+
+```mermaid
+flowchart TD
+  A[.env.base] --> C[src/config/index.ts]
+  B[.env optional override] --> C
+  C --> D[Zod bootstrapEnvSchema validation]
+  D -->|invalid| E[throw startup error with field details]
+  D -->|valid| F[createBootstrapConfig]
+  F --> G[src/index.ts bootstrap flow]
+  G --> H[log non-sensitive runtime summary]
+```
 
 ## Prisma Flow (Step 2)
 
@@ -127,6 +174,12 @@ For watch mode:
 bun run --filter mail-agent dev
 ```
 
+Configure local secrets by copying template values into `.env`:
+
+```bash
+cp apps/mail-agent/.env.example apps/mail-agent/.env
+```
+
 ## Database Setup (Step 2)
 
 From repository root:
@@ -173,6 +226,32 @@ bun run --filter mail-agent db:smoke
 - `prisma generate`: client generated at `src/generated/prisma`
 - `prisma migrate dev`: migration directory exists and DB is in sync
 - `db:smoke`: JSON output contains non-null `state` and `latestProcessedEmail`
+
+## Step 3 Verification
+
+### Missing env should fail fast
+
+From repository root:
+
+```bash
+MAIL_AGENT_OPENAI_API_KEY= bun run --filter mail-agent start
+```
+
+Expected outcome:
+
+- process exits with `Invalid mail-agent environment configuration`
+
+### Full env should start cleanly
+
+From repository root:
+
+```bash
+bun run --filter mail-agent start
+```
+
+Expected outcome:
+
+- process prints bootstrap JSON including `databaseSchemaName`, `pollIntervalMs`, `labels`, and `telegram.parseMode`
 
 ### Common failure cases
 

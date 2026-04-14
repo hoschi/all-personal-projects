@@ -22,7 +22,8 @@
     "@prisma/client": "^7.3.0",
     "dotenv": "^17.2.3",
     "pg": "^8.17.2",
-    "prisma": "^7.3.0"
+    "prisma": "^7.3.0",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

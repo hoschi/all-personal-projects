@@ -34,7 +34,16 @@ async function main() {
   console.log(
     JSON.stringify({
       appName: config.appName,
+      startedAtIso: config.startedAtIso,
       pollIntervalMs: config.pollIntervalMs,
+      databaseSchemaName: config.databaseSchemaName,
+      publicBaseUrl: config.publicBaseUrl,
+      labels: config.labels,
+      telegram: {
+        chatId: config.telegram.chatId,
+        allowedUserIdsCount: config.telegram.allowedUserIds.length,
+        parseMode: config.telegram.parseMode,
+      },
       pipeline,
       http,
     }),
