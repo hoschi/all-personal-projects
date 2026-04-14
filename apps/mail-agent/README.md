@@ -29,51 +29,6 @@ The codebase already exposes stable module boundaries for later implementation:
 - `src/http`: HTTP runtime placeholder contract (not enabled in step 1)
 - `src/pipeline`: canonical pipeline stage contract
 
-## Usable After Step 4
-
-### Gmail OAuth2 + API client wiring
-
-- `src/gmail/index.ts` creates a Gmail API client with OAuth2 refresh-token auth.
-- Required scopes are configured for `gmail.modify` and `gmail.labels`.
-
-### Cursor-based polling with persistence
-
-- Poll reads `agent_state.gmail_history_id` as incremental cursor.
-- If cursor exists, sync uses `users.history.list(startHistoryId=...)`.
-- Updated cursor is persisted back to `agent_state` after successful polling.
-
-### Full-sync fallback
-
-- If Gmail history call fails with invalid/expired cursor (`404`), sync switches to full sync.
-- Full sync loads current mailbox messages (`users.messages.list`) and profile cursor (`users.getProfile`).
-- New cursor is persisted so later runs return to incremental history polling.
-
-### Message + thread normalization helpers
-
-- Each candidate message is fetched with `users.messages.get(format=full)`.
-- Thread context is fetched with `users.threads.get(format=metadata)`.
-- Normalized payload includes sender/recipients, subject, labels, text body, reduced HTML body, thread participants, and timestamps.
-
-## Gmail Sync Flow (Step 4)
-
-```mermaid
-flowchart TD
-  A[Poll] --> B[Load cursor from agent_state]
-  B --> C{cursor exists?}
-  C -->|no| D[Full sync via messages list]
-  C -->|yes| E[History list with startHistoryId]
-  E --> F{404 invalid history?}
-  F -->|yes| D
-  F -->|no| G[Extract candidate message IDs]
-  D --> H[Fetch candidate messages]
-  G --> H
-  H --> I[Fetch message full payload]
-  I --> J[Fetch thread metadata]
-  J --> K[Normalize payloads]
-  K --> L[Persist new gmail_history_id]
-  L --> M[Return poll summary]
-```
-
 ## Usable After Step 2
 
 ### Prisma configuration baseline
@@ -131,35 +86,80 @@ flowchart TD
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
 - `MAIL_AGENT_TELEGRAM_PARSE_MODE`
 
-## Config Bootstrap Flow (Step 3)
-
-```mermaid
-flowchart TD
-  A[.env.base] --> C[src/config/index.ts]
-  B[.env optional override] --> C
-  C --> D[Zod bootstrapEnvSchema validation]
-  D -->|invalid| E[throw startup error with field details]
-  D -->|valid| F[createBootstrapConfig]
-  F --> G[src/index.ts bootstrap flow]
-  G --> H[log non-sensitive runtime summary]
-```
-
 ## Prisma Flow (Step 2)
 
 ```mermaid
 flowchart TD
-  A[.env.base] --> C[prisma.config.ts]
-  B[.env optional override] --> C
-  C --> D[Prisma datasource URL with schema=mail]
-  D --> E[prisma/schema.prisma]
-  E --> F[prisma migrate dev]
-  F --> G[prisma/migrations/*]
-  E --> H[prisma generate]
-  H --> I[src/generated/prisma]
-  C --> J[src/data/prisma.ts]
+  A[Env base file] --> C[Prisma config]
+  B[Env override file] --> C
+  C --> D[Build datasource url]
+  D --> E[Prisma schema]
+  E --> F[Run migration]
+  F --> G[Write migration files]
+  E --> H[Generate prisma client]
+  H --> I[Generated client output]
+  C --> J[Create prisma runtime client]
   I --> J
-  J --> K[src/data/prisma-smoke.ts]
-  K --> L[insert/read validation]
+  J --> K[Run db smoke check]
+  K --> L[Validate insert and read]
+```
+
+## Config Bootstrap Flow (Step 3)
+
+```mermaid
+flowchart TD
+  A[Env base file] --> C[Load config module]
+  B[Env override file] --> C
+  C --> D[Validate environment]
+  D -->|invalid| E[Throw startup error]
+  D -->|valid| F[Create bootstrap config]
+  F --> G[Bootstrap runtime]
+  G --> H[Log non sensitive summary]
+```
+
+## Usable After Step 4
+
+### Gmail OAuth2 + API client wiring
+
+- `src/gmail/index.ts` creates a Gmail API client with OAuth2 refresh-token auth.
+- Required scopes are configured for `gmail.modify` and `gmail.labels`.
+
+### Cursor-based polling with persistence
+
+- Poll reads `agent_state.gmail_history_id` as incremental cursor.
+- If cursor exists, sync uses `users.history.list(startHistoryId=...)`.
+- Updated cursor is persisted back to `agent_state` after successful polling.
+
+### Full-sync fallback
+
+- If Gmail history call fails with invalid/expired cursor (`404`), sync switches to full sync.
+- Full sync loads current mailbox messages (`users.messages.list`) and profile cursor (`users.getProfile`).
+- New cursor is persisted so later runs return to incremental history polling.
+
+### Message + thread normalization helpers
+
+- Each candidate message is fetched with `users.messages.get(format=full)`.
+- Thread context is fetched with `users.threads.get(format=metadata)`.
+- Normalized payload includes sender/recipients, subject, labels, text body, reduced HTML body, thread participants, and timestamps.
+
+## Gmail Sync Flow (Step 4)
+
+```mermaid
+flowchart TD
+  A[Start poll cycle] --> B[Load stored history cursor]
+  B --> C{Cursor exists}
+  C -->|no| D[Run full sync from inbox]
+  C -->|yes| E[Read history changes]
+  E --> F{History cursor valid}
+  F -->|no| D
+  F -->|yes| G[Collect changed message ids]
+  D --> H[Build candidate message list]
+  G --> H
+  H --> I[Fetch full message payload]
+  I --> J[Fetch thread metadata]
+  J --> K[Normalize message data]
+  K --> L[Store next history cursor]
+  L --> M[Return poll summary]
 ```
 
 ### Bootstrap behavior
@@ -178,19 +178,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[main()] --> B[createBootstrapConfig]
-  A --> C[createInMemoryStore]
-  A --> D[createGmailSync]
-  A --> E[createAiPipelinePlaceholder]
-  A --> F[createNoopNotifier]
-  A --> G[createHttpRuntimePlaceholder]
-  A --> H[createPipelineStageDescriptors]
+  A[Start application] --> B[Build bootstrap config]
+  A --> C[Build in memory store]
+  A --> D[Build gmail sync adapter]
+  A --> E[Build ai placeholder]
+  A --> F[Build notify placeholder]
+  A --> G[Build http runtime state]
+  A --> H[Build pipeline descriptors]
 
-  E --> I[classify placeholder]
-  I --> J[insert placeholder processed email]
-  J --> K[sendNotification placeholder]
-  K --> L[poll Gmail sync]
-  L --> M[log startup payload]
+  E --> I[Run placeholder classification]
+  I --> J[Insert placeholder email record]
+  J --> K[Send placeholder notification]
+  K --> L[Run one gmail poll cycle]
+  L --> M[Log startup payload]
 ```
 
 ## Logical Pipeline Contract (Step 1)
@@ -199,11 +199,11 @@ The canonical pipeline stages are already fixed in code and validated by test:
 
 ```mermaid
 flowchart LR
-  S1[loadCursor] --> S2[fetchChanges]
-  S2 --> S3[normalizeMessages]
-  S3 --> S4[classify]
-  S4 --> S5[applyAction]
-  S5 --> S6[notifyUser]
+  S1[Load cursor] --> S2[Fetch changes]
+  S2 --> S3[Normalize messages]
+  S3 --> S4[Classify]
+  S4 --> S5[Apply action]
+  S5 --> S6[Notify user]
 ```
 
 ## Quick Start
