@@ -42,6 +42,17 @@ Target workspace: `apps/mail-agent`
   - Retries with bounded backoff for external API failures
   - Structured logs for each pipeline stage
 
+### Documentation and onboarding policy (mandatory)
+
+- `apps/mail-agent/README.md` is a living setup and test guide and must stay in sync with code.
+- Every implementation step updates README in the same commit.
+- README must always cover at least:
+  - prerequisites (accounts, env vars, local services)
+  - local setup from clone to first successful run
+  - how to run each manual test from this plan
+  - expected outcomes and common failure cases
+  - rollback/cleanup notes for test runs
+
 ## Step 1: Scaffold app workspace and prompt assets
 
 Deliverables:
@@ -52,6 +63,7 @@ Deliverables:
 - Copy extracted prompts into versioned files:
   - `src/prompts/classify-email.de.md`
   - `src/prompts/summarize-thread.de.md`
+- Create initial `apps/mail-agent/README.md` with setup + step test checklist.
 
 How to test this step:
 
@@ -78,6 +90,7 @@ Deliverables:
   - `processed_emails`
   - `agent_state`
 - Explicitly do **not** create any seed script/file.
+- Update README with DB setup, schema `mail`, and migration commands.
 
 How to test this step:
 
@@ -96,6 +109,7 @@ Deliverables:
 - Central config parser with Zod for required env values
 - Startup must fail fast on missing/invalid config
 - Initial app bootstrap and dependency wiring
+- Update README env section with complete variable reference and example flow.
 
 Initial required env:
 
@@ -132,10 +146,11 @@ Deliverables:
 
 How to test this step:
 
-- Integration tests with mocked Gmail client:
-  - valid history path returns expected candidates
-  - invalid history path triggers full sync fallback
-- Manual run logs candidate IDs and updates `agent_state`
+- Start service with a valid mailbox and verify logs show detected candidate IDs.
+- Verify `agent_state` persists and updates `gmail_history_id` after a poll cycle.
+- Simulate invalid cursor by setting an outdated `gmail_history_id` in DB and rerun.
+- Verify fallback path is used and sync continues successfully.
+- Confirm README instructions were sufficient for you to execute this end-to-end test.
 
 Commit checkpoint:
 
@@ -153,13 +168,15 @@ Deliverables:
   - summary generation path using extracted prompt semantics
 - Enforce classifier result contract:
   - `deleteIt`, `summary`, `subject`, `reason`
+- Update README with manual AI test inputs and expected classifier output checks.
 
 How to test this step:
 
-- Fixture-based tests for:
-  - private email bypasses AI
-  - normal newsletter gets valid classifier JSON
-  - malformed model output is rejected and logged
+- Run classification manually for one private and one non-private mail input.
+- Verify private input bypasses AI and is marked for direct notification flow.
+- Verify non-private input returns valid JSON with `deleteIt`, `summary`, `subject`, `reason`.
+- Trigger one malformed model-output scenario and verify it is rejected with clear log output.
+- Confirm README instructions were sufficient for you to execute and validate these checks.
 
 Commit checkpoint:
 
@@ -172,6 +189,7 @@ Deliverables:
 - Map classifier decision to Gmail label/inbox mutations
 - Persist processing result in `processed_emails`
 - Idempotency guard by `gmail_message_id` (and optional thread-level guard)
+- Update README with idempotency test procedure and expected DB states.
 
 How to test this step:
 
@@ -194,35 +212,12 @@ Deliverables:
 
 How to test this step:
 
-- Unit tests for token sign/verify and expiry behavior
-- Integration test: trigger undo link -> Gmail reverse action + DB update
-- Contract test: emitted notification contains one and only one undo link
+- Process one mail and open the generated undo link in browser.
+- Verify Gmail action is reversed and `processed_emails.user_action` is updated.
+- Verify emitted user notification contains exactly one undo link.
+- Restart service and confirm undo state remains persisted and visible.
+- Confirm README instructions were sufficient for you to run and verify undo behavior.
 
 Commit checkpoint:
 
 - `feat(mail-agent): add undo endpoint and notifier abstraction`
-
-## Step 8: Wire final Telegram implementation and run full smoke tests
-
-Deliverables:
-
-- Plug chosen Telegram implementation into existing `Notifier` interface
-- End-to-end run: poll -> classify -> apply -> notify -> undo
-- Add operational README for local run and troubleshooting
-
-How to test this step:
-
-- Real mailbox smoke test with at least:
-  - one private mail
-  - one keep decision
-  - one delete decision
-  - one successful undo
-- Verify DB rows + Gmail label state + delivered Telegram messages
-
-Commit checkpoint:
-
-- `feat(mail-agent): integrate telegram notifier and complete e2e flow`
-
-### Note
-
-Telegram implementation details are intentionally left open until your decision.
