@@ -228,6 +228,8 @@ cp apps/mail-agent/.env.example apps/mail-agent/.env
 
 ---
 
+## Step 4
+
 ### GCP-Setup — Detaillierte Anleitung
 
 #### 1. Google Cloud Projekt erstellen
@@ -303,7 +305,7 @@ cp apps/mail-agent/.env.example apps/mail-agent/.env
 
 1. Gehe zu **Google Auth Platform → Clients** oder: [Credentials Page](https://console.cloud.google.com/auth/clients)
 2. Klicke **"+ Create Client"**
-3. **Application type**: **"Desktop app"** auswaehlen. 
+3. **Application type**: **"Desktop app"** auswaehlen.
 4. **Name**: z.B. "Gmail Local Reader Desktop". Hier geht wieder was einfaches wie `app-mail`.
 5. Klicke **"Erstellen"**
 6. **Client-ID und Client-Secret** werden angezeigt — **sofort herunterladen!**
@@ -314,75 +316,31 @@ cp apps/mail-agent/.env.example apps/mail-agent/.env
 > [!tip] **Warum "Desktop app" und nicht "Web application"?**
 > Bei **"Desktop app"** muss **keine Redirect-URI manuell konfiguriert** werden. Google erlaubt fuer diesen Client-Typ automatisch alle Loopback-Adressen (`http://127.0.0.1`, `http://[::1]`, `http://localhost`) auf **jedem Port**. Bei "Web application" muesste jede `http://localhost:<port>/...`-URL einzeln in der Console eingetragen werden.
 
----
-
-## Gmail Local Setup (Required for Step 4 Tests)
-
-This section is the shortest path from an empty local database to a real Gmail poll run.
-
-### 1) Google Cloud project and Gmail API
-
-1. Create or open a Google Cloud project.
-2. Enable `Gmail API`.
-3. Configure OAuth consent screen (`External`).
-4. Add scopes:
-   - `https://www.googleapis.com/auth/gmail.modify`
-   - `https://www.googleapis.com/auth/gmail.labels`
-5. Add your Gmail address as test user.
-6. Set publishing status to `In production` before creating your final refresh token.
-
-Why production status matters:
-
-- refresh tokens from testing mode can expire after ~7 days
-- after switching to production, generate a fresh token again
-
-### 2) Create OAuth client credentials
-
-Create OAuth client type `Desktop app` and keep:
-
-- `client_id`
-- `client_secret`
-
-Desktop app is recommended for local usage because loopback redirect is supported without manual URI management.
-
 ### 3) Generate one refresh token
 
 Run one OAuth consent flow and store the returned refresh token.
 
-Minimal requirements for the flow:
+From repository root:
 
-- `access_type=offline`
-- `prompt=consent`
-- same two Gmail scopes as above
+```bash
+bun run --filter mail-agent gmail:auth
+```
 
-After consent, store:
+Behavior of this CLI:
 
-- `MAIL_AGENT_GMAIL_REFRESH_TOKEN`
+- starts a local callback server on `http://127.0.0.1:3000`
+- prints the OAuth consent URL in terminal
+- opens the URL automatically on macOS
+- prints `MAIL_AGENT_GMAIL_REFRESH_TOKEN=...` after successful consent
 
 ### 4) Fill `apps/mail-agent/.env`
 
-At minimum, set all required values:
+At minimum, set all required values in your `.env`:
 
 ```env
-DATABASE_URL=postgresql://...
-DATABASE_SCHEMA_NAME=mail
-
-MAIL_AGENT_OPENAI_API_KEY=...
-MAIL_AGENT_OPENAI_MODEL=...
-MAIL_AGENT_PUBLIC_BASE_URL=http://localhost:3070
-
-MAIL_AGENT_GMAIL_CLIENT_ID=...
-MAIL_AGENT_GMAIL_CLIENT_SECRET=...
-MAIL_AGENT_GMAIL_REFRESH_TOKEN=...
-MAIL_AGENT_POLL_INTERVAL_MS=60000
-MAIL_AGENT_LABEL_AI_MANAGED=ai-managed
-MAIL_AGENT_LABEL_KEEP=ai-keep
-MAIL_AGENT_LABEL_DELETE=ai-delete
-
-MAIL_AGENT_TELEGRAM_BOT_TOKEN=...
-MAIL_AGENT_TELEGRAM_CHAT_ID=...
-MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS=
-MAIL_AGENT_TELEGRAM_PARSE_MODE=MarkdownV2
+MAIL_AGENT_GMAIL_CLIENT_ID="..."
+MAIL_AGENT_GMAIL_CLIENT_SECRET="..."
+MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
 ```
 
 ### 5) Initialize DB schema (empty DB)
