@@ -112,7 +112,7 @@ How to test this step:
 
 - `bun run --filter mail-agent prisma generate`
 - `bun run --filter mail-agent prisma migrate dev --name init`
-- Run a minimal DB smoke test (insert/read in both tables)
+- `bun run --filter mail-agent db:smoke` (minimal insert/read in both tables)
 
 Commit checkpoint:
 

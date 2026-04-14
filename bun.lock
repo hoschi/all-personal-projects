@@ -113,8 +113,15 @@
       },
     },
     "apps/mail-agent": {
-      "name": "@repo/mail-agent",
+      "name": "mail-agent",
       "version": "0.0.0",
+      "dependencies": {
+        "@prisma/adapter-pg": "^7.3.0",
+        "@prisma/client": "^7.3.0",
+        "dotenv": "^17.2.3",
+        "pg": "^8.17.2",
+        "prisma": "^7.3.0",
+      },
       "devDependencies": {
         "@repo/eslint-config": "workspace:*",
         "@repo/typescript-config": "workspace:*",
@@ -905,8 +912,6 @@
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
     "@repo/financy-forecast": ["@repo/financy-forecast@workspace:apps/financy-forecast"],
-
-    "@repo/mail-agent": ["@repo/mail-agent@workspace:apps/mail-agent"],
 
     "@repo/rest-server": ["@repo/rest-server@workspace:apps/rest-server"],
 
@@ -1837,6 +1842,8 @@
     "lz-string": ["lz-string@1.5.0", "", { "bin": { "lz-string": "bin/bin.js" } }, "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ=="],
 
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
+
+    "mail-agent": ["mail-agent@workspace:apps/mail-agent"],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 

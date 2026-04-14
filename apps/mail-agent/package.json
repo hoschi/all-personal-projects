@@ -7,6 +7,9 @@
     "dev": "bun --watch src/index.ts",
     "build": "echo 'not implemented'",
     "start": "bun src/index.ts",
+    "prisma": "prisma",
+    "generate:prisma": "prisma generate",
+    "db:smoke": "bun src/data/prisma-smoke.ts",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "test": "bun test",
@@ -14,7 +17,13 @@
     "format": "prettier --write . --ignore-path ../../.prettierignore",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "dotenv": "^17.2.3",
+    "pg": "^8.17.2",
+    "prisma": "^7.3.0"
+  },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",

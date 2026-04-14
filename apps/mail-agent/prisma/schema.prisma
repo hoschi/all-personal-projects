@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ProcessedEmail {
+  id               String   @id @default(cuid())
+  gmailMessageId   String   @unique @map("gmail_message_id")
+  gmailThreadId    String   @map("gmail_thread_id")
+  deleteIt         Boolean  @map("delete_it")
+  summary          String   @db.Text
+  subject          String
+  reason           String   @db.Text
+  appliedAction    String   @map("applied_action")
+  userAction       String?  @map("user_action")
+  processedAt      DateTime @default(now()) @map("processed_at")
+  classifierOutput Json     @map("classifier_output")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("processed_emails")
+  @@index([gmailThreadId], map: "processed_emails_gmail_thread_id_idx")
+  @@index([processedAt], map: "processed_emails_processed_at_idx")
+}
+
+model AgentState {
+  id             String   @id
+  gmailHistoryId String?  @map("gmail_history_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("agent_state")
+}
