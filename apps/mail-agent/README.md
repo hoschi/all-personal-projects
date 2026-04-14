@@ -380,6 +380,20 @@ Expected on subsequent runs:
 - `gmailSync.mode` is usually `history`
 - `cursorBefore` and `cursorAfter` reflect incremental sync
 
+### 7) Temporary Gmail read smoke output
+
+Use this temporary command to perform a direct Gmail read (`messages.list` + `messages.get`) and print a mailbox preview:
+
+```bash
+bun run --filter mail-agent gmail:smoke
+```
+
+Expected outcome:
+
+- JSON output contains `listedMessageCount`, `previewCount`, and `preview`
+- `preview` rows include real `sender`, `subject`, `date`, and `labels` values from your mailbox
+- this smoke command is temporary and will be removed in the final cleanup step from `current/plan.md`
+
 ## Database Setup (Step 2)
 
 From repository root:

@@ -167,6 +167,7 @@ Deliverables:
 - Polling based on stored `gmail_history_id`
 - Fallback full sync path when Gmail returns invalid history (`404`)
 - Message/thread fetch + normalization helpers
+- Add temporary Gmail read smoke command (`bun run --filter mail-agent gmail:smoke`) that prints sender/subject preview for real mailbox verification during migration.
 - Implement this step according to [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md):
   - `Polling model (history cursor)`
   - `Full sync fallback strategy`
@@ -178,6 +179,7 @@ How to test this step:
 - Verify `agent_state` persists and updates `gmail_history_id` after a poll cycle.
 - Simulate invalid cursor by setting an outdated `gmail_history_id` in DB and rerun.
 - Verify fallback path is used and sync continues successfully.
+- Run `bun run --filter mail-agent gmail:smoke` and verify preview contains real sender/subject rows.
 - Confirm README instructions were sufficient for you to execute this end-to-end test.
 
 Commit checkpoint:
@@ -289,6 +291,7 @@ Deliverables:
 
 - Remove all temporary smoke tests introduced for intermediate implementation validation.
 - Remove temporary smoke scripts such as `db:smoke` once equivalent real workflow tests/checks exist.
+- Remove temporary Gmail read smoke command `gmail:smoke` and its helper file.
 - Remove smoke-only helper files that are not part of the v0 production runtime.
 - Update `apps/mail-agent/README.md` to remove temporary smoke-test instructions.
 - Keep only durable verification commands and tests intended for long-term maintenance.
