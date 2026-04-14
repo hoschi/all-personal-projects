@@ -226,6 +226,96 @@ Configure local secrets by copying template values into `.env`:
 cp apps/mail-agent/.env.example apps/mail-agent/.env
 ```
 
+---
+
+### GCP-Setup — Detaillierte Anleitung
+
+#### 1. Google Cloud Projekt erstellen
+
+1. Oeffne [Google Cloud Console](https://console.cloud.google.com/)
+2. Klicke oben links auf das **Projekt-Dropdown** (neben "Google Cloud")
+3. Klicke **"Neues Projekt"** im Dialog
+4. **Projektname** eingeben (z.B. "Gmail Local Reader")
+5. Organisation kann leer bleiben (fuer private Konten)
+6. Klicke **"Erstellen"** → Warte auf Notification → **Zum neuen Projekt wechseln**
+
+#### 2. Gmail API aktivieren
+
+1. Gehe zu **APIs & Services → Bibliothek** (linkes Menue) oder direkt: [API Library](https://console.cloud.google.com/apis/library)
+2. Suche nach **"Gmail API"**
+3. Klicke auf **"Gmail API"** in den Ergebnissen
+4. Klicke **"Aktivieren"** (blauer Button)
+
+#### 3. OAuth Consent Screen konfigurieren
+
+1. Gehe zu **Google Auth Platform → Branding** oder: [OAuth Consent Screen](https://console.cloud.google.com/auth/branding)
+   - Falls noch nicht konfiguriert: Klicke **"Get Started"**
+
+2. **App-Informationen** (Seite 1):
+   - **App-Name**: z.B. "Gmail Local Reader". Das wird abgeprüft und muss nach einer App klingen. [Hier sind Beispiele zu sehen.](https://support.google.com/cloud/answer/15549049?visit_id=639117854563019737-2224445486&rd=1#app-name&zippy=%2Capp-name)
+   - **User-Support-E-Mail**: Deine E-Mail-Adresse auswaehlen
+   - Klicke **"Weiter"**
+
+3. **Zielgruppe** (Seite 2):
+   - **User Type**: **"Extern"** (fuer @gmail.com die einzige Option)
+   - Klicke **"Weiter"**
+
+4. **Kontaktinformationen** (Seite 3):
+   - **E-Mail fuer Entwicklerbenachrichtigungen**: Deine E-Mail eintragen
+   - Klicke **"Weiter"**
+
+5. **Abschluss** (Seite 4):
+   - Haken bei **"Ich stimme den Google API Services: User Data Policy zu"**
+   - Klicke **"Erstellen"**
+
+##### Scopes hinzufuegen
+
+1. Gehe zu **Google Auth Platform → Data Access** linke seite im Menü
+2. Klicke **"Add or Remove Scopes"**
+3. Folgende Scopes hinzufuegen (einzeln suchen/eingeben, Haken setzen):
+   - `https://www.googleapis.com/auth/gmail.modify` (restricted)
+   - `https://www.googleapis.com/auth/gmail.labels` (non-sensitive)
+4. **"Aktualisieren"** → **"Speichern"**
+
+> [!info] `gmail.modify` ist als **restricted** klassifiziert. Fuer Personal Use (max 100 User) greift die **Personal-Use-Ausnahme** — keine CASA-Verifizierung noetig. `gmail.labels` ist non-sensitive.
+
+##### Test-User hinzufuegen
+
+1. Gehe zu **Google Auth Platform → Audience**
+2. Im Abschnitt **"Test users"** klicke **"Add users"**
+3. **Deine Gmail-Adresse** eingeben (deren Mails gelesen werden sollen)
+4. **"Speichern"**
+
+> [!warning] Im Testing-Modus koennen **nur** eingetragene Test-User den Consent-Flow durchlaufen.
+
+##### Publishing Status auf "In Production" setzen
+
+1. Gehe zu **Google Auth Platform → Audience**
+2. Finde **"Publishing status"** → Klicke **"Publish App"**
+3. Bestaetigen
+
+> [!warning] KRITISCH: Testing-Modus = Refresh Token laeuft nach 7 Tagen ab!
+> Nach dem Wechsel von Testing zu Production **neue OAuth-Credentials erstellen** und **neuen Consent durchfuehren** — alte Refresh Tokens aus dem Testing-Modus behalten das 7-Tage-Ablaufdatum! Deswegen erst danach den oauth flow durchaufen.
+
+4. Den Text "Die Anwendung muss überprüft werden. Reichen Sie die Anwendung zur Überprüfung ein, wenn Sie mit der Eingabe Ihrer Informationen fertig sind." ignorieren.
+
+#### 4. OAuth Client-ID erstellen
+
+1. Gehe zu **Google Auth Platform → Clients** oder: [Credentials Page](https://console.cloud.google.com/auth/clients)
+2. Klicke **"+ Create Client"**
+3. **Application type**: **"Desktop app"** auswaehlen. 
+4. **Name**: z.B. "Gmail Local Reader Desktop". Hier geht wieder was einfaches wie `app-mail`.
+5. Klicke **"Erstellen"**
+6. **Client-ID und Client-Secret** werden angezeigt — **sofort herunterladen!**
+   - Klicke **"JSON herunterladen"** fuer die Credentials-Datei
+   - Das Secret ist nur bei Erstellung vollstaendig sichtbar
+7. Speichern in: `MAIL_AGENT_GMAIL_CLIENT_ID` und `MAIL_AGENT_GMAIL_CLIENT_SECRET`
+
+> [!tip] **Warum "Desktop app" und nicht "Web application"?**
+> Bei **"Desktop app"** muss **keine Redirect-URI manuell konfiguriert** werden. Google erlaubt fuer diesen Client-Typ automatisch alle Loopback-Adressen (`http://127.0.0.1`, `http://[::1]`, `http://localhost`) auf **jedem Port**. Bei "Web application" muesste jede `http://localhost:<port>/...`-URL einzeln in der Console eingetragen werden.
+
+---
+
 ## Gmail Local Setup (Required for Step 4 Tests)
 
 This section is the shortest path from an empty local database to a real Gmail poll run.
