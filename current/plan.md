@@ -1,130 +1,108 @@
 # Mail Agent Migration Plan (n8n -> Monorepo Code)
 
-## Goal
+Target workspace: `apps/mail-agent`
 
-Implement the existing n8n Gmail workflow as a new monorepo project with equivalent behavior, while replacing infrastructure integrations:
-
-- Supabase -> PostgreSQL
-- Mattermost -> Telegram
-- n8n OpenAI node -> OpenAI API/npm SDK
-
-## Inputs reviewed
-
-- Existing n8n workflow: `current/n8n-workflow.json`
-- Email handling research: `current/gmail-api.md` (reviewed and removed)
-
-## Monorepo fit and project shape
-
-## Proposed location
-
-Create a new app workspace:
-
-- `apps/mail-agent`
-
-Reasoning:
-
-- This is a runnable service (polling + webhooks + notifications), not a shared library.
-- Existing repo pattern already uses app workspaces for runnable services.
-
-## Suggested runtime stack
+### Stack
 
 - Runtime: Bun + TypeScript
-- DB: PostgreSQL (`postgres` package, consistent with repo usage)
+- Server: lightweight Bun HTTP service
+- Database ORM: Prisma (same pattern as `apps/box-storage` and `apps/sst`)
+  - `DATABASE_URL` + `DATABASE_SCHEMA_NAME`
+  - fixed schema name: `mail`
+  - `prisma.config.ts` + `@prisma/adapter-pg` + generated Prisma client
 - Validation: Zod
 - Gmail API: `googleapis` + `google-auth-library`
 - OpenAI: official `openai` npm SDK
-- Telegram: Bot API (HTTP) or lightweight SDK (`grammy`) with typed wrapper
+- Telegram: TBD (we decide integration package/approach later)
 
-## Functional behavior to preserve (v1)
+### Feature scope (v0)
 
-1. Private emails are **not AI-classified**.
-   - They trigger direct Telegram notification.
-2. Non-private emails are AI-classified.
-   - Decision: keep vs soft-delete (label/inbox changes, no hard delete by default)
-   - AI summary is included in user message.
-3. User message contains **one undo link only**.
-   - Remove old `MEH` path and old second feedback link behavior.
-4. User undo action updates mail labels/inbox and records user override in DB.
+- Ingestion and sync
+  - Poll Gmail changes via `users.history.list`
+  - Recover with full sync when history is invalid/expired
+  - Normalize messages/threads (including HTML -> markdown reduction)
+- Mail processing behavior
+  - Private emails bypass AI and trigger direct user notification
+  - Non-private emails go through AI keep/delete decision
+  - AI creates the user-facing summary based on extracted prompts
+  - Keep strict classifier JSON contract: `deleteIt`, `summary`, `subject`, `reason`
+- Gmail actions
+  - `deleteIt = true`: soft-delete semantics via labels/inbox state (not hard delete)
+  - `deleteIt = false`: apply keep label
+  - Add AI-managed/processed state to prevent duplicate handling
+- User feedback and reversibility
+  - Notification contains one undo link only
+  - Undo endpoint reverses the system action and persists override
+- Persistence
+  - Store processed mail metadata, classifier output, and action trail
+  - Store sync cursor state (`gmail_history_id`)
+  - No seeding logic (data source is Gmail)
+- Reliability
+  - Idempotent processing by Gmail identifiers
+  - Retries with bounded backoff for external API failures
+  - Structured logs for each pipeline stage
 
-## Existing workflow behavior mapping (from n8n)
+## Step 1: Scaffold app workspace and prompt assets
 
-## Intake and filtering
+Deliverables:
 
-- Trigger currently runs scheduled and event-based.
-- AI processing query currently filters inbox + no-user-label style input.
-- Private fallback path executes when no AI-eligible message is available.
+- Create `apps/mail-agent` workspace with scripts aligned to monorepo:
+  - `dev`, `build`, `start`, `check-types`, `lint`, `test`
+- Add base folder structure (`src/config`, `src/data`, `src/gmail`, `src/ai`, `src/notify`, `src/http`, `src/pipeline`)
+- Copy extracted prompts into versioned files:
+  - `src/prompts/classify-email.de.md`
+  - `src/prompts/summarize-thread.de.md`
 
-## Thread and message shaping
+How to test this step:
 
-- Thread is loaded, messages normalized, HTML converted to markdown for token reduction.
-- Multi-message thread handling uses special summary path for latest message.
-- Label checks include an `ai-managed` concept to avoid duplicate handling.
+- `bun run --filter mail-agent check-types`
+- `bun run --filter mail-agent lint`
+- `bun run --filter mail-agent test` (empty/basic test runner boot is enough)
 
-## Classification output contract
+Commit checkpoint:
 
-Structured classifier output currently expects:
+- `chore(mail-agent): scaffold workspace and prompt assets`
 
-- `deleteIt: boolean`
-- `summary: string`
-- `subject: string`
-- `reason: string`
+## Step 2: Add Prisma baseline with schema `mail`
 
-This contract should be preserved in code (Zod schema + strict parser).
+Deliverables:
 
-## Action behavior
+- Implement Prisma setup exactly like `box-storage`/`sst`:
+  - `prisma.config.ts` loading `.env.base` then optional `.env`
+  - datasource URL pattern with schema parameter from env
+  - `src/data/prisma.ts` using `@prisma/adapter-pg`
+- Set required env convention:
+  - `DATABASE_URL=...`
+  - `DATABASE_SCHEMA_NAME=mail`
+- Add Prisma schema and first migration with at least:
+  - `processed_emails`
+  - `agent_state`
+- Explicitly do **not** create any seed script/file.
 
-- `deleteIt = true` -> add delete label, remove inbox (soft delete behavior)
-- `deleteIt = false` -> add keep label
-- In both cases: send Telegram message and persist processing row
+How to test this step:
 
-## Undo behavior
+- `bun run --filter mail-agent prisma generate`
+- `bun run --filter mail-agent prisma migrate dev --name init`
+- Run a minimal DB smoke test (insert/read in both tables)
 
-Current n8n has webhook routes for reversing actions. New code should provide one unified undo endpoint with secure tokenized link.
+Commit checkpoint:
 
-## Prompt assets extracted for reuse
+- `feat(mail-agent): add prisma setup and initial mail schema`
 
-## Prompt A: thread summary
+## Step 3: Implement fail-fast configuration and app bootstrap
 
-- Role: helpful email agent in German
-- Task: summarize conversation in 50 words, focus on latest email
-- Output format: starts with `WICHTIG:` or `Nachricht:`, includes subject + summary
-- Context: current date + serialized thread messages
+Deliverables:
 
-## Prompt B: keep/delete classifier (long policy prompt)
+- Central config parser with Zod for required env values
+- Startup must fail fast on missing/invalid config
+- Initial app bootstrap and dependency wiring
 
-Contains:
+Initial required env:
 
-- Global keep/delete rules
-- Sender-specific override rules
-- Summary quality rules (50 words default, with exceptions)
-- Required strict JSON shape (`deleteIt`, `summary`, `subject`, `reason`)
-
-Implementation note:
-
-- Keep the original prompt semantics; migrate text into versioned prompt files, e.g.:
-  - `apps/mail-agent/src/prompts/classify-email.de.md`
-  - `apps/mail-agent/src/prompts/summarize-thread.de.md`
-
-## Architecture plan
-
-## 1) Project scaffold
-
-- Add `apps/mail-agent/package.json`, `tsconfig.json`, lint/format scripts aligned to repo.
-- Add `dev`, `build`, `start:prod`, `check-types`, `lint`, `format` scripts.
-
-## 2) Config and fail-fast env
-
-- Load `.env.base` and optional `.env` (same repo conventions).
-- Validate all required env vars with Zod and fail at startup.
-
-Required env (initial):
-
-- `MAIL_AGENT_DATABASE_URL`
-- `MAIL_AGENT_DATABASE_SCHEMA`
+- `DATABASE_URL`
+- `DATABASE_SCHEMA_NAME` (must be `mail`)
 - `MAIL_AGENT_OPENAI_API_KEY`
 - `MAIL_AGENT_OPENAI_MODEL`
-- `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
-- `MAIL_AGENT_TELEGRAM_CHAT_ID`
 - `MAIL_AGENT_PUBLIC_BASE_URL`
 - `MAIL_AGENT_GMAIL_CLIENT_ID`
 - `MAIL_AGENT_GMAIL_CLIENT_SECRET`
@@ -134,115 +112,117 @@ Required env (initial):
 - `MAIL_AGENT_LABEL_KEEP`
 - `MAIL_AGENT_LABEL_DELETE`
 
-## 3) Database schema
+How to test this step:
 
-Create SQL migration + typed repository for at least:
+- Start with missing env var -> process exits with clear error
+- Start with full env -> service starts cleanly
 
-- `processed_emails`
-  - `id`
-  - `gmail_message_id` (unique)
-  - `gmail_thread_id`
-  - `classification_json` (jsonb)
-  - `input_payload` (jsonb)
-  - `telegram_message_id` (nullable)
-  - `system_action` (`keep|delete`)
-  - `user_action` (`undo_keep|undo_delete|none`)
-  - `created_at`, `updated_at`
+Commit checkpoint:
 
-- `agent_state`
-  - `key` (`gmail_history_id`)
-  - `value`
-  - `updated_at`
+- `feat(mail-agent): add fail-fast env configuration and bootstrap`
 
-## 4) Gmail integration module
+## Step 4: Build Gmail sync module with cursor handling
 
-- OAuth2 client creation from refresh token
-- Polling with `users.history.list` for `messageAdded`
-- Full-sync fallback for expired historyId (`404`)
-- Message/thread retrieval and normalization helpers
-- Label mutation helpers (add/remove labels, archive/unarchive)
+Deliverables:
 
-## 5) Decision pipeline module
+- OAuth2 client from refresh token
+- Polling based on stored `gmail_history_id`
+- Fallback full sync path when Gmail returns invalid history (`404`)
+- Message/thread fetch + normalization helpers
 
-Per candidate email/thread:
+How to test this step:
 
-1. Determine private-vs-ai path
-2. Private path -> direct Telegram notification + mark processed
-3. AI path:
-   - build input payload
-   - run OpenAI classification with structured output parsing
-   - run summary prompt when required (multi-message flow parity)
-   - persist result
-   - execute Gmail label/inbox mutation
-   - send Telegram notification with one undo link
+- Integration tests with mocked Gmail client:
+  - valid history path returns expected candidates
+  - invalid history path triggers full sync fallback
+- Manual run logs candidate IDs and updates `agent_state`
 
-## 6) OpenAI module
+Commit checkpoint:
 
-- Wrap OpenAI calls in dedicated service
-- Use deterministic response settings where possible
-- Parse output as `unknown` then validate with Zod
-- Return typed domain objects only
+- `feat(mail-agent): implement gmail polling and cursor sync`
 
-## 7) Telegram module
+## Step 5: Implement AI classification and summary pipeline
 
-- Send markdown-safe message
-- Include only one undo URL
-- Store Telegram message ID for traceability
+Deliverables:
 
-## 8) Undo endpoint
+- Private-vs-non-private branching
+- Private path: no AI classification
+- Non-private path:
+  - OpenAI call for keep/delete decision
+  - strict Zod parse of `unknown` model output
+  - summary generation path using extracted prompt semantics
+- Enforce classifier result contract:
+  - `deleteIt`, `summary`, `subject`, `reason`
 
-- Route example: `GET /mail-agent/undo?token=...`
-- Token contains action context (`threadId`, inverse action, timestamp, signature)
-- Validate token, apply reverse Gmail mutation, persist `user_action`
-- Respond with simple confirmation text
+How to test this step:
 
-## 9) Scheduling and execution
+- Fixture-based tests for:
+  - private email bypasses AI
+  - normal newsletter gets valid classifier JSON
+  - malformed model output is rejected and logged
 
-- Single service loop with lock to avoid overlapping polling runs
-- Idempotency checks by `gmail_message_id` and/or `gmail_thread_id`
-- Graceful retry with bounded backoff for Gmail/OpenAI/Telegram failures
+Commit checkpoint:
 
-## 10) Observability
+- `feat(mail-agent): add ai decision and summary pipeline`
 
-- Structured logs for each pipeline stage
-- Error categories: auth, quota, parse, network, data
-- Optional dead-letter table for failed items
+## Step 6: Apply Gmail actions and persist processing state
 
-## Testing and verification plan
+Deliverables:
 
-1. Unit tests
-   - prompt output parser
-   - keep/delete decision validator
-   - undo token signing/verification
-2. Integration tests (mocked external APIs)
-   - AI path end-to-end
-   - private path end-to-end
-   - undo flow end-to-end
-3. Manual smoke test
-   - poll -> classify -> notify -> undo -> DB state verified
+- Map classifier decision to Gmail label/inbox mutations
+- Persist processing result in `processed_emails`
+- Idempotency guard by `gmail_message_id` (and optional thread-level guard)
 
-## Migration phases
+How to test this step:
 
-## Phase 1: Foundation
+- Process same message twice -> second pass is skipped safely
+- `deleteIt=true` and `deleteIt=false` both produce expected DB + Gmail mutation calls
 
-- scaffold app, config, DB migrations, Gmail auth
+Commit checkpoint:
 
-## Phase 2: Core processing
+- `feat(mail-agent): persist actions and enforce idempotency`
 
-- polling + candidate extraction + AI/private branching
+## Step 7: Add notifier abstraction and undo endpoint
 
-## Phase 3: Delivery and undo
+Deliverables:
 
-- Telegram formatting + secure undo endpoint
+- Introduce `Notifier` interface (Telegram adapter plugged later)
+- Notification payload includes exactly one undo URL
+- Implement `GET /mail-agent/undo?token=...`
+- Signed undo token validation and reverse action execution
+- Persist user override (`user_action`) in DB
 
-## Phase 4: Hardening
+How to test this step:
 
-- idempotency, retries, logs, tests, docs
+- Unit tests for token sign/verify and expiry behavior
+- Integration test: trigger undo link -> Gmail reverse action + DB update
+- Contract test: emitted notification contains one and only one undo link
 
-## Open decisions to confirm before implementation
+Commit checkpoint:
 
-1. Project name/path: confirm `apps/mail-agent`.
-2. Telegram formatting style (plain text vs MarkdownV2).
-3. Which n8n sender-specific rules should be kept 1:1 in v1 vs reduced baseline.
-4. Poll interval target (1 min vs 5 min default).
-5. Soft-delete semantics: label+archive only (recommended) vs trash.
+- `feat(mail-agent): add undo endpoint and notifier abstraction`
+
+## Step 8: Wire final Telegram implementation and run full smoke tests
+
+Deliverables:
+
+- Plug chosen Telegram implementation into existing `Notifier` interface
+- End-to-end run: poll -> classify -> apply -> notify -> undo
+- Add operational README for local run and troubleshooting
+
+How to test this step:
+
+- Real mailbox smoke test with at least:
+  - one private mail
+  - one keep decision
+  - one delete decision
+  - one successful undo
+- Verify DB rows + Gmail label state + delivered Telegram messages
+
+Commit checkpoint:
+
+- `feat(mail-agent): integrate telegram notifier and complete e2e flow`
+
+### Note
+
+Telegram implementation details are intentionally left open until your decision.
