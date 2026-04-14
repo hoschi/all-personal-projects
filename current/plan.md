@@ -53,6 +53,16 @@ Target workspace: `apps/mail-agent`
   - expected outcomes and common failure cases
   - rollback/cleanup notes for test runs
 
+### Implementation reference documents
+
+- Gmail reference: [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md)
+  - Use in Step 3 for Gmail env/config setup.
+  - Use in Step 4 for polling, history cursor, and full-sync fallback behavior.
+  - Use in Step 6 and Step 7 for Gmail label mutations and undo reversal behavior.
+- Telegram reference: [`current/telegram-implementation-notes.md`](./telegram-implementation-notes.md)
+  - Use in Step 3 for Telegram env/config setup.
+  - Use in Step 7 for notifier adapter shape, message formatting, and provider error handling.
+
 ## Step 1: Scaffold app workspace and prompt assets
 
 Deliverables:
@@ -110,6 +120,9 @@ Deliverables:
 - Startup must fail fast on missing/invalid config
 - Initial app bootstrap and dependency wiring
 - Update README env section with complete variable reference and example flow.
+- Apply env requirements from:
+  - [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md) (`Required environment variables`)
+  - [`current/telegram-implementation-notes.md`](./telegram-implementation-notes.md) (`Required environment variables`)
 
 Initial required env:
 
@@ -143,6 +156,10 @@ Deliverables:
 - Polling based on stored `gmail_history_id`
 - Fallback full sync path when Gmail returns invalid history (`404`)
 - Message/thread fetch + normalization helpers
+- Implement this step according to [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md):
+  - `Polling model (history cursor)`
+  - `Full sync fallback strategy`
+  - `Message retrieval and shaping`
 
 How to test this step:
 
@@ -190,6 +207,9 @@ Deliverables:
 - Persist processing result in `processed_emails`
 - Idempotency guard by `gmail_message_id` (and optional thread-level guard)
 - Update README with idempotency test procedure and expected DB states.
+- Apply Gmail action semantics from [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md):
+  - `Gmail actions required in v0`
+  - `Error handling and reliability`
 
 How to test this step:
 
@@ -209,6 +229,12 @@ Deliverables:
 - Implement `GET /mail-agent/undo?token=...`
 - Signed undo token validation and reverse action execution
 - Persist user override (`user_action`) in DB
+- Build notifier adapter using [`current/telegram-implementation-notes.md`](./telegram-implementation-notes.md):
+  - `Recommended technical direction`
+  - `Messaging constraints and formatting`
+  - `Integration shape for apps/mail-agent`
+- Implement Gmail-side undo behavior using [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md):
+  - `Undo requirements (Gmail side)`
 
 How to test this step:
 
