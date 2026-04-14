@@ -230,91 +230,87 @@ cp apps/mail-agent/.env.example apps/mail-agent/.env
 
 ## Step 4
 
-### GCP-Setup — Detaillierte Anleitung
+### GCP setup — detailed guide
 
-#### 1. Google Cloud Projekt erstellen
+#### 1. Create a Google Cloud project
 
-1. Oeffne [Google Cloud Console](https://console.cloud.google.com/)
-2. Klicke oben links auf das **Projekt-Dropdown** (neben "Google Cloud")
-3. Klicke **"Neues Projekt"** im Dialog
-4. **Projektname** eingeben (z.B. "Gmail Local Reader")
-5. Organisation kann leer bleiben (fuer private Konten)
-6. Klicke **"Erstellen"** → Warte auf Notification → **Zum neuen Projekt wechseln**
+1. Open [Google Cloud Console](https://console.cloud.google.com/).
+2. Click the project dropdown in the top-left header.
+3. Click **"New Project"**.
+4. Enter a project name (for example, "Gmail Local Reader").
+5. Organization can stay empty for private usage.
+6. Click **"Create"** and switch to the new project.
 
-#### 2. Gmail API aktivieren
+#### 2. Enable Gmail API
 
-1. Gehe zu **APIs & Services → Bibliothek** (linkes Menue) oder direkt: [API Library](https://console.cloud.google.com/apis/library)
-2. Suche nach **"Gmail API"**
-3. Klicke auf **"Gmail API"** in den Ergebnissen
-4. Klicke **"Aktivieren"** (blauer Button)
+1. Open **APIs & Services -> Library** or [API Library](https://console.cloud.google.com/apis/library).
+2. Search for **"Gmail API"**.
+3. Select **"Gmail API"** from results.
+4. Click **"Enable"**.
 
-#### 3. OAuth Consent Screen konfigurieren
+#### 3. Configure OAuth consent screen
 
-1. Gehe zu **Google Auth Platform → Branding** oder: [OAuth Consent Screen](https://console.cloud.google.com/auth/branding)
-   - Falls noch nicht konfiguriert: Klicke **"Get Started"**
+1. Open **Google Auth Platform -> Branding** or [OAuth Consent Screen](https://console.cloud.google.com/auth/branding).
+   - If not configured yet, click **"Get Started"**.
 
-2. **App-Informationen** (Seite 1):
-   - **App-Name**: z.B. "Gmail Local Reader". Das wird abgeprüft und muss nach einer App klingen. [Hier sind Beispiele zu sehen.](https://support.google.com/cloud/answer/15549049?visit_id=639117854563019737-2224445486&rd=1#app-name&zippy=%2Capp-name)
-   - **User-Support-E-Mail**: Deine E-Mail-Adresse auswaehlen
-   - Klicke **"Weiter"**
+2. **App information**:
+   - **App name**: for example, "Gmail Local Reader". Google validates this and it should look like a real app name. See [naming examples](https://support.google.com/cloud/answer/15549049?visit_id=639117854563019737-2224445486&rd=1#app-name&zippy=%2Capp-name).
+   - **User support email**: select your email.
 
-3. **Zielgruppe** (Seite 2):
-   - **User Type**: **"Extern"** (fuer @gmail.com die einzige Option)
-   - Klicke **"Weiter"**
+3. **Audience**:
+   - **User type**: **"External"** (required for `@gmail.com` accounts).
 
-4. **Kontaktinformationen** (Seite 3):
-   - **E-Mail fuer Entwicklerbenachrichtigungen**: Deine E-Mail eintragen
-   - Klicke **"Weiter"**
+4. **Contact information**:
+   - Add your developer notification email.
 
-5. **Abschluss** (Seite 4):
-   - Haken bei **"Ich stimme den Google API Services: User Data Policy zu"**
-   - Klicke **"Erstellen"**
+5. **Finish**:
+   - Accept the Google API Services User Data Policy.
+   - Click **"Create"**.
 
-##### Scopes hinzufuegen
+##### Add scopes
 
-1. Gehe zu **Google Auth Platform → Data Access** linke seite im Menü
-2. Klicke **"Add or Remove Scopes"**
-3. Folgende Scopes hinzufuegen (einzeln suchen/eingeben, Haken setzen):
+1. Open **Google Auth Platform -> Data Access**.
+2. Click **"Add or Remove Scopes"**.
+3. Add these scopes:
    - `https://www.googleapis.com/auth/gmail.modify` (restricted)
    - `https://www.googleapis.com/auth/gmail.labels` (non-sensitive)
-4. **"Aktualisieren"** → **"Speichern"**
+4. Click **"Update"** and **"Save"**.
 
-> [!info] `gmail.modify` ist als **restricted** klassifiziert. Fuer Personal Use (max 100 User) greift die **Personal-Use-Ausnahme** — keine CASA-Verifizierung noetig. `gmail.labels` ist non-sensitive.
+> [!info] `gmail.modify` is classified as **restricted**. For personal-use apps (up to 100 users), the personal-use exception applies and CASA verification is not required. `gmail.labels` is non-sensitive.
 
-##### Test-User hinzufuegen
+##### Add test users
 
-1. Gehe zu **Google Auth Platform → Audience**
-2. Im Abschnitt **"Test users"** klicke **"Add users"**
-3. **Deine Gmail-Adresse** eingeben (deren Mails gelesen werden sollen)
-4. **"Speichern"**
+1. Open **Google Auth Platform -> Audience**.
+2. In **"Test users"**, click **"Add users"**.
+3. Add your Gmail address (the mailbox you want to read).
+4. Save.
 
-> [!warning] Im Testing-Modus koennen **nur** eingetragene Test-User den Consent-Flow durchlaufen.
+> [!warning] In testing mode, only configured test users can complete the consent flow.
 
-##### Publishing Status auf "In Production" setzen
+##### Set publishing status to production
 
-1. Gehe zu **Google Auth Platform → Audience**
-2. Finde **"Publishing status"** → Klicke **"Publish App"**
-3. Bestaetigen
+1. Open **Google Auth Platform -> Audience**.
+2. Find **"Publishing status"** and click **"Publish App"**.
+3. Confirm.
 
-> [!warning] KRITISCH: Testing-Modus = Refresh Token laeuft nach 7 Tagen ab!
-> Nach dem Wechsel von Testing zu Production **neue OAuth-Credentials erstellen** und **neuen Consent durchfuehren** — alte Refresh Tokens aus dem Testing-Modus behalten das 7-Tage-Ablaufdatum! Deswegen erst danach den oauth flow durchaufen.
+> [!warning] Critical: in testing mode, refresh tokens can expire after about 7 days. After switching to production, create new OAuth credentials and complete consent again; old testing-mode refresh tokens keep their original expiration behavior.
 
-4. Den Text "Die Anwendung muss überprüft werden. Reichen Sie die Anwendung zur Überprüfung ein, wenn Sie mit der Eingabe Ihrer Informationen fertig sind." ignorieren.
+4. You can ignore the review submission message for this personal-use setup.
 
-#### 4. OAuth Client-ID erstellen
+#### 4. Create OAuth client credentials
 
-1. Gehe zu **Google Auth Platform → Clients** oder: [Credentials Page](https://console.cloud.google.com/auth/clients)
-2. Klicke **"+ Create Client"**
-3. **Application type**: **"Desktop app"** auswaehlen.
-4. **Name**: z.B. "Gmail Local Reader Desktop". Hier geht wieder was einfaches wie `app-mail`.
-5. Klicke **"Erstellen"**
-6. **Client-ID und Client-Secret** werden angezeigt — **sofort herunterladen!**
-   - Klicke **"JSON herunterladen"** fuer die Credentials-Datei
-   - Das Secret ist nur bei Erstellung vollstaendig sichtbar
-7. Speichern in: `MAIL_AGENT_GMAIL_CLIENT_ID` und `MAIL_AGENT_GMAIL_CLIENT_SECRET`
+1. Open **Google Auth Platform -> Clients** or [Credentials Page](https://console.cloud.google.com/auth/clients).
+2. Click **"+ Create Client"**.
+3. Choose **"Desktop app"** as application type.
+4. Enter a name (for example, "Gmail Local Reader Desktop" or `app-mail`).
+5. Click **"Create"**.
+6. Copy or download credentials immediately:
+   - download the JSON credentials file
+   - client secret is fully visible only at creation time
+7. Store values in `MAIL_AGENT_GMAIL_CLIENT_ID` and `MAIL_AGENT_GMAIL_CLIENT_SECRET`.
 
-> [!tip] **Warum "Desktop app" und nicht "Web application"?**
-> Bei **"Desktop app"** muss **keine Redirect-URI manuell konfiguriert** werden. Google erlaubt fuer diesen Client-Typ automatisch alle Loopback-Adressen (`http://127.0.0.1`, `http://[::1]`, `http://localhost`) auf **jedem Port**. Bei "Web application" muesste jede `http://localhost:<port>/...`-URL einzeln in der Console eingetragen werden.
+> [!tip] Why use a desktop app instead of web application?
+> For desktop app clients, you do not need to manually configure redirect URIs. Google automatically allows loopback addresses (`http://127.0.0.1`, `http://[::1]`, `http://localhost`) on any port. With web application clients, localhost redirect URIs must be configured manually.
 
 ### 3) Generate one refresh token
 
@@ -331,7 +327,7 @@ Behavior of this CLI:
 - starts a local callback server on `http://127.0.0.1:3000`
 - prints the OAuth consent URL in terminal
 - opens the URL automatically on macOS
-- prints `MAIL_AGENT_GMAIL_REFRESH_TOKEN=...` after successful consent
+- prints `MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."` after successful consent
 
 ### 4) Fill `apps/mail-agent/.env`
 
@@ -342,6 +338,8 @@ MAIL_AGENT_GMAIL_CLIENT_ID="..."
 MAIL_AGENT_GMAIL_CLIENT_SECRET="..."
 MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
 ```
+
+For Step 4 Gmail testing, OpenAI and Telegram secrets can stay empty because those integrations are still placeholders in this stage.
 
 ### 5) Initialize DB schema (empty DB)
 

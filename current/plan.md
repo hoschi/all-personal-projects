@@ -259,7 +259,31 @@ Commit checkpoint:
 
 - `feat(mail-agent): add undo endpoint and notifier abstraction`
 
-## Step 8: Remove temporary smoke tests and cleanup test surface
+## Step 8: Re-enable strict runtime env checks
+
+Deliverables:
+
+- Remove temporary optional defaults used to unblock Step 4 Gmail-only local testing.
+- Make OpenAI env values required again once AI integration is active:
+  - `MAIL_AGENT_OPENAI_API_KEY`
+  - `MAIL_AGENT_OPENAI_MODEL`
+- Make Telegram notifier env values required again once notifier integration is active:
+  - `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
+  - `MAIL_AGENT_TELEGRAM_CHAT_ID`
+- Keep `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` optional.
+- Update `apps/mail-agent/README.md` with a per-step env matrix that clearly distinguishes temporary Step 4 relaxations from final required production values.
+
+How to test this step:
+
+- Unset one required OpenAI env value and verify startup fails fast with a clear Zod error.
+- Unset one required Telegram env value and verify startup fails fast with a clear Zod error.
+- Start with full env and verify service boots cleanly.
+
+Commit checkpoint:
+
+- `chore(mail-agent): re-enable strict env checks for full runtime`
+
+## Step 9: Remove temporary smoke tests and cleanup test surface
 
 Deliverables:
 
