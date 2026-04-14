@@ -1,7 +1,7 @@
 import { createAiPipelinePlaceholder } from "./ai"
 import { createBootstrapConfig } from "./config"
 import { createInMemoryStore } from "./data"
-import { createGmailSyncPlaceholder } from "./gmail"
+import { createGmailSync } from "./gmail"
 import { createHttpRuntimePlaceholder } from "./http"
 import { createNoopNotifier } from "./notify"
 import { createPipelineStageDescriptors } from "./pipeline"
@@ -9,7 +9,7 @@ import { createPipelineStageDescriptors } from "./pipeline"
 async function main() {
   const config = createBootstrapConfig()
   const dataStore = createInMemoryStore()
-  const gmail = createGmailSyncPlaceholder()
+  const gmail = createGmailSync(config)
   const ai = createAiPipelinePlaceholder()
   const notifier = createNoopNotifier()
   const pipeline = createPipelineStageDescriptors()
@@ -29,7 +29,7 @@ async function main() {
     undoUrl: "step-1-placeholder-undo-url",
   })
 
-  await gmail.poll()
+  const gmailPollResult = await gmail.poll()
 
   console.log(
     JSON.stringify({
@@ -43,6 +43,13 @@ async function main() {
         chatId: config.telegram.chatId,
         allowedUserIdsCount: config.telegram.allowedUserIds.length,
         parseMode: config.telegram.parseMode,
+      },
+      gmailSync: {
+        mode: gmailPollResult.mode,
+        cursorBefore: gmailPollResult.cursorBefore,
+        cursorAfter: gmailPollResult.cursorAfter,
+        candidateMessageCount: gmailPollResult.candidateMessageIds.length,
+        normalizedMessageCount: gmailPollResult.normalizedMessages.length,
       },
       pipeline,
       http,

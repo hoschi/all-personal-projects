@@ -4,8 +4,8 @@ This workspace migrates the former n8n mail workflow into versioned monorepo cod
 
 ## Current Status
 
-- Implemented: **Step 3** from `current/plan.md`
-- The workspace now fails fast on missing/invalid runtime configuration.
+- Implemented: **Step 4** from `current/plan.md`
+- The workspace now performs Gmail cursor polling with DB-backed state and 404 full-sync fallback.
 
 ## Usable After Step 1
 
@@ -23,11 +23,56 @@ The codebase already exposes stable module boundaries for later implementation:
 
 - `src/config`: bootstrap config contract
 - `src/data`: processed-email store contract (in-memory placeholder)
-- `src/gmail`: Gmail sync boundary (`poll`) placeholder
+- `src/gmail`: Gmail sync module with OAuth2, cursor polling, and normalization
 - `src/ai`: classifier decision contract placeholder
 - `src/notify`: notifier interface and noop adapter
 - `src/http`: HTTP runtime placeholder contract (not enabled in step 1)
 - `src/pipeline`: canonical pipeline stage contract
+
+## Usable After Step 4
+
+### Gmail OAuth2 + API client wiring
+
+- `src/gmail/index.ts` creates a Gmail API client with OAuth2 refresh-token auth.
+- Required scopes are configured for `gmail.modify` and `gmail.labels`.
+
+### Cursor-based polling with persistence
+
+- Poll reads `agent_state.gmail_history_id` as incremental cursor.
+- If cursor exists, sync uses `users.history.list(startHistoryId=...)`.
+- Updated cursor is persisted back to `agent_state` after successful polling.
+
+### Full-sync fallback
+
+- If Gmail history call fails with invalid/expired cursor (`404`), sync switches to full sync.
+- Full sync loads current mailbox messages (`users.messages.list`) and profile cursor (`users.getProfile`).
+- New cursor is persisted so later runs return to incremental history polling.
+
+### Message + thread normalization helpers
+
+- Each candidate message is fetched with `users.messages.get(format=full)`.
+- Thread context is fetched with `users.threads.get(format=metadata)`.
+- Normalized payload includes sender/recipients, subject, labels, text body, reduced HTML body, thread participants, and timestamps.
+
+## Gmail Sync Flow (Step 4)
+
+```mermaid
+flowchart TD
+  A[poll()] --> B[load cursor from agent_state]
+  B --> C{cursor exists?}
+  C -->|no| D[full sync via users.messages.list]
+  C -->|yes| E[users.history.list startHistoryId]
+  E --> F{404 invalid history?}
+  F -->|yes| D
+  F -->|no| G[extract candidate message IDs]
+  D --> H[fetch candidate messages]
+  G --> H
+  H --> I[users.messages.get full]
+  I --> J[users.threads.get metadata]
+  J --> K[normalize payloads]
+  K --> L[persist new gmail_history_id]
+  L --> M[return poll summary]
+```
 
 ## Usable After Step 2
 
@@ -119,14 +164,15 @@ flowchart TD
 
 ### Bootstrap behavior
 
-`start` currently executes an end-to-end placeholder pipeline:
+`start` currently executes an end-to-end scaffold flow:
 
 1. Build bootstrap config
-2. Build placeholder adapters (data, Gmail, AI, notify, HTTP state)
+2. Build adapters (data, Gmail sync, AI placeholder, notify placeholder, HTTP state)
 3. Execute one placeholder classification decision
 4. Persist one placeholder processed-email record in-memory
 5. Emit one placeholder notification payload
-6. Print structured runtime state to stdout
+6. Execute one Gmail sync poll run (`history` or `full_sync`)
+7. Print structured runtime state to stdout (including Gmail poll summary)
 
 ## Runtime Flow (Step 1)
 
@@ -134,7 +180,7 @@ flowchart TD
 flowchart TD
   A[main()] --> B[createBootstrapConfig]
   A --> C[createInMemoryStore]
-  A --> D[createGmailSyncPlaceholder]
+  A --> D[createGmailSync]
   A --> E[createAiPipelinePlaceholder]
   A --> F[createNoopNotifier]
   A --> G[createHttpRuntimePlaceholder]
@@ -143,7 +189,7 @@ flowchart TD
   E --> I[classify placeholder]
   I --> J[insert placeholder processed email]
   J --> K[sendNotification placeholder]
-  K --> L[poll placeholder]
+  K --> L[poll Gmail sync]
   L --> M[log startup payload]
 ```
 
@@ -252,6 +298,36 @@ bun run --filter mail-agent start
 Expected outcome:
 
 - process prints bootstrap JSON including `databaseSchemaName`, `pollIntervalMs`, `labels`, and `telegram.parseMode`
+
+## Step 4 Verification
+
+### Poll with valid mailbox
+
+From repository root:
+
+```bash
+bun run --filter mail-agent start
+```
+
+Expected outcome:
+
+- startup JSON includes `gmailSync.mode`, `gmailSync.cursorBefore`, `gmailSync.cursorAfter`, and candidate/normalized message counts
+
+### Verify persisted cursor
+
+Check `agent_state.gmail_history_id` in your local DB after one successful run.
+
+Expected outcome:
+
+- cursor value is present and changes across subsequent poll cycles
+
+### Simulate invalid cursor fallback
+
+Set an outdated `gmail_history_id` in DB and run `start` again.
+
+Expected outcome:
+
+- poll switches to `gmailSync.mode = full_sync` and stores a new valid cursor
 
 ### Common failure cases
 
