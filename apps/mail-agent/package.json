@@ -10,6 +10,7 @@
     "prisma": "prisma",
     "generate:prisma": "prisma generate",
     "db:smoke": "bun src/data/prisma-smoke.ts",
+    "smoke:clean": "bun src/data/prisma-smoke-clean.ts",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "test": "bun test",

@@ -58,20 +58,20 @@ The codebase already exposes stable module boundaries for later implementation:
 
 ```mermaid
 flowchart TD
-  A[poll()] --> B[load cursor from agent_state]
+  A[Poll] --> B[Load cursor from agent_state]
   B --> C{cursor exists?}
-  C -->|no| D[full sync via users.messages.list]
-  C -->|yes| E[users.history.list startHistoryId]
+  C -->|no| D[Full sync via messages list]
+  C -->|yes| E[History list with startHistoryId]
   E --> F{404 invalid history?}
   F -->|yes| D
-  F -->|no| G[extract candidate message IDs]
-  D --> H[fetch candidate messages]
+  F -->|no| G[Extract candidate message IDs]
+  D --> H[Fetch candidate messages]
   G --> H
-  H --> I[users.messages.get full]
-  I --> J[users.threads.get metadata]
-  J --> K[normalize payloads]
-  K --> L[persist new gmail_history_id]
-  L --> M[return poll summary]
+  H --> I[Fetch message full payload]
+  I --> J[Fetch thread metadata]
+  J --> K[Normalize payloads]
+  K --> L[Persist new gmail_history_id]
+  L --> M[Return poll summary]
 ```
 
 ## Usable After Step 2
@@ -225,6 +225,114 @@ Configure local secrets by copying template values into `.env`:
 ```bash
 cp apps/mail-agent/.env.example apps/mail-agent/.env
 ```
+
+## Gmail Local Setup (Required for Step 4 Tests)
+
+This section is the shortest path from an empty local database to a real Gmail poll run.
+
+### 1) Google Cloud project and Gmail API
+
+1. Create or open a Google Cloud project.
+2. Enable `Gmail API`.
+3. Configure OAuth consent screen (`External`).
+4. Add scopes:
+   - `https://www.googleapis.com/auth/gmail.modify`
+   - `https://www.googleapis.com/auth/gmail.labels`
+5. Add your Gmail address as test user.
+6. Set publishing status to `In production` before creating your final refresh token.
+
+Why production status matters:
+
+- refresh tokens from testing mode can expire after ~7 days
+- after switching to production, generate a fresh token again
+
+### 2) Create OAuth client credentials
+
+Create OAuth client type `Desktop app` and keep:
+
+- `client_id`
+- `client_secret`
+
+Desktop app is recommended for local usage because loopback redirect is supported without manual URI management.
+
+### 3) Generate one refresh token
+
+Run one OAuth consent flow and store the returned refresh token.
+
+Minimal requirements for the flow:
+
+- `access_type=offline`
+- `prompt=consent`
+- same two Gmail scopes as above
+
+After consent, store:
+
+- `MAIL_AGENT_GMAIL_REFRESH_TOKEN`
+
+### 4) Fill `apps/mail-agent/.env`
+
+At minimum, set all required values:
+
+```env
+DATABASE_URL=postgresql://...
+DATABASE_SCHEMA_NAME=mail
+
+MAIL_AGENT_OPENAI_API_KEY=...
+MAIL_AGENT_OPENAI_MODEL=...
+MAIL_AGENT_PUBLIC_BASE_URL=http://localhost:3070
+
+MAIL_AGENT_GMAIL_CLIENT_ID=...
+MAIL_AGENT_GMAIL_CLIENT_SECRET=...
+MAIL_AGENT_GMAIL_REFRESH_TOKEN=...
+MAIL_AGENT_POLL_INTERVAL_MS=60000
+MAIL_AGENT_LABEL_AI_MANAGED=ai-managed
+MAIL_AGENT_LABEL_KEEP=ai-keep
+MAIL_AGENT_LABEL_DELETE=ai-delete
+
+MAIL_AGENT_TELEGRAM_BOT_TOKEN=...
+MAIL_AGENT_TELEGRAM_CHAT_ID=...
+MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS=
+MAIL_AGENT_TELEGRAM_PARSE_MODE=MarkdownV2
+```
+
+### 5) Initialize DB schema (empty DB)
+
+From repository root:
+
+```bash
+bun run --filter mail-agent prisma generate
+bun run --filter mail-agent prisma migrate dev --name init
+```
+
+If you want to reset smoke artifacts before Gmail tests:
+
+```bash
+bun run --filter mail-agent smoke:clean
+```
+
+What this resets:
+
+- removes smoke test rows from `processed_emails`
+- removes `agent_state` row for `mail-agent-state` (forces next run into full sync)
+
+### 6) Start and validate first Gmail run
+
+From repository root:
+
+```bash
+bun run --filter mail-agent start
+```
+
+Expected on first run with empty `agent_state`:
+
+- `gmailSync.mode` is `full_sync`
+- `gmailSync.cursorAfter` is populated
+- `agent_state.gmail_history_id` is stored in DB
+
+Expected on subsequent runs:
+
+- `gmailSync.mode` is usually `history`
+- `cursorBefore` and `cursorAfter` reflect incremental sync
 
 ## Database Setup (Step 2)
 
