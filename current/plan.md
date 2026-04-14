@@ -59,6 +59,7 @@ Target workspace: `apps/mail-agent`
 - After each commit checkpoint, stop implementation and wait for explicit user instruction to continue.
 - In every commit, extend `apps/mail-agent/README.md` with detailed explanations of the newly implemented logic.
 - Use Mermaid diagrams whenever they improve understanding of flow, decision logic, or data movement.
+- Temporary smoke tests/scripts are allowed during implementation but must be removed in the final cleanup step.
 
 ### Implementation reference documents
 
@@ -253,3 +254,24 @@ How to test this step:
 Commit checkpoint:
 
 - `feat(mail-agent): add undo endpoint and notifier abstraction`
+
+## Step 8: Remove temporary smoke tests and cleanup test surface
+
+Deliverables:
+
+- Remove all temporary smoke tests introduced for intermediate implementation validation.
+- Remove temporary smoke scripts such as `db:smoke` once equivalent real workflow tests/checks exist.
+- Remove smoke-only helper files that are not part of the v0 production runtime.
+- Update `apps/mail-agent/README.md` to remove temporary smoke-test instructions.
+- Keep only durable verification commands and tests intended for long-term maintenance.
+
+How to test this step:
+
+- `bun run --filter mail-agent check-types`
+- `bun run --filter mail-agent lint`
+- `bun run --filter mail-agent test`
+- `bun run --filter mail-agent prisma migrate dev --name verify-cleanup` (must be no-op if schema unchanged)
+
+Commit checkpoint:
+
+- `chore(mail-agent): remove temporary smoke tests and cleanup docs`
