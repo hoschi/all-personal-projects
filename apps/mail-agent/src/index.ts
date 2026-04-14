@@ -1,4 +1,4 @@
-import { createAiPipelinePlaceholder } from "./ai"
+import { createAiPipeline } from "./ai"
 import { createBootstrapConfig } from "./config"
 import { createInMemoryStore } from "./data"
 import { createGmailSync } from "./gmail"
@@ -10,26 +10,46 @@ async function main() {
   const config = createBootstrapConfig()
   const dataStore = createInMemoryStore()
   const gmail = createGmailSync(config)
-  const ai = createAiPipelinePlaceholder()
+  const ai = createAiPipeline(config)
   const notifier = createNoopNotifier()
   const pipeline = createPipelineStageDescriptors()
   const http = createHttpRuntimePlaceholder()
 
-  const decision = await ai.classify()
-  dataStore.insert({
-    gmailMessageId: "step-1-placeholder-message",
-    gmailThreadId: "step-1-placeholder-thread",
-    classifierReason: decision.reason,
-    processedAtIso: "1970-01-01T00:00:00.000Z",
-  })
-
-  await notifier.sendNotification({
-    subject: decision.subject,
-    summary: decision.summary,
-    undoUrl: "step-1-placeholder-undo-url",
-  })
-
   const gmailPollResult = await gmail.poll()
+  const firstMessage = gmailPollResult.normalizedMessages.at(0)
+
+  let classification: Awaited<ReturnType<typeof ai.classify>> | null = null
+  let aiClassificationError: string | null = null
+
+  if (firstMessage) {
+    try {
+      classification = await ai.classify({
+        sender: firstMessage.sender,
+        subject: firstMessage.subject,
+        bodyText: firstMessage.bodyText,
+        labels: firstMessage.labels,
+        threadParticipants: firstMessage.threadParticipants,
+      })
+    } catch (error: unknown) {
+      aiClassificationError =
+        error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  if (classification && firstMessage) {
+    dataStore.insert({
+      gmailMessageId: firstMessage.gmailMessageId,
+      gmailThreadId: firstMessage.gmailThreadId,
+      classifierReason: classification.decision.reason,
+      processedAtIso: new Date().toISOString(),
+    })
+
+    await notifier.sendNotification({
+      subject: classification.decision.subject,
+      summary: classification.decision.summary,
+      undoUrl: "step-1-placeholder-undo-url",
+    })
+  }
 
   console.log(
     JSON.stringify({
@@ -51,6 +71,14 @@ async function main() {
         candidateMessageCount: gmailPollResult.candidateMessageIds.length,
         normalizedMessageCount: gmailPollResult.normalizedMessages.length,
       },
+      aiClassification: classification
+        ? {
+            path: classification.path,
+            deleteIt: classification.decision.deleteIt,
+            subject: classification.decision.subject,
+          }
+        : null,
+      aiClassificationError,
       pipeline,
       http,
     }),

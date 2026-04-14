@@ -198,6 +198,7 @@ Deliverables:
   - summary generation path using extracted prompt semantics
 - Enforce classifier result contract:
   - `deleteIt`, `summary`, `subject`, `reason`
+- Add temporary AI smoke command (`bun run --filter mail-agent ai:smoke`) for private/non-private/manual parse checks during migration.
 - Update README with manual AI test inputs and expected classifier output checks.
 
 How to test this step:
@@ -206,6 +207,7 @@ How to test this step:
 - Verify private input bypasses AI and is marked for direct notification flow.
 - Verify non-private input returns valid JSON with `deleteIt`, `summary`, `subject`, `reason`.
 - Trigger one malformed model-output scenario and verify it is rejected with clear log output.
+- Run `bun run --filter mail-agent ai:smoke` and verify private bypass path, non-private model path (or clear config error), and malformed output parse failure.
 - Confirm README instructions were sufficient for you to execute and validate these checks.
 
 Commit checkpoint:
@@ -292,6 +294,7 @@ Deliverables:
 - Remove all temporary smoke tests introduced for intermediate implementation validation.
 - Remove temporary smoke scripts such as `db:smoke` once equivalent real workflow tests/checks exist.
 - Remove temporary Gmail read smoke command `gmail:smoke` and its helper file.
+- Remove temporary AI smoke command `ai:smoke` and its helper file.
 - Remove smoke-only helper files that are not part of the v0 production runtime.
 - Update `apps/mail-agent/README.md` to remove temporary smoke-test instructions.
 - Keep only durable verification commands and tests intended for long-term maintenance.

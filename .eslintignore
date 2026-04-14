@@ -2,6 +2,7 @@ node_modules
 dist
 build
 coverage
+apps/*/src/generated/**
 *.min.js
 .turbo
 .next

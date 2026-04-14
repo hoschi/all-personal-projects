@@ -35,6 +35,14 @@ export type GmailPollResult = {
   normalizedMessages: NormalizedGmailMessage[]
 }
 
+export type GmailAppliedAction = "keep" | "delete"
+
+export type GmailApplyActionResult = {
+  appliedAction: GmailAppliedAction
+  addedLabelIds: string[]
+  removedLabelIds: string[]
+}
+
 function createGmailClient(config: BootstrapConfig) {
   const auth = new google.auth.OAuth2({
     clientId: config.gmailClientId,
@@ -329,8 +337,75 @@ function isInvalidHistoryError(error: unknown): boolean {
   return maybeCode === 404 || maybeStatus === 404 || maybeResponseStatus === 404
 }
 
+async function resolveLabelIdByName(
+  gmailClient: gmail_v1.Gmail,
+  labelName: string,
+): Promise<string> {
+  const labelsResponse = await gmailClient.users.labels.list({
+    userId: "me",
+  })
+
+  const matchingLabel = labelsResponse.data.labels?.find(
+    (label) => label.name === labelName,
+  )
+
+  if (!matchingLabel?.id) {
+    throw new Error(
+      `Configured Gmail label \"${labelName}\" was not found in mailbox labels.`,
+    )
+  }
+
+  return matchingLabel.id
+}
+
 export function createGmailSync(config: BootstrapConfig) {
   const gmailClient = createGmailClient(config)
+  const configuredLabelIdCache = new Map<string, string>()
+
+  async function getConfiguredLabelId(labelName: string): Promise<string> {
+    const cached = configuredLabelIdCache.get(labelName)
+
+    if (cached) {
+      return cached
+    }
+
+    const resolved = await resolveLabelIdByName(gmailClient, labelName)
+    configuredLabelIdCache.set(labelName, resolved)
+
+    return resolved
+  }
+
+  async function applyAction(
+    gmailMessageId: string,
+    deleteIt: boolean,
+  ): Promise<GmailApplyActionResult> {
+    const aiManagedLabelId = await getConfiguredLabelId(config.labels.aiManaged)
+    const keepLabelId = await getConfiguredLabelId(config.labels.keep)
+    const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
+
+    const appliedAction: GmailAppliedAction = deleteIt ? "delete" : "keep"
+
+    const addedLabelIds = deleteIt
+      ? [aiManagedLabelId, deleteLabelId]
+      : [aiManagedLabelId, keepLabelId]
+
+    const removedLabelIds = deleteIt ? ["INBOX", keepLabelId] : [deleteLabelId]
+
+    await gmailClient.users.messages.modify({
+      userId: "me",
+      id: gmailMessageId,
+      requestBody: {
+        addLabelIds: addedLabelIds,
+        removeLabelIds: removedLabelIds,
+      },
+    })
+
+    return {
+      appliedAction,
+      addedLabelIds,
+      removedLabelIds,
+    }
+  }
 
   return {
     async poll(): Promise<GmailPollResult> {
@@ -374,5 +449,6 @@ export function createGmailSync(config: BootstrapConfig) {
         return runFullSync(gmailClient)
       }
     },
+    applyAction,
   }
 }

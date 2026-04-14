@@ -71,8 +71,8 @@ The codebase already exposes stable module boundaries for later implementation:
 
 - `DATABASE_URL`
 - `DATABASE_SCHEMA_NAME` (`mail`)
-- `MAIL_AGENT_OPENAI_API_KEY`
-- `MAIL_AGENT_OPENAI_MODEL`
+- `MAIL_AGENT_OPENAI_API_KEY` (required for non-private AI model path)
+- `MAIL_AGENT_OPENAI_MODEL` (required for non-private AI model path)
 - `MAIL_AGENT_PUBLIC_BASE_URL`
 - `MAIL_AGENT_GMAIL_CLIENT_ID`
 - `MAIL_AGENT_GMAIL_CLIENT_SECRET`
@@ -81,8 +81,8 @@ The codebase already exposes stable module boundaries for later implementation:
 - `MAIL_AGENT_LABEL_AI_MANAGED`
 - `MAIL_AGENT_LABEL_KEEP`
 - `MAIL_AGENT_LABEL_DELETE`
-- `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
-- `MAIL_AGENT_TELEGRAM_CHAT_ID`
+- `MAIL_AGENT_TELEGRAM_BOT_TOKEN` (required once real notifier is enabled)
+- `MAIL_AGENT_TELEGRAM_CHAT_ID` (required once real notifier is enabled)
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
 - `MAIL_AGENT_TELEGRAM_PARSE_MODE`
 
@@ -162,17 +162,58 @@ flowchart TD
   L --> M[Return poll summary]
 ```
 
+## Usable After Step 5
+
+### AI classification paths
+
+- `src/ai/index.ts` now provides real classification routing with two paths:
+  - `private_bypass`: likely private emails skip model classification and are always kept
+  - `ai_model`: non-private emails are classified by OpenAI
+- Classifier output contract is enforced via Zod with strict fields:
+  - `deleteIt`
+  - `summary`
+  - `subject`
+  - `reason`
+
+### Non-private model classification
+
+- Non-private emails call OpenAI with `MAIL_AGENT_OPENAI_MODEL`.
+- Model output is treated as untrusted JSON and parsed as `unknown` before Zod validation.
+- Invalid or malformed model output throws a clear parsing error.
+
+### Temporary AI smoke test
+
+- `bun run --filter mail-agent ai:smoke` executes:
+  - one private sample (must bypass AI)
+  - one non-private sample (must use model path or return clear config/model error)
+  - one malformed output parse check (must throw validation error)
+
+## AI Decision Flow (Step 5)
+
+```mermaid
+flowchart TD
+  A[Receive normalized email] --> B{Likely private email}
+  B -->|yes| C[Use private bypass decision]
+  B -->|no| D[Call OpenAI classifier]
+  D --> E[Parse raw JSON as unknown]
+  E --> F[Validate with Zod contract]
+  F --> G[Return ai model decision]
+  C --> H[Return private bypass decision]
+  G --> I[Persist and notify flow]
+  H --> I
+```
+
 ### Bootstrap behavior
 
-`start` currently executes an end-to-end scaffold flow:
+`start` currently executes an end-to-end bootstrap flow:
 
 1. Build bootstrap config
-2. Build adapters (data, Gmail sync, AI placeholder, notify placeholder, HTTP state)
-3. Execute one placeholder classification decision
-4. Persist one placeholder processed-email record in-memory
-5. Emit one placeholder notification payload
-6. Execute one Gmail sync poll run (`history` or `full_sync`)
-7. Print structured runtime state to stdout (including Gmail poll summary)
+2. Build adapters (data, Gmail sync, AI pipeline, notify placeholder, HTTP state)
+3. Execute one Gmail sync poll run (`history` or `full_sync`)
+4. Classify first normalized mail (`private_bypass` or `ai_model`)
+5. Persist one in-memory processed-email record when classification exists
+6. Emit one placeholder notification payload when classification exists
+7. Print structured runtime state to stdout (including Gmail and AI summary)
 
 ## Runtime Flow (Step 1)
 
@@ -181,16 +222,17 @@ flowchart TD
   A[Start application] --> B[Build bootstrap config]
   A --> C[Build in memory store]
   A --> D[Build gmail sync adapter]
-  A --> E[Build ai placeholder]
+  A --> E[Build ai pipeline]
   A --> F[Build notify placeholder]
   A --> G[Build http runtime state]
   A --> H[Build pipeline descriptors]
 
-  E --> I[Run placeholder classification]
-  I --> J[Insert placeholder email record]
-  J --> K[Send placeholder notification]
-  K --> L[Run one gmail poll cycle]
-  L --> M[Log startup payload]
+  D --> I[Run one gmail poll cycle]
+  I --> J[Pick first normalized email]
+  J --> K[Run ai classification]
+  K --> L[Insert in memory email record]
+  L --> M[Send placeholder notification]
+  M --> N[Log startup payload]
 ```
 
 ## Logical Pipeline Contract (Step 1)
@@ -312,7 +354,7 @@ cp apps/mail-agent/.env.example apps/mail-agent/.env
 > [!tip] Why use a desktop app instead of web application?
 > For desktop app clients, you do not need to manually configure redirect URIs. Google automatically allows loopback addresses (`http://127.0.0.1`, `http://[::1]`, `http://localhost`) on any port. With web application clients, localhost redirect URIs must be configured manually.
 
-### 3) Generate one refresh token
+### 5) Generate one refresh token
 
 Run one OAuth consent flow and store the returned refresh token.
 
@@ -329,7 +371,7 @@ Behavior of this CLI:
 - opens the URL automatically on macOS
 - prints `MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."` after successful consent
 
-### 4) Fill `apps/mail-agent/.env`
+### 6) Fill `apps/mail-agent/.env`
 
 At minimum, set all required values in your `.env`:
 
@@ -341,7 +383,7 @@ MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
 
 For Step 4 Gmail testing, OpenAI and Telegram secrets can stay empty because those integrations are still placeholders in this stage.
 
-### 5) Initialize DB schema (empty DB)
+### 7) Initialize DB schema (empty DB)
 
 From repository root:
 
@@ -361,7 +403,7 @@ What this resets:
 - removes smoke test rows from `processed_emails`
 - removes `agent_state` row for `mail-agent-state` (forces next run into full sync)
 
-### 6) Start and validate first Gmail run
+### 8) Start and validate first Gmail run
 
 From repository root:
 
@@ -380,7 +422,7 @@ Expected on subsequent runs:
 - `gmailSync.mode` is usually `history`
 - `cursorBefore` and `cursorAfter` reflect incremental sync
 
-### 7) Temporary Gmail read smoke output
+### 9) Temporary Gmail read smoke output
 
 Use this temporary command to perform a direct Gmail read (`messages.list` + `messages.get`) and print a mailbox preview:
 
@@ -443,12 +485,12 @@ bun run --filter mail-agent db:smoke
 
 ## Step 3 Verification
 
-### Missing env should fail fast
+### Missing core env should fail fast
 
 From repository root:
 
 ```bash
-MAIL_AGENT_OPENAI_API_KEY= bun run --filter mail-agent start
+MAIL_AGENT_GMAIL_CLIENT_ID= bun run --filter mail-agent start
 ```
 
 Expected outcome:
@@ -465,7 +507,7 @@ bun run --filter mail-agent start
 
 Expected outcome:
 
-- process prints bootstrap JSON including `databaseSchemaName`, `pollIntervalMs`, `labels`, and `telegram.parseMode`
+- process prints bootstrap JSON including `databaseSchemaName`, `pollIntervalMs`, `labels`, `telegram.parseMode`, and `gmailSync`
 
 ## Step 4 Verification
 
@@ -496,6 +538,36 @@ Set an outdated `gmail_history_id` in DB and run `start` again.
 Expected outcome:
 
 - poll switches to `gmailSync.mode = full_sync` and stores a new valid cursor
+
+## Step 5 Verification
+
+### Run AI smoke test
+
+From repository root:
+
+```bash
+bun run --filter mail-agent ai:smoke
+```
+
+Expected outcome:
+
+- `privateSample.path` equals `private_bypass`
+- `nonPrivateSample.path` equals `ai_model` when OpenAI env is set
+- `nonPrivateError` is a clear config error when OpenAI env is not set
+- `malformedModelOutputError` contains an invalid classifier output error
+
+### Run bootstrap with AI summary output
+
+From repository root:
+
+```bash
+bun run --filter mail-agent start
+```
+
+Expected outcome:
+
+- startup JSON includes `aiClassification.path` when a message is classified
+- startup JSON includes `aiClassificationError` when non-private classification cannot run
 
 ### Common failure cases
 

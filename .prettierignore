@@ -4,8 +4,7 @@ build
 coverage
 **/routeTree.gen.ts
 **/next-env.d.ts
-apps/box-storage/src/generated/**
-apps/sst/src/generated/**
+apps/*/src/generated/**
 **/.output/**
 package-lock.json
 yarn.lock
