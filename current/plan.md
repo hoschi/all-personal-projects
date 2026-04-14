@@ -53,6 +53,13 @@ Target workspace: `apps/mail-agent`
   - expected outcomes and common failure cases
   - rollback/cleanup notes for test runs
 
+### Execution protocol (mandatory)
+
+- Implement exactly one plan step per commit checkpoint.
+- After each commit checkpoint, stop implementation and wait for explicit user instruction to continue.
+- In every commit, extend `apps/mail-agent/README.md` with detailed explanations of the newly implemented logic.
+- Use Mermaid diagrams whenever they improve understanding of flow, decision logic, or data movement.
+
 ### Implementation reference documents
 
 - Gmail reference: [`current/gmail-implementation-notes.md`](./gmail-implementation-notes.md)
@@ -63,17 +70,16 @@ Target workspace: `apps/mail-agent`
   - Use in Step 3 for Telegram env/config setup.
   - Use in Step 7 for notifier adapter shape, message formatting, and provider error handling.
 
-## Step 1: Scaffold app workspace and prompt assets
+## Step 1: Scaffold app workspace and runtime contracts
 
 Deliverables:
 
 - Create `apps/mail-agent` workspace with scripts aligned to monorepo:
   - `dev`, `build`, `start`, `check-types`, `lint`, `test`
 - Add base folder structure (`src/config`, `src/data`, `src/gmail`, `src/ai`, `src/notify`, `src/http`, `src/pipeline`)
-- Copy extracted prompts into versioned files:
-  - `src/prompts/classify-email.de.md`
-  - `src/prompts/summarize-thread.de.md`
-- Create initial `apps/mail-agent/README.md` with setup + step test checklist.
+- Keep prompt source-of-truth in `current/n8n-prompts.md` during implementation.
+- Do not copy prompt files into `apps/mail-agent` before v0 is implemented.
+- Create initial `apps/mail-agent/README.md` focused on what is usable after Step 1.
 
 How to test this step:
 
@@ -83,7 +89,7 @@ How to test this step:
 
 Commit checkpoint:
 
-- `chore(mail-agent): scaffold workspace and prompt assets`
+- `chore(mail-agent): scaffold workspace and runtime contracts`
 
 ## Step 2: Add Prisma baseline with schema `mail`
 
