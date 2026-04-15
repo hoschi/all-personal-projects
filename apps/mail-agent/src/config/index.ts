@@ -24,6 +24,7 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_LABEL_KEEP: z.string().trim().min(1),
   MAIL_AGENT_LABEL_DELETE: z.string().trim().min(1),
   MAIL_AGENT_LABEL_HIDDEN: z.string().trim().min(1),
+  MAIL_AGENT_UNDO_TOKEN_SECRET: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_BOT_TOKEN: optionalRuntimeSecretSchema,
   MAIL_AGENT_TELEGRAM_CHAT_ID: optionalRuntimeSecretSchema,
   MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS: z.string().trim().min(1).optional(),
@@ -52,6 +53,7 @@ export type BootstrapConfig = {
     delete: string
     hidden: string
   }
+  undoTokenSecret: string
   telegram: {
     botToken: string
     chatId: string
@@ -132,6 +134,7 @@ export function createBootstrapConfig(): BootstrapConfig {
         env.MAIL_AGENT_LABEL_HIDDEN,
       ),
     },
+    undoTokenSecret: env.MAIL_AGENT_UNDO_TOKEN_SECRET,
     telegram: {
       botToken: env.MAIL_AGENT_TELEGRAM_BOT_TOKEN,
       chatId: env.MAIL_AGENT_TELEGRAM_CHAT_ID,

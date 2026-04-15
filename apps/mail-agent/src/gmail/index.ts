@@ -44,6 +44,14 @@ export type GmailApplyActionResult = {
   removedLabelIds: string[]
 }
 
+export type GmailUndoAction = "undo_keep" | "undo_delete"
+
+export type GmailApplyUndoActionResult = {
+  userAction: GmailUndoAction
+  addedLabelIds: string[]
+  removedLabelIds: string[]
+}
+
 function createGmailClient(config: BootstrapConfig) {
   const auth = new google.auth.OAuth2({
     clientId: config.gmailClientId,
@@ -540,6 +548,51 @@ export function createGmailSync(config: BootstrapConfig) {
     }
   }
 
+  async function applyUndoAction(
+    gmailMessageId: string,
+    previousAppliedAction: GmailAppliedAction,
+  ): Promise<GmailApplyUndoActionResult> {
+    const debug = Debug("app:action:applyGmailUndoAction")
+    debug(
+      "Applying Gmail undo action: gmailMessageId=%s, previousAppliedAction=%s",
+      gmailMessageId,
+      previousAppliedAction,
+    )
+
+    const keepLabelId = await getConfiguredLabelId(config.labels.keep)
+    const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
+
+    const userAction: GmailUndoAction =
+      previousAppliedAction === "delete" ? "undo_delete" : "undo_keep"
+
+    const addedLabelIds = previousAppliedAction === "delete" ? ["INBOX"] : []
+    const removedLabelIds =
+      previousAppliedAction === "delete" ? [deleteLabelId] : [keepLabelId]
+
+    await gmailClient.users.messages.modify({
+      userId: "me",
+      id: gmailMessageId,
+      requestBody: {
+        addLabelIds: addedLabelIds,
+        removeLabelIds: removedLabelIds,
+      },
+    })
+
+    debug(
+      "Applied Gmail undo action: gmailMessageId=%s, userAction=%s, addedLabelCount=%d, removedLabelCount=%d",
+      gmailMessageId,
+      userAction,
+      addedLabelIds.length,
+      removedLabelIds.length,
+    )
+
+    return {
+      userAction,
+      addedLabelIds,
+      removedLabelIds,
+    }
+  }
+
   return {
     async poll(): Promise<GmailPollResult> {
       const debug = Debug("app:action:pollGmail")
@@ -607,5 +660,6 @@ export function createGmailSync(config: BootstrapConfig) {
       }
     },
     applyAction,
+    applyUndoAction,
   }
 }

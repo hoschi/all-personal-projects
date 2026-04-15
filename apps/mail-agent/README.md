@@ -4,8 +4,8 @@ This workspace migrates the former n8n mail workflow into versioned monorepo cod
 
 ## Current Status
 
-- Implemented: **Step 4** from `current/plan.md`
-- The workspace now performs Gmail cursor polling with DB-backed state and 404 full-sync fallback.
+- Implemented: **Step 7** from `current/plan.md`
+- The workspace now includes AI classification, Gmail action application, idempotent persistence, Telegram-capable notifier adapter, and signed undo endpoint runtime.
 
 ## Usable After Step 1
 
@@ -22,11 +22,11 @@ This workspace migrates the former n8n mail workflow into versioned monorepo cod
 The codebase already exposes stable module boundaries for later implementation:
 
 - `src/config`: bootstrap config contract
-- `src/data`: processed-email store contract (in-memory placeholder)
+- `src/data`: processed-email store contract (Prisma-backed)
 - `src/gmail`: Gmail sync module with OAuth2, cursor polling, and normalization
-- `src/ai`: classifier decision contract placeholder
-- `src/notify`: notifier interface and noop adapter
-- `src/http`: HTTP runtime placeholder contract (not enabled in step 1)
+- `src/ai`: classifier decision pipeline
+- `src/notify`: notifier interface + Telegram adapter with noop fallback
+- `src/http`: undo runtime with signed token validation and Gmail reversal endpoint
 - `src/pipeline`: canonical pipeline stage contract
 
 ## Usable After Step 2
@@ -82,6 +82,7 @@ The codebase already exposes stable module boundaries for later implementation:
 - `MAIL_AGENT_LABEL_KEEP`
 - `MAIL_AGENT_LABEL_DELETE`
 - `MAIL_AGENT_LABEL_HIDDEN`
+- `MAIL_AGENT_UNDO_TOKEN_SECRET`
 - `MAIL_AGENT_TELEGRAM_BOT_TOKEN` (required once real notifier is enabled)
 - `MAIL_AGENT_TELEGRAM_CHAT_ID` (required once real notifier is enabled)
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
@@ -109,6 +110,55 @@ flowchart TD
   I --> J
   J --> K[Run db smoke check]
   K --> L[Validate insert and read]
+```
+
+## Usable After Step 7
+
+### Notifier abstraction with Telegram adapter
+
+- `src/notify/index.ts` keeps `Notifier` as the stable interface boundary.
+- Runtime chooses adapter by configuration:
+  - if `MAIL_AGENT_TELEGRAM_BOT_TOKEN` and `MAIL_AGENT_TELEGRAM_CHAT_ID` are present, Telegram Bot API is used
+  - otherwise a noop notifier is used for local runs
+- Telegram adapter behavior:
+  - escapes MarkdownV2 content before sending
+  - chunks messages to max `4096` characters
+  - retries bounded on `429` using `retry_after`
+
+### Undo endpoint and signed token flow
+
+- `src/http/index.ts` starts a Bun HTTP runtime and exposes `GET /mail-agent/undo?token=...`.
+- `createUndoUrl(gmailMessageId)` creates a signed HMAC token containing:
+  - token version
+  - `gmailMessageId`
+  - expiration timestamp
+- Undo handler validates token signature and expiration before applying any mutation.
+- If undo target exists and has no previous `user_action`:
+  - reverse Gmail action via `gmail.applyUndoAction(...)`
+  - persist override via `processed_emails.user_action`
+
+### Gmail-side undo behavior
+
+- Undo delete (`appliedAction = delete`): add `INBOX`, remove delete label.
+- Undo keep (`appliedAction = keep`): remove keep label.
+- `processed_emails.user_action` is updated to `undo_delete` or `undo_keep` after successful reversal.
+
+## Undo Runtime Flow (Step 7)
+
+```mermaid
+flowchart TD
+  A[Message processed successfully] --> B[Create signed undo token]
+  B --> C[Build undo URL]
+  C --> D[Send notification with one undo URL]
+  D --> E[User opens GET /mail-agent/undo token]
+  E --> F[Verify signature and expiry]
+  F -->|invalid| G[Return 400]
+  F -->|valid| H[Load processed email row]
+  H -->|missing| I[Return 404]
+  H -->|already undone| J[Return 200 already applied]
+  H -->|undo pending| K[Reverse Gmail labels/inbox state]
+  K --> L[Persist processed_emails.user_action]
+  L --> M[Return 200 undo applied]
 ```
 
 ## Config Bootstrap Flow (Step 3)
@@ -223,14 +273,15 @@ flowchart TD
 `start` currently executes an end-to-end bootstrap flow:
 
 1. Build bootstrap config
-2. Build adapters (processed-email store, Gmail sync, AI pipeline, notify placeholder, HTTP state)
+2. Build adapters (processed-email store, Gmail sync, AI pipeline, notifier, HTTP undo runtime)
 3. Execute one Gmail sync poll run (`history` or `full_sync`)
 4. Pick first normalized mail and run idempotency check by `gmailMessageId`
 5. Classify mail (`private_bypass` or `ai_model`)
 6. Apply Gmail action (`keep` or `delete`) with configured labels
 7. Persist processing result to `processed_emails`
-8. Emit one placeholder notification payload when classification, action, and persistence succeed
-9. Print structured runtime state to stdout (including Gmail, AI, action, and idempotency summary)
+8. Generate one signed undo URL for the processed `gmailMessageId`
+9. Emit one notification payload with exactly one undo URL
+10. Print structured runtime state to stdout (including Gmail, AI, action, notification, and idempotency summary)
 
 ## Runtime Flow (Step 1)
 
@@ -240,8 +291,8 @@ flowchart TD
   A --> C[Build processed email store]
   A --> D[Build gmail sync adapter]
   A --> E[Build ai pipeline]
-  A --> F[Build notify placeholder]
-  A --> G[Build http runtime state]
+  A --> F[Build notifier adapter]
+  A --> G[Build http undo runtime]
   A --> H[Build pipeline descriptors]
 
   D --> I[Run one gmail poll cycle]
@@ -250,8 +301,9 @@ flowchart TD
   K --> L[Run ai classification]
   L --> M[Apply gmail keep delete action]
   M --> N[Persist processed email record]
-  N --> O[Send placeholder notification]
-  O --> P[Log startup payload]
+  N --> O[Create signed undo URL]
+  O --> P[Send notification with undo URL]
+  P --> Q[Log startup payload]
 ```
 
 ## Logical Pipeline Contract (Step 1)
@@ -398,9 +450,12 @@ At minimum, set all required values in your `.env`:
 MAIL_AGENT_GMAIL_CLIENT_ID="..."
 MAIL_AGENT_GMAIL_CLIENT_SECRET="..."
 MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
+MAIL_AGENT_UNDO_TOKEN_SECRET="..."
 ```
 
 For Step 4 Gmail testing, OpenAI and Telegram secrets can stay empty because those integrations are still placeholders in this stage.
+
+For current runtime, Telegram secrets can still stay empty when you intentionally use noop notifier mode, but `MAIL_AGENT_UNDO_TOKEN_SECRET` is required for signed undo URL generation.
 
 ### 7) Initialize DB schema (empty DB)
 
@@ -610,6 +665,49 @@ Expected debug flow signals:
 - `app:action:classifyEmail` shows private bypass vs model path and OpenAI output status
 - `app:action:applyGmailAction` shows applied action and label mutation counts
 - `app:db:hasProcessedMessage` / `app:db:insertProcessedEmail` show idempotency and DB writes
+
+## Step 7 Verification
+
+### Start runtime with undo endpoint enabled
+
+From repository root:
+
+```bash
+DEBUG=app:* bun run --filter mail-agent start
+```
+
+Expected outcome:
+
+- startup JSON includes `http.enabled: true`
+- startup JSON includes `http.undoUrlBase`
+- debug logs include `app:action:createHttpRuntime HTTP runtime started`
+
+### Verify notification payload includes one undo URL
+
+Process one message successfully (classification + action + persistence).
+
+Expected outcome:
+
+- startup JSON includes `notificationResult.providerMessageId` (or noop id in fallback mode)
+- debug logs show `Notification emitted` and include provider message id
+- notification content contains exactly one undo URL
+
+### Verify undo endpoint behavior
+
+Open the undo URL from the notification in browser.
+
+Expected outcome:
+
+- first open returns `Undo applied.`
+- second open returns `Undo already applied.`
+- DB row in `processed_emails` has `user_action` set (`undo_delete` or `undo_keep`)
+
+### Verify Gmail reversal mapping
+
+Expected reversal behavior:
+
+- if original action was delete: undo adds `INBOX` and removes delete label
+- if original action was keep: undo removes keep label
 
 ### Verify idempotency guard
 

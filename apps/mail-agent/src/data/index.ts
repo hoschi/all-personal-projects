@@ -3,6 +3,7 @@ import Debug from "debug"
 import { prisma } from "./prisma"
 
 export type AppliedAction = "keep" | "delete"
+export type UserAction = "undo_keep" | "undo_delete"
 
 export type ProcessedEmailInsertInput = {
   gmailMessageId: string
@@ -18,6 +19,12 @@ export type ProcessedEmailInsertInput = {
     subject: string
     reason: string
   }
+}
+
+export type ProcessedEmailUndoTarget = {
+  gmailMessageId: string
+  appliedAction: AppliedAction
+  userAction: string | null
 }
 
 export function createProcessedEmailStore() {
@@ -72,6 +79,66 @@ export function createProcessedEmailStore() {
       debug(
         "Persisted processed email: gmailMessageId=%s",
         input.gmailMessageId,
+      )
+    },
+
+    async findUndoTarget(
+      gmailMessageId: string,
+    ): Promise<ProcessedEmailUndoTarget | null> {
+      const debug = Debug("app:db:findUndoTarget")
+      debug("Loading undo target: gmailMessageId=%s", gmailMessageId)
+
+      const processedEmail = await prisma.processedEmail.findUnique({
+        where: { gmailMessageId },
+        select: {
+          gmailMessageId: true,
+          appliedAction: true,
+          userAction: true,
+        },
+      })
+
+      if (!processedEmail) {
+        debug("Undo target not found: gmailMessageId=%s", gmailMessageId)
+        return null
+      }
+
+      const appliedAction =
+        processedEmail.appliedAction === "delete" ? "delete" : "keep"
+
+      debug(
+        "Undo target loaded: gmailMessageId=%s, appliedAction=%s, hasUserAction=%s",
+        gmailMessageId,
+        appliedAction,
+        !!processedEmail.userAction,
+      )
+
+      return {
+        gmailMessageId: processedEmail.gmailMessageId,
+        appliedAction,
+        userAction: processedEmail.userAction,
+      }
+    },
+
+    async markUserAction(
+      gmailMessageId: string,
+      userAction: UserAction,
+    ): Promise<void> {
+      const debug = Debug("app:db:markUserAction")
+      debug(
+        "Persisting user action override: gmailMessageId=%s, userAction=%s",
+        gmailMessageId,
+        userAction,
+      )
+
+      await prisma.processedEmail.update({
+        where: { gmailMessageId },
+        data: { userAction },
+      })
+
+      debug(
+        "Persisted user action override: gmailMessageId=%s, userAction=%s",
+        gmailMessageId,
+        userAction,
       )
     },
   }

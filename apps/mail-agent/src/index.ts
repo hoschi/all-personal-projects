@@ -4,8 +4,8 @@ import { createAiPipeline } from "./ai"
 import { createBootstrapConfig } from "./config"
 import { createProcessedEmailStore } from "./data"
 import { createGmailSync } from "./gmail"
-import { createHttpRuntimePlaceholder } from "./http"
-import { createNoopNotifier } from "./notify"
+import { createHttpRuntime } from "./http"
+import { createNotifier } from "./notify"
 import { createPipelineStageDescriptors } from "./pipeline"
 
 async function main() {
@@ -23,9 +23,10 @@ async function main() {
   const processedEmailStore = createProcessedEmailStore()
   const gmail = createGmailSync(config)
   const ai = createAiPipeline(config)
-  const notifier = createNoopNotifier()
+  const notifier = createNotifier(config)
   const pipeline = createPipelineStageDescriptors()
-  const http = createHttpRuntimePlaceholder()
+  const httpRuntime = createHttpRuntime(config, processedEmailStore, gmail)
+  const http = httpRuntime.state
   debug("Adapters initialized: pipelineStageCount=%d", pipeline.length)
 
   const gmailPollResult = await gmail.poll()
@@ -45,6 +46,8 @@ async function main() {
   let actionResult: Awaited<ReturnType<typeof gmail.applyAction>> | null = null
   let actionError: string | null = null
   let persistenceError: string | null = null
+  let notificationResult: { providerMessageId: string } | null = null
+  let notificationError: string | null = null
   let idempotencySkipped = false
 
   if (firstMessage) {
@@ -153,17 +156,30 @@ async function main() {
   }
 
   if (classification && firstMessage && actionResult && !persistenceError) {
-    await notifier.sendNotification({
-      subject: classification.decision.subject,
-      summary: classification.decision.summary,
-      undoUrl: "step-1-placeholder-undo-url",
-    })
+    const undoUrl = httpRuntime.createUndoUrl(firstMessage.gmailMessageId)
 
-    debug(
-      "Notification emitted: gmailMessageId=%s, subject=%s",
-      firstMessage.gmailMessageId,
-      classification.decision.subject,
-    )
+    try {
+      notificationResult = await notifier.sendNotification({
+        subject: classification.decision.subject,
+        summary: classification.decision.summary,
+        undoUrl,
+      })
+
+      debug(
+        "Notification emitted: gmailMessageId=%s, subject=%s, providerMessageId=%s",
+        firstMessage.gmailMessageId,
+        classification.decision.subject,
+        notificationResult.providerMessageId,
+      )
+    } catch (error: unknown) {
+      notificationError = error instanceof Error ? error.message : String(error)
+
+      debug(
+        "Notification failed: gmailMessageId=%s, error=%s",
+        firstMessage.gmailMessageId,
+        notificationError,
+      )
+    }
   }
 
   debug(
@@ -205,6 +221,8 @@ async function main() {
       actionResult,
       actionError,
       persistenceError,
+      notificationResult,
+      notificationError,
       idempotencySkipped,
       pipeline,
       http,
