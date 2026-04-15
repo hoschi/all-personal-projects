@@ -209,7 +209,7 @@ Then complete the rest of required Mail Agent variables from the Setup section a
 ### 1) Create bot with BotFather
 
 1. Open Telegram and start a chat with `@BotFather`.
-2. Run `/newbot` and follow the prompts.
+2. Run `/newbot` and follow the prompts, e.g. name it EmailAgent and EmailAgentBot
 3. Copy the generated bot token.
 
 Store token in:
@@ -218,7 +218,7 @@ Store token in:
 
 ### 2) Get target chat ID
 
-1. Open a chat with your bot and send a message (for example `/start`).
+1. Search for `EmailAgentBot` in Telegram and click on it to start the bot. This sends `start`. Send another message.
 2. Fetch updates with your bot token:
 
 ```text
