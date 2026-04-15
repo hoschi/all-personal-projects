@@ -134,7 +134,7 @@ flowchart TD
 ### Cursor-based polling with persistence
 
 - The cursor is the last known Gmail history position (`historyId`) stored in `agent_state.gmail_history_id`.
-- Conceptually, it is a checkpoint pointer for mailbox changes, not a message id and not a timestamp.
+- Conceptually, it is a checkpoint pointer for mailbox changes, not a message id and not a timestamp. This comes from the gmail API and is managed by gmail itself.
 - Polling reads this stored cursor and requests only changes after this checkpoint via `users.history.list(startHistoryId=...)`.
 - New incoming emails create new Gmail history entries. On the next poll run, those entries are returned as incremental changes and converted into candidate message ids.
 - After processing the poll result, the newest returned `historyId` is persisted back to `agent_state` as the next checkpoint.
