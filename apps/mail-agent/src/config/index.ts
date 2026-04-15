@@ -5,8 +5,6 @@ export const APP_NAME = "mail-agent" as const
 
 const TELEGRAM_PARSE_MODES = ["MarkdownV2", "Markdown", "HTML"] as const
 
-const optionalRuntimeSecretSchema = z.string().trim().optional().default("")
-
 dotenvConfig({ path: ".env.base", quiet: true })
 dotenvConfig({ path: ".env", override: true, quiet: true })
 
@@ -26,8 +24,8 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_LABEL_DELETE: z.string().trim().min(1),
   MAIL_AGENT_LABEL_HIDDEN: z.string().trim().min(1),
   MAIL_AGENT_UNDO_TOKEN_SECRET: z.string().trim().min(1),
-  MAIL_AGENT_TELEGRAM_BOT_TOKEN: optionalRuntimeSecretSchema,
-  MAIL_AGENT_TELEGRAM_CHAT_ID: optionalRuntimeSecretSchema,
+  MAIL_AGENT_TELEGRAM_BOT_TOKEN: z.string().trim().min(1),
+  MAIL_AGENT_TELEGRAM_CHAT_ID: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS: z.string().trim().min(1).optional(),
   MAIL_AGENT_TELEGRAM_PARSE_MODE: z
     .enum(TELEGRAM_PARSE_MODES)

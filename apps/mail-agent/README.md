@@ -1,332 +1,83 @@
 # Mail Agent (`apps/mail-agent`)
 
-This workspace migrates the former n8n mail workflow into versioned monorepo code.
+Mail Agent is the production replacement for the previous n8n mail workflow.
+It polls Gmail, classifies messages, applies keep/delete label actions, sends Telegram notifications, and exposes a reusable signed undo URL.
 
-## Current Status
+## Setup
 
-- Implemented: **Step 7** from `current/plan.md`
-- The workspace now includes AI classification, Gmail action application, idempotent persistence, Telegram-capable notifier adapter, and signed undo endpoint runtime.
+### Prerequisites
 
-## Usable After Step 1
+- Bun
+- PostgreSQL
+- Google Cloud project for Gmail API + OAuth
+- OpenAI API key and model access
+- Telegram bot token and chat ID
 
-### Workspace commands
+### 1) Create local env file
 
-- `bun run --filter mail-agent start` runs the bootstrap flow once.
-- `bun run --filter mail-agent dev` runs watch mode for fast iteration.
-- `bun run --filter mail-agent check-types` validates TypeScript contracts.
-- `bun run --filter mail-agent lint` validates code quality.
-- `bun run --filter mail-agent test` runs the smoke test suite.
+From repository root:
 
-### Available runtime contracts
+```bash
+cp apps/mail-agent/.env.example apps/mail-agent/.env
+```
 
-The codebase already exposes stable module boundaries for later implementation:
+### 2) Configure environment
 
-- `src/config`: bootstrap config contract
-- `src/data`: processed-email store contract (Prisma-backed)
-- `src/gmail`: Gmail sync module with OAuth2, cursor polling, and normalization
-- `src/ai`: classifier decision pipeline
-- `src/notify`: notifier interface + Telegram adapter with noop fallback
-- `src/http`: undo runtime with signed token validation and Gmail reversal endpoint
-- `src/pipeline`: canonical pipeline stage contract
-
-## Usable After Step 2
-
-### Prisma configuration baseline
-
-- `prisma.config.ts` loads `.env.base` first and optional `.env` as override.
-- `DATABASE_URL` is required.
-- `DATABASE_SCHEMA_NAME` is required and must equal `mail`.
-- Prisma datasource URL is built as `${DATABASE_URL}?schema=${DATABASE_SCHEMA_NAME}`.
-
-### Database schema and migration state
-
-- `prisma/schema.prisma` defines:
-  - `processed_emails`
-  - `agent_state`
-- Initial migration is present in `prisma/migrations/`.
-- Prisma client output is generated under `src/generated/prisma`.
-
-### Prisma runtime access
-
-- `src/data/prisma.ts` exposes a Prisma client with `@prisma/adapter-pg`.
-- Adapter schema binding uses `DATABASE_SCHEMA_NAME` from `prisma.config.ts`.
-- `src/data/prisma-smoke.ts` performs an insert/read smoke check for both tables.
-
-## Usable After Step 3
-
-### Fail-fast runtime configuration
-
-- `src/config/index.ts` loads `.env.base` first, then optional `.env` override.
-- Startup validates env with Zod and throws a clear error on the first boot when values are missing or invalid.
-- `DATABASE_SCHEMA_NAME` is strictly validated as `mail`.
-- Parsed config is exposed through `createBootstrapConfig()` for all runtime modules.
-
-### Runtime bootstrap wiring
-
-- `src/index.ts` now uses validated config values in the startup payload.
-- Runtime logs include only non-sensitive configuration summary (schema, labels, poll interval, telegram parse mode).
-- Secret values (API keys, client secrets, tokens) are never logged.
-
-### Required environment variables
+Required variables:
 
 - `DATABASE_URL`
 - `DATABASE_SCHEMA_NAME` (`mail`)
-- `MAIL_AGENT_OPENAI_API_KEY` (required for non-private AI model path)
-- `MAIL_AGENT_OPENAI_MODEL` (required for non-private AI model path)
+- `MAIL_AGENT_OPENAI_API_KEY`
+- `MAIL_AGENT_OPENAI_MODEL`
 - `MAIL_AGENT_PUBLIC_BASE_URL`
 - `MAIL_AGENT_GMAIL_CLIENT_ID`
 - `MAIL_AGENT_GMAIL_CLIENT_SECRET`
 - `MAIL_AGENT_GMAIL_REFRESH_TOKEN`
+- `MAIL_AGENT_GMAIL_FILTER_QUERY`
 - `MAIL_AGENT_POLL_INTERVAL_MS`
 - `MAIL_AGENT_LABEL_AI_LABEL_PREFIX`
 - `MAIL_AGENT_LABEL_KEEP`
 - `MAIL_AGENT_LABEL_DELETE`
 - `MAIL_AGENT_LABEL_HIDDEN`
 - `MAIL_AGENT_UNDO_TOKEN_SECRET`
-- `MAIL_AGENT_TELEGRAM_BOT_TOKEN` (required once real notifier is enabled)
-- `MAIL_AGENT_TELEGRAM_CHAT_ID` (required once real notifier is enabled)
-- `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
-- `MAIL_AGENT_TELEGRAM_PARSE_MODE`
+- `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
+- `MAIL_AGENT_TELEGRAM_CHAT_ID`
 
-Managed label behavior:
+Optional variables:
 
-- `MAIL_AGENT_LABEL_AI_LABEL_PREFIX` defines the root (for example `ai-managed`)
-- `MAIL_AGENT_LABEL_KEEP`, `MAIL_AGENT_LABEL_DELETE`, and `MAIL_AGENT_LABEL_HIDDEN` are suffixes (for example `keep`, `soft-delete`, `hidden`)
-- Runtime composes full label names as `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${suffix}`
+- `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS`
+- `MAIL_AGENT_TELEGRAM_PARSE_MODE` (default: `MarkdownV2`)
 
-## Prisma Flow (Step 2)
+Notes:
 
-```mermaid
-flowchart TD
-  A[Env base file] --> C[Prisma config]
-  B[Env override file] --> C
-  C --> D[Build datasource url]
-  D --> E[Prisma schema]
-  E --> F[Run migration]
-  F --> G[Write migration files]
-  E --> H[Generate prisma client]
-  H --> I[Generated client output]
-  C --> J[Create prisma runtime client]
-  I --> J
-  J --> K[Run db smoke check]
-  K --> L[Validate insert and read]
+- `MAIL_AGENT_GMAIL_FILTER_QUERY` has a default in `.env.base` and can be overridden in `.env`.
+- The query is used for full-sync candidate listing (first run and invalid-history fallback).
+- Managed labels are composed as:
+  - `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}`
+  - `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}`
+  - `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_HIDDEN}`
+
+Generate undo secret once:
+
+```bash
+openssl rand -hex 32
 ```
 
-## Usable After Step 7
+### 3) Apply database migrations
 
-### Notifier abstraction with Telegram adapter
+From repository root:
 
-- `src/notify/index.ts` keeps `Notifier` as the stable interface boundary.
-- Runtime chooses adapter by configuration:
-  - if `MAIL_AGENT_TELEGRAM_BOT_TOKEN` and `MAIL_AGENT_TELEGRAM_CHAT_ID` are present, Telegram Bot API is used
-  - otherwise a noop notifier is used for local runs
-- Telegram adapter behavior:
-  - adds status line with emoji (`✅ keep` / `🗑️ deleted`) based on current applied action
-  - updates that emoji by editing the existing Telegram message (`editMessageText`) after undo toggle
-  - does not send a second status message for undo updates
-  - persists notification mapping (`provider`, `providerMessageId`, `subject`, `summary`, `undoUrl`) in `processed_emails`
-  - loads persisted mapping after restart so undo still edits the original Telegram message
-  - if mapping is missing, logs a clear debug message and keeps undo flow successful without crash
-  - escapes MarkdownV2 content before sending
-  - chunks messages to max `4096` characters
-  - retries bounded on `429` using `retry_after`
-
-### Undo endpoint and signed token flow
-
-- `src/http/index.ts` starts a Bun HTTP runtime and exposes `GET /mail-agent/undo?token=...`.
-- `createUndoUrl(gmailMessageId)` creates a signed HMAC token containing:
-  - token version
-  - `gmailMessageId`
-- Undo handler validates token signature before applying any mutation.
-- Undo link is reusable and toggles state on each valid call:
-  - when `user_action` is `null`: reverse Gmail action via `gmail.applyUndoAction(...)` and persist `undo_*`
-  - when `user_action` is `undo_*`: re-apply original Gmail action via `gmail.applyAction(...)` and persist `null`
-
-### Gmail-side undo behavior
-
-- Undo delete (`appliedAction = delete`): add `INBOX` + keep label, remove delete + hidden labels.
-- Undo keep (`appliedAction = keep`): add delete label, remove `INBOX` + keep + hidden labels.
-- `processed_emails.user_action` is updated to `undo_delete` or `undo_keep` after successful reversal.
-
-## Undo Runtime Flow (Step 7)
-
-```mermaid
-flowchart TD
-  A[Message processed successfully] --> B[Create signed undo token]
-  B --> C[Build undo URL]
-  C --> D[Send notification with one undo URL]
-  D --> E[User opens GET /mail-agent/undo token]
-  E --> F[Verify signature]
-  F -->|invalid| G[Return 400]
-  F -->|valid| H[Load processed email row]
-  H -->|missing| I[Return 404]
-  H -->|user_action is null| J[Apply undo mutation]
-  H -->|user_action is undo_*| K[Reapply original action]
-  J --> L[Persist processed_emails.user_action as undo_*]
-  K --> M[Persist processed_emails.user_action as null]
-  L --> N[Return 200 undo applied]
-  M --> O[Return 200 undo reverted]
+```bash
+bun run --filter mail-agent prisma migrate deploy
 ```
 
-## Config Bootstrap Flow (Step 3)
+Optional during local development:
 
-```mermaid
-flowchart TD
-  A[Env base file] --> C[Load config module]
-  B[Env override file] --> C
-  C --> D[Validate environment]
-  D -->|invalid| E[Throw startup error]
-  D -->|valid| F[Create bootstrap config]
-  F --> G[Bootstrap runtime]
-  G --> H[Log non sensitive summary]
+```bash
+bun run --filter mail-agent prisma generate
 ```
 
-## Usable After Step 4
-
-### Gmail OAuth2 + API client wiring
-
-- `src/gmail/index.ts` creates a Gmail API client with OAuth2 refresh-token auth.
-- Required scopes are configured for `gmail.modify` and `gmail.labels`.
-
-### Cursor-based polling with persistence
-
-- The cursor is the last known Gmail history position (`historyId`) stored in `agent_state.gmail_history_id`.
-- Conceptually, it is a checkpoint pointer for mailbox changes, not a message id and not a timestamp. This comes from the gmail API and is managed by gmail itself.
-- Polling reads this stored cursor and requests only changes after this checkpoint via `users.history.list(startHistoryId=...)`.
-- New incoming emails create new Gmail history entries. On the next poll run, those entries are returned as incremental changes and converted into candidate message ids.
-- After processing the poll result, the newest returned `historyId` is persisted back to `agent_state` as the next checkpoint.
-- This keeps normal operation incremental (`only changes since last run`) instead of repeatedly scanning the whole mailbox.
-
-### Full-sync fallback
-
-- Full sync is needed when no checkpoint exists yet (first run) or when the stored checkpoint is no longer valid.
-- A checkpoint can become invalid when Gmail history retention no longer covers that old `historyId` (for example after longer downtime). Gmail then rejects `startHistoryId` with `404`.
-- In this case, the agent switches to full sync to rebuild a valid baseline from current mailbox state:
-  - load mailbox candidates via `users.messages.list`
-  - read a fresh valid current `historyId` via `users.getProfile`
-- The fresh cursor is persisted to `agent_state`, so following runs continue in incremental history mode again.
-- Result: the fallback is a recovery mechanism that restores a valid checkpoint and prevents the pipeline from getting permanently stuck on an outdated cursor.
-
-### Message + thread normalization helpers
-
-- Each candidate message is fetched with `users.messages.get(format=full)`.
-- Thread context is fetched with `users.threads.get(format=metadata)`.
-- Normalized payload includes sender/recipients, subject, labels, text body, reduced HTML body, thread participants, and timestamps.
-
-## Gmail Sync Flow (Step 4)
-
-```mermaid
-flowchart TD
-  A[Start poll cycle] --> B[Load stored history cursor]
-  B --> C{Cursor exists}
-  C -->|no| D[Run full sync from inbox]
-  C -->|yes| E[Read history changes]
-  E --> F{History cursor valid}
-  F -->|no| D
-  F -->|yes| G[Collect changed message ids]
-  D --> H[Build candidate message list]
-  G --> H
-  H --> I[Fetch full message payload]
-  I --> J[Fetch thread metadata]
-  J --> K[Normalize message data]
-  K --> L[Store next history cursor]
-  L --> M[Return poll summary]
-```
-
-## Usable After Step 5
-
-### AI classification paths
-
-- `src/ai/index.ts` now provides real classification routing with two paths:
-  - `private_bypass`: likely private emails skip model classification and are always kept
-  - `ai_model`: non-private emails are classified by OpenAI
-- Classifier system prompt stays in German and follows the extracted n8n prompt structure (`Rolle`, `Aufgabe`, `Behalten oder Löschen`, `Zusammenfassung`, `Ausgabe`) as closely as possible.
-- Classifier output contract is enforced via Zod with strict fields:
-  - `deleteIt`
-  - `summary`
-  - `subject`
-  - `reason`
-
-### Non-private model classification
-
-- Non-private emails call OpenAI with `MAIL_AGENT_OPENAI_MODEL`.
-- Model output is treated as untrusted JSON and parsed as `unknown` before Zod validation.
-- Invalid or malformed model output throws a clear parsing error.
-
-### Temporary AI smoke test
-
-- `bun run --filter mail-agent ai:smoke` executes:
-  - one private sample (must bypass AI)
-  - one non-private sample (must use model path or return clear config/model error)
-  - one malformed output parse check (must throw validation error)
-
-## AI Decision Flow (Step 5)
-
-```mermaid
-flowchart TD
-  A[Receive normalized email] --> B{Likely private email}
-  B -->|yes| C[Use private bypass decision]
-  B -->|no| D[Call OpenAI classifier]
-  D --> E[Parse raw JSON as unknown]
-  E --> F[Validate with Zod contract]
-  F --> G[Return ai model decision]
-  C --> H[Return private bypass decision]
-  G --> I[Persist and notify flow]
-  H --> I
-```
-
-### Bootstrap behavior
-
-`start` currently executes an end-to-end bootstrap flow:
-
-1. Build bootstrap config
-2. Build adapters (processed-email store, Gmail sync, AI pipeline, notifier, HTTP undo runtime)
-3. Execute one Gmail sync poll run (`history` or `full_sync`)
-4. Pick first normalized mail and run idempotency check by `gmailMessageId`
-5. Classify mail (`private_bypass` or `ai_model`)
-6. Apply Gmail action (`keep` or `delete`) with configured labels
-7. Persist processing result to `processed_emails`
-8. Generate one signed undo URL for the processed `gmailMessageId`
-9. Emit one notification payload with exactly one undo URL
-10. Print structured runtime state to stdout (including Gmail, AI, action, notification, and idempotency summary)
-
-## Runtime Flow (Step 1)
-
-```mermaid
-flowchart TD
-  A[Start application] --> B[Build bootstrap config]
-  A --> C[Build processed email store]
-  A --> D[Build gmail sync adapter]
-  A --> E[Build ai pipeline]
-  A --> F[Build notifier adapter]
-  A --> G[Build http undo runtime]
-  A --> H[Build pipeline descriptors]
-
-  D --> I[Run one gmail poll cycle]
-  I --> J[Pick first normalized email]
-  J --> K[Check idempotency by gmail message id]
-  K --> L[Run ai classification]
-  L --> M[Apply gmail keep delete action]
-  M --> N[Persist processed email record]
-  N --> O[Create signed undo URL]
-  O --> P[Send notification with undo URL]
-  P --> Q[Log startup payload]
-```
-
-## Logical Pipeline Contract (Step 1)
-
-The canonical pipeline stages are already fixed in code and validated by test:
-
-```mermaid
-flowchart LR
-  S1[Load cursor] --> S2[Fetch changes]
-  S2 --> S3[Normalize messages]
-  S3 --> S4[Classify]
-  S4 --> S5[Apply action]
-  S5 --> S6[Notify user]
-```
-
-## Quick Start
+### 4) Start runtime
 
 From repository root:
 
@@ -334,21 +85,13 @@ From repository root:
 bun run --filter mail-agent start
 ```
 
-For watch mode:
+Watch mode:
 
 ```bash
 bun run --filter mail-agent dev
 ```
 
-Configure local secrets by copying template values into `.env`:
-
-```bash
-cp apps/mail-agent/.env.example apps/mail-agent/.env
-```
-
----
-
-## Step 4
+## Gmail OAuth Workflow
 
 ### GCP setup — detailed guide
 
@@ -449,350 +192,159 @@ Behavior of this CLI:
 - opens the URL automatically on macOS
 - prints `MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."` after successful consent
 
-### 6) Fill `apps/mail-agent/.env`
+### 6) Store Gmail credentials in `.env`
 
-At minimum, set all required values in your `.env`:
+Add these values to `apps/mail-agent/.env`:
 
 ```env
 MAIL_AGENT_GMAIL_CLIENT_ID="..."
 MAIL_AGENT_GMAIL_CLIENT_SECRET="..."
 MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
-MAIL_AGENT_GMAIL_FILTER_QUERY="has:nouserlabels AND NOT (from:@gmail.com OR from:@googlemail.com OR from:@biller.de OR category:social)"
-MAIL_AGENT_UNDO_TOKEN_SECRET="..."
 ```
 
-`MAIL_AGENT_GMAIL_FILTER_QUERY` has a default value in `.env.base`, and you can override it in `.env` whenever you want a different mailbox filter.
+Then complete the rest of required Mail Agent variables from the Setup section above.
 
-What it does:
+## Telegram Bot Workflow
 
-- It is passed to Gmail as the `q` query when listing candidate messages during full sync.
-- This affects the first run (no stored history cursor) and the fallback path when a stored history cursor is invalid.
-- In normal history polling mode, Gmail history changes are read instead of using this query.
+### 1) Create bot with BotFather
 
-Generate `MAIL_AGENT_UNDO_TOKEN_SECRET` once with a cryptographically secure random value:
+1. Open Telegram and start a chat with `@BotFather`.
+2. Run `/newbot` and follow the prompts.
+3. Copy the generated bot token.
 
-```bash
-openssl rand -hex 32
+Store token in:
+
+- `MAIL_AGENT_TELEGRAM_BOT_TOKEN`
+
+### 2) Get target chat ID
+
+1. Open a chat with your bot and send a message (for example `/start`).
+2. Fetch updates with your bot token:
+
+```text
+https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
 ```
 
-Then copy that output into `MAIL_AGENT_UNDO_TOKEN_SECRET`.
+3. Read `message.chat.id` from the response JSON.
 
-Keep this value stable across restarts. Rotating it invalidates previously generated undo links.
+Store chat ID in:
 
-For Step 4 Gmail testing, OpenAI and Telegram secrets can stay empty because those integrations are still placeholders in this stage.
+- `MAIL_AGENT_TELEGRAM_CHAT_ID`
 
-For current runtime, Telegram secrets can still stay empty when you intentionally use noop notifier mode, but `MAIL_AGENT_UNDO_TOKEN_SECRET` is required for signed undo URL generation.
+### 3) Optional: restrict undo interactions
 
-### 7) Initialize DB schema (empty DB)
+- `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` accepts a comma-separated list of allowed Telegram user IDs.
+- If set, only listed users are accepted for notifier interaction rules.
+
+## Daily Work
 
 From repository root:
 
-```bash
-bun run --filter mail-agent prisma generate
-bun run --filter mail-agent prisma migrate dev --name init
-```
-
-If you want to reset smoke artifacts before Gmail tests:
-
-```bash
-bun run --filter mail-agent smoke:clean
-```
-
-What this resets:
-
-- removes smoke test rows from `processed_emails`
-- removes `agent_state` row for `mail-agent-state` (forces next run into full sync)
-
-### 8) Start and validate first Gmail run
-
-From repository root:
-
-```bash
-bun run --filter mail-agent start
-```
-
-Expected on first run with empty `agent_state`:
-
-- `gmailSync.mode` is `full_sync`
-- `gmailSync.cursorAfter` is populated
-- `agent_state.gmail_history_id` is stored in DB
-
-Expected on subsequent runs:
-
-- `gmailSync.mode` is usually `history`
-- `cursorBefore` and `cursorAfter` reflect incremental sync
-
-### 9) Temporary Gmail read smoke output
-
-Use this temporary command to perform a direct Gmail read (`messages.list` + `messages.get`) and print a mailbox preview:
-
-```bash
-bun run --filter mail-agent gmail:smoke
-```
-
-Expected outcome:
-
-- JSON output contains `listedMessageCount`, `previewCount`, and `preview`
-- `preview` rows include real `sender`, `subject`, `date`, and `labels` values from your mailbox
-- this smoke command is temporary and will be removed in the final cleanup step from `current/plan.md`
-
-## Database Setup (Step 2)
-
-From repository root:
-
-```bash
-bun run --filter mail-agent prisma generate
-bun run --filter mail-agent prisma migrate dev --name init
-```
-
-Run DB smoke test:
-
-```bash
-bun run --filter mail-agent db:smoke
-```
-
-## Step 1 Verification
-
-Run from repository root:
-
-```bash
-bun run --filter mail-agent check-types
-bun run --filter mail-agent lint
-bun run --filter mail-agent test
-```
-
-### Expected outcomes
-
-- `check-types`: no TypeScript errors
-- `lint`: no ESLint errors
-- `test`: one passing smoke test (`pipeline scaffold exposes all planned stages`)
-
-## Step 2 Verification
-
-Run from repository root:
-
-```bash
-bun run --filter mail-agent prisma generate
-bun run --filter mail-agent prisma migrate dev --name init
-bun run --filter mail-agent db:smoke
-```
-
-### Expected outcomes
-
-- `prisma generate`: client generated at `src/generated/prisma`
-- `prisma migrate dev`: migration directory exists and DB is in sync
-- `db:smoke`: JSON output contains non-null `state` and `latestProcessedEmail`
-
-## Step 3 Verification
-
-### Missing core env should fail fast
-
-From repository root:
-
-```bash
-MAIL_AGENT_GMAIL_CLIENT_ID= bun run --filter mail-agent start
-```
-
-Expected outcome:
-
-- process exits with `Invalid mail-agent environment configuration`
-
-### Full env should start cleanly
-
-From repository root:
-
-```bash
-bun run --filter mail-agent start
-```
-
-Expected outcome:
-
-- process prints bootstrap JSON including `databaseSchemaName`, `pollIntervalMs`, `labels`, `telegram.parseMode`, and `gmailSync`
-
-## Step 4 Verification
-
-### Poll with valid mailbox
-
-From repository root:
-
-```bash
-bun run --filter mail-agent start
-```
-
-Expected outcome:
-
-- startup JSON includes `gmailSync.mode`, `gmailSync.cursorBefore`, `gmailSync.cursorAfter`, and candidate/normalized message counts
-
-### Verify persisted cursor
-
-Check `agent_state.gmail_history_id` in your local DB after one successful run.
-
-Expected outcome:
-
-- cursor value is present and changes across subsequent poll cycles
-
-### Simulate invalid cursor fallback
-
-Set an outdated `gmail_history_id` in DB and run `start` again.
-
-Expected outcome:
-
-- poll switches to `gmailSync.mode = full_sync` and stores a new valid cursor
-
-## Step 5 Verification
-
-### Run AI smoke test
-
-From repository root:
-
-```bash
-bun run --filter mail-agent ai:smoke
-```
-
-Expected outcome:
-
-- `privateSample.path` equals `private_bypass`
-- `nonPrivateSample.path` equals `ai_model` when OpenAI env is set
-- `nonPrivateError` is a clear config error when OpenAI env is not set
-- `malformedModelOutputError` contains an invalid classifier output error
-
-### Run bootstrap with AI summary output
-
-From repository root:
-
-```bash
-bun run --filter mail-agent start
-```
-
-Expected outcome:
-
-- startup JSON includes `aiClassification.path` when a message is classified
-- startup JSON includes `aiClassificationError` when non-private classification cannot run
-
-## Step 6 Verification
-
-### Trace pipeline with debug logging
-
-From repository root:
+- Start once: `bun run --filter mail-agent start`
+- Watch mode: `bun run --filter mail-agent dev`
+- Typecheck: `bun run --filter mail-agent check-types`
+- Lint: `bun run --filter mail-agent lint`
+- Test: `bun run --filter mail-agent test`
+- Format: `bun run --filter mail-agent format`
+- Format check: `bun run --filter mail-agent format:check`
+
+Debug run:
 
 ```bash
 DEBUG=app:* bun run --filter mail-agent start
 ```
 
-Useful namespace filters:
+Useful scopes:
 
-- `DEBUG=app:action:*` for pipeline/action flow
-- `DEBUG=app:db:*` for persistence and cursor state operations
+- `DEBUG=app:action:*`
+- `DEBUG=app:db:*`
 
-Expected debug flow signals:
+## Logic Overview (without reading code)
 
-- `app:action:pollGmail` shows cursor loading, history/full-sync mode, and message counts
-- `app:action:main` shows selected message, idempotency decision, classification/action/persistence result
-- `app:action:classifyEmail` shows private bypass vs model path and OpenAI output status
-- `app:action:applyGmailAction` shows applied action and label mutation counts
-- `app:db:hasProcessedMessage` / `app:db:insertProcessedEmail` show idempotency and DB writes
+### End-to-end pipeline
 
-## Step 7 Verification
+1. Load and validate runtime configuration (fail fast on missing required env values).
+2. Poll Gmail using stored history cursor.
+3. Fall back to full sync when no cursor exists or cursor is invalid.
+4. Normalize candidate message and thread data.
+5. Skip already processed messages (`gmail_message_id` idempotency check).
+6. Classify with private bypass or OpenAI model.
+7. Apply Gmail labels according to decision (`keep` or `delete`).
+8. Persist classification and action result in `processed_emails`.
+9. Create signed undo URL and send Telegram notification.
 
-### Start runtime with undo endpoint enabled
+### Gmail sync behavior
 
-From repository root:
+- `agent_state.gmail_history_id` stores the last known mailbox cursor.
+- Incremental mode uses `users.history.list(startHistoryId=...)`.
+- Full sync mode uses `users.messages.list` with `MAIL_AGENT_GMAIL_FILTER_QUERY`.
+- After each successful run, the latest valid cursor is persisted.
 
-```bash
-DEBUG=app:* bun run --filter mail-agent start
-```
+### Classification behavior
 
-Expected outcome:
+- Private messages are routed to `private_bypass` and kept.
+- Non-private messages are sent to OpenAI using `MAIL_AGENT_OPENAI_MODEL`.
+- Model JSON is treated as untrusted input and validated with Zod.
+- Expected output contract: `deleteIt`, `summary`, `subject`, `reason`.
 
-- startup JSON includes `http.enabled: true`
-- startup JSON includes `http.undoUrlBase`
-- debug logs include `app:action:createHttpRuntime HTTP runtime started`
+### Action behavior
 
-### Verify notification payload includes one undo URL
+- `delete` action: add delete label, remove `INBOX`, keep label, hidden label.
+- `keep` action: add keep label, remove delete label, hidden label.
+- Label names are composed from `MAIL_AGENT_LABEL_AI_LABEL_PREFIX` + suffix vars.
 
-Process one message successfully (classification + action + persistence).
+### Undo behavior
 
-Expected outcome:
+- Undo URL: `GET /mail-agent/undo?token=...`
+- Token contains `gmailMessageId` and HMAC signature.
+- Same URL is reusable and toggles state:
+  - apply undo when `user_action` is `null`
+  - re-apply original action when `user_action` is already `undo_*`
+- `processed_emails.user_action` is the toggle state source of truth.
 
-- startup JSON includes `notificationResult.providerMessageId` (or noop id in fallback mode)
-- debug logs show `Notification emitted` and include provider message id
-- notification content contains exactly one undo URL
+### Telegram notification behavior
 
-### Verify undo endpoint behavior
+- Initial notification is sent once per processed message.
+- Undo status updates edit the existing Telegram message (`editMessageText`).
+- Mapping (`provider`, `providerMessageId`, `subject`, `summary`, `undoUrl`) is persisted in `processed_emails`.
+- After restart, mapping is loaded from DB so the same message can still be updated.
+- If mapping is missing, undo still succeeds and notifier logs a debug skip.
 
-Open the undo URL from the notification in browser.
+## Operational Checks
 
-Expected outcome:
+### Verify undo toggle
 
-- first open returns `Undo applied.`
-- second open returns `Undo reverted to original action.`
-- third open returns `Undo applied.` again
-- `processed_emails.user_action` toggles between `undo_delete` / `undo_keep` and `null`
+Call the same undo URL repeatedly:
 
-### Verify Gmail reversal mapping
+- 1st call: `Undo applied.`
+- 2nd call: `Undo reverted to original action.`
+- 3rd call: `Undo applied.`
 
-Expected reversal behavior:
+### Verify restart-safe Telegram status updates
 
-- if original action was delete: undo switches message to keep state (`INBOX` + keep label)
-- if original action was keep: undo switches message to deleted state (delete label + `INBOX` removed)
+1. Process a message and send Telegram notification.
+2. Restart the service.
+3. Open the same undo URL again.
+4. Confirm the original Telegram message is edited (no second status message).
 
-### Verify idempotency guard
+### Verify cursor fallback
 
-Run `start` twice with the same candidate message still present.
+Set an outdated `gmail_history_id`, then run `start` again.
 
-Expected outcome:
+Expected behavior:
 
-- second pass sets `idempotencySkipped: true` in startup output
-- no duplicate row is inserted for the same `gmail_message_id`
+- runtime switches to full sync
+- a fresh valid cursor is persisted
 
-## Step 8 Verification
+## Key Files
 
-### Verify persisted Telegram mapping
-
-After one successful notification send, check that `processed_emails` row for the message has:
-
-- `notification_provider = telegram`
-- `notification_provider_message_id` populated
-- `notification_subject`, `notification_summary`, `notification_undo_url` populated
-
-### Verify restart behavior for undo status update
-
-1. Start runtime and process one message with Telegram notifier enabled.
-2. Stop and restart runtime.
-3. Open the same undo URL.
-
-Expected outcome:
-
-- undo request still succeeds (`Undo applied.` / `Undo reverted to original action.`)
-- existing Telegram message is edited (status emoji changes), no new status message is sent
-
-### Verify missing-mapping fallback
-
-Delete notification mapping fields for one `processed_emails` row and trigger undo again.
-
-Expected outcome:
-
-- undo Gmail mutation and DB `user_action` toggling still succeed
-- runtime logs a debug skip for missing persisted mapping
-- runtime does not crash
-
-### Verify Gmail action mapping
-
-Expected action behavior:
-
-- messages that already have any label under `MAIL_AGENT_LABEL_AI_LABEL_PREFIX` are skipped from candidates
-- when `deleteIt = true`: add `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}` (for example `ai-managed/soft-delete`), remove `INBOX`, `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}`, and `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_HIDDEN}`
-- when `deleteIt = false`: add `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}` (for example `ai-managed/keep`), remove `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}` and `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_HIDDEN}`
-
-### Verify persistence in `processed_emails`
-
-After a successful run (classification + action + persistence):
-
-- one row exists in `processed_emails` with `gmail_message_id`
-- row contains `delete_it`, `applied_action`, and `classifier_output`
-- startup JSON shows `actionResult` and `persistenceError: null`
-
-### Common failure cases
-
-- Running commands outside repository root
-- Missing workspace dependencies in the monorepo install state
+- `src/index.ts` - runtime bootstrap and orchestration
+- `src/config/index.ts` - strict env parsing and typed config
+- `src/gmail/index.ts` - Gmail polling, normalization, and label actions
+- `src/ai/index.ts` - private bypass and OpenAI classification
+- `src/notify/index.ts` - Telegram notifier and status update logic
+- `src/http/index.ts` - undo HTTP runtime
+- `src/http/undo-service.ts` - undo business logic
+- `src/http/undo-token.ts` - signed token create/verify
+- `src/data/index.ts` - persistence adapter and notification mapping storage
+- `prisma/schema.prisma` - database schema

@@ -262,27 +262,11 @@ async function editTelegramMessage(
   throw new Error("Telegram editMessageText failed after retries.")
 }
 
-export function createNoopNotifier(): Notifier {
-  return {
-    async sendNotification() {
-      return {
-        providerMessageId: "noop-provider-message-id",
-      }
-    },
-    async updateNotificationStatus() {},
-  }
-}
-
 export function createNotifier(
   config: BootstrapConfig,
   notificationMappingStore: NotificationMappingStorePort,
 ): Notifier {
   const debug = Debug("app:action:createNotifier")
-
-  if (!config.telegram.botToken || !config.telegram.chatId) {
-    debug("Using noop notifier: missing telegram runtime credentials")
-    return createNoopNotifier()
-  }
 
   debug(
     "Using telegram notifier: chatIdConfigured=%s, parseMode=%s",

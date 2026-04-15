@@ -17,6 +17,10 @@ This monorepo contains various personal projects including financial forecasting
   - Recording-first speech processing flow (Whisper + Ollama)
   - Conflict-safe tab syncing for title, top text, and bottom text
   - Model-run telemetry and debug diff tooling
+- [mail-agent](/apps/mail-agent/README.md) - Gmail classification and undo automation service
+  - Gmail history polling with full-sync fallback and managed label actions
+  - OpenAI-based keep/delete decisioning with private-mail bypass
+  - Telegram notification with stable signed undo URL and status updates on same message
 
 ## WIP
 
