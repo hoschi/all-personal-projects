@@ -454,8 +454,17 @@ At minimum, set all required values in your `.env`:
 MAIL_AGENT_GMAIL_CLIENT_ID="..."
 MAIL_AGENT_GMAIL_CLIENT_SECRET="..."
 MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
+MAIL_AGENT_GMAIL_FILTER_QUERY="has:nouserlabels AND NOT (from:@gmail.com OR from:@googlemail.com OR from:@biller.de OR category:social)"
 MAIL_AGENT_UNDO_TOKEN_SECRET="..."
 ```
+
+`MAIL_AGENT_GMAIL_FILTER_QUERY` has a default value in `.env.base`, and you can override it in `.env` whenever you want a different mailbox filter.
+
+What it does:
+
+- It is passed to Gmail as the `q` query when listing candidate messages during full sync.
+- This affects the first run (no stored history cursor) and the fallback path when a stored history cursor is invalid.
+- In normal history polling mode, Gmail history changes are read instead of using this query.
 
 Generate `MAIL_AGENT_UNDO_TOKEN_SECRET` once with a cryptographically secure random value:
 

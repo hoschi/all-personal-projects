@@ -330,15 +330,17 @@ function filterNormalizedMessagesByManagedLabelIds(
 async function runFullSync(
   gmailClient: gmail_v1.Gmail,
   managedLabelIds: Set<string>,
+  gmailFilterQuery: string,
 ): Promise<GmailPollResult> {
   const debug = Debug("app:action:runFullSync")
-  debug("Running full sync")
+  debug("Running full sync: gmailFilterQuery=%s", gmailFilterQuery)
 
   const cursorBefore = await readStoredCursor()
 
   const listResponse = await gmailClient.users.messages.list({
     userId: "me",
     maxResults: FULL_SYNC_MAX_RESULTS,
+    q: gmailFilterQuery,
   })
 
   const candidateMessageIds = (listResponse.data.messages ?? [])
@@ -612,7 +614,11 @@ export function createGmailSync(config: BootstrapConfig) {
 
       if (!cursorBefore) {
         debug("No cursor available, switching to full sync")
-        return runFullSync(gmailClient, managedLabelIds)
+        return runFullSync(
+          gmailClient,
+          managedLabelIds,
+          config.gmailFilterQuery,
+        )
       }
 
       try {
@@ -662,7 +668,11 @@ export function createGmailSync(config: BootstrapConfig) {
 
         debug("History cursor invalid, falling back to full sync")
 
-        return runFullSync(gmailClient, managedLabelIds)
+        return runFullSync(
+          gmailClient,
+          managedLabelIds,
+          config.gmailFilterQuery,
+        )
       }
     },
     applyAction,
