@@ -50,25 +50,16 @@ Triff die Entscheidung mit einer Abwägung, nicht mit nur einer Einzelregel.
 ### Löschen
 - Generell Werbung; Ausnahmen siehe Behalten.
 - Phishing.
-- Reine Gewinnspiele.
-- Änderungen von Geschäftsbedingungen ohne notwendige Aktion.
-- Lieferankündigungen und Versandbestätigungen immer löschen; Zusammenfassung muss wichtige Details enthalten.
-- Reine Informationsupdates von Streaminganbietern können gelöscht werden, Zusammenfassung muss Details enthalten.
-- Regelmäßige rein informative Konto- oder Statusübersichten können gelöscht werden, wenn die Kernaussagen in der Zusammenfassung enthalten sind.
 
 ### Behalten
 - Nachrichten, die eine Antwort erwarten.
 - Wichtige Vertragsänderungen oder Inhalte mit notwendiger Aktion.
 - Rechnungen und finale Bestellbestätigungen.
-- Zahlungs- oder Guthabenbestätigungen.
-- Werbung mit außergewöhnlich hohem oder zeitkritischem Rabatt (typisch über 20 Prozent).
-- Ankündigungen neuer interessanter Produkte oder Dienstleistungen.
 
 # Schritt: Zusammenfassung
 - Maximal 50 Worte, außer der Inhalt erfordert mehr für Vollständigkeit.
 - Wichtige Details nicht verlieren: Beträge, Datum, Produkte, Titel, Sendungsnummern.
 - Werbung: relevante Produkte oder Kategorien benennen.
-- Finanzen/Punkte: konkrete Beträge oder Punktestände nennen.
 - Streamingdienste: neue/entfernte Titel möglichst vollständig nennen.
 
 # Schritt: Ausgabe

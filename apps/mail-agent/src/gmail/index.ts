@@ -115,6 +115,45 @@ function reduceHtmlToText(html: string): string {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function reduceHtmlToMarkdown(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(
+      /<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,
+      (_match, href: string, text: string) => {
+        const label = reduceHtmlToText(text)
+        return label.length > 0 ? `[${label}](${href.trim()})` : href.trim()
+      },
+    )
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<\/(li|p|div|section|article|h[1-6]|tr)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim()
+}
+
+function looksLikeHtmlContent(value: string): boolean {
+  return /<[^>]+>|<!--|<!doctype|<html/i.test(value)
+}
+
+function normalizePlainTextBody(value: string): string {
+  return value
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim()
@@ -258,8 +297,16 @@ async function fetchNormalizedMessage(
     bodyCollected.plainText.push(decodeBase64Url(message.payload.body.data))
   }
 
-  const bodyText = bodyCollected.plainText.join("\n").trim()
+  const bodyTextRaw = bodyCollected.plainText.join("\n").trim()
   const bodyHtmlRaw = bodyCollected.html.join("\n").trim()
+  const bodyTextFromHtml = reduceHtmlToMarkdown(bodyHtmlRaw)
+  const bodyTextNormalized = normalizePlainTextBody(bodyTextRaw)
+  const bodyText =
+    bodyTextNormalized.length > 0 && !looksLikeHtmlContent(bodyTextRaw)
+      ? bodyTextNormalized
+      : bodyTextFromHtml.length > 0
+        ? bodyTextFromHtml
+        : bodyTextNormalized
 
   const threadParticipants = Array.from(
     new Set<string>(

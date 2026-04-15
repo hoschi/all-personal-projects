@@ -70,7 +70,8 @@ const TELEGRAM_EDIT_RESPONSE_SCHEMA = z.object({
 const TELEGRAM_MAX_MESSAGE_LENGTH = 4096 as const
 const TELEGRAM_MAX_ATTEMPTS = 3 as const
 const TELEGRAM_NOTIFICATION_PROVIDER = "telegram" as const
-const MARKDOWN_V2_SPECIAL_CHARACTERS = [
+const TELEGRAM_SUMMARY_MAX_LENGTH = 800 as const
+const MARKDOWN_V2_SPECIAL_CHARACTERS = new Set([
   "_",
   "*",
   "[",
@@ -90,27 +91,66 @@ const MARKDOWN_V2_SPECIAL_CHARACTERS = [
   ".",
   "!",
   "\\",
-] as const
+])
 
 function escapeMarkdownV2(value: string): string {
-  let escaped = value
+  let escapedValue = ""
 
-  for (const specialCharacter of MARKDOWN_V2_SPECIAL_CHARACTERS) {
-    escaped = escaped.replaceAll(specialCharacter, `\\${specialCharacter}`)
+  for (const character of value) {
+    escapedValue += MARKDOWN_V2_SPECIAL_CHARACTERS.has(character)
+      ? `\\${character}`
+      : character
   }
 
-  return escaped
+  return escapedValue
+}
+
+function escapeMarkdownV2LinkUrl(value: string): string {
+  return value.replaceAll("\\", "\\\\").replaceAll(")", "\\)")
+}
+
+function sanitizeSubjectForNotification(value: string): string {
+  const normalizedSubject = value.replace(/\s+/g, " ").trim()
+
+  return normalizedSubject.length > 0 ? normalizedSubject : "Ohne Betreff"
+}
+
+function sanitizeSummaryForNotification(value: string): string {
+  const normalizedSummary = value
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (normalizedSummary.length === 0) {
+    return "Keine Zusammenfassung verfügbar."
+  }
+
+  if (normalizedSummary.length > TELEGRAM_SUMMARY_MAX_LENGTH) {
+    return `${normalizedSummary.slice(0, TELEGRAM_SUMMARY_MAX_LENGTH)}…`
+  }
+
+  return normalizedSummary
+}
+
+function normalizeNotificationInput(
+  input: NotificationInput,
+): NotificationInput {
+  return {
+    ...input,
+    subject: sanitizeSubjectForNotification(input.subject),
+    summary: sanitizeSummaryForNotification(input.summary),
+  }
 }
 
 function formatTelegramMessage(input: NotificationInput): string {
-  const status = input.appliedAction === "delete" ? "deleted" : "keep"
-  const statusEmoji = input.appliedAction === "delete" ? "🗑️" : "✅"
-  const escapedStatus = escapeMarkdownV2(status)
+  const statusLabel = input.appliedAction === "delete" ? "GELÖSCHT" : "Behalten"
   const subject = escapeMarkdownV2(input.subject)
   const summary = escapeMarkdownV2(input.summary)
-  const undoUrl = escapeMarkdownV2(input.undoUrl)
+  const escapedStatusLabel = escapeMarkdownV2(statusLabel)
+  const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
 
-  return `*Mail Agent Decision*\n*Status:* ${statusEmoji} ${escapedStatus}\n*Subject:* ${subject}\n*Summary:* ${summary}\n*Undo:* ${undoUrl}`
+  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})`
 }
 
 function chunkText(value: string, chunkSize: number): string[] {
@@ -120,8 +160,21 @@ function chunkText(value: string, chunkSize: number): string[] {
 
   const chunks: string[] = []
 
-  for (let index = 0; index < value.length; index += chunkSize) {
-    chunks.push(value.slice(index, index + chunkSize))
+  let startIndex = 0
+
+  while (startIndex < value.length) {
+    let endIndex = Math.min(startIndex + chunkSize, value.length)
+
+    if (endIndex < value.length && value.at(endIndex - 1) === "\\") {
+      endIndex -= 1
+    }
+
+    if (endIndex <= startIndex) {
+      endIndex = Math.min(startIndex + chunkSize, value.length)
+    }
+
+    chunks.push(value.slice(startIndex, endIndex))
+    startIndex = endIndex
   }
 
   return chunks
@@ -289,7 +342,8 @@ export function createNotifier(
       input: NotificationInput,
     ): Promise<NotificationResult> {
       const debug = Debug("app:action:sendNotification")
-      const formattedMessage = formatTelegramMessage(input)
+      const normalizedInput = normalizeNotificationInput(input)
+      const formattedMessage = formatTelegramMessage(normalizedInput)
       const chunks = chunkText(formattedMessage, TELEGRAM_MAX_MESSAGE_LENGTH)
 
       debug(
@@ -311,18 +365,18 @@ export function createNotifier(
 
       sentNotificationsByGmailMessageId.set(input.gmailMessageId, {
         providerMessageId: firstProviderMessageId,
-        subject: input.subject,
-        summary: input.summary,
-        undoUrl: input.undoUrl,
+        subject: normalizedInput.subject,
+        summary: normalizedInput.summary,
+        undoUrl: normalizedInput.undoUrl,
       })
 
       await notificationMappingStore.storeNotificationMapping({
         gmailMessageId: input.gmailMessageId,
         provider: TELEGRAM_NOTIFICATION_PROVIDER,
         providerMessageId: firstProviderMessageId,
-        subject: input.subject,
-        summary: input.summary,
-        undoUrl: input.undoUrl,
+        subject: normalizedInput.subject,
+        summary: normalizedInput.summary,
+        undoUrl: normalizedInput.undoUrl,
       })
 
       debug(
