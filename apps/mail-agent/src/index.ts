@@ -23,7 +23,7 @@ async function main() {
   const processedEmailStore = createProcessedEmailStore()
   const gmail = createGmailSync(config)
   const ai = createAiPipeline(config)
-  const notifier = createNotifier(config)
+  const notifier = createNotifier(config, processedEmailStore)
   const pipeline = createPipelineStageDescriptors()
   const httpRuntime = createHttpRuntime(
     config,

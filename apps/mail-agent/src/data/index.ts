@@ -27,6 +27,14 @@ export type ProcessedEmailUndoTarget = {
   userAction: UserAction | null
 }
 
+export type StoredNotificationMapping = {
+  provider: string
+  providerMessageId: string
+  subject: string
+  summary: string
+  undoUrl: string
+}
+
 export function createProcessedEmailStore() {
   const debug = Debug("app:db:createProcessedEmailStore")
   debug("Creating processed email store adapter")
@@ -144,6 +152,99 @@ export function createProcessedEmailStore() {
         gmailMessageId,
         userAction ?? "none",
       )
+    },
+
+    async storeNotificationMapping(input: {
+      gmailMessageId: string
+      provider: string
+      providerMessageId: string
+      subject: string
+      summary: string
+      undoUrl: string
+    }): Promise<void> {
+      const debug = Debug("app:db:storeNotificationMapping")
+      debug(
+        "Persisting notification mapping: gmailMessageId=%s, provider=%s, providerMessageId=%s",
+        input.gmailMessageId,
+        input.provider,
+        input.providerMessageId,
+      )
+
+      await prisma.processedEmail.update({
+        where: { gmailMessageId: input.gmailMessageId },
+        data: {
+          notificationProvider: input.provider,
+          notificationProviderMessageId: input.providerMessageId,
+          notificationSubject: input.subject,
+          notificationSummary: input.summary,
+          notificationUndoUrl: input.undoUrl,
+        },
+      })
+
+      debug(
+        "Persisted notification mapping: gmailMessageId=%s",
+        input.gmailMessageId,
+      )
+    },
+
+    async findNotificationMapping(
+      gmailMessageId: string,
+    ): Promise<StoredNotificationMapping | null> {
+      const debug = Debug("app:db:findNotificationMapping")
+      debug("Loading notification mapping: gmailMessageId=%s", gmailMessageId)
+
+      const processedEmail = await prisma.processedEmail.findUnique({
+        where: { gmailMessageId },
+        select: {
+          notificationProvider: true,
+          notificationProviderMessageId: true,
+          notificationSubject: true,
+          notificationSummary: true,
+          notificationUndoUrl: true,
+        },
+      })
+
+      if (!processedEmail) {
+        debug(
+          "Notification mapping row not found: gmailMessageId=%s",
+          gmailMessageId,
+        )
+        return null
+      }
+
+      if (
+        !processedEmail.notificationProvider ||
+        !processedEmail.notificationProviderMessageId ||
+        !processedEmail.notificationSubject ||
+        !processedEmail.notificationSummary ||
+        !processedEmail.notificationUndoUrl
+      ) {
+        debug(
+          "Notification mapping incomplete: gmailMessageId=%s, hasProvider=%s, hasProviderMessageId=%s, hasSubject=%s, hasSummary=%s, hasUndoUrl=%s",
+          gmailMessageId,
+          !!processedEmail.notificationProvider,
+          !!processedEmail.notificationProviderMessageId,
+          !!processedEmail.notificationSubject,
+          !!processedEmail.notificationSummary,
+          !!processedEmail.notificationUndoUrl,
+        )
+        return null
+      }
+
+      debug(
+        "Notification mapping loaded: gmailMessageId=%s, provider=%s, providerMessageId=%s",
+        gmailMessageId,
+        processedEmail.notificationProvider,
+        processedEmail.notificationProviderMessageId,
+      )
+
+      return {
+        provider: processedEmail.notificationProvider,
+        providerMessageId: processedEmail.notificationProviderMessageId,
+        subject: processedEmail.notificationSubject,
+        summary: processedEmail.notificationSummary,
+        undoUrl: processedEmail.notificationUndoUrl,
+      }
     },
   }
 }

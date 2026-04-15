@@ -2,6 +2,7 @@ import Debug from "debug"
 import { z } from "zod"
 
 import type { BootstrapConfig } from "../config"
+import type { StoredNotificationMapping } from "../data"
 import type { GmailAppliedAction } from "../gmail"
 
 export type NotificationInput = {
@@ -24,6 +25,20 @@ export type NotificationResult = {
 export interface Notifier {
   sendNotification(input: NotificationInput): Promise<NotificationResult>
   updateNotificationStatus(input: NotificationStatusUpdateInput): Promise<void>
+}
+
+export type NotificationMappingStorePort = {
+  storeNotificationMapping(input: {
+    gmailMessageId: string
+    provider: string
+    providerMessageId: string
+    subject: string
+    summary: string
+    undoUrl: string
+  }): Promise<void>
+  findNotificationMapping(
+    gmailMessageId: string,
+  ): Promise<StoredNotificationMapping | null>
 }
 
 const TELEGRAM_RESPONSE_SCHEMA = z.object({
@@ -54,6 +69,7 @@ const TELEGRAM_EDIT_RESPONSE_SCHEMA = z.object({
 
 const TELEGRAM_MAX_MESSAGE_LENGTH = 4096 as const
 const TELEGRAM_MAX_ATTEMPTS = 3 as const
+const TELEGRAM_NOTIFICATION_PROVIDER = "telegram" as const
 const MARKDOWN_V2_SPECIAL_CHARACTERS = [
   "_",
   "*",
@@ -257,7 +273,10 @@ export function createNoopNotifier(): Notifier {
   }
 }
 
-export function createNotifier(config: BootstrapConfig): Notifier {
+export function createNotifier(
+  config: BootstrapConfig,
+  notificationMappingStore: NotificationMappingStorePort,
+): Notifier {
   const debug = Debug("app:action:createNotifier")
 
   if (!config.telegram.botToken || !config.telegram.chatId) {
@@ -313,9 +332,19 @@ export function createNotifier(config: BootstrapConfig): Notifier {
         undoUrl: input.undoUrl,
       })
 
+      await notificationMappingStore.storeNotificationMapping({
+        gmailMessageId: input.gmailMessageId,
+        provider: TELEGRAM_NOTIFICATION_PROVIDER,
+        providerMessageId: firstProviderMessageId,
+        subject: input.subject,
+        summary: input.summary,
+        undoUrl: input.undoUrl,
+      })
+
       debug(
-        "Stored telegram notification mapping: gmailMessageId=%s, providerMessageId=%s",
+        "Stored telegram notification mapping: gmailMessageId=%s, provider=%s, providerMessageId=%s",
         input.gmailMessageId,
+        TELEGRAM_NOTIFICATION_PROVIDER,
         firstProviderMessageId,
       )
 
@@ -327,9 +356,51 @@ export function createNotifier(config: BootstrapConfig): Notifier {
       input: NotificationStatusUpdateInput,
     ): Promise<void> {
       const debug = Debug("app:action:updateNotificationStatus")
-      const sentNotification = sentNotificationsByGmailMessageId.get(
+      let sentNotification = sentNotificationsByGmailMessageId.get(
         input.gmailMessageId,
       )
+
+      if (!sentNotification) {
+        const persistedNotification =
+          await notificationMappingStore.findNotificationMapping(
+            input.gmailMessageId,
+          )
+
+        if (!persistedNotification) {
+          debug(
+            "Skipping status update: no persisted telegram mapping for gmailMessageId=%s",
+            input.gmailMessageId,
+          )
+          return
+        }
+
+        if (persistedNotification.provider !== TELEGRAM_NOTIFICATION_PROVIDER) {
+          debug(
+            "Skipping status update: unsupported provider=%s for gmailMessageId=%s",
+            persistedNotification.provider,
+            input.gmailMessageId,
+          )
+          return
+        }
+
+        sentNotification = {
+          providerMessageId: persistedNotification.providerMessageId,
+          subject: persistedNotification.subject,
+          summary: persistedNotification.summary,
+          undoUrl: persistedNotification.undoUrl,
+        }
+
+        sentNotificationsByGmailMessageId.set(
+          input.gmailMessageId,
+          sentNotification,
+        )
+
+        debug(
+          "Loaded telegram mapping from persistence: gmailMessageId=%s, providerMessageId=%s",
+          input.gmailMessageId,
+          persistedNotification.providerMessageId,
+        )
+      }
 
       if (!sentNotification) {
         debug(

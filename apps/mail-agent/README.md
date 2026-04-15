@@ -124,6 +124,9 @@ flowchart TD
   - adds status line with emoji (`✅ keep` / `🗑️ deleted`) based on current applied action
   - updates that emoji by editing the existing Telegram message (`editMessageText`) after undo toggle
   - does not send a second status message for undo updates
+  - persists notification mapping (`provider`, `providerMessageId`, `subject`, `summary`, `undoUrl`) in `processed_emails`
+  - loads persisted mapping after restart so undo still edits the original Telegram message
+  - if mapping is missing, logs a clear debug message and keeps undo flow successful without crash
   - escapes MarkdownV2 content before sending
   - chunks messages to max `4096` characters
   - retries bounded on `429` using `retry_after`
@@ -741,6 +744,37 @@ Expected outcome:
 
 - second pass sets `idempotencySkipped: true` in startup output
 - no duplicate row is inserted for the same `gmail_message_id`
+
+## Step 8 Verification
+
+### Verify persisted Telegram mapping
+
+After one successful notification send, check that `processed_emails` row for the message has:
+
+- `notification_provider = telegram`
+- `notification_provider_message_id` populated
+- `notification_subject`, `notification_summary`, `notification_undo_url` populated
+
+### Verify restart behavior for undo status update
+
+1. Start runtime and process one message with Telegram notifier enabled.
+2. Stop and restart runtime.
+3. Open the same undo URL.
+
+Expected outcome:
+
+- undo request still succeeds (`Undo applied.` / `Undo reverted to original action.`)
+- existing Telegram message is edited (status emoji changes), no new status message is sent
+
+### Verify missing-mapping fallback
+
+Delete notification mapping fields for one `processed_emails` row and trigger undo again.
+
+Expected outcome:
+
+- undo Gmail mutation and DB `user_action` toggling still succeed
+- runtime logs a debug skip for missing persisted mapping
+- runtime does not crash
 
 ### Verify Gmail action mapping
 
