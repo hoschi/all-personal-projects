@@ -305,8 +305,23 @@ async function fetchNormalizedMessages(
   return result
 }
 
+function filterNormalizedMessagesByManagedLabelIds(
+  normalizedMessages: NormalizedGmailMessage[],
+  managedLabelIds: Set<string>,
+): NormalizedGmailMessage[] {
+  if (managedLabelIds.size === 0) {
+    return normalizedMessages
+  }
+
+  return normalizedMessages.filter(
+    (message) =>
+      !message.labels.some((labelId) => managedLabelIds.has(labelId)),
+  )
+}
+
 async function runFullSync(
   gmailClient: gmail_v1.Gmail,
+  managedLabelIds: Set<string>,
 ): Promise<GmailPollResult> {
   const debug = Debug("app:action:runFullSync")
   debug("Running full sync")
@@ -329,9 +344,13 @@ async function runFullSync(
     candidateMessageIds.length,
   )
 
-  const normalizedMessages = await fetchNormalizedMessages(
+  const unfilteredNormalizedMessages = await fetchNormalizedMessages(
     gmailClient,
     candidateMessageIds,
+  )
+  const normalizedMessages = filterNormalizedMessagesByManagedLabelIds(
+    unfilteredNormalizedMessages,
+    managedLabelIds,
   )
 
   const profileResponse = await gmailClient.users.getProfile({
@@ -345,10 +364,11 @@ async function runFullSync(
   }
 
   debug(
-    "Full sync finished: cursorBefore=%s, cursorAfter=%s, normalizedMessageCount=%d",
+    "Full sync finished: cursorBefore=%s, cursorAfter=%s, normalizedMessageCount=%d, skippedManagedCount=%d",
     cursorBefore,
     cursorAfter,
     normalizedMessages.length,
+    unfilteredNormalizedMessages.length - normalizedMessages.length,
   )
 
   return {
@@ -409,6 +429,7 @@ export function createGmailSync(config: BootstrapConfig) {
 
   const gmailClient = createGmailClient(config)
   const configuredLabelIdCache = new Map<string, string>()
+  let managedLabelIdsCache: Set<string> | null = null
 
   async function getConfiguredLabelId(labelName: string): Promise<string> {
     const debug = Debug("app:action:getConfiguredLabelId")
@@ -428,6 +449,50 @@ export function createGmailSync(config: BootstrapConfig) {
     return resolved
   }
 
+  async function getManagedLabelIdsByPrefix(): Promise<Set<string>> {
+    const debug = Debug("app:action:getManagedLabelIdsByPrefix")
+
+    if (managedLabelIdsCache) {
+      debug(
+        "Managed label id cache hit: labelPrefix=%s, labelCount=%d",
+        config.labels.aiLabelPrefix,
+        managedLabelIdsCache.size,
+      )
+      return managedLabelIdsCache
+    }
+
+    const labelsResponse = await gmailClient.users.labels.list({
+      userId: "me",
+    })
+
+    const labelIds = new Set(
+      (labelsResponse.data.labels ?? [])
+        .filter((label) => {
+          const labelName = label.name?.trim()
+
+          if (!labelName) {
+            return false
+          }
+
+          return (
+            labelName === config.labels.aiLabelPrefix ||
+            labelName.startsWith(`${config.labels.aiLabelPrefix}/`)
+          )
+        })
+        .map((label) => label.id)
+        .filter((labelId): labelId is string => !!labelId),
+    )
+
+    managedLabelIdsCache = labelIds
+    debug(
+      "Managed label ids resolved: labelPrefix=%s, labelCount=%d",
+      config.labels.aiLabelPrefix,
+      labelIds.size,
+    )
+
+    return labelIds
+  }
+
   async function applyAction(
     gmailMessageId: string,
     deleteIt: boolean,
@@ -439,17 +504,17 @@ export function createGmailSync(config: BootstrapConfig) {
       deleteIt,
     )
 
-    const aiManagedLabelId = await getConfiguredLabelId(config.labels.aiManaged)
     const keepLabelId = await getConfiguredLabelId(config.labels.keep)
     const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
+    const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
 
     const appliedAction: GmailAppliedAction = deleteIt ? "delete" : "keep"
 
-    const addedLabelIds = deleteIt
-      ? [aiManagedLabelId, deleteLabelId]
-      : [aiManagedLabelId, keepLabelId]
+    const addedLabelIds = deleteIt ? [deleteLabelId] : [keepLabelId]
 
-    const removedLabelIds = deleteIt ? ["INBOX", keepLabelId] : [deleteLabelId]
+    const removedLabelIds = deleteIt
+      ? ["INBOX", keepLabelId, hiddenLabelId]
+      : [deleteLabelId, hiddenLabelId]
 
     await gmailClient.users.messages.modify({
       userId: "me",
@@ -480,13 +545,15 @@ export function createGmailSync(config: BootstrapConfig) {
       const debug = Debug("app:action:pollGmail")
       debug("Starting Gmail poll")
 
+      const managedLabelIds = await getManagedLabelIdsByPrefix()
+
       const cursorBefore = await readStoredCursor()
 
       debug("Loaded cursor for poll: cursorBefore=%s", cursorBefore)
 
       if (!cursorBefore) {
         debug("No cursor available, switching to full sync")
-        return runFullSync(gmailClient)
+        return runFullSync(gmailClient, managedLabelIds)
       }
 
       try {
@@ -499,9 +566,13 @@ export function createGmailSync(config: BootstrapConfig) {
         const candidateMessageIds = extractHistoryCandidateMessageIds(
           historyResponse.data,
         )
-        const normalizedMessages = await fetchNormalizedMessages(
+        const unfilteredNormalizedMessages = await fetchNormalizedMessages(
           gmailClient,
           candidateMessageIds,
+        )
+        const normalizedMessages = filterNormalizedMessagesByManagedLabelIds(
+          unfilteredNormalizedMessages,
+          managedLabelIds,
         )
 
         const cursorAfter = historyResponse.data.historyId ?? cursorBefore
@@ -509,11 +580,12 @@ export function createGmailSync(config: BootstrapConfig) {
         await persistCursor(cursorAfter)
 
         debug(
-          "History poll finished: cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d",
+          "History poll finished: cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d, skippedManagedCount=%d",
           cursorBefore,
           cursorAfter,
           candidateMessageIds.length,
           normalizedMessages.length,
+          unfilteredNormalizedMessages.length - normalizedMessages.length,
         )
 
         return {
@@ -531,7 +603,7 @@ export function createGmailSync(config: BootstrapConfig) {
 
         debug("History cursor invalid, falling back to full sync")
 
-        return runFullSync(gmailClient)
+        return runFullSync(gmailClient, managedLabelIds)
       }
     },
     applyAction,

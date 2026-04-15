@@ -78,13 +78,20 @@ The codebase already exposes stable module boundaries for later implementation:
 - `MAIL_AGENT_GMAIL_CLIENT_SECRET`
 - `MAIL_AGENT_GMAIL_REFRESH_TOKEN`
 - `MAIL_AGENT_POLL_INTERVAL_MS`
-- `MAIL_AGENT_LABEL_AI_MANAGED`
+- `MAIL_AGENT_LABEL_AI_LABEL_PREFIX`
 - `MAIL_AGENT_LABEL_KEEP`
 - `MAIL_AGENT_LABEL_DELETE`
+- `MAIL_AGENT_LABEL_HIDDEN`
 - `MAIL_AGENT_TELEGRAM_BOT_TOKEN` (required once real notifier is enabled)
 - `MAIL_AGENT_TELEGRAM_CHAT_ID` (required once real notifier is enabled)
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS` (optional)
 - `MAIL_AGENT_TELEGRAM_PARSE_MODE`
+
+Managed label behavior:
+
+- `MAIL_AGENT_LABEL_AI_LABEL_PREFIX` defines the root (for example `ai-managed`)
+- `MAIL_AGENT_LABEL_KEEP`, `MAIL_AGENT_LABEL_DELETE`, and `MAIL_AGENT_LABEL_HIDDEN` are suffixes (for example `keep`, `soft-delete`, `hidden`)
+- Runtime composes full label names as `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${suffix}`
 
 ## Prisma Flow (Step 2)
 
@@ -610,8 +617,9 @@ Expected outcome:
 
 Expected action behavior:
 
-- when `deleteIt = true`: add `aiManaged` + `delete` labels, remove `INBOX` and `keep` label
-- when `deleteIt = false`: add `aiManaged` + `keep` labels, remove `delete` label
+- messages that already have any label under `MAIL_AGENT_LABEL_AI_LABEL_PREFIX` are skipped from candidates
+- when `deleteIt = true`: add `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}` (for example `ai-managed/soft-delete`), remove `INBOX`, `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}`, and `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_HIDDEN}`
+- when `deleteIt = false`: add `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}` (for example `ai-managed/keep`), remove `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}` and `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_HIDDEN}`
 
 ### Verify persistence in `processed_emails`
 

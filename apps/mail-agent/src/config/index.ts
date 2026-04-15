@@ -20,9 +20,10 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_REFRESH_TOKEN: z.string().trim().min(1),
   MAIL_AGENT_POLL_INTERVAL_MS: z.coerce.number().int().positive(),
-  MAIL_AGENT_LABEL_AI_MANAGED: z.string().trim().min(1),
+  MAIL_AGENT_LABEL_AI_LABEL_PREFIX: z.string().trim().min(1),
   MAIL_AGENT_LABEL_KEEP: z.string().trim().min(1),
   MAIL_AGENT_LABEL_DELETE: z.string().trim().min(1),
+  MAIL_AGENT_LABEL_HIDDEN: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_BOT_TOKEN: optionalRuntimeSecretSchema,
   MAIL_AGENT_TELEGRAM_CHAT_ID: optionalRuntimeSecretSchema,
   MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS: z.string().trim().min(1).optional(),
@@ -46,9 +47,10 @@ export type BootstrapConfig = {
   gmailClientSecret: string
   gmailRefreshToken: string
   labels: {
-    aiManaged: string
+    aiLabelPrefix: string
     keep: string
     delete: string
+    hidden: string
   }
   telegram: {
     botToken: string
@@ -86,6 +88,20 @@ function parseAllowedUserIds(raw: string | undefined): string[] {
     .filter((id) => id.length > 0)
 }
 
+function buildManagedLabelName(prefix: string, suffixOrLabel: string): string {
+  const normalizedPrefix = prefix.trim().replace(/\/+$/g, "")
+  const normalizedSuffixOrLabel = suffixOrLabel.trim().replace(/^\/+/g, "")
+
+  if (
+    normalizedSuffixOrLabel === normalizedPrefix ||
+    normalizedSuffixOrLabel.startsWith(`${normalizedPrefix}/`)
+  ) {
+    return normalizedSuffixOrLabel
+  }
+
+  return `${normalizedPrefix}/${normalizedSuffixOrLabel}`
+}
+
 export function createBootstrapConfig(): BootstrapConfig {
   const env = readBootstrapEnv()
 
@@ -102,9 +118,19 @@ export function createBootstrapConfig(): BootstrapConfig {
     gmailClientSecret: env.MAIL_AGENT_GMAIL_CLIENT_SECRET,
     gmailRefreshToken: env.MAIL_AGENT_GMAIL_REFRESH_TOKEN,
     labels: {
-      aiManaged: env.MAIL_AGENT_LABEL_AI_MANAGED,
-      keep: env.MAIL_AGENT_LABEL_KEEP,
-      delete: env.MAIL_AGENT_LABEL_DELETE,
+      aiLabelPrefix: env.MAIL_AGENT_LABEL_AI_LABEL_PREFIX,
+      keep: buildManagedLabelName(
+        env.MAIL_AGENT_LABEL_AI_LABEL_PREFIX,
+        env.MAIL_AGENT_LABEL_KEEP,
+      ),
+      delete: buildManagedLabelName(
+        env.MAIL_AGENT_LABEL_AI_LABEL_PREFIX,
+        env.MAIL_AGENT_LABEL_DELETE,
+      ),
+      hidden: buildManagedLabelName(
+        env.MAIL_AGENT_LABEL_AI_LABEL_PREFIX,
+        env.MAIL_AGENT_LABEL_HIDDEN,
+      ),
     },
     telegram: {
       botToken: env.MAIL_AGENT_TELEGRAM_BOT_TOKEN,
