@@ -108,7 +108,7 @@ export function createHttpRuntime(
       tokenDebug(
         "Undo URL created: gmailMessageId=%s, undoUrlBase=%s",
         gmailMessageId,
-        undoUrlBase,
+        undoUrl,
       )
 
       return undoUrl.toString()

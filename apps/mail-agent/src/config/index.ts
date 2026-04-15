@@ -13,8 +13,8 @@ dotenvConfig({ path: ".env", override: true, quiet: true })
 const bootstrapEnvSchema = z.object({
   DATABASE_URL: z.string().trim().min(1),
   DATABASE_SCHEMA_NAME: z.literal("mail"),
-  MAIL_AGENT_OPENAI_API_KEY: optionalRuntimeSecretSchema,
-  MAIL_AGENT_OPENAI_MODEL: optionalRuntimeSecretSchema,
+  MAIL_AGENT_OPENAI_API_KEY: z.string().trim().min(1),
+  MAIL_AGENT_OPENAI_MODEL: z.string().trim().min(1),
   MAIL_AGENT_PUBLIC_BASE_URL: z.string().trim().url(),
   MAIL_AGENT_GMAIL_CLIENT_ID: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),

@@ -4,6 +4,9 @@ import { z } from "zod"
 
 import type { BootstrapConfig } from "../config"
 
+let openAiClientSingleton: OpenAI | null = null
+let openAiClientApiKey: string | null = null
+
 const NEWSLETTER_INDICATORS = [
   "unsubscribe",
   "newsletter",
@@ -187,17 +190,31 @@ export function parseClassifierDecision(raw: unknown): ClassifierDecision {
   throw new Error(`Invalid classifier model output: ${details}`)
 }
 
+function getOpenAiClient(openAiApiKeyRaw: string): OpenAI {
+  const openAiApiKey = openAiApiKeyRaw.trim()
+
+  if (openAiApiKey.length === 0) {
+    throw new Error("MAIL_AGENT_OPENAI_API_KEY is required.")
+  }
+
+  if (!openAiClientSingleton || openAiClientApiKey !== openAiApiKey) {
+    openAiClientSingleton = new OpenAI({ apiKey: openAiApiKey })
+    openAiClientApiKey = openAiApiKey
+  }
+
+  return openAiClientSingleton
+}
+
 export function createAiPipeline(config: BootstrapConfig) {
   const debug = Debug("app:action:createAiPipeline")
+  const openAiApiKey = config.openAiApiKey.trim()
   debug(
     "Creating AI pipeline: hasApiKey=%s, hasModel=%s",
-    !!config.openAiApiKey,
+    openAiApiKey.length > 0,
     config.openAiModel.trim().length > 0,
   )
 
-  const openAiClient = config.openAiApiKey
-    ? new OpenAI({ apiKey: config.openAiApiKey })
-    : null
+  const openAiClient = getOpenAiClient(openAiApiKey)
 
   return {
     async classify(
@@ -221,19 +238,17 @@ export function createAiPipeline(config: BootstrapConfig) {
         }
       }
 
-      if (!openAiClient || config.openAiModel.trim().length === 0) {
+      if (config.openAiModel.trim().length === 0) {
         debug("Classification blocked: missing OpenAI runtime configuration")
 
-        throw new Error(
-          "Non-private AI classification requires MAIL_AGENT_OPENAI_API_KEY and MAIL_AGENT_OPENAI_MODEL.",
-        )
+        throw new Error("MAIL_AGENT_OPENAI_MODEL is required.")
       }
 
       debug("Classification path selected: ai_model")
 
       const completion = await openAiClient.chat.completions.create({
         model: config.openAiModel,
-        temperature: 0.1,
+        //temperature: 0.1,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: CLASSIFIER_SYSTEM_PROMPT },
