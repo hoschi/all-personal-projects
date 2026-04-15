@@ -144,7 +144,7 @@ function normalizeNotificationInput(
 }
 
 function formatTelegramMessage(input: NotificationInput): string {
-  const statusLabel = input.appliedAction === "delete" ? "GELÖSCHT" : "Behalten"
+  const statusLabel = input.appliedAction === "delete" ? "❌" : "☑️"
   const subject = escapeMarkdownV2(input.subject)
   const summary = escapeMarkdownV2(input.summary)
   const escapedStatusLabel = escapeMarkdownV2(statusLabel)

@@ -33,7 +33,16 @@ const classifierDecisionSchema = z.object({
   reason: z.string().trim().min(1),
 })
 
-const CLASSIFIER_SYSTEM_PROMPT = `=# Rolle
+function formatRulesAsBulletList(rules: string[]): string {
+  return rules.map((rule) => `- ${rule}`).join("\n")
+}
+
+function buildClassifierSystemPrompt(config: BootstrapConfig): string {
+  const deleteRules = formatRulesAsBulletList(config.aiPromptRules.delete)
+  const keepRules = formatRulesAsBulletList(config.aiPromptRules.keep)
+  const summaryRules = formatRulesAsBulletList(config.aiPromptRules.summary)
+
+  return `=# Rolle
 Du bist ein hilfreicher Assistent für Emails und antwortest immer auf deutsch.
 
 # Aufgabe
@@ -48,19 +57,13 @@ Triff die Entscheidung mit einer Abwägung, nicht mit nur einer Einzelregel.
 ## Generelle Regeln
 
 ### Löschen
-- Generell Werbung; Ausnahmen siehe Behalten.
-- Phishing.
+${deleteRules}
 
 ### Behalten
-- Nachrichten, die eine Antwort erwarten.
-- Wichtige Vertragsänderungen oder Inhalte mit notwendiger Aktion.
-- Rechnungen und finale Bestellbestätigungen.
+${keepRules}
 
 # Schritt: Zusammenfassung
-- Maximal 50 Worte, außer der Inhalt erfordert mehr für Vollständigkeit.
-- Wichtige Details nicht verlieren: Beträge, Datum, Produkte, Titel, Sendungsnummern.
-- Werbung: relevante Produkte oder Kategorien benennen.
-- Streamingdienste: neue/entfernte Titel möglichst vollständig nennen.
+${summaryRules}
 
 # Schritt: Ausgabe
 Konstruiere ein JSON, das exakt diese Felder enthält:
@@ -78,6 +81,7 @@ Regeln für Felder:
 Wichtig:
 - Gib ausschließlich JSON zurück, ohne erklärenden Zusatztext.
 - Die Felder summary, subject und reason müssen auf Deutsch sein.`
+}
 
 export type ClassifierDecision = z.infer<typeof classifierDecisionSchema>
 
@@ -199,6 +203,7 @@ function getOpenAiClient(openAiApiKeyRaw: string): OpenAI {
 export function createAiPipeline(config: BootstrapConfig) {
   const debug = Debug("app:action:createAiPipeline")
   const openAiApiKey = config.openAiApiKey.trim()
+  const classifierSystemPrompt = buildClassifierSystemPrompt(config)
   debug(
     "Creating AI pipeline: hasApiKey=%s, hasModel=%s",
     openAiApiKey.length > 0,
@@ -242,7 +247,7 @@ export function createAiPipeline(config: BootstrapConfig) {
         //temperature: 0.1,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: CLASSIFIER_SYSTEM_PROMPT },
+          { role: "system", content: classifierSystemPrompt },
           {
             role: "user",
             content: `Heutiger Zeitpunkt: ${new Date().toISOString()}\n\n# Email Daten\n${stringifyInputForModel(input)}\n\nGib ausschließlich JSON zurück.`,

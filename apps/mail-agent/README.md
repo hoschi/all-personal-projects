@@ -29,6 +29,9 @@ Required variables:
 - `DATABASE_SCHEMA_NAME` (`mail`)
 - `MAIL_AGENT_OPENAI_API_KEY`
 - `MAIL_AGENT_OPENAI_MODEL`
+- `MAIL_AGENT_AI_RULES_DELETE`
+- `MAIL_AGENT_AI_RULES_KEEP`
+- `MAIL_AGENT_AI_RULES_SUMMARY`
 - `MAIL_AGENT_PUBLIC_BASE_URL`
 - `MAIL_AGENT_GMAIL_CLIENT_ID`
 - `MAIL_AGENT_GMAIL_CLIENT_SECRET`
@@ -52,6 +55,7 @@ Notes:
 
 - `MAIL_AGENT_GMAIL_FILTER_QUERY` has a default in `.env.base` and can be overridden in `.env`.
 - The query is used for full-sync candidate listing (first run and invalid-history fallback).
+- AI prompt rule env vars (`MAIL_AGENT_AI_RULES_DELETE`, `MAIL_AGENT_AI_RULES_KEEP`, `MAIL_AGENT_AI_RULES_SUMMARY`) accept `||`-separated bullet entries and are rendered into the system prompt under their respective headings.
 - Managed labels are composed as:
   - `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_KEEP}`
   - `${MAIL_AGENT_LABEL_AI_LABEL_PREFIX}/${MAIL_AGENT_LABEL_DELETE}`

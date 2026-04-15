@@ -13,6 +13,9 @@ const bootstrapEnvSchema = z.object({
   DATABASE_SCHEMA_NAME: z.literal("mail"),
   MAIL_AGENT_OPENAI_API_KEY: z.string().trim().min(1),
   MAIL_AGENT_OPENAI_MODEL: z.string().trim().min(1),
+  MAIL_AGENT_AI_RULES_DELETE: z.string().trim().min(1),
+  MAIL_AGENT_AI_RULES_KEEP: z.string().trim().min(1),
+  MAIL_AGENT_AI_RULES_SUMMARY: z.string().trim().min(1),
   MAIL_AGENT_PUBLIC_BASE_URL: z.string().trim().url(),
   MAIL_AGENT_GMAIL_CLIENT_ID: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),
@@ -42,6 +45,11 @@ export type BootstrapConfig = {
   databaseSchemaName: "mail"
   openAiApiKey: string
   openAiModel: string
+  aiPromptRules: {
+    delete: string[]
+    keep: string[]
+    summary: string[]
+  }
   publicBaseUrl: string
   gmailClientId: string
   gmailClientSecret: string
@@ -90,6 +98,21 @@ function parseAllowedUserIds(raw: string | undefined): string[] {
     .filter((id) => id.length > 0)
 }
 
+function parsePromptRuleList(raw: string, envKey: string): string[] {
+  const rules = raw
+    .split("||")
+    .map((rule) => rule.trim())
+    .filter((rule) => rule.length > 0)
+
+  if (rules.length === 0) {
+    throw new Error(
+      `Invalid mail-agent environment configuration: ${envKey} must contain at least one rule.`,
+    )
+  }
+
+  return rules
+}
+
 function buildManagedLabelName(prefix: string, suffixOrLabel: string): string {
   const normalizedPrefix = prefix.trim().replace(/\/+$/g, "")
   const normalizedSuffixOrLabel = suffixOrLabel.trim().replace(/^\/+/g, "")
@@ -115,6 +138,20 @@ export function createBootstrapConfig(): BootstrapConfig {
     databaseSchemaName: env.DATABASE_SCHEMA_NAME,
     openAiApiKey: env.MAIL_AGENT_OPENAI_API_KEY,
     openAiModel: env.MAIL_AGENT_OPENAI_MODEL,
+    aiPromptRules: {
+      delete: parsePromptRuleList(
+        env.MAIL_AGENT_AI_RULES_DELETE,
+        "MAIL_AGENT_AI_RULES_DELETE",
+      ),
+      keep: parsePromptRuleList(
+        env.MAIL_AGENT_AI_RULES_KEEP,
+        "MAIL_AGENT_AI_RULES_KEEP",
+      ),
+      summary: parsePromptRuleList(
+        env.MAIL_AGENT_AI_RULES_SUMMARY,
+        "MAIL_AGENT_AI_RULES_SUMMARY",
+      ),
+    },
     publicBaseUrl: env.MAIL_AGENT_PUBLIC_BASE_URL,
     gmailClientId: env.MAIL_AGENT_GMAIL_CLIENT_ID,
     gmailClientSecret: env.MAIL_AGENT_GMAIL_CLIENT_SECRET,
