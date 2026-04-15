@@ -561,13 +561,19 @@ export function createGmailSync(config: BootstrapConfig) {
 
     const keepLabelId = await getConfiguredLabelId(config.labels.keep)
     const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
+    const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
 
     const userAction: GmailUndoAction =
       previousAppliedAction === "delete" ? "undo_delete" : "undo_keep"
 
-    const addedLabelIds = previousAppliedAction === "delete" ? ["INBOX"] : []
+    const addedLabelIds =
+      previousAppliedAction === "delete"
+        ? ["INBOX", keepLabelId]
+        : [deleteLabelId]
     const removedLabelIds =
-      previousAppliedAction === "delete" ? [deleteLabelId] : [keepLabelId]
+      previousAppliedAction === "delete"
+        ? [deleteLabelId, hiddenLabelId]
+        : ["INBOX", keepLabelId, hiddenLabelId]
 
     await gmailClient.users.messages.modify({
       userId: "me",

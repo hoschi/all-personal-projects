@@ -8,12 +8,10 @@ import type { GmailAppliedAction } from "../gmail"
 
 const UNDO_PATH = "/mail-agent/undo" as const
 const UNDO_TOKEN_VERSION = 1 as const
-const UNDO_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
 
 type UndoTokenPayload = {
   v: typeof UNDO_TOKEN_VERSION
   gmailMessageId: string
-  exp: number
 }
 
 export type HttpRuntimeState = {
@@ -25,18 +23,36 @@ export type ProcessedEmailStoreUndoPort = {
   findUndoTarget(gmailMessageId: string): Promise<{
     gmailMessageId: string
     appliedAction: GmailAppliedAction
-    userAction: string | null
+    userAction: UserAction | null
   } | null>
-  markUserAction(gmailMessageId: string, userAction: UserAction): Promise<void>
+  markUserAction(
+    gmailMessageId: string,
+    userAction: UserAction | null,
+  ): Promise<void>
 }
 
 export type GmailUndoPort = {
+  applyAction(
+    gmailMessageId: string,
+    deleteIt: boolean,
+  ): Promise<{
+    appliedAction: GmailAppliedAction
+    addedLabelIds: string[]
+    removedLabelIds: string[]
+  }>
   applyUndoAction(
     gmailMessageId: string,
     previousAppliedAction: GmailAppliedAction,
   ): Promise<{
     userAction: UserAction
   }>
+}
+
+export type NotificationStatusPort = {
+  updateNotificationStatus(input: {
+    gmailMessageId: string
+    appliedAction: GmailAppliedAction
+  }): Promise<void>
 }
 
 function toBase64Url(value: string): string {
@@ -56,12 +72,10 @@ function createSignature(payloadBase64Url: string, secret: string): string {
 function createUndoToken(
   gmailMessageId: string,
   undoTokenSecret: string,
-  nowMs: number,
 ): string {
   const payload: UndoTokenPayload = {
     v: UNDO_TOKEN_VERSION,
     gmailMessageId,
-    exp: Math.floor(nowMs / 1000) + UNDO_TOKEN_TTL_SECONDS,
   }
 
   const payloadBase64Url = toBase64Url(JSON.stringify(payload))
@@ -73,7 +87,6 @@ function createUndoToken(
 function verifyUndoToken(
   token: string,
   undoTokenSecret: string,
-  nowMs: number,
 ): UndoTokenPayload {
   const [payloadBase64Url, signature] = token.split(".")
 
@@ -102,26 +115,19 @@ function verifyUndoToken(
   const payload = payloadUnknown as {
     v?: unknown
     gmailMessageId?: unknown
-    exp?: unknown
   }
 
   if (
     payload.v !== UNDO_TOKEN_VERSION ||
     typeof payload.gmailMessageId !== "string" ||
-    payload.gmailMessageId.length === 0 ||
-    typeof payload.exp !== "number"
+    payload.gmailMessageId.length === 0
   ) {
     throw new Error("Undo token payload schema mismatch.")
-  }
-
-  if (payload.exp <= Math.floor(nowMs / 1000)) {
-    throw new Error("Undo token has expired.")
   }
 
   return {
     v: UNDO_TOKEN_VERSION,
     gmailMessageId: payload.gmailMessageId,
-    exp: payload.exp,
   }
 }
 
@@ -129,6 +135,7 @@ export function createHttpRuntime(
   config: BootstrapConfig,
   processedEmailStore: ProcessedEmailStoreUndoPort,
   gmail: GmailUndoPort,
+  notifier: NotificationStatusPort,
 ): {
   state: HttpRuntimeState
   createUndoUrl(gmailMessageId: string): string
@@ -161,11 +168,7 @@ export function createHttpRuntime(
       }
 
       try {
-        const payload = verifyUndoToken(
-          token,
-          config.undoTokenSecret,
-          Date.now(),
-        )
+        const payload = verifyUndoToken(token, config.undoTokenSecret)
         requestDebug(
           "Undo token accepted: gmailMessageId=%s",
           payload.gmailMessageId,
@@ -183,32 +186,79 @@ export function createHttpRuntime(
           return new Response("Undo target not found.", { status: 404 })
         }
 
-        if (undoTarget.userAction) {
-          requestDebug(
-            "Undo already applied: gmailMessageId=%s, userAction=%s",
-            payload.gmailMessageId,
-            undoTarget.userAction,
+        if (!undoTarget.userAction) {
+          const undoResult = await gmail.applyUndoAction(
+            undoTarget.gmailMessageId,
+            undoTarget.appliedAction,
           )
-          return new Response("Undo already applied.", { status: 200 })
+
+          await processedEmailStore.markUserAction(
+            undoTarget.gmailMessageId,
+            undoResult.userAction,
+          )
+
+          requestDebug(
+            "Undo applied: gmailMessageId=%s, userAction=%s",
+            payload.gmailMessageId,
+            undoResult.userAction,
+          )
+
+          const appliedActionAfterUndo: GmailAppliedAction =
+            undoTarget.appliedAction === "delete" ? "keep" : "delete"
+
+          try {
+            await notifier.updateNotificationStatus({
+              gmailMessageId: undoTarget.gmailMessageId,
+              appliedAction: appliedActionAfterUndo,
+            })
+          } catch (error: unknown) {
+            const notificationMessage =
+              error instanceof Error ? error.message : String(error)
+            requestDebug(
+              "Undo notification status update failed: gmailMessageId=%s, error=%s",
+              undoTarget.gmailMessageId,
+              notificationMessage,
+            )
+          }
+
+          return new Response("Undo applied.", { status: 200 })
         }
 
-        const undoResult = await gmail.applyUndoAction(
+        const deleteIt = undoTarget.appliedAction === "delete"
+        const reapplyResult = await gmail.applyAction(
           undoTarget.gmailMessageId,
-          undoTarget.appliedAction,
+          deleteIt,
         )
 
         await processedEmailStore.markUserAction(
           undoTarget.gmailMessageId,
-          undoResult.userAction,
+          null,
         )
 
         requestDebug(
-          "Undo applied: gmailMessageId=%s, userAction=%s",
+          "Undo reverted to original action: gmailMessageId=%s, appliedAction=%s",
           undoTarget.gmailMessageId,
-          undoResult.userAction,
+          reapplyResult.appliedAction,
         )
 
-        return new Response("Undo applied.", { status: 200 })
+        try {
+          await notifier.updateNotificationStatus({
+            gmailMessageId: undoTarget.gmailMessageId,
+            appliedAction: undoTarget.appliedAction,
+          })
+        } catch (error: unknown) {
+          const notificationMessage =
+            error instanceof Error ? error.message : String(error)
+          requestDebug(
+            "Undo notification status update failed: gmailMessageId=%s, error=%s",
+            undoTarget.gmailMessageId,
+            notificationMessage,
+          )
+        }
+
+        return new Response("Undo reverted to original action.", {
+          status: 200,
+        })
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error)
         requestDebug("Undo request failed: error=%s", message)
@@ -230,11 +280,7 @@ export function createHttpRuntime(
       undoUrlBase,
     },
     createUndoUrl(gmailMessageId: string): string {
-      const token = createUndoToken(
-        gmailMessageId,
-        config.undoTokenSecret,
-        Date.now(),
-      )
+      const token = createUndoToken(gmailMessageId, config.undoTokenSecret)
 
       const undoUrl = new URL(UNDO_PATH, config.publicBaseUrl)
       undoUrl.searchParams.set("token", token)

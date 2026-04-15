@@ -24,7 +24,7 @@ export type ProcessedEmailInsertInput = {
 export type ProcessedEmailUndoTarget = {
   gmailMessageId: string
   appliedAction: AppliedAction
-  userAction: string | null
+  userAction: UserAction | null
 }
 
 export function createProcessedEmailStore() {
@@ -115,19 +115,23 @@ export function createProcessedEmailStore() {
       return {
         gmailMessageId: processedEmail.gmailMessageId,
         appliedAction,
-        userAction: processedEmail.userAction,
+        userAction:
+          processedEmail.userAction === "undo_delete" ||
+          processedEmail.userAction === "undo_keep"
+            ? processedEmail.userAction
+            : null,
       }
     },
 
     async markUserAction(
       gmailMessageId: string,
-      userAction: UserAction,
+      userAction: UserAction | null,
     ): Promise<void> {
       const debug = Debug("app:db:markUserAction")
       debug(
         "Persisting user action override: gmailMessageId=%s, userAction=%s",
         gmailMessageId,
-        userAction,
+        userAction ?? "none",
       )
 
       await prisma.processedEmail.update({
@@ -138,7 +142,7 @@ export function createProcessedEmailStore() {
       debug(
         "Persisted user action override: gmailMessageId=%s, userAction=%s",
         gmailMessageId,
-        userAction,
+        userAction ?? "none",
       )
     },
   }

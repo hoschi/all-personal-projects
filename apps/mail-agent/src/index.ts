@@ -25,7 +25,12 @@ async function main() {
   const ai = createAiPipeline(config)
   const notifier = createNotifier(config)
   const pipeline = createPipelineStageDescriptors()
-  const httpRuntime = createHttpRuntime(config, processedEmailStore, gmail)
+  const httpRuntime = createHttpRuntime(
+    config,
+    processedEmailStore,
+    gmail,
+    notifier,
+  )
   const http = httpRuntime.state
   debug("Adapters initialized: pipelineStageCount=%d", pipeline.length)
 
@@ -160,6 +165,8 @@ async function main() {
 
     try {
       notificationResult = await notifier.sendNotification({
+        gmailMessageId: firstMessage.gmailMessageId,
+        appliedAction: actionResult.appliedAction,
         subject: classification.decision.subject,
         summary: classification.decision.summary,
         undoUrl,

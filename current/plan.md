@@ -263,7 +263,31 @@ Commit checkpoint:
 
 - `feat(mail-agent): add undo endpoint and notifier abstraction`
 
-## Step 8: Re-enable strict runtime env checks
+## Step 8: Persist Telegram status-update mapping
+
+Deliverables:
+
+- Persist Telegram notification identity in DB (not in-memory only), so undo status updates still work after process restart.
+- Extend persistence model (and Prisma migration) to store at least:
+  - notification provider (for now `telegram`)
+  - provider message identifier used by `editMessageText`
+- Save this mapping when initial notification is sent.
+- Load persisted mapping in undo flow and update the same Telegram message status emoji (`✅ keep` / `🗑️ deleted`) without sending a new message.
+- Keep graceful behavior when mapping is missing (no crash, clear debug log, undo still succeeds).
+- Update README with persistence behavior, restart semantics, and manual verification instructions.
+
+How to test this step:
+
+- Process one mail and confirm notification metadata is persisted in DB.
+- Restart service, trigger undo link, and verify the original Telegram message is edited (no new message).
+- Toggle undo multiple times and verify same message emoji/status changes accordingly.
+- Validate fallback path by removing mapping row and verifying undo still works without runtime crash.
+
+Commit checkpoint:
+
+- `feat(mail-agent): persist telegram notification mapping for undo status updates`
+
+## Step 9: Re-enable strict runtime env checks
 
 Deliverables:
 
@@ -287,7 +311,7 @@ Commit checkpoint:
 
 - `chore(mail-agent): re-enable strict env checks for full runtime`
 
-## Step 9: Remove temporary smoke tests and cleanup test surface
+## Step 10: Remove temporary smoke tests and cleanup test surface
 
 Deliverables:
 

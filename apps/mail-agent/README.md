@@ -121,6 +121,9 @@ flowchart TD
   - if `MAIL_AGENT_TELEGRAM_BOT_TOKEN` and `MAIL_AGENT_TELEGRAM_CHAT_ID` are present, Telegram Bot API is used
   - otherwise a noop notifier is used for local runs
 - Telegram adapter behavior:
+  - adds status line with emoji (`✅ keep` / `🗑️ deleted`) based on current applied action
+  - updates that emoji by editing the existing Telegram message (`editMessageText`) after undo toggle
+  - does not send a second status message for undo updates
   - escapes MarkdownV2 content before sending
   - chunks messages to max `4096` characters
   - retries bounded on `429` using `retry_after`
@@ -131,16 +134,15 @@ flowchart TD
 - `createUndoUrl(gmailMessageId)` creates a signed HMAC token containing:
   - token version
   - `gmailMessageId`
-  - expiration timestamp
-- Undo handler validates token signature and expiration before applying any mutation.
-- If undo target exists and has no previous `user_action`:
-  - reverse Gmail action via `gmail.applyUndoAction(...)`
-  - persist override via `processed_emails.user_action`
+- Undo handler validates token signature before applying any mutation.
+- Undo link is reusable and toggles state on each valid call:
+  - when `user_action` is `null`: reverse Gmail action via `gmail.applyUndoAction(...)` and persist `undo_*`
+  - when `user_action` is `undo_*`: re-apply original Gmail action via `gmail.applyAction(...)` and persist `null`
 
 ### Gmail-side undo behavior
 
-- Undo delete (`appliedAction = delete`): add `INBOX`, remove delete label.
-- Undo keep (`appliedAction = keep`): remove keep label.
+- Undo delete (`appliedAction = delete`): add `INBOX` + keep label, remove delete + hidden labels.
+- Undo keep (`appliedAction = keep`): add delete label, remove `INBOX` + keep + hidden labels.
 - `processed_emails.user_action` is updated to `undo_delete` or `undo_keep` after successful reversal.
 
 ## Undo Runtime Flow (Step 7)
@@ -151,14 +153,16 @@ flowchart TD
   B --> C[Build undo URL]
   C --> D[Send notification with one undo URL]
   D --> E[User opens GET /mail-agent/undo token]
-  E --> F[Verify signature and expiry]
+  E --> F[Verify signature]
   F -->|invalid| G[Return 400]
   F -->|valid| H[Load processed email row]
   H -->|missing| I[Return 404]
-  H -->|already undone| J[Return 200 already applied]
-  H -->|undo pending| K[Reverse Gmail labels/inbox state]
-  K --> L[Persist processed_emails.user_action]
-  L --> M[Return 200 undo applied]
+  H -->|user_action is null| J[Apply undo mutation]
+  H -->|user_action is undo_*| K[Reapply original action]
+  J --> L[Persist processed_emails.user_action as undo_*]
+  K --> M[Persist processed_emails.user_action as null]
+  L --> N[Return 200 undo applied]
+  M --> O[Return 200 undo reverted]
 ```
 
 ## Config Bootstrap Flow (Step 3)
@@ -453,6 +457,16 @@ MAIL_AGENT_GMAIL_REFRESH_TOKEN="..."
 MAIL_AGENT_UNDO_TOKEN_SECRET="..."
 ```
 
+Generate `MAIL_AGENT_UNDO_TOKEN_SECRET` once with a cryptographically secure random value:
+
+```bash
+openssl rand -hex 32
+```
+
+Then copy that output into `MAIL_AGENT_UNDO_TOKEN_SECRET`.
+
+Keep this value stable across restarts. Rotating it invalidates previously generated undo links.
+
 For Step 4 Gmail testing, OpenAI and Telegram secrets can stay empty because those integrations are still placeholders in this stage.
 
 For current runtime, Telegram secrets can still stay empty when you intentionally use noop notifier mode, but `MAIL_AGENT_UNDO_TOKEN_SECRET` is required for signed undo URL generation.
@@ -699,15 +713,16 @@ Open the undo URL from the notification in browser.
 Expected outcome:
 
 - first open returns `Undo applied.`
-- second open returns `Undo already applied.`
-- DB row in `processed_emails` has `user_action` set (`undo_delete` or `undo_keep`)
+- second open returns `Undo reverted to original action.`
+- third open returns `Undo applied.` again
+- `processed_emails.user_action` toggles between `undo_delete` / `undo_keep` and `null`
 
 ### Verify Gmail reversal mapping
 
 Expected reversal behavior:
 
-- if original action was delete: undo adds `INBOX` and removes delete label
-- if original action was keep: undo removes keep label
+- if original action was delete: undo switches message to keep state (`INBOX` + keep label)
+- if original action was keep: undo switches message to deleted state (delete label + `INBOX` removed)
 
 ### Verify idempotency guard
 
