@@ -169,6 +169,7 @@ flowchart TD
 - `src/ai/index.ts` now provides real classification routing with two paths:
   - `private_bypass`: likely private emails skip model classification and are always kept
   - `ai_model`: non-private emails are classified by OpenAI
+- Classifier system prompt stays in German and follows the extracted n8n prompt structure (`Rolle`, `Aufgabe`, `Behalten oder Löschen`, `Zusammenfassung`, `Ausgabe`) as closely as possible.
 - Classifier output contract is enforced via Zod with strict fields:
   - `deleteIt`
   - `summary`
@@ -208,19 +209,21 @@ flowchart TD
 `start` currently executes an end-to-end bootstrap flow:
 
 1. Build bootstrap config
-2. Build adapters (data, Gmail sync, AI pipeline, notify placeholder, HTTP state)
+2. Build adapters (processed-email store, Gmail sync, AI pipeline, notify placeholder, HTTP state)
 3. Execute one Gmail sync poll run (`history` or `full_sync`)
-4. Classify first normalized mail (`private_bypass` or `ai_model`)
-5. Persist one in-memory processed-email record when classification exists
-6. Emit one placeholder notification payload when classification exists
-7. Print structured runtime state to stdout (including Gmail and AI summary)
+4. Pick first normalized mail and run idempotency check by `gmailMessageId`
+5. Classify mail (`private_bypass` or `ai_model`)
+6. Apply Gmail action (`keep` or `delete`) with configured labels
+7. Persist processing result to `processed_emails`
+8. Emit one placeholder notification payload when classification, action, and persistence succeed
+9. Print structured runtime state to stdout (including Gmail, AI, action, and idempotency summary)
 
 ## Runtime Flow (Step 1)
 
 ```mermaid
 flowchart TD
   A[Start application] --> B[Build bootstrap config]
-  A --> C[Build in memory store]
+  A --> C[Build processed email store]
   A --> D[Build gmail sync adapter]
   A --> E[Build ai pipeline]
   A --> F[Build notify placeholder]
@@ -229,10 +232,12 @@ flowchart TD
 
   D --> I[Run one gmail poll cycle]
   I --> J[Pick first normalized email]
-  J --> K[Run ai classification]
-  K --> L[Insert in memory email record]
-  L --> M[Send placeholder notification]
-  M --> N[Log startup payload]
+  J --> K[Check idempotency by gmail message id]
+  K --> L[Run ai classification]
+  L --> M[Apply gmail keep delete action]
+  M --> N[Persist processed email record]
+  N --> O[Send placeholder notification]
+  O --> P[Log startup payload]
 ```
 
 ## Logical Pipeline Contract (Step 1)
@@ -568,6 +573,53 @@ Expected outcome:
 
 - startup JSON includes `aiClassification.path` when a message is classified
 - startup JSON includes `aiClassificationError` when non-private classification cannot run
+
+## Step 6 Verification
+
+### Trace pipeline with debug logging
+
+From repository root:
+
+```bash
+DEBUG=app:* bun run --filter mail-agent start
+```
+
+Useful namespace filters:
+
+- `DEBUG=app:action:*` for pipeline/action flow
+- `DEBUG=app:db:*` for persistence and cursor state operations
+
+Expected debug flow signals:
+
+- `app:action:pollGmail` shows cursor loading, history/full-sync mode, and message counts
+- `app:action:main` shows selected message, idempotency decision, classification/action/persistence result
+- `app:action:classifyEmail` shows private bypass vs model path and OpenAI output status
+- `app:action:applyGmailAction` shows applied action and label mutation counts
+- `app:db:hasProcessedMessage` / `app:db:insertProcessedEmail` show idempotency and DB writes
+
+### Verify idempotency guard
+
+Run `start` twice with the same candidate message still present.
+
+Expected outcome:
+
+- second pass sets `idempotencySkipped: true` in startup output
+- no duplicate row is inserted for the same `gmail_message_id`
+
+### Verify Gmail action mapping
+
+Expected action behavior:
+
+- when `deleteIt = true`: add `aiManaged` + `delete` labels, remove `INBOX` and `keep` label
+- when `deleteIt = false`: add `aiManaged` + `keep` labels, remove `delete` label
+
+### Verify persistence in `processed_emails`
+
+After a successful run (classification + action + persistence):
+
+- one row exists in `processed_emails` with `gmail_message_id`
+- row contains `delete_it`, `applied_action`, and `classifier_output`
+- startup JSON shows `actionResult` and `persistenceError: null`
 
 ### Common failure cases
 

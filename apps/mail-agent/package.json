@@ -24,6 +24,8 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@types/debug": "^4.1.12",
+    "debug": "^4.4.3",
     "dotenv": "^17.2.3",
     "googleapis": "^150.0.1",
     "openai": "^4.104.0",

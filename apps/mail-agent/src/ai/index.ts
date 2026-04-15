@@ -1,3 +1,4 @@
+import Debug from "debug"
 import OpenAI from "openai"
 import { z } from "zod"
 
@@ -187,6 +188,13 @@ export function parseClassifierDecision(raw: unknown): ClassifierDecision {
 }
 
 export function createAiPipeline(config: BootstrapConfig) {
+  const debug = Debug("app:action:createAiPipeline")
+  debug(
+    "Creating AI pipeline: hasApiKey=%s, hasModel=%s",
+    !!config.openAiApiKey,
+    config.openAiModel.trim().length > 0,
+  )
+
   const openAiClient = config.openAiApiKey
     ? new OpenAI({ apiKey: config.openAiApiKey })
     : null
@@ -195,7 +203,18 @@ export function createAiPipeline(config: BootstrapConfig) {
     async classify(
       input: AiClassificationInput,
     ): Promise<AiClassificationResult> {
+      const debug = Debug("app:action:classifyEmail")
+      debug(
+        "Classification started: sender=%s, subject=%s, labelCount=%d, threadParticipantCount=%d",
+        input.sender,
+        input.subject,
+        input.labels.length,
+        input.threadParticipants.length,
+      )
+
       if (isLikelyPrivateMessage(input)) {
+        debug("Classification path selected: private_bypass")
+
         return {
           path: "private_bypass",
           decision: buildPrivateBypassDecision(input),
@@ -203,10 +222,14 @@ export function createAiPipeline(config: BootstrapConfig) {
       }
 
       if (!openAiClient || config.openAiModel.trim().length === 0) {
+        debug("Classification blocked: missing OpenAI runtime configuration")
+
         throw new Error(
           "Non-private AI classification requires MAIL_AGENT_OPENAI_API_KEY and MAIL_AGENT_OPENAI_MODEL.",
         )
       }
+
+      debug("Classification path selected: ai_model")
 
       const completion = await openAiClient.chat.completions.create({
         model: config.openAiModel,
@@ -223,12 +246,20 @@ export function createAiPipeline(config: BootstrapConfig) {
 
       const rawContent = completion.choices.at(0)?.message.content
 
+      debug("OpenAI completion received: hasContent=%s", !!rawContent)
+
       if (!rawContent) {
         throw new Error("OpenAI returned empty classification output.")
       }
 
       const modelOutputUnknown = parseModelJson(rawContent)
       const decision = parseClassifierDecision(modelOutputUnknown)
+
+      debug(
+        "Classification finished: deleteIt=%s, subject=%s",
+        decision.deleteIt,
+        decision.subject,
+      )
 
       return {
         path: "ai_model",
