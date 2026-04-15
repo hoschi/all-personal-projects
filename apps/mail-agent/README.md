@@ -133,15 +133,22 @@ flowchart TD
 
 ### Cursor-based polling with persistence
 
-- Poll reads `agent_state.gmail_history_id` as incremental cursor.
-- If cursor exists, sync uses `users.history.list(startHistoryId=...)`.
-- Updated cursor is persisted back to `agent_state` after successful polling.
+- The cursor is the last known Gmail history position (`historyId`) stored in `agent_state.gmail_history_id`.
+- Conceptually, it is a checkpoint pointer for mailbox changes, not a message id and not a timestamp.
+- Polling reads this stored cursor and requests only changes after this checkpoint via `users.history.list(startHistoryId=...)`.
+- New incoming emails create new Gmail history entries. On the next poll run, those entries are returned as incremental changes and converted into candidate message ids.
+- After processing the poll result, the newest returned `historyId` is persisted back to `agent_state` as the next checkpoint.
+- This keeps normal operation incremental (`only changes since last run`) instead of repeatedly scanning the whole mailbox.
 
 ### Full-sync fallback
 
-- If Gmail history call fails with invalid/expired cursor (`404`), sync switches to full sync.
-- Full sync loads current mailbox messages (`users.messages.list`) and profile cursor (`users.getProfile`).
-- New cursor is persisted so later runs return to incremental history polling.
+- Full sync is needed when no checkpoint exists yet (first run) or when the stored checkpoint is no longer valid.
+- A checkpoint can become invalid when Gmail history retention no longer covers that old `historyId` (for example after longer downtime). Gmail then rejects `startHistoryId` with `404`.
+- In this case, the agent switches to full sync to rebuild a valid baseline from current mailbox state:
+  - load mailbox candidates via `users.messages.list`
+  - read a fresh valid current `historyId` via `users.getProfile`
+- The fresh cursor is persisted to `agent_state`, so following runs continue in incremental history mode again.
+- Result: the fallback is a recovery mechanism that restores a valid checkpoint and prevents the pipeline from getting permanently stuck on an outdated cursor.
 
 ### Message + thread normalization helpers
 
