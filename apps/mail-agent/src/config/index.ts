@@ -4,8 +4,13 @@ import { z } from "zod"
 export const APP_NAME = "mail-agent" as const
 
 const TELEGRAM_PARSE_MODES = ["MarkdownV2", "Markdown", "HTML"] as const
+const MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT: Record<number, number> = {
+  3070: 8450,
+  4070: 9450,
+}
 
 dotenvConfig({ path: ".env.base", quiet: true })
+dotenvConfig({ path: "../../infra/.env", quiet: true })
 dotenvConfig({ path: ".env", override: true, quiet: true })
 
 const bootstrapEnvSchema = z.object({
@@ -16,7 +21,9 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_AI_RULES_DELETE: z.string().trim().min(1),
   MAIL_AGENT_AI_RULES_KEEP: z.string().trim().min(1),
   MAIL_AGENT_AI_RULES_SUMMARY: z.string().trim().min(1),
-  MAIL_AGENT_PUBLIC_BASE_URL: z.string().trim().url(),
+  MAIL_AGENT_HTTP_HOST: z.string().trim().min(1),
+  MAIL_AGENT_HTTP_PORT: z.coerce.number().int().positive(),
+  FRITZBOX_DEVICE_HOSTNAME: z.string().trim().min(1).optional(),
   MAIL_AGENT_GMAIL_CLIENT_ID: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_REFRESH_TOKEN: z.string().trim().min(1),
@@ -51,6 +58,10 @@ export type BootstrapConfig = {
     summary: string[]
   }
   publicBaseUrl: string
+  http: {
+    host: string
+    port: number
+  }
   gmailClientId: string
   gmailClientSecret: string
   gmailRefreshToken: string
@@ -113,6 +124,40 @@ function parsePromptRuleList(raw: string, envKey: string): string[] {
   return rules
 }
 
+function normalizeHttpHostForPublicUrl(host: string): string {
+  const normalizedHost = host.trim().toLowerCase()
+
+  if (
+    normalizedHost === "0.0.0.0" ||
+    normalizedHost === "::" ||
+    normalizedHost === "[::]"
+  ) {
+    return "localhost"
+  }
+
+  return host.trim()
+}
+
+function buildPublicBaseUrl(env: BootstrapEnv): string {
+  const fritzboxHostname = env.FRITZBOX_DEVICE_HOSTNAME?.trim()
+
+  if (fritzboxHostname && fritzboxHostname.length > 0) {
+    const httpsPort =
+      MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT[env.MAIL_AGENT_HTTP_PORT]
+
+    if (!httpsPort) {
+      throw new Error(
+        `Invalid mail-agent environment configuration: MAIL_AGENT_HTTP_PORT=${env.MAIL_AGENT_HTTP_PORT} has no FRITZBOX HTTPS mapping. Supported values: ${Object.keys(MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT).join(", ")}.`,
+      )
+    }
+
+    return `https://${fritzboxHostname}:${httpsPort}`
+  }
+
+  const publicHost = normalizeHttpHostForPublicUrl(env.MAIL_AGENT_HTTP_HOST)
+  return `http://${publicHost}:${env.MAIL_AGENT_HTTP_PORT}`
+}
+
 function buildManagedLabelName(prefix: string, suffixOrLabel: string): string {
   const normalizedPrefix = prefix.trim().replace(/\/+$/g, "")
   const normalizedSuffixOrLabel = suffixOrLabel.trim().replace(/^\/+/g, "")
@@ -152,7 +197,11 @@ export function createBootstrapConfig(): BootstrapConfig {
         "MAIL_AGENT_AI_RULES_SUMMARY",
       ),
     },
-    publicBaseUrl: env.MAIL_AGENT_PUBLIC_BASE_URL,
+    publicBaseUrl: buildPublicBaseUrl(env),
+    http: {
+      host: env.MAIL_AGENT_HTTP_HOST,
+      port: env.MAIL_AGENT_HTTP_PORT,
+    },
     gmailClientId: env.MAIL_AGENT_GMAIL_CLIENT_ID,
     gmailClientSecret: env.MAIL_AGENT_GMAIL_CLIENT_SECRET,
     gmailRefreshToken: env.MAIL_AGENT_GMAIL_REFRESH_TOKEN,

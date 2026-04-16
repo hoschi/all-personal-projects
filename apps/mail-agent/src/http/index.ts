@@ -32,7 +32,6 @@ export function createHttpRuntime(
   createUndoUrl(gmailMessageId: string): string
 } {
   const debug = Debug("app:action:createHttpRuntime")
-  const baseUrl = new URL(config.publicBaseUrl)
   const undoUrlBase = new URL(UNDO_PATH, config.publicBaseUrl).toString()
   const undoService = createUndoService(
     config,
@@ -42,13 +41,8 @@ export function createHttpRuntime(
   )
 
   const server = Bun.serve({
-    hostname: baseUrl.hostname,
-    port:
-      baseUrl.port.length > 0
-        ? Number(baseUrl.port)
-        : baseUrl.protocol === "https:"
-          ? 443
-          : 80,
+    hostname: config.http.host,
+    port: config.http.port,
     async fetch(request) {
       const requestUrl = new URL(request.url)
 
@@ -87,10 +81,11 @@ export function createHttpRuntime(
   })
 
   debug(
-    "HTTP runtime started: url=%s, hostname=%s, port=%d",
+    "HTTP runtime started: url=%s, hostname=%s, port=%d, publicBaseUrl=%s",
     server.url.toString(),
-    baseUrl.hostname,
+    config.http.host,
     server.port,
+    config.publicBaseUrl,
   )
 
   return {

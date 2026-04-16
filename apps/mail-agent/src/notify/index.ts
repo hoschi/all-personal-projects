@@ -41,13 +41,22 @@ export type NotificationMappingStorePort = {
   ): Promise<StoredNotificationMapping | null>
 }
 
+const TELEGRAM_ENTITY_SCHEMA = z.object({
+  type: z.string(),
+  offset: z.number().int(),
+  length: z.number().int(),
+  url: z.string().optional(),
+})
+
+const TELEGRAM_MESSAGE_SCHEMA = z.object({
+  message_id: z.number().int(),
+  text: z.string().optional(),
+  entities: z.array(TELEGRAM_ENTITY_SCHEMA).optional(),
+})
+
 const TELEGRAM_RESPONSE_SCHEMA = z.object({
   ok: z.boolean(),
-  result: z
-    .object({
-      message_id: z.number().int(),
-    })
-    .optional(),
+  result: TELEGRAM_MESSAGE_SCHEMA.optional(),
   description: z.string().optional(),
   parameters: z
     .object({
@@ -109,6 +118,43 @@ function escapeMarkdownV2LinkUrl(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll(")", "\\)")
 }
 
+function escapeMarkdown(value: string): string {
+  return value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("`", "\\`")
+    .replaceAll("*", "\\*")
+    .replaceAll("_", "\\_")
+    .replaceAll("[", "\\[")
+    .replaceAll("]", "\\]")
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return escapeHtml(value).replaceAll('"', "&quot;")
+}
+
+function buildLocalTestUrl(value: string): string {
+  const fallbackUrl = "https://example.local" as const
+
+  try {
+    const parsedUrl = new URL(value)
+
+    if (!parsedUrl.hostname.endsWith(".local")) {
+      parsedUrl.hostname = `${parsedUrl.hostname}.local`
+    }
+
+    return parsedUrl.toString()
+  } catch {
+    return fallbackUrl
+  }
+}
+
 function sanitizeSubjectForNotification(value: string): string {
   const normalizedSubject = value.replace(/\s+/g, " ").trim()
 
@@ -143,14 +189,44 @@ function normalizeNotificationInput(
   }
 }
 
-function formatTelegramMessage(input: NotificationInput): string {
+function formatTelegramMessage(
+  input: NotificationInput,
+  parseMode: BootstrapConfig["telegram"]["parseMode"],
+): string {
   const statusLabel = input.appliedAction === "delete" ? "❌" : "☑️"
+  const googleTestUrl = "http://192.168.178.91:3070/mail-agent/undo" as const
+  const localTestUrl = buildLocalTestUrl(input.undoUrl)
+
+  if (parseMode === "HTML") {
+    const escapedStatusLabel = escapeHtml(statusLabel)
+    const subject = escapeHtml(input.subject)
+    const summary = escapeHtml(input.summary)
+    const undoUrl = escapeHtmlAttribute(input.undoUrl)
+    const escapedGoogleTestUrl = escapeHtmlAttribute(googleTestUrl)
+    const escapedLocalTestUrl = escapeHtmlAttribute(localTestUrl)
+
+    return `<a href="${undoUrl}">${escapedStatusLabel}</a>: ${subject}\n${summary}\n<a href="${undoUrl}">UNDO</a>\n<a href="${escapedGoogleTestUrl}">TEST GOOGLE</a> - <a href="${escapedLocalTestUrl}">TEST LOCAL</a>`
+  }
+
+  if (parseMode === "Markdown") {
+    const escapedStatusLabel = escapeMarkdown(statusLabel)
+    const subject = escapeMarkdown(input.subject)
+    const summary = escapeMarkdown(input.summary)
+    const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
+    const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
+    const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
+
+    return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl})  [TEST LOCAL](${escapedLocalTestUrl})`
+  }
+
   const subject = escapeMarkdownV2(input.subject)
   const summary = escapeMarkdownV2(input.summary)
   const escapedStatusLabel = escapeMarkdownV2(statusLabel)
   const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
+  const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
+  const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
 
-  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})`
+  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl})  [TEST LOCAL](${escapedLocalTestUrl})`
 }
 
 function chunkText(value: string, chunkSize: number): string[] {
@@ -191,9 +267,11 @@ async function sendTelegramMessage(
 
   while (attempt <= TELEGRAM_MAX_ATTEMPTS) {
     debug(
-      "Sending Telegram message: attempt=%d, textLength=%d",
+      "Sending Telegram message: attempt=%d, parseMode=%s, textLength=%d, text=%s",
       attempt,
+      config.telegram.parseMode,
       messageText.length,
+      messageText,
     )
 
     const response = await fetch(endpoint, {
@@ -212,9 +290,21 @@ async function sendTelegramMessage(
     const responseBodyUnknown: unknown = await response.json()
     const responseBody = TELEGRAM_RESPONSE_SCHEMA.parse(responseBodyUnknown)
 
+    debug(
+      "Telegram sendMessage response: status=%d, ok=%s, body=%O",
+      response.status,
+      response.ok,
+      responseBodyUnknown,
+    )
+
     if (response.ok && responseBody.ok && responseBody.result) {
       const providerMessageId = String(responseBody.result.message_id)
-      debug("Telegram message sent: providerMessageId=%s", providerMessageId)
+      debug(
+        "Telegram message sent: providerMessageId=%s, renderedText=%s, renderedEntities=%O",
+        providerMessageId,
+        responseBody.result.text ?? "",
+        responseBody.result.entities ?? [],
+      )
       return providerMessageId
     }
 
@@ -261,10 +351,12 @@ async function editTelegramMessage(
 
   while (attempt <= TELEGRAM_MAX_ATTEMPTS) {
     debug(
-      "Editing Telegram message: providerMessageId=%s, attempt=%d, textLength=%d",
+      "Editing Telegram message: providerMessageId=%s, attempt=%d, parseMode=%s, textLength=%d, text=%s",
       providerMessageId,
       attempt,
+      config.telegram.parseMode,
       messageText.length,
+      messageText,
     )
 
     const response = await fetch(endpoint, {
@@ -284,6 +376,13 @@ async function editTelegramMessage(
     const responseBodyUnknown: unknown = await response.json()
     const responseBody =
       TELEGRAM_EDIT_RESPONSE_SCHEMA.parse(responseBodyUnknown)
+
+    debug(
+      "Telegram editMessageText response: status=%d, ok=%s, body=%O",
+      response.status,
+      response.ok,
+      responseBodyUnknown,
+    )
 
     if (response.ok && responseBody.ok) {
       debug("Telegram message edited: providerMessageId=%s", providerMessageId)
@@ -343,19 +442,35 @@ export function createNotifier(
     ): Promise<NotificationResult> {
       const debug = Debug("app:action:sendNotification")
       const normalizedInput = normalizeNotificationInput(input)
-      const formattedMessage = formatTelegramMessage(normalizedInput)
+      const formattedMessage = formatTelegramMessage(
+        normalizedInput,
+        config.telegram.parseMode,
+      )
       const chunks = chunkText(formattedMessage, TELEGRAM_MAX_MESSAGE_LENGTH)
 
       debug(
-        "Sending notification: chunkCount=%d, firstChunkLength=%d",
+        "Sending notification: gmailMessageId=%s, parseMode=%s, chunkCount=%d, firstChunkLength=%d, formattedMessage=%s",
+        input.gmailMessageId,
+        config.telegram.parseMode,
         chunks.length,
         chunks.at(0)?.length ?? 0,
+        formattedMessage,
       )
 
       let providerMessageId = ""
       let firstProviderMessageId = ""
 
-      for (const chunk of chunks) {
+      for (const [chunkIndex, chunk] of chunks.entries()) {
+        debug(
+          "Sending chunk: gmailMessageId=%s, parseMode=%s, chunkIndex=%d/%d, chunkLength=%d, chunkText=%s",
+          input.gmailMessageId,
+          config.telegram.parseMode,
+          chunkIndex + 1,
+          chunks.length,
+          chunk.length,
+          chunk,
+        )
+
         providerMessageId = await sendTelegramMessage(config, chunk)
 
         if (!firstProviderMessageId) {
@@ -448,17 +563,27 @@ export function createNotifier(
         return
       }
 
-      const updatedMessage = formatTelegramMessage({
-        gmailMessageId: input.gmailMessageId,
-        appliedAction: input.appliedAction,
-        subject: sentNotification.subject,
-        summary: sentNotification.summary,
-        undoUrl: sentNotification.undoUrl,
-      })
+      const updatedMessage = formatTelegramMessage(
+        {
+          gmailMessageId: input.gmailMessageId,
+          appliedAction: input.appliedAction,
+          subject: sentNotification.subject,
+          summary: sentNotification.summary,
+          undoUrl: sentNotification.undoUrl,
+        },
+        config.telegram.parseMode,
+      )
       const updatedFirstChunk = chunkText(
         updatedMessage,
         TELEGRAM_MAX_MESSAGE_LENGTH,
       ).at(0)
+
+      debug(
+        "Updating notification status message: gmailMessageId=%s, parseMode=%s, updatedMessage=%s",
+        input.gmailMessageId,
+        config.telegram.parseMode,
+        updatedMessage,
+      )
 
       if (!updatedFirstChunk) {
         throw new Error("Updated Telegram message text is empty.")
