@@ -6,6 +6,7 @@ const BASE_NOTIFICATION_INPUT: NotificationInput = {
   gmailMessageId: "gmail-message-id",
   appliedAction: "delete",
   subject: "SPRING-Sale kommt zurück! - Feinewerkzeuge.de",
+  reason: "Werbung - kein direkter Handlungsbedarf.",
   summary:
     "Newsletter von Feinewerkzeuge.de kündigt den SPRING-Sale an - inkl. Kontakt (Telefon, E-Mail).",
   undoUrl:
@@ -21,6 +22,9 @@ test("formatTelegramMessage escapes MarkdownV2 special characters", () => {
   expect(message).toContain("SPRING\\-Sale")
   expect(message).toContain("zurück\\!")
   expect(message).toContain("Feinewerkzeuge\\.de")
+  expect(message).toContain(
+    "\\(Werbung \\- kein direkter Handlungsbedarf\\.\\)",
+  )
   expect(message).toContain("an \\- inkl\\.")
   expect(message).toContain("\\(Telefon, E\\-Mail\\)")
 })

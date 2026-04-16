@@ -251,6 +251,7 @@ async function main() {
           gmailMessageId: message.gmailMessageId,
           appliedAction: actionResult.appliedAction,
           subject: classification.decision.subject,
+          reason: classification.decision.reason,
           summary: classification.decision.summary,
           undoUrl,
         })

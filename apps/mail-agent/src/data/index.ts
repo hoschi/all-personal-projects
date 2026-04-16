@@ -31,6 +31,7 @@ export type StoredNotificationMapping = {
   provider: string
   providerMessageId: string
   subject: string
+  reason: string
   summary: string
   undoUrl: string
 }
@@ -159,6 +160,7 @@ export function createProcessedEmailStore() {
       provider: string
       providerMessageId: string
       subject: string
+      reason: string
       summary: string
       undoUrl: string
     }): Promise<void> {
@@ -178,6 +180,7 @@ export function createProcessedEmailStore() {
           notificationSubject: input.subject,
           notificationSummary: input.summary,
           notificationUndoUrl: input.undoUrl,
+          reason: input.reason,
         },
       })
 
@@ -199,6 +202,7 @@ export function createProcessedEmailStore() {
           notificationProvider: true,
           notificationProviderMessageId: true,
           notificationSubject: true,
+          reason: true,
           notificationSummary: true,
           notificationUndoUrl: true,
         },
@@ -216,15 +220,17 @@ export function createProcessedEmailStore() {
         !processedEmail.notificationProvider ||
         !processedEmail.notificationProviderMessageId ||
         !processedEmail.notificationSubject ||
+        !processedEmail.reason ||
         !processedEmail.notificationSummary ||
         !processedEmail.notificationUndoUrl
       ) {
         debug(
-          "Notification mapping incomplete: gmailMessageId=%s, hasProvider=%s, hasProviderMessageId=%s, hasSubject=%s, hasSummary=%s, hasUndoUrl=%s",
+          "Notification mapping incomplete: gmailMessageId=%s, hasProvider=%s, hasProviderMessageId=%s, hasSubject=%s, hasReason=%s, hasSummary=%s, hasUndoUrl=%s",
           gmailMessageId,
           !!processedEmail.notificationProvider,
           !!processedEmail.notificationProviderMessageId,
           !!processedEmail.notificationSubject,
+          !!processedEmail.reason,
           !!processedEmail.notificationSummary,
           !!processedEmail.notificationUndoUrl,
         )
@@ -242,6 +248,7 @@ export function createProcessedEmailStore() {
         provider: processedEmail.notificationProvider,
         providerMessageId: processedEmail.notificationProviderMessageId,
         subject: processedEmail.notificationSubject,
+        reason: processedEmail.reason,
         summary: processedEmail.notificationSummary,
         undoUrl: processedEmail.notificationUndoUrl,
       }

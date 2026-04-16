@@ -9,6 +9,7 @@ export type NotificationInput = {
   gmailMessageId: string
   appliedAction: GmailAppliedAction
   subject: string
+  reason: string
   summary: string
   undoUrl: string
 }
@@ -33,6 +34,7 @@ export type NotificationMappingStorePort = {
     provider: string
     providerMessageId: string
     subject: string
+    reason: string
     summary: string
     undoUrl: string
   }): Promise<void>
@@ -79,6 +81,7 @@ const TELEGRAM_EDIT_RESPONSE_SCHEMA = z.object({
 const TELEGRAM_MAX_MESSAGE_LENGTH = 4096 as const
 const TELEGRAM_MAX_ATTEMPTS = 3 as const
 const TELEGRAM_NOTIFICATION_PROVIDER = "telegram" as const
+const TELEGRAM_REASON_MAX_LENGTH = 240 as const
 const TELEGRAM_SUMMARY_MAX_LENGTH = 800 as const
 const MARKDOWN_V2_SPECIAL_CHARACTERS = new Set([
   "_",
@@ -163,12 +166,31 @@ function sanitizeSummaryForNotification(value: string): string {
   return normalizedSummary
 }
 
+function sanitizeReasonForNotification(value: string): string {
+  const normalizedReason = value
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (normalizedReason.length === 0) {
+    return "Keine Begründung verfügbar."
+  }
+
+  if (normalizedReason.length > TELEGRAM_REASON_MAX_LENGTH) {
+    return `${normalizedReason.slice(0, TELEGRAM_REASON_MAX_LENGTH)}…`
+  }
+
+  return normalizedReason
+}
+
 function normalizeNotificationInput(
   input: NotificationInput,
 ): NotificationInput {
   return {
     ...input,
     subject: sanitizeSubjectForNotification(input.subject),
+    reason: sanitizeReasonForNotification(input.reason),
     summary: sanitizeSummaryForNotification(input.summary),
   }
 }
@@ -182,27 +204,30 @@ function formatTelegramMessage(
   if (parseMode === "HTML") {
     const escapedStatusLabel = escapeHtml(statusLabel)
     const subject = escapeHtml(input.subject)
+    const reason = escapeHtml(input.reason)
     const summary = escapeHtml(input.summary)
     const undoUrl = escapeHtmlAttribute(input.undoUrl)
 
-    return `${escapedStatusLabel} ${subject}\n${summary}\n<a href="${undoUrl}">UNDO</a>`
+    return `${escapedStatusLabel} ${subject} (${reason})\n${summary}\n<a href="${undoUrl}">UNDO</a>`
   }
 
   if (parseMode === "Markdown") {
     const escapedStatusLabel = escapeMarkdown(statusLabel)
     const subject = escapeMarkdown(input.subject)
+    const reason = escapeMarkdown(input.reason)
     const summary = escapeMarkdown(input.summary)
     const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
 
-    return `${escapedStatusLabel} ${subject}\n${summary}\n[UNDO](${undoUrl})`
+    return `${escapedStatusLabel} ${subject} \\(${reason}\\)\n${summary}\n[UNDO](${undoUrl})`
   }
 
   const subject = escapeMarkdownV2(input.subject)
+  const reason = escapeMarkdownV2(input.reason)
   const summary = escapeMarkdownV2(input.summary)
   const escapedStatusLabel = escapeMarkdownV2(statusLabel)
   const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
 
-  return `${escapedStatusLabel} ${subject}\n${summary}\n[UNDO](${undoUrl})`
+  return `${escapedStatusLabel} ${subject} \\(${reason}\\)\n${summary}\n[UNDO](${undoUrl})`
 }
 
 export const TEST_ONLY = {
@@ -411,6 +436,7 @@ export function createNotifier(
     {
       providerMessageId: string
       subject: string
+      reason: string
       summary: string
       undoUrl: string
     }
@@ -461,6 +487,7 @@ export function createNotifier(
       sentNotificationsByGmailMessageId.set(input.gmailMessageId, {
         providerMessageId: firstProviderMessageId,
         subject: normalizedInput.subject,
+        reason: normalizedInput.reason,
         summary: normalizedInput.summary,
         undoUrl: normalizedInput.undoUrl,
       })
@@ -470,6 +497,7 @@ export function createNotifier(
         provider: TELEGRAM_NOTIFICATION_PROVIDER,
         providerMessageId: firstProviderMessageId,
         subject: normalizedInput.subject,
+        reason: normalizedInput.reason,
         summary: normalizedInput.summary,
         undoUrl: normalizedInput.undoUrl,
       })
@@ -519,6 +547,7 @@ export function createNotifier(
         sentNotification = {
           providerMessageId: persistedNotification.providerMessageId,
           subject: persistedNotification.subject,
+          reason: persistedNotification.reason,
           summary: persistedNotification.summary,
           undoUrl: persistedNotification.undoUrl,
         }
@@ -548,6 +577,7 @@ export function createNotifier(
           gmailMessageId: input.gmailMessageId,
           appliedAction: input.appliedAction,
           subject: sentNotification.subject,
+          reason: sentNotification.reason,
           summary: sentNotification.summary,
           undoUrl: sentNotification.undoUrl,
         },

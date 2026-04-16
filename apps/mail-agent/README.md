@@ -318,8 +318,9 @@ Useful scopes:
 ### Telegram notification behavior
 
 - Initial notification is sent once per processed message.
+- Message headline includes action status, subject, and AI reason in parentheses.
 - Undo status updates edit the existing Telegram message (`editMessageText`).
-- Mapping (`provider`, `providerMessageId`, `subject`, `summary`, `undoUrl`) is persisted in `processed_emails`.
+- Mapping (`provider`, `providerMessageId`, `subject`, `reason`, `summary`, `undoUrl`) is persisted in `processed_emails`.
 - After restart, mapping is loaded from DB so the same message can still be updated.
 - If mapping is missing, undo still succeeds and notifier logs a debug skip.
 
