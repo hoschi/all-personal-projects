@@ -50,7 +50,6 @@ Required variables:
 Optional variables:
 
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS`
-- `MAIL_AGENT_TELEGRAM_PARSE_MODE` (default: `MarkdownV2`)
 
 Notes:
 

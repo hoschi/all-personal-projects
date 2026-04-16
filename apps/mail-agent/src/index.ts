@@ -14,10 +14,9 @@ async function main() {
 
   const config = createBootstrapConfig()
   debug(
-    "Config loaded: pollIntervalMs=%d, labels=%O, telegramParseMode=%s",
+    "Config loaded: pollIntervalMs=%d, labels=%O",
     config.pollIntervalMs,
     config.labels,
-    config.telegram.parseMode,
   )
 
   const processedEmailStore = createProcessedEmailStore()
@@ -335,7 +334,6 @@ async function main() {
       telegram: {
         chatId: config.telegram.chatId,
         allowedUserIdsCount: config.telegram.allowedUserIds.length,
-        parseMode: config.telegram.parseMode,
       },
       gmailSyncCycles: pollCycleSummary,
       processingSummary: mutableProcessingSummary,

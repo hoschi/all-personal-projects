@@ -14,10 +14,7 @@ const BASE_NOTIFICATION_INPUT: NotificationInput = {
 }
 
 test("formatTelegramMessage escapes MarkdownV2 special characters", () => {
-  const message = TEST_ONLY.formatTelegramMessage(
-    BASE_NOTIFICATION_INPUT,
-    "MarkdownV2",
-  )
+  const message = TEST_ONLY.formatTelegramMessage(BASE_NOTIFICATION_INPUT)
 
   expect(message).toContain("SPRING\\-Sale")
   expect(message).toContain("zurück\\!")
@@ -30,10 +27,7 @@ test("formatTelegramMessage escapes MarkdownV2 special characters", () => {
 })
 
 test("formatTelegramMessage emits one undo link and no debug test links", () => {
-  const message = TEST_ONLY.formatTelegramMessage(
-    BASE_NOTIFICATION_INPUT,
-    "MarkdownV2",
-  )
+  const message = TEST_ONLY.formatTelegramMessage(BASE_NOTIFICATION_INPUT)
 
   expect(message.match(/\[UNDO\]\(/g)?.length ?? 0).toBe(1)
   expect(message).not.toContain("[❌](")

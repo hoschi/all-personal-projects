@@ -3,8 +3,6 @@ import { z } from "zod"
 
 export const APP_NAME = "mail-agent" as const
 
-const TELEGRAM_PARSE_MODES = ["MarkdownV2", "Markdown", "HTML"] as const
-
 dotenvConfig({ path: ".env.base", quiet: true })
 dotenvConfig({ path: ".env", override: true, quiet: true })
 
@@ -31,9 +29,6 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_TELEGRAM_BOT_TOKEN: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_CHAT_ID: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS: z.string().trim().min(1).optional(),
-  MAIL_AGENT_TELEGRAM_PARSE_MODE: z
-    .enum(TELEGRAM_PARSE_MODES)
-    .default("MarkdownV2"),
 })
 
 type BootstrapEnv = z.infer<typeof bootstrapEnvSchema>
@@ -71,7 +66,6 @@ export type BootstrapConfig = {
     botToken: string
     chatId: string
     allowedUserIds: string[]
-    parseMode: (typeof TELEGRAM_PARSE_MODES)[number]
   }
 }
 
@@ -232,7 +226,6 @@ export function createBootstrapConfig(): BootstrapConfig {
       allowedUserIds: parseAllowedUserIds(
         env.MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS,
       ),
-      parseMode: env.MAIL_AGENT_TELEGRAM_PARSE_MODE,
     },
   }
 }

@@ -81,6 +81,7 @@ const TELEGRAM_EDIT_RESPONSE_SCHEMA = z.object({
 const TELEGRAM_MAX_MESSAGE_LENGTH = 4096 as const
 const TELEGRAM_MAX_ATTEMPTS = 3 as const
 const TELEGRAM_NOTIFICATION_PROVIDER = "telegram" as const
+const TELEGRAM_PARSE_MODE = "MarkdownV2" as const
 const TELEGRAM_REASON_MAX_LENGTH = 240 as const
 const TELEGRAM_SUMMARY_MAX_LENGTH = 800 as const
 const MARKDOWN_V2_SPECIAL_CHARACTERS = new Set([
@@ -119,27 +120,6 @@ function escapeMarkdownV2(value: string): string {
 
 function escapeMarkdownV2LinkUrl(value: string): string {
   return value.replaceAll("\\", "\\\\").replaceAll(")", "\\)")
-}
-
-function escapeMarkdown(value: string): string {
-  return value
-    .replaceAll("\\", "\\\\")
-    .replaceAll("`", "\\`")
-    .replaceAll("*", "\\*")
-    .replaceAll("_", "\\_")
-    .replaceAll("[", "\\[")
-    .replaceAll("]", "\\]")
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return escapeHtml(value).replaceAll('"', "&quot;")
 }
 
 function sanitizeSubjectForNotification(value: string): string {
@@ -195,31 +175,8 @@ function normalizeNotificationInput(
   }
 }
 
-function formatTelegramMessage(
-  input: NotificationInput,
-  parseMode: BootstrapConfig["telegram"]["parseMode"],
-): string {
+function formatTelegramMessage(input: NotificationInput): string {
   const statusLabel = input.appliedAction === "delete" ? "❌" : "☑️"
-
-  if (parseMode === "HTML") {
-    const escapedStatusLabel = escapeHtml(statusLabel)
-    const subject = escapeHtml(input.subject)
-    const reason = escapeHtml(input.reason)
-    const summary = escapeHtml(input.summary)
-    const undoUrl = escapeHtmlAttribute(input.undoUrl)
-
-    return `${escapedStatusLabel} ${subject} (${reason})\n${summary}\n<a href="${undoUrl}">UNDO</a>`
-  }
-
-  if (parseMode === "Markdown") {
-    const escapedStatusLabel = escapeMarkdown(statusLabel)
-    const subject = escapeMarkdown(input.subject)
-    const reason = escapeMarkdown(input.reason)
-    const summary = escapeMarkdown(input.summary)
-    const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
-
-    return `${escapedStatusLabel} ${subject} \\(${reason}\\)\n${summary}\n[UNDO](${undoUrl})`
-  }
 
   const subject = escapeMarkdownV2(input.subject)
   const reason = escapeMarkdownV2(input.reason)
@@ -272,9 +229,8 @@ async function sendTelegramMessage(
 
   while (attempt <= TELEGRAM_MAX_ATTEMPTS) {
     debug(
-      "Sending Telegram message: attempt=%d, parseMode=%s, textLength=%d, text=%s",
+      "Sending Telegram message: attempt=%d, textLength=%d, text=%s",
       attempt,
-      config.telegram.parseMode,
       messageText.length,
       messageText,
     )
@@ -287,7 +243,7 @@ async function sendTelegramMessage(
       body: JSON.stringify({
         chat_id: config.telegram.chatId,
         text: messageText,
-        parse_mode: config.telegram.parseMode,
+        parse_mode: TELEGRAM_PARSE_MODE,
         disable_web_page_preview: true,
       }),
     })
@@ -356,10 +312,9 @@ async function editTelegramMessage(
 
   while (attempt <= TELEGRAM_MAX_ATTEMPTS) {
     debug(
-      "Editing Telegram message: providerMessageId=%s, attempt=%d, parseMode=%s, textLength=%d, text=%s",
+      "Editing Telegram message: providerMessageId=%s, attempt=%d, textLength=%d, text=%s",
       providerMessageId,
       attempt,
-      config.telegram.parseMode,
       messageText.length,
       messageText,
     )
@@ -373,7 +328,7 @@ async function editTelegramMessage(
         chat_id: config.telegram.chatId,
         message_id: telegramMessageId,
         text: messageText,
-        parse_mode: config.telegram.parseMode,
+        parse_mode: TELEGRAM_PARSE_MODE,
         disable_web_page_preview: true,
       }),
     })
@@ -425,11 +380,7 @@ export function createNotifier(
 ): Notifier {
   const debug = Debug("app:action:createNotifier")
 
-  debug(
-    "Using telegram notifier: chatIdConfigured=%s, parseMode=%s",
-    true,
-    config.telegram.parseMode,
-  )
+  debug("Using telegram notifier: chatIdConfigured=%s", true)
 
   const sentNotificationsByGmailMessageId = new Map<
     string,
@@ -448,16 +399,12 @@ export function createNotifier(
     ): Promise<NotificationResult> {
       const debug = Debug("app:action:sendNotification")
       const normalizedInput = normalizeNotificationInput(input)
-      const formattedMessage = formatTelegramMessage(
-        normalizedInput,
-        config.telegram.parseMode,
-      )
+      const formattedMessage = formatTelegramMessage(normalizedInput)
       const chunks = chunkText(formattedMessage, TELEGRAM_MAX_MESSAGE_LENGTH)
 
       debug(
-        "Sending notification: gmailMessageId=%s, parseMode=%s, chunkCount=%d, firstChunkLength=%d, formattedMessage=%s",
+        "Sending notification: gmailMessageId=%s, chunkCount=%d, firstChunkLength=%d, formattedMessage=%s",
         input.gmailMessageId,
-        config.telegram.parseMode,
         chunks.length,
         chunks.at(0)?.length ?? 0,
         formattedMessage,
@@ -468,9 +415,8 @@ export function createNotifier(
 
       for (const [chunkIndex, chunk] of chunks.entries()) {
         debug(
-          "Sending chunk: gmailMessageId=%s, parseMode=%s, chunkIndex=%d/%d, chunkLength=%d, chunkText=%s",
+          "Sending chunk: gmailMessageId=%s, chunkIndex=%d/%d, chunkLength=%d, chunkText=%s",
           input.gmailMessageId,
-          config.telegram.parseMode,
           chunkIndex + 1,
           chunks.length,
           chunk.length,
@@ -572,26 +518,22 @@ export function createNotifier(
         return
       }
 
-      const updatedMessage = formatTelegramMessage(
-        {
-          gmailMessageId: input.gmailMessageId,
-          appliedAction: input.appliedAction,
-          subject: sentNotification.subject,
-          reason: sentNotification.reason,
-          summary: sentNotification.summary,
-          undoUrl: sentNotification.undoUrl,
-        },
-        config.telegram.parseMode,
-      )
+      const updatedMessage = formatTelegramMessage({
+        gmailMessageId: input.gmailMessageId,
+        appliedAction: input.appliedAction,
+        subject: sentNotification.subject,
+        reason: sentNotification.reason,
+        summary: sentNotification.summary,
+        undoUrl: sentNotification.undoUrl,
+      })
       const updatedFirstChunk = chunkText(
         updatedMessage,
         TELEGRAM_MAX_MESSAGE_LENGTH,
       ).at(0)
 
       debug(
-        "Updating notification status message: gmailMessageId=%s, parseMode=%s, updatedMessage=%s",
+        "Updating notification status message: gmailMessageId=%s, updatedMessage=%s",
         input.gmailMessageId,
-        config.telegram.parseMode,
         updatedMessage,
       )
 
