@@ -276,19 +276,22 @@ Useful scopes:
 1. Load and validate runtime configuration (fail fast on missing required env values).
 2. Poll Gmail using stored history cursor.
 3. Fall back to full sync when no cursor exists or cursor is invalid.
-4. Normalize candidate message and thread data.
-5. Skip already processed messages (`gmail_message_id` idempotency check).
-6. Classify with private bypass or OpenAI model.
-7. Apply Gmail labels according to decision (`keep` or `delete`).
-8. Persist classification and action result in `processed_emails`.
-9. Create signed undo URL and send Telegram notification.
+4. Normalize candidate message and thread data (sorted by internal date).
+5. Process all normalized messages sequentially in one run.
+6. Skip already processed messages (`gmail_message_id` idempotency check).
+7. Classify with private bypass or OpenAI model.
+8. Apply Gmail labels according to decision (`keep` or `delete`).
+9. Persist classification and action result in `processed_emails`.
+10. Create signed undo URL and send Telegram notification.
 
 ### Gmail sync behavior
 
 - `agent_state.gmail_history_id` stores the last known mailbox cursor.
-- Incremental mode uses `users.history.list(startHistoryId=...)`.
-- Full sync mode uses `users.messages.list` with `MAIL_AGENT_GMAIL_FILTER_QUERY`.
-- After each successful run, the latest valid cursor is persisted.
+- Incremental mode uses `users.history.list(startHistoryId=...)` with pagination until all pages are consumed.
+- Full sync mode uses `users.messages.list` with `MAIL_AGENT_GMAIL_FILTER_QUERY` in small pages (`maxResults=5`), one page per poll cycle.
+- Each full-sync page is processed immediately before the next page is requested.
+- Message detail normalization is fetched in batches to avoid large one-shot requests.
+- After full-sync backlog is drained (no candidates left), the latest valid cursor is persisted.
 
 ### Classification behavior
 

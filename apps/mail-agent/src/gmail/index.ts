@@ -9,7 +9,8 @@ const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/gmail.modify",
   "https://www.googleapis.com/auth/gmail.labels",
 ] as const
-const FULL_SYNC_MAX_RESULTS = 50 as const
+const FULL_SYNC_PAGE_SIZE = 5 as const
+const NORMALIZED_MESSAGE_FETCH_BATCH_SIZE = 5 as const
 
 export type NormalizedGmailMessage = {
   gmailMessageId: string
@@ -345,19 +346,42 @@ async function fetchNormalizedMessages(
     messageIds.length,
   )
 
-  const normalized = await Promise.all(
-    messageIds.map((messageId) =>
-      fetchNormalizedMessage(gmailClient, messageId),
-    ),
-  )
+  const normalized: Array<NormalizedGmailMessage | null> = []
 
-  const result = normalized.filter(
+  for (
+    let startIndex = 0;
+    startIndex < messageIds.length;
+    startIndex += NORMALIZED_MESSAGE_FETCH_BATCH_SIZE
+  ) {
+    const messageIdsBatch = messageIds.slice(
+      startIndex,
+      startIndex + NORMALIZED_MESSAGE_FETCH_BATCH_SIZE,
+    )
+    debug(
+      "Fetching normalized messages batch: batchStart=%d, batchSize=%d",
+      startIndex,
+      messageIdsBatch.length,
+    )
+
+    const batchNormalized = await Promise.all(
+      messageIdsBatch.map((messageId) =>
+        fetchNormalizedMessage(gmailClient, messageId),
+      ),
+    )
+
+    normalized.push(...batchNormalized)
+  }
+
+  const normalizedNonNull = normalized.filter(
     (message): message is NormalizedGmailMessage => message !== null,
   )
 
-  debug("Fetched normalized messages: normalizedMessageCount=%d", result.length)
+  debug(
+    "Fetched normalized messages: normalizedMessageCount=%d",
+    normalizedNonNull.length,
+  )
 
-  return result
+  return normalizedNonNull
 }
 
 function filterNormalizedMessagesByManagedLabelIds(
@@ -374,19 +398,61 @@ function filterNormalizedMessagesByManagedLabelIds(
   )
 }
 
+function sortNormalizedMessagesByInternalDate(
+  normalizedMessages: NormalizedGmailMessage[],
+): NormalizedGmailMessage[] {
+  return normalizedMessages.toSorted((left, right) => {
+    if (left.internalDateIso === null && right.internalDateIso === null) {
+      return left.gmailMessageId.localeCompare(right.gmailMessageId)
+    }
+
+    if (left.internalDateIso === null) {
+      return 1
+    }
+
+    if (right.internalDateIso === null) {
+      return -1
+    }
+
+    const leftTimestamp = Date.parse(left.internalDateIso)
+    const rightTimestamp = Date.parse(right.internalDateIso)
+
+    if (Number.isNaN(leftTimestamp) && Number.isNaN(rightTimestamp)) {
+      return left.gmailMessageId.localeCompare(right.gmailMessageId)
+    }
+
+    if (Number.isNaN(leftTimestamp)) {
+      return 1
+    }
+
+    if (Number.isNaN(rightTimestamp)) {
+      return -1
+    }
+
+    if (leftTimestamp === rightTimestamp) {
+      return left.gmailMessageId.localeCompare(right.gmailMessageId)
+    }
+
+    return leftTimestamp - rightTimestamp
+  })
+}
+
 async function runFullSync(
   gmailClient: gmail_v1.Gmail,
   managedLabelIds: Set<string>,
   gmailFilterQuery: string,
 ): Promise<GmailPollResult> {
   const debug = Debug("app:action:runFullSync")
-  debug("Running full sync: gmailFilterQuery=%s", gmailFilterQuery)
+  debug(
+    "Running full sync page: gmailFilterQuery=%s, pageSize=%d",
+    gmailFilterQuery,
+    FULL_SYNC_PAGE_SIZE,
+  )
 
   const cursorBefore = await readStoredCursor()
-
   const listResponse = await gmailClient.users.messages.list({
     userId: "me",
-    maxResults: FULL_SYNC_MAX_RESULTS,
+    maxResults: FULL_SYNC_PAGE_SIZE,
     q: gmailFilterQuery,
   })
 
@@ -397,8 +463,9 @@ async function runFullSync(
     )
 
   debug(
-    "Full sync listed messages: candidateMessageCount=%d",
+    "Full sync page loaded: pageCandidateCount=%d, hasNextPage=%s",
     candidateMessageIds.length,
+    !!listResponse.data.nextPageToken,
   )
 
   const unfilteredNormalizedMessages = await fetchNormalizedMessages(
@@ -409,22 +476,29 @@ async function runFullSync(
     unfilteredNormalizedMessages,
     managedLabelIds,
   )
+  const sortedNormalizedMessages =
+    sortNormalizedMessagesByInternalDate(normalizedMessages)
 
-  const profileResponse = await gmailClient.users.getProfile({
-    userId: "me",
-  })
+  let cursorAfter = cursorBefore
 
-  const cursorAfter = profileResponse.data.historyId ?? null
+  if (candidateMessageIds.length === 0) {
+    const profileResponse = await gmailClient.users.getProfile({
+      userId: "me",
+    })
 
-  if (cursorAfter) {
-    await persistCursor(cursorAfter)
+    cursorAfter = profileResponse.data.historyId ?? null
+
+    if (cursorAfter) {
+      await persistCursor(cursorAfter)
+    }
   }
 
   debug(
-    "Full sync finished: cursorBefore=%s, cursorAfter=%s, normalizedMessageCount=%d, skippedManagedCount=%d",
+    "Full sync page finished: cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d, skippedManagedCount=%d",
     cursorBefore,
     cursorAfter,
-    normalizedMessages.length,
+    candidateMessageIds.length,
+    sortedNormalizedMessages.length,
     unfilteredNormalizedMessages.length - normalizedMessages.length,
   )
 
@@ -433,7 +507,7 @@ async function runFullSync(
     cursorBefore,
     cursorAfter,
     candidateMessageIds,
-    normalizedMessages,
+    normalizedMessages: sortedNormalizedMessages,
   }
 }
 
@@ -669,25 +743,48 @@ export function createGmailSync(config: BootstrapConfig) {
       }
 
       try {
-        const historyResponse = await gmailClient.users.history.list({
-          userId: "me",
-          startHistoryId: cursorBefore,
-          historyTypes: ["messageAdded", "labelAdded", "labelRemoved"],
-        })
+        const candidateMessageIds = new Set<string>()
+        let pageToken: string | undefined
+        let pageCount = 0
+        let cursorAfter = cursorBefore
 
-        const candidateMessageIds = extractHistoryCandidateMessageIds(
-          historyResponse.data,
-        )
+        do {
+          const historyResponse = await gmailClient.users.history.list({
+            userId: "me",
+            startHistoryId: cursorBefore,
+            historyTypes: ["messageAdded", "labelAdded", "labelRemoved"],
+            pageToken,
+          })
+          pageCount += 1
+
+          for (const candidateMessageId of extractHistoryCandidateMessageIds(
+            historyResponse.data,
+          )) {
+            candidateMessageIds.add(candidateMessageId)
+          }
+
+          cursorAfter = historyResponse.data.historyId ?? cursorAfter
+          pageToken = historyResponse.data.nextPageToken ?? undefined
+
+          debug(
+            "History page loaded: page=%d, totalCandidateCount=%d, hasNextPage=%s",
+            pageCount,
+            candidateMessageIds.size,
+            !!pageToken,
+          )
+        } while (pageToken)
+
+        const candidateMessageIdsList = [...candidateMessageIds]
         const unfilteredNormalizedMessages = await fetchNormalizedMessages(
           gmailClient,
-          candidateMessageIds,
+          candidateMessageIdsList,
         )
         const normalizedMessages = filterNormalizedMessagesByManagedLabelIds(
           unfilteredNormalizedMessages,
           managedLabelIds,
         )
-
-        const cursorAfter = historyResponse.data.historyId ?? cursorBefore
+        const sortedNormalizedMessages =
+          sortNormalizedMessagesByInternalDate(normalizedMessages)
 
         await persistCursor(cursorAfter)
 
@@ -695,8 +792,8 @@ export function createGmailSync(config: BootstrapConfig) {
           "History poll finished: cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d, skippedManagedCount=%d",
           cursorBefore,
           cursorAfter,
-          candidateMessageIds.length,
-          normalizedMessages.length,
+          candidateMessageIdsList.length,
+          sortedNormalizedMessages.length,
           unfilteredNormalizedMessages.length - normalizedMessages.length,
         )
 
@@ -704,8 +801,8 @@ export function createGmailSync(config: BootstrapConfig) {
           mode: "history",
           cursorBefore,
           cursorAfter,
-          candidateMessageIds,
-          normalizedMessages,
+          candidateMessageIds: candidateMessageIdsList,
+          normalizedMessages: sortedNormalizedMessages,
         }
       } catch (error: unknown) {
         if (!isInvalidHistoryError(error)) {
@@ -714,6 +811,7 @@ export function createGmailSync(config: BootstrapConfig) {
         }
 
         debug("History cursor invalid, falling back to full sync")
+        await persistCursor(null)
 
         return runFullSync(
           gmailClient,
