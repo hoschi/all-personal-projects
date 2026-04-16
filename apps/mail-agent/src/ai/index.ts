@@ -156,8 +156,7 @@ function buildPrivateBypassDecision(
     deleteIt: false,
     subject,
     summary,
-    reason:
-      "Als private Kommunikation erkannt. AI-Klassifikation wurde übersprungen.",
+    reason: "Privat, AI-Klassifikation übersprungen!",
   }
 }
 
