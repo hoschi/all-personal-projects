@@ -184,7 +184,7 @@ function formatTelegramMessage(input: NotificationInput): string {
   const escapedStatusLabel = escapeMarkdownV2(statusLabel)
   const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
 
-  return `${escapedStatusLabel} ${subject} \\(${reason}\\)\n${summary}\n[UNDO](${undoUrl})`
+  return `${escapedStatusLabel} ${subject}\n${summary}\n\\(${reason}\\)\n[UNDO](${undoUrl})`
 }
 
 export const TEST_ONLY = {
