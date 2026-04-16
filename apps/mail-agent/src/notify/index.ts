@@ -194,8 +194,11 @@ function formatTelegramMessage(
   parseMode: BootstrapConfig["telegram"]["parseMode"],
 ): string {
   const statusLabel = input.appliedAction === "delete" ? "❌" : "☑️"
+  // TODO der hat funktioniert, wir müssen den hier nehmen, die ip muss aus der .env kommen
   const googleTestUrl = "http://192.168.178.91:3070/mail-agent/undo" as const
   const localTestUrl = buildLocalTestUrl(input.undoUrl)
+
+  // TODO es muss keine verschieden parser geben! wir unterstützen nur den der aktuell benutzt wird
 
   if (parseMode === "HTML") {
     const escapedStatusLabel = escapeHtml(statusLabel)
@@ -216,7 +219,7 @@ function formatTelegramMessage(
     const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
     const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
 
-    return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl})  [TEST LOCAL](${escapedLocalTestUrl})`
+    return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl}) - [TEST LOCAL](${escapedLocalTestUrl})`
   }
 
   const subject = escapeMarkdownV2(input.subject)
@@ -226,7 +229,7 @@ function formatTelegramMessage(
   const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
   const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
 
-  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl})  [TEST LOCAL](${escapedLocalTestUrl})`
+  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl}) - [TEST LOCAL](${escapedLocalTestUrl})`
 }
 
 function chunkText(value: string, chunkSize: number): string[] {
