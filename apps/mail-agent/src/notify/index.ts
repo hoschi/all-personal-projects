@@ -139,22 +139,6 @@ function escapeHtmlAttribute(value: string): string {
   return escapeHtml(value).replaceAll('"', "&quot;")
 }
 
-function buildLocalTestUrl(value: string): string {
-  const fallbackUrl = "https://example.local" as const
-
-  try {
-    const parsedUrl = new URL(value)
-
-    if (!parsedUrl.hostname.endsWith(".local")) {
-      parsedUrl.hostname = `${parsedUrl.hostname}.local`
-    }
-
-    return parsedUrl.toString()
-  } catch {
-    return fallbackUrl
-  }
-}
-
 function sanitizeSubjectForNotification(value: string): string {
   const normalizedSubject = value.replace(/\s+/g, " ").trim()
 
@@ -194,21 +178,14 @@ function formatTelegramMessage(
   parseMode: BootstrapConfig["telegram"]["parseMode"],
 ): string {
   const statusLabel = input.appliedAction === "delete" ? "❌" : "☑️"
-  // TODO der hat funktioniert, wir müssen den hier nehmen, die ip muss aus der .env kommen
-  const googleTestUrl = "http://192.168.178.91:3070/mail-agent/undo" as const
-  const localTestUrl = buildLocalTestUrl(input.undoUrl)
-
-  // TODO es muss keine verschieden parser geben! wir unterstützen nur den der aktuell benutzt wird
 
   if (parseMode === "HTML") {
     const escapedStatusLabel = escapeHtml(statusLabel)
     const subject = escapeHtml(input.subject)
     const summary = escapeHtml(input.summary)
     const undoUrl = escapeHtmlAttribute(input.undoUrl)
-    const escapedGoogleTestUrl = escapeHtmlAttribute(googleTestUrl)
-    const escapedLocalTestUrl = escapeHtmlAttribute(localTestUrl)
 
-    return `<a href="${undoUrl}">${escapedStatusLabel}</a>: ${subject}\n${summary}\n<a href="${undoUrl}">UNDO</a>\n<a href="${escapedGoogleTestUrl}">TEST GOOGLE</a> - <a href="${escapedLocalTestUrl}">TEST LOCAL</a>`
+    return `${escapedStatusLabel} ${subject}\n${summary}\n<a href="${undoUrl}">UNDO</a>`
   }
 
   if (parseMode === "Markdown") {
@@ -216,21 +193,21 @@ function formatTelegramMessage(
     const subject = escapeMarkdown(input.subject)
     const summary = escapeMarkdown(input.summary)
     const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
-    const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
-    const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
 
-    return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl}) - [TEST LOCAL](${escapedLocalTestUrl})`
+    return `${escapedStatusLabel} ${subject}\n${summary}\n[UNDO](${undoUrl})`
   }
 
   const subject = escapeMarkdownV2(input.subject)
   const summary = escapeMarkdownV2(input.summary)
   const escapedStatusLabel = escapeMarkdownV2(statusLabel)
   const undoUrl = escapeMarkdownV2LinkUrl(input.undoUrl)
-  const escapedGoogleTestUrl = escapeMarkdownV2LinkUrl(googleTestUrl)
-  const escapedLocalTestUrl = escapeMarkdownV2LinkUrl(localTestUrl)
 
-  return `[${escapedStatusLabel}](${undoUrl}): ${subject}\n${summary}\n[UNDO](${undoUrl})\n[TEST GOOGLE](${escapedGoogleTestUrl}) - [TEST LOCAL](${escapedLocalTestUrl})`
+  return `${escapedStatusLabel} ${subject}\n${summary}\n[UNDO](${undoUrl})`
 }
+
+export const TEST_ONLY = {
+  formatTelegramMessage,
+} as const
 
 function chunkText(value: string, chunkSize: number): string[] {
   if (value.length <= chunkSize) {

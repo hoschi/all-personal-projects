@@ -4,13 +4,8 @@ import { z } from "zod"
 export const APP_NAME = "mail-agent" as const
 
 const TELEGRAM_PARSE_MODES = ["MarkdownV2", "Markdown", "HTML"] as const
-const MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT: Record<number, number> = {
-  3070: 8450,
-  4070: 9450,
-}
 
 dotenvConfig({ path: ".env.base", quiet: true })
-dotenvConfig({ path: "../../infra/.env", quiet: true })
 dotenvConfig({ path: ".env", override: true, quiet: true })
 
 const bootstrapEnvSchema = z.object({
@@ -23,7 +18,6 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_AI_RULES_SUMMARY: z.string().trim().min(1),
   MAIL_AGENT_HTTP_HOST: z.string().trim().min(1),
   MAIL_AGENT_HTTP_PORT: z.coerce.number().int().positive(),
-  FRITZBOX_DEVICE_HOSTNAME: z.string().trim().min(1).optional(),
   MAIL_AGENT_GMAIL_CLIENT_ID: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_REFRESH_TOKEN: z.string().trim().min(1),
@@ -124,37 +118,47 @@ function parsePromptRuleList(raw: string, envKey: string): string[] {
   return rules
 }
 
-function normalizeHttpHostForPublicUrl(host: string): string {
-  const normalizedHost = host.trim().toLowerCase()
+function isIpv4Address(value: string): boolean {
+  const octets = value.split(".")
 
-  if (
-    normalizedHost === "0.0.0.0" ||
-    normalizedHost === "::" ||
-    normalizedHost === "[::]"
-  ) {
-    return "localhost"
+  if (octets.length !== 4) {
+    return false
   }
 
-  return host.trim()
+  for (const octet of octets) {
+    if (!/^\d+$/.test(octet)) {
+      return false
+    }
+
+    const octetNumber = Number(octet)
+
+    if (
+      !Number.isInteger(octetNumber) ||
+      octetNumber < 0 ||
+      octetNumber > 255
+    ) {
+      return false
+    }
+  }
+
+  return true
 }
 
 function buildPublicBaseUrl(env: BootstrapEnv): string {
-  const fritzboxHostname = env.FRITZBOX_DEVICE_HOSTNAME?.trim()
+  const publicHost = env.MAIL_AGENT_HTTP_HOST.trim()
 
-  if (fritzboxHostname && fritzboxHostname.length > 0) {
-    const httpsPort =
-      MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT[env.MAIL_AGENT_HTTP_PORT]
-
-    if (!httpsPort) {
-      throw new Error(
-        `Invalid mail-agent environment configuration: MAIL_AGENT_HTTP_PORT=${env.MAIL_AGENT_HTTP_PORT} has no FRITZBOX HTTPS mapping. Supported values: ${Object.keys(MAIL_AGENT_PUBLIC_PORT_BY_HTTP_PORT).join(", ")}.`,
-      )
-    }
-
-    return `https://${fritzboxHostname}:${httpsPort}`
+  if (!isIpv4Address(publicHost)) {
+    throw new Error(
+      "Invalid mail-agent environment configuration: MAIL_AGENT_HTTP_HOST must be an IPv4 address.",
+    )
   }
 
-  const publicHost = normalizeHttpHostForPublicUrl(env.MAIL_AGENT_HTTP_HOST)
+  if (publicHost === "0.0.0.0") {
+    throw new Error(
+      "Invalid mail-agent environment configuration: MAIL_AGENT_HTTP_HOST=0.0.0.0 cannot be used for undo links. Use your LAN IPv4 address.",
+    )
+  }
+
   return `http://${publicHost}:${env.MAIL_AGENT_HTTP_PORT}`
 }
 

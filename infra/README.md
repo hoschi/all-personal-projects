@@ -134,17 +134,20 @@ For any app that should be reachable through this Caddy setup (desktop + LAN), t
 
 ### Mail-agent requirements
 
-Mail-agent uses separate env vars for bind target vs public URL:
+Mail-agent uses these env vars for both bind target and generated undo URLs:
 
-- `MAIL_AGENT_HTTP_HOST=0.0.0.0`
+- `MAIL_AGENT_HTTP_HOST=<lan-ip>`
 - `MAIL_AGENT_HTTP_PORT=3070`
 
-Public URL is built automatically by mail-agent:
+Generated undo links always use:
+- `http://<MAIL_AGENT_HTTP_HOST>:<MAIL_AGENT_HTTP_PORT>`
 
-- with `FRITZBOX_DEVICE_HOSTNAME` in `infra/.env`: `https://<hostname>:8450` (dev) / `https://<hostname>:9450` (prod)
-- without hostname: `http://localhost:3070` (or `http://<MAIL_AGENT_HTTP_HOST>:<MAIL_AGENT_HTTP_PORT>`)
+Requirements:
+- `MAIL_AGENT_HTTP_HOST` must be an IPv4 address
+- `MAIL_AGENT_HTTP_HOST` cannot be `0.0.0.0` (not usable as link target)
+- host should be reachable from the device where undo links are opened
 
-This keeps Bun listening on local port `3070` while generated undo links still point to the HTTPS endpoint exposed by Caddy when hostname mode is enabled.
+Keep Caddy HTTPS endpoints for browser tests, but use the IP-based HTTP URL for Telegram undo links.
 
 ### Vite-specific requirements
 
@@ -188,6 +191,7 @@ Mail-agent URLs:
 
 - `https://dev.mail-agent.localhost/mail-agent/undo?token=...`
 - `https://<FRITZBOX_DEVICE_HOSTNAME>:8450/mail-agent/undo?token=...`
+- `http://<lan-ip>:3070/mail-agent/undo?token=...` (Telegram undo link target)
 
 ### Prod mode
 
@@ -212,6 +216,7 @@ Mail-agent URLs:
 
 - `https://prod.mail-agent.localhost/mail-agent/undo?token=...`
 - `https://<FRITZBOX_DEVICE_HOSTNAME>:9450/mail-agent/undo?token=...`
+- `http://<lan-ip>:4070/mail-agent/undo?token=...` (Telegram undo link target)
 
 ## How to test the setup
 
