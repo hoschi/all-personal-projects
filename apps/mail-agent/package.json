@@ -14,6 +14,7 @@
     "gmail:smoke": "bun src/gmail/gmail-read-smoke.ts",
     "gmail:auth": "bun src/gmail/generate-refresh-token.ts",
     "ai:smoke": "bun src/ai/smoke.ts",
+    "cursor:clear": "bun src/cli/clear-cursor.ts",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
     "test": "bun test",

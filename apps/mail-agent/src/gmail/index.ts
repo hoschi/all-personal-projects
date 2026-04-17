@@ -256,6 +256,22 @@ async function persistCursor(gmailHistoryId: string | null) {
   debug("Persisted Gmail cursor")
 }
 
+export async function clearCursor() {
+  const debug = Debug("app:db:clearCursor")
+  debug("Clearing Gmail cursor")
+
+  await prisma.agentState.upsert({
+    where: { id: AGENT_STATE_ID },
+    update: { gmailHistoryId: null },
+    create: {
+      id: AGENT_STATE_ID,
+      gmailHistoryId: null,
+    },
+  })
+
+  debug("Cleared Gmail cursor - next start will perform full sync")
+}
+
 async function fetchNormalizedMessage(
   gmailClient: gmail_v1.Gmail,
   messageId: string,

@@ -251,6 +251,7 @@ From repository root:
 
 - Start once: `bun run --filter mail-agent start`
 - Watch mode: `bun run --filter mail-agent dev`
+- **Clear cursor (force full sync):** `bun run --filter mail-agent cursor:clear`
 - Typecheck: `bun run --filter mail-agent check-types`
 - Lint: `bun run --filter mail-agent lint`
 - Test: `bun run --filter mail-agent test`
