@@ -459,9 +459,19 @@ async function runFullSync(
   gmailFilterQuery: string,
 ): Promise<GmailPollResult> {
   const debug = Debug("app:action:runFullSync")
+
+  // Build dynamic filter query excluding AI-managed labels
+  const aiLabelExclusions = Array.from(managedLabelIds)
+    .map((labelId) => `-label:${labelId}`)
+    .join(" ")
+
+  const dynamicFilterQuery = `${gmailFilterQuery} ${aiLabelExclusions}`.trim()
+
   debug(
-    "Running full sync page: gmailFilterQuery=%s, pageSize=%d",
+    "Running full sync page: baseQuery=%s, aiLabelExclusions=%s, finalQuery=%s, pageSize=%d",
     gmailFilterQuery,
+    aiLabelExclusions,
+    dynamicFilterQuery,
     FULL_SYNC_PAGE_SIZE,
   )
 
@@ -469,7 +479,7 @@ async function runFullSync(
   const listResponse = await gmailClient.users.messages.list({
     userId: "me",
     maxResults: FULL_SYNC_PAGE_SIZE,
-    q: gmailFilterQuery,
+    q: dynamicFilterQuery,
   })
 
   const candidateMessageIds = (listResponse.data.messages ?? [])

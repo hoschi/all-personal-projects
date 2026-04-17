@@ -30,7 +30,6 @@ async function main() {
     gmail,
     notifier,
   )
-  const http = httpRuntime.state
   debug("Adapters initialized: pipelineStageCount=%d", pipeline.length)
 
   const processingSummary = {
@@ -345,27 +344,7 @@ async function main() {
     )
   }
 
-  debug("Run finished: processingSummary=%O", mutableProcessingSummary)
-
-  console.log(
-    JSON.stringify({
-      appName: config.appName,
-      startedAtIso: config.startedAtIso,
-      pollIntervalMs: config.pollIntervalMs,
-      databaseSchemaName: config.databaseSchemaName,
-      publicBaseUrl: config.publicBaseUrl,
-      labels: config.labels,
-      telegram: {
-        chatId: config.telegram.chatId,
-        allowedUserIdsCount: config.telegram.allowedUserIds.length,
-      },
-      gmailSyncCycles: pollCycleSummary,
-      processingSummary: mutableProcessingSummary,
-      processedOutcomeSample: processedOutcomeSample.slice(0, 20),
-      pipeline,
-      http,
-    }),
-  )
+  debug("Loop finished: processingSummary=%O", mutableProcessingSummary)
 }
 
 main().catch((error: unknown) => {
