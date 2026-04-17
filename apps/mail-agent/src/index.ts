@@ -104,6 +104,30 @@ async function main() {
       gmailPollResult.normalizedMessages.length,
     )
 
+    // Log all candidate messages before processing
+    if (gmailPollResult.candidateMessageIds.length > 0) {
+      debug(
+        "Candidate messages to process: cycle=%d, candidateCount=%d, candidateMessageIds=%O",
+        pollCycle,
+        gmailPollResult.candidateMessageIds.length,
+        gmailPollResult.candidateMessageIds,
+      )
+
+      // Log all subject lines and wait 3 seconds for user to stop server if needed
+      debug(
+        "Processing subjects for cycle=%d: %O",
+        pollCycle,
+        gmailPollResult.normalizedMessages.map((msg) => ({
+          gmailMessageId: msg.gmailMessageId,
+          subject: msg.subject,
+          sender: msg.sender,
+        })),
+      )
+
+      debug("Waiting 3 seconds - press Ctrl+C to stop server if needed...")
+      await new Promise((resolve) => setTimeout(resolve, 3000))
+    }
+
     if (gmailPollResult.normalizedMessages.length === 0) {
       debug(
         "No normalized message available for this cycle: cycle=%d",
