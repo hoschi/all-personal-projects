@@ -951,9 +951,8 @@ export function createGmailSync(config: BootstrapConfig) {
       }
 
       try {
-        const candidateMessageIds = new Set<string>()
+        const historyPages: gmail_v1.Schema$ListHistoryResponse[] = []
         let pageToken: string | undefined
-        let pageCount = 0
         let cursorAfter = cursorBefore
 
         do {
@@ -963,26 +962,39 @@ export function createGmailSync(config: BootstrapConfig) {
             historyTypes: ["messageAdded", "labelAdded", "labelRemoved"],
             pageToken,
           })
-          pageCount += 1
 
-          for (const candidateMessageId of extractHistoryCandidateMessageIds(
-            historyResponse.data,
-          )) {
-            candidateMessageIds.add(candidateMessageId)
-          }
-
+          historyPages.push(historyResponse.data)
           cursorAfter = historyResponse.data.historyId ?? cursorAfter
           pageToken = historyResponse.data.nextPageToken ?? undefined
-
-          debug(
-            "History page loaded: page=%d, totalCandidateCount=%d, hasNextPage=%s",
-            pageCount,
-            candidateMessageIds.size,
-            !!pageToken,
-          )
         } while (pageToken)
 
+        // Extract candidate message IDs from all pages
+        const candidateMessageIds = new Set(
+          historyPages.flatMap((page) =>
+            extractHistoryCandidateMessageIds(page),
+          ),
+        )
+
         const candidateMessageIdsList = [...candidateMessageIds]
+
+        // Only process further if we have candidates
+        if (candidateMessageIdsList.length === 0) {
+          debug(
+            "History poll completed: cursorBefore=%s, cursorAfter=%s, no candidates found",
+            cursorBefore,
+            cursorAfter,
+          )
+
+          await persistCursor(cursorAfter)
+
+          return {
+            mode: "history",
+            cursorBefore,
+            cursorAfter,
+            candidateMessageIds: candidateMessageIdsList,
+            normalizedMessages: [],
+          }
+        }
 
         // Filter history candidates by Gmail query
         const filteredCandidateMessageIds =
