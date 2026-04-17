@@ -218,7 +218,7 @@ async function main() {
       try {
         actionResult = await gmail.applyAction(
           message.gmailMessageId,
-          classification.decision.deleteIt,
+          classification.decision,
         )
         mutableProcessingSummary.actionSuccessCount += 1
 

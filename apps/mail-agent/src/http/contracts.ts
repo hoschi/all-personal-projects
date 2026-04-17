@@ -1,5 +1,6 @@
 import type { UserAction } from "../data"
 import type { GmailAppliedAction } from "../gmail"
+import type { ClassifierDecision } from "../ai"
 
 export type ProcessedEmailStoreUndoPort = {
   findUndoTarget(gmailMessageId: string): Promise<{
@@ -16,7 +17,7 @@ export type ProcessedEmailStoreUndoPort = {
 export type GmailUndoPort = {
   applyAction(
     gmailMessageId: string,
-    deleteIt: boolean,
+    decision: ClassifierDecision,
   ): Promise<{
     appliedAction: GmailAppliedAction
     addedLabelIds: string[]

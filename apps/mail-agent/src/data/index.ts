@@ -2,7 +2,7 @@ import Debug from "debug"
 
 import { prisma } from "./prisma"
 
-export type AppliedAction = "keep" | "delete"
+export type AppliedAction = "keep" | "delete" | "hidden"
 export type UserAction = "undo_keep" | "undo_delete"
 
 export type ProcessedEmailInsertInput = {

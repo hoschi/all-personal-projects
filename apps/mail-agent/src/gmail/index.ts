@@ -3,6 +3,7 @@ import { google, type gmail_v1 } from "googleapis"
 
 import type { BootstrapConfig } from "../config"
 import { prisma } from "../data/prisma"
+import type { ClassifierDecision } from "../ai"
 
 const AGENT_STATE_ID = "mail-agent-state" as const
 const GMAIL_SCOPES = [
@@ -37,7 +38,7 @@ export type GmailPollResult = {
   normalizedMessages: NormalizedGmailMessage[]
 }
 
-export type GmailAppliedAction = "keep" | "delete"
+export type GmailAppliedAction = "keep" | "delete" | "hidden"
 
 export type GmailApplyActionResult = {
   appliedAction: GmailAppliedAction
@@ -795,26 +796,63 @@ export function createGmailSync(config: BootstrapConfig) {
 
   async function applyAction(
     gmailMessageId: string,
-    deleteIt: boolean,
+    decision: ClassifierDecision,
   ): Promise<GmailApplyActionResult> {
     const debug = Debug("app:action:applyGmailAction")
     debug(
-      "Applying Gmail action: gmailMessageId=%s, deleteIt=%s",
+      "Applying Gmail action: gmailMessageId=%s, deleteIt=%s, reason=%s",
       gmailMessageId,
-      deleteIt,
+      decision.deleteIt,
+      decision.reason,
     )
 
     const keepLabelId = await getConfiguredLabelId(config.labels.keep)
     const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
     const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
 
-    const appliedAction: GmailAppliedAction = deleteIt ? "delete" : "keep"
+    // Handle private bypass messages - they get hidden label regardless of delete decision
+    if (decision.reason === "private_bypass") {
+      const appliedAction: GmailAppliedAction = "hidden"
 
-    const addedLabelIds = deleteIt ? [deleteLabelId] : [keepLabelId]
+      debug(
+        "Applying private bypass action: gmailMessageId=%s, appliedAction=%s",
+        gmailMessageId,
+        appliedAction,
+      )
 
-    const removedLabelIds = deleteIt
-      ? ["INBOX", keepLabelId, hiddenLabelId]
-      : [deleteLabelId, hiddenLabelId]
+      await gmailClient.users.messages.modify({
+        userId: "me",
+        id: gmailMessageId,
+        requestBody: {
+          addLabelIds: [hiddenLabelId],
+          removeLabelIds: ["INBOX", keepLabelId, deleteLabelId],
+        },
+      })
+
+      debug(
+        "Applied Gmail private bypass action: gmailMessageId=%s, appliedAction=%s, addedLabelCount=%d, removedLabelCount=%d",
+        gmailMessageId,
+        appliedAction,
+        1,
+        3,
+      )
+
+      return {
+        appliedAction,
+        addedLabelIds: [hiddenLabelId],
+        removedLabelIds: ["INBOX", keepLabelId, deleteLabelId],
+      }
+    }
+
+    // Normal processing for non-private messages
+    const appliedAction: GmailAppliedAction = decision.deleteIt
+      ? "delete"
+      : "keep"
+    const addedLabelIds = decision.deleteIt ? [deleteLabelId] : [keepLabelId]
+
+    const removedLabelIds = decision.deleteIt
+      ? ["INBOX", keepLabelId]
+      : [deleteLabelId]
 
     await gmailClient.users.messages.modify({
       userId: "me",
@@ -853,6 +891,7 @@ export function createGmailSync(config: BootstrapConfig) {
 
     const keepLabelId = await getConfiguredLabelId(config.labels.keep)
     const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
+    // TODO hidden mails are ignored and have no undo action
     const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
 
     const userAction: GmailUndoAction =
