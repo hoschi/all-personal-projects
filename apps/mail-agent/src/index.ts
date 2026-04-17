@@ -308,40 +308,43 @@ async function main() {
       }
     }
 
-    if (gmailPollResult.mode !== "full_sync") {
-      break
+    // Handle full sync specific logic
+    if (gmailPollResult.mode === "full_sync") {
+      if (gmailPollResult.candidateMessageIds.length === 0) {
+        debug(
+          "Full sync completed: no more candidates left after cycle=%d",
+          pollCycle,
+        )
+        // Don't break - continue with history polling
+      }
+
+      if (currentBatchSignature === previousFullSyncBatchSignature) {
+        repeatedFullSyncBatchCount += 1
+      } else {
+        repeatedFullSyncBatchCount = 0
+      }
+
+      previousFullSyncBatchSignature = currentBatchSignature
+
+      if (repeatedFullSyncBatchCount >= 1) {
+        debug(
+          "Detected repeated full-sync batch without progress, switching to history polling: cycle=%d, candidateMessageIds=%O",
+          pollCycle,
+          gmailPollResult.candidateMessageIds,
+        )
+        // Don't break - continue with history polling
+      } else {
+        debug(
+          "Continuing with next full-sync page: completedCycle=%d, candidateMessageCount=%d",
+          pollCycle,
+          gmailPollResult.candidateMessageIds.length,
+        )
+      }
     }
 
-    if (gmailPollResult.candidateMessageIds.length === 0) {
-      debug(
-        "Full sync completed: no more candidates left after cycle=%d",
-        pollCycle,
-      )
-      break
-    }
-
-    if (currentBatchSignature === previousFullSyncBatchSignature) {
-      repeatedFullSyncBatchCount += 1
-    } else {
-      repeatedFullSyncBatchCount = 0
-    }
-
-    previousFullSyncBatchSignature = currentBatchSignature
-
-    if (repeatedFullSyncBatchCount >= 1) {
-      debug(
-        "Detected repeated full-sync batch without progress, stopping to avoid endless loop: cycle=%d, candidateMessageIds=%O",
-        pollCycle,
-        gmailPollResult.candidateMessageIds,
-      )
-      break
-    }
-
-    debug(
-      "Continuing with next full-sync page: completedCycle=%d, candidateMessageCount=%d",
-      pollCycle,
-      gmailPollResult.candidateMessageIds.length,
-    )
+    // Wait for next poll cycle
+    debug("Waiting %d ms until next poll cycle...", config.pollIntervalMs)
+    await new Promise((resolve) => setTimeout(resolve, config.pollIntervalMs))
   }
 
   debug("Loop finished: processingSummary=%O", mutableProcessingSummary)
