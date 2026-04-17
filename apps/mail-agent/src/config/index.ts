@@ -29,6 +29,7 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_TELEGRAM_BOT_TOKEN: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_CHAT_ID: z.string().trim().min(1),
   MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS: z.string().trim().min(1).optional(),
+  MAIL_AGENT_LIST_LABELS: z.string().trim().min(1).optional(),
 })
 
 type BootstrapEnv = z.infer<typeof bootstrapEnvSchema>
@@ -67,6 +68,7 @@ export type BootstrapConfig = {
     chatId: string
     allowedUserIds: string[]
   }
+  listLabels: boolean
 }
 
 function readBootstrapEnv(): BootstrapEnv {
@@ -227,5 +229,6 @@ export function createBootstrapConfig(): BootstrapConfig {
         env.MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS,
       ),
     },
+    listLabels: env.MAIL_AGENT_LIST_LABELS === "true",
   }
 }

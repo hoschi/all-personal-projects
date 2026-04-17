@@ -113,15 +113,29 @@ async function main() {
       )
 
       // Log all subject lines and wait 3 seconds for user to stop server if needed
-      debug(
-        "Processing subjects for cycle=%d: %O",
-        pollCycle,
-        gmailPollResult.normalizedMessages.map((msg) => ({
+      type SubjectInfo = {
+        gmailMessageId: string
+        subject: string | null
+        sender: string
+        labels?: string[]
+      }
+
+      const subjectData = gmailPollResult.normalizedMessages.map((msg) => {
+        const subjectInfo: SubjectInfo = {
           gmailMessageId: msg.gmailMessageId,
           subject: msg.subject,
           sender: msg.sender,
-        })),
-      )
+        }
+
+        // Add labels if LIST_LABELS is enabled
+        if (config.listLabels && msg.labels.length > 0) {
+          subjectInfo.labels = msg.labels
+        }
+
+        return subjectInfo
+      })
+
+      debug("Processing subjects for cycle=%d: %O", pollCycle, subjectData)
 
       debug("Waiting 3 seconds - press Ctrl+C to stop server if needed...")
       await new Promise((resolve) => setTimeout(resolve, 3000))
