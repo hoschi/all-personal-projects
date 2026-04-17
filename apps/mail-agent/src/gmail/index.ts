@@ -259,6 +259,22 @@ async function getRfc822IdFromHistory(
     return null
   } catch (error) {
     const debug = Debug("app:action:getRfc822IdFromHistory")
+
+    // Check if it's a 404 NOT_FOUND error - this is normal for deleted/archived messages
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === 404
+    ) {
+      debug(
+        "History message not found (404), till date this happens when snoozed messages are processed: historyMessageId=%s",
+        historyMessageId,
+      )
+      return null
+    }
+
+    // Log other errors as unexpected
     debug(
       "Failed to get RFC822 ID from history message: historyMessageId=%s, error=%O",
       historyMessageId,
