@@ -311,7 +311,13 @@ Commit checkpoint:
 
 - `chore(mail-agent): re-enable strict env checks for full runtime`
 
-## Step 10: Remove temporary smoke tests and cleanup test surface
+## Step 10: Bug fixes
+
+- bugs to fix from previous steps
+  - es muss ein bun run kommando geben um den cursor in der db zu löschen damit beim nächsten mal starten des servers ein full sync gemacht wird
+  - die logik für "kandidaten" funktioniert nicht: es wurden nachrichten bearbeitet die schon labels hatten, was eigentlich durch `MAIL_AGENT_GMAIL_FILTER_QUERY="has:nouserlabels AND NOT (from:@gmail.com OR from:@googlemail.com OR category:social)"` unmöglich sein sollte.
+
+## Step 11: Remove temporary smoke tests and cleanup test surface
 
 Deliverables:
 
