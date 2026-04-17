@@ -149,12 +149,14 @@ async function main() {
     }
 
     for (const message of gmailPollResult.normalizedMessages) {
-      debug(
-        "Processing normalized message: gmailMessageId=%s, gmailThreadId=%s, sender=%s",
-        message.gmailMessageId,
-        message.gmailThreadId,
-        message.sender,
-      )
+      const processingMessage = `Processing normalized message: gmailMessageId=${message.gmailMessageId}, gmailThreadId=${message.gmailThreadId}, sender=${message.sender}`
+
+      // Add labels to processing log if LIST_LABELS is enabled
+      if (config.listLabels && message.labels.length > 0) {
+        debug(`${processingMessage}, labels=${JSON.stringify(message.labels)}`)
+      } else {
+        debug(processingMessage)
+      }
 
       const alreadyProcessed = await processedEmailStore.hasProcessedMessage(
         message.gmailMessageId,
