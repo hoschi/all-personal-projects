@@ -227,25 +227,64 @@ function extractHistoryCandidateMessageIds(
   return [...ids]
 }
 
+async function getRfc822IdFromHistory(
+  gmailClient: gmail_v1.Gmail,
+  historyMessageId: string,
+): Promise<string | null> {
+  try {
+    // Rufe die Nachricht ab, aber NUR die Metadaten (Header)
+    const response = await gmailClient.users.messages.get({
+      userId: "me",
+      id: historyMessageId, // Die ID aus der ListHistoryResponse
+      format: "metadata",
+      metadataHeaders: ["Message-ID"], // Wir brauchen nur diesen einen Header!
+    })
+
+    const headers = response.data.payload?.headers
+
+    if (headers) {
+      // Suche den Header mit dem Namen "Message-ID"
+      const messageIdHeader = headers.find(
+        (header) => header.name?.toLowerCase() === "message-id",
+      )
+
+      if (messageIdHeader && messageIdHeader.value) {
+        // Die ID kommt oft in spitzen Klammern: <123@domain.com>
+        // Für die Gmail-Suche (rfc822msgid:) solltest du die Klammern am besten entfernen
+        const cleanId = messageIdHeader.value.replace(/^<|>$/g, "")
+        return cleanId
+      }
+    }
+    return null
+  } catch (error) {
+    const debug = Debug("app:action:getRfc822IdFromHistory")
+    debug(
+      "Failed to get RFC822 ID from history message: historyMessageId=%s, error=%O",
+      historyMessageId,
+      error,
+    )
+    return null
+  }
+}
+
 async function filterHistoryCandidatesByQuery(
   gmailClient: gmail_v1.Gmail,
   candidateMessageIds: string[],
   gmailFilterQuery: string,
   managedLabelIds: Set<string>,
 ): Promise<string[]> {
-  const debug = Debug("app:action:filterHistoryCandidates")
-  debug(
-    "Filtering history candidates: candidateCount=%d, filterQuery=%s",
-    candidateMessageIds.length,
-    gmailFilterQuery,
-  )
-
   // Build dynamic filter query excluding AI-managed labels
   const aiLabelExclusions = Array.from(managedLabelIds)
     .map((labelId) => `-label:${labelId}`)
     .join(" ")
 
   const dynamicFilterQuery = `${gmailFilterQuery} ${aiLabelExclusions}`.trim()
+  const debug = Debug("app:action:filterHistoryCandidates")
+  debug(
+    "Filtering history candidates: candidateCount=%d, filterQuery=%s",
+    candidateMessageIds.length,
+    dynamicFilterQuery,
+  )
 
   const filteredMessageIds: string[] = []
 
@@ -262,8 +301,24 @@ async function filterHistoryCandidatesByQuery(
 
     for (const messageId of batch) {
       try {
-        // Use Gmail search to check if message matches the filter
-        const searchQuery = `${dynamicFilterQuery} id:${messageId}`
+        // Get RFC822 Message-ID from history message
+        const rfcMessageId = await getRfc822IdFromHistory(
+          gmailClient,
+          messageId,
+        )
+
+        if (!rfcMessageId) {
+          debug(
+            "Failed to get RFC822 ID for history candidate: messageId=%s",
+            messageId,
+          )
+          // On error getting RFC822 ID, include the message to be safe
+          filteredMessageIds.push(messageId)
+          continue
+        }
+
+        // Use Gmail search with RFC822 Message-ID to check if message matches the filter
+        const searchQuery = `${dynamicFilterQuery} rfc822msgid:${rfcMessageId}`
         const searchResponse = await gmailClient.users.messages.list({
           userId: "me",
           q: searchQuery,
@@ -276,9 +331,17 @@ async function filterHistoryCandidatesByQuery(
           searchResponse.data.messages.length > 0
         ) {
           filteredMessageIds.push(messageId)
-          debug("History candidate matches filter: messageId=%s", messageId)
+          debug(
+            "History candidate matches filter: messageId=%s, rfcMessageId=%s",
+            messageId,
+            rfcMessageId,
+          )
         } else {
-          debug("History candidate filtered out: messageId=%s", messageId)
+          debug(
+            "History candidate filtered out: messageId=%s, rfcMessageId=%s",
+            messageId,
+            rfcMessageId,
+          )
         }
       } catch (error) {
         debug(
