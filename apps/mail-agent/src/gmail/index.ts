@@ -227,6 +227,86 @@ function extractHistoryCandidateMessageIds(
   return [...ids]
 }
 
+async function filterHistoryCandidatesByQuery(
+  gmailClient: gmail_v1.Gmail,
+  candidateMessageIds: string[],
+  gmailFilterQuery: string,
+  managedLabelIds: Set<string>,
+): Promise<string[]> {
+  const debug = Debug("app:action:filterHistoryCandidates")
+  debug(
+    "Filtering history candidates: candidateCount=%d, filterQuery=%s",
+    candidateMessageIds.length,
+    gmailFilterQuery,
+  )
+
+  // Build dynamic filter query excluding AI-managed labels
+  const aiLabelExclusions = Array.from(managedLabelIds)
+    .map((labelId) => `-label:${labelId}`)
+    .join(" ")
+
+  const dynamicFilterQuery = `${gmailFilterQuery} ${aiLabelExclusions}`.trim()
+
+  const filteredMessageIds: string[] = []
+
+  // Process candidates in batches to avoid rate limits
+  const BATCH_SIZE = 5
+  for (let i = 0; i < candidateMessageIds.length; i += BATCH_SIZE) {
+    const batch = candidateMessageIds.slice(i, i + BATCH_SIZE)
+
+    debug(
+      "Processing filter batch: batchIndex=%d, batchSize=%d",
+      Math.floor(i / BATCH_SIZE),
+      batch.length,
+    )
+
+    for (const messageId of batch) {
+      try {
+        // Use Gmail search to check if message matches the filter
+        const searchQuery = `${dynamicFilterQuery} id:${messageId}`
+        const searchResponse = await gmailClient.users.messages.list({
+          userId: "me",
+          q: searchQuery,
+          maxResults: 1,
+        })
+
+        // If message is found in search results, it matches the filter
+        if (
+          searchResponse.data.messages &&
+          searchResponse.data.messages.length > 0
+        ) {
+          filteredMessageIds.push(messageId)
+          debug("History candidate matches filter: messageId=%s", messageId)
+        } else {
+          debug("History candidate filtered out: messageId=%s", messageId)
+        }
+      } catch (error) {
+        debug(
+          "Failed to filter history candidate: messageId=%s, error=%O",
+          messageId,
+          error,
+        )
+        // On error, include the message to be safe
+        filteredMessageIds.push(messageId)
+      }
+    }
+
+    // Small delay between batches to avoid rate limiting
+    if (i + BATCH_SIZE < candidateMessageIds.length) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+  }
+
+  debug(
+    "History filtering completed: totalCandidates=%d, filteredCandidates=%d, filteredOut=%d",
+    candidateMessageIds.length,
+    filteredMessageIds.length,
+    candidateMessageIds.length - filteredMessageIds.length,
+  )
+
+  return filteredMessageIds
+}
+
 async function readStoredCursor(): Promise<string | null> {
   const debug = Debug("app:db:readStoredCursor")
   debug("Reading stored Gmail cursor")
@@ -801,9 +881,19 @@ export function createGmailSync(config: BootstrapConfig) {
         } while (pageToken)
 
         const candidateMessageIdsList = [...candidateMessageIds]
+
+        // Filter history candidates by Gmail query
+        const filteredCandidateMessageIds =
+          await filterHistoryCandidatesByQuery(
+            gmailClient,
+            candidateMessageIdsList,
+            config.gmailFilterQuery,
+            managedLabelIds,
+          )
+
         const unfilteredNormalizedMessages = await fetchNormalizedMessages(
           gmailClient,
-          candidateMessageIdsList,
+          filteredCandidateMessageIds,
         )
         const normalizedMessages = filterNormalizedMessagesByManagedLabelIds(
           unfilteredNormalizedMessages,
@@ -815,10 +905,11 @@ export function createGmailSync(config: BootstrapConfig) {
         await persistCursor(cursorAfter)
 
         debug(
-          "History poll finished: cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d, skippedManagedCount=%d",
+          "History poll finished: cursorBefore=%s, cursorAfter=%s, totalHistoryCandidates=%d, filteredCandidates=%d, normalizedMessageCount=%d, skippedManagedCount=%d",
           cursorBefore,
           cursorAfter,
           candidateMessageIdsList.length,
+          filteredCandidateMessageIds.length,
           sortedNormalizedMessages.length,
           unfilteredNormalizedMessages.length - normalizedMessages.length,
         )
@@ -827,7 +918,7 @@ export function createGmailSync(config: BootstrapConfig) {
           mode: "history",
           cursorBefore,
           cursorAfter,
-          candidateMessageIds: candidateMessageIdsList,
+          candidateMessageIds: filteredCandidateMessageIds,
           normalizedMessages: sortedNormalizedMessages,
         }
       } catch (error: unknown) {
