@@ -123,11 +123,6 @@ function isLikelyPrivateMessage(input: AiClassificationInput): boolean {
   const sender = input.sender.trim().toLowerCase()
   const subject = input.subject.trim().toLowerCase()
   const body = input.bodyText.trim().toLowerCase()
-  const labels = input.labels.map((label) => label.toUpperCase())
-
-  if (labels.includes("CATEGORY_PERSONAL")) {
-    return true
-  }
 
   const senderLooksPersonal = containsAny(
     sender,
