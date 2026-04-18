@@ -81,9 +81,15 @@ export function createUndoService(
       }
 
       const deleteIt = undoTarget.appliedAction === "delete"
+      const reapplyDecision = {
+        deleteIt,
+        summary: "", // Not used for reapply
+        subject: "", // Not used for reapply
+        reason: "undo_reapply",
+      }
       const reapplyResult = await gmail.applyAction(
         undoTarget.gmailMessageId,
-        deleteIt,
+        reapplyDecision,
       )
 
       await processedEmailStore.markUserAction(undoTarget.gmailMessageId, null)
