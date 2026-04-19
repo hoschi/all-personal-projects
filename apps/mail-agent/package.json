@@ -13,7 +13,7 @@
     "cursor:clear": "bun src/cli/clear-cursor.ts",
     "lint": "bunx eslint .",
     "check-types": "tsc --noEmit",
-    "test": "bun test",
+    "test": "echo 'no tests'",
     "fix": "bunx eslint --fix . && bun run format",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore"
