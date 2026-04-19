@@ -827,7 +827,7 @@ export function createGmailSync(config: BootstrapConfig) {
     const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
 
     // Handle private bypass messages - they get hidden label regardless of delete decision
-    if (decision.reason === "private_bypass") {
+    if (decision.path === "private_bypass") {
       const appliedAction: GmailAppliedAction = "hidden"
 
       debug(

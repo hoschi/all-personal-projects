@@ -83,7 +83,9 @@ Wichtig:
 - Die Felder summary, subject und reason müssen auf Deutsch sein.`
 }
 
-export type ClassifierDecision = z.infer<typeof classifierDecisionSchema>
+export type ClassifierDecision = z.infer<typeof classifierDecisionSchema> & {
+  path?: "private_bypass" | "ai_classification"
+}
 
 export type AiClassificationInput = {
   sender: string
@@ -152,6 +154,7 @@ function buildPrivateBypassDecision(
     subject,
     summary,
     reason: "Privat, AI-Klassifikation übersprungen!",
+    path: "private_bypass",
   }
 }
 
