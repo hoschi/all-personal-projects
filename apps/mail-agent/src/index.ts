@@ -3,7 +3,7 @@ import Debug from "debug"
 import { createAiPipeline } from "./ai"
 import { createBootstrapConfig } from "./config"
 import { createProcessedEmailStore } from "./data"
-import { createGmailSync } from "./gmail"
+import { createGmailSync, persistCursor } from "./gmail"
 import { createHttpRuntime } from "./http"
 import { createNotifier } from "./notify"
 import { createPipelineStageDescriptors } from "./pipeline"
@@ -356,6 +356,16 @@ async function main() {
           gmailPollResult.candidateMessageIds.length,
         )
       }
+    }
+
+    // Persist cursor after successful processing
+    if (gmailPollResult.cursorAfter) {
+      await persistCursor(gmailPollResult.cursorAfter)
+      debug(
+        "Cursor persisted after processing: cursorAfter=%s, processedMessageCount=%d",
+        gmailPollResult.cursorAfter,
+        gmailPollResult.normalizedMessages.length,
+      )
     }
 
     // Wait for next poll cycle

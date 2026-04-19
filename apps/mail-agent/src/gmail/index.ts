@@ -400,7 +400,7 @@ async function readStoredCursor(): Promise<string | null> {
   return state?.gmailHistoryId ?? null
 }
 
-async function persistCursor(gmailHistoryId: string | null) {
+export async function persistCursor(gmailHistoryId: string | null) {
   const debug = Debug("app:db:persistCursor")
   debug("Persisting Gmail cursor: hasCursor=%s", !!gmailHistoryId)
 
@@ -907,8 +907,35 @@ export function createGmailSync(config: BootstrapConfig) {
 
     const keepLabelId = await getConfiguredLabelId(config.labels.keep)
     const deleteLabelId = await getConfiguredLabelId(config.labels.delete)
-    // TODO hidden mails are ignored and have no undo action
     const hiddenLabelId = await getConfiguredLabelId(config.labels.hidden)
+
+    // Handle hidden action - restore to INBOX with keep label
+    if (previousAppliedAction === "hidden") {
+      const userAction: GmailUndoAction = "undo_keep"
+
+      await gmailClient.users.messages.modify({
+        userId: "me",
+        id: gmailMessageId,
+        requestBody: {
+          addLabelIds: ["INBOX", keepLabelId],
+          removeLabelIds: [hiddenLabelId],
+        },
+      })
+
+      debug(
+        "Applied Gmail undo action for hidden: gmailMessageId=%s, userAction=%s, addedLabelCount=%d, removedLabelCount=%d",
+        gmailMessageId,
+        userAction,
+        2,
+        1,
+      )
+
+      return {
+        userAction,
+        addedLabelIds: ["INBOX", keepLabelId],
+        removedLabelIds: [hiddenLabelId],
+      }
+    }
 
     const userAction: GmailUndoAction =
       previousAppliedAction === "delete" ? "undo_delete" : "undo_keep"
@@ -1031,8 +1058,6 @@ export function createGmailSync(config: BootstrapConfig) {
         )
         const sortedNormalizedMessages =
           sortNormalizedMessagesByInternalDate(normalizedMessages)
-
-        await persistCursor(cursorAfter)
 
         debug(
           "History poll finished: cursorBefore=%s, cursorAfter=%s, totalHistoryCandidates=%d, filteredCandidates=%d, normalizedMessageCount=%d, skippedManagedCount=%d",

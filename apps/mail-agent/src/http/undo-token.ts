@@ -40,7 +40,13 @@ export function verifyUndoToken(
   token: string,
   undoTokenSecret: string,
 ): UndoTokenPayload {
-  const [payloadBase64Url, signature] = token.split(".")
+  const tokenParts = token.split(".")
+
+  if (tokenParts.length !== 2) {
+    throw new Error("Undo token has invalid format - expected exactly 2 parts.")
+  }
+
+  const [payloadBase64Url, signature] = tokenParts
 
   if (!payloadBase64Url || !signature) {
     throw new Error("Undo token has invalid format.")

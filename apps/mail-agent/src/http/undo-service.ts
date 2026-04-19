@@ -60,7 +60,11 @@ export function createUndoService(
         )
 
         const appliedActionAfterUndo: GmailAppliedAction =
-          undoTarget.appliedAction === "delete" ? "keep" : "delete"
+          undoTarget.appliedAction === "delete"
+            ? "keep"
+            : undoTarget.appliedAction === "hidden"
+              ? "keep"
+              : "delete"
 
         try {
           await notifier.updateNotificationStatus({
