@@ -21,6 +21,6 @@ export const config = [
     },
   },
   {
-    ignores: ["dist/**"],
+    ignores: ["dist/**", "apps/*/src/generated/**"],
   },
 ]

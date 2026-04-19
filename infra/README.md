@@ -10,10 +10,12 @@ It enables secure browser contexts for features like microphone access (`getUser
   - `https://dev.switch-test.localhost`
   - `https://dev.box-storage.localhost`
   - `https://dev.sst.localhost`
+  - `https://dev.mail-agent.localhost`
 - HTTPS domains for local production builds:
   - `https://prod.switch-test.localhost`
   - `https://prod.box-storage.localhost`
   - `https://prod.sst.localhost`
+  - `https://prod.mail-agent.localhost`
 - Optional LAN access via two approaches:
   - `sslip.io` aliases
   - FRITZ!Box device hostname (for example `https://stefan:8449`)
@@ -36,6 +38,7 @@ It enables secure browser contexts for features like microphone access (`getUser
 | switch-test | `3057` | `4057` |
 | box-storage | `3058` | `4058` |
 | sst         | `3059` | `4059` |
+| mail-agent  | `3070` | `4070` |
 
 Rule: `prod = dev + 1000`.
 
@@ -48,6 +51,7 @@ If `FRITZBOX_DEVICE_HOSTNAME` is set, Caddy exposes these LAN URLs:
 | switch-test | `https://<hostname>:8447` | `https://<hostname>:9447` |
 | box-storage | `https://<hostname>:8448` | `https://<hostname>:9448` |
 | sst         | `https://<hostname>:8449` | `https://<hostname>:9449` |
+| mail-agent  | `https://<hostname>:8450` | `https://<hostname>:9450` |
 
 Example with hostname `stefan`: `https://stefan:8449` (sst dev).
 
@@ -128,6 +132,23 @@ For any app that should be reachable through this Caddy setup (desktop + LAN), t
 - Keep prod port mapping stable (`prod = dev + 1000` in this repo convention).
 - If a framework has host allow-listing, include `FRITZBOX_DEVICE_HOSTNAME` from `infra/.env`.
 
+### Mail-agent requirements
+
+Mail-agent uses these env vars for both bind target and generated undo URLs:
+
+- `MAIL_AGENT_HTTP_HOST=<lan-ip>`
+- `MAIL_AGENT_HTTP_PORT=3070`
+
+Generated undo links always use:
+- `http://<MAIL_AGENT_HTTP_HOST>:<MAIL_AGENT_HTTP_PORT>`
+
+Requirements:
+- `MAIL_AGENT_HTTP_HOST` must be an IPv4 address
+- `MAIL_AGENT_HTTP_HOST` cannot be `0.0.0.0` (not usable as link target)
+- host should be reachable from the device where undo links are opened
+
+Keep Caddy HTTPS endpoints for browser tests, but use the IP-based HTTP URL for Telegram undo links.
+
 ### Vite-specific requirements
 
 In `package.json` scripts:
@@ -166,6 +187,12 @@ Open one of:
 - `https://dev.sst.localhost`
 - `https://<FRITZBOX_DEVICE_HOSTNAME>:8449` (if configured)
 
+Mail-agent URLs:
+
+- `https://dev.mail-agent.localhost/mail-agent/undo?token=...`
+- `https://<FRITZBOX_DEVICE_HOSTNAME>:8450/mail-agent/undo?token=...`
+- `http://<lan-ip>:3070/mail-agent/undo?token=...` (Telegram undo link target)
+
 ### Prod mode
 
 Build all apps:
@@ -185,6 +212,12 @@ Open one of:
 - `https://prod.sst.localhost`
 - `https://<FRITZBOX_DEVICE_HOSTNAME>:9449` (if configured)
 
+Mail-agent URLs:
+
+- `https://prod.mail-agent.localhost/mail-agent/undo?token=...`
+- `https://<FRITZBOX_DEVICE_HOSTNAME>:9450/mail-agent/undo?token=...`
+- `http://<lan-ip>:4070/mail-agent/undo?token=...` (Telegram undo link target)
+
 ## How to test the setup
 
 ### 1) TLS/domain test
@@ -193,6 +226,7 @@ Open one URL, for example:
 
 - Desktop/local: `https://dev.sst.localhost`
 - FRITZ!Box LAN: `https://stefan:8449`
+- FRITZ!Box LAN (mail-agent): `https://stefan:8450/mail-agent/undo?token=...`
 
 Expected:
 
@@ -227,6 +261,7 @@ Expected:
 3. Transfer `infra/caddy-root-ca.crt` to the device.
 4. Install/trust the CA certificate on the device.
 5. Open `https://<hostname>:8449` (sst dev).
+6. Optional for mail-agent undo URL checks: open `https://<hostname>:8450/mail-agent/undo?token=...`.
 
 Expected:
 
@@ -236,12 +271,14 @@ Expected:
 ### Known limitation (FRITZ!Box hostname mode)
 
 In FRITZ!Box hostname mode, all apps currently share one hostname (for example `stefan`).
-Because of that, app routing is separated by HTTPS ports (`8447-8449`, `9447-9449`) instead of per-app hostnames.
+Because of that, app routing is separated by HTTPS ports (`8447-8450`, `9447-9450`) instead of per-app hostnames.
 
 Examples:
 
 - `https://stefan:8449` (`sst` dev)
 - `https://stefan:9449` (`sst` prod)
+- `https://stefan:8450` (`mail-agent` dev)
+- `https://stefan:9450` (`mail-agent` prod)
 
 Why no `https://sst.stefan/` right now:
 
@@ -264,7 +301,7 @@ If you prefer `sslip.io`, add aliases in `infra/caddy/Caddyfile` and restart Cad
 - FRITZ!Box hostname URL does not open:
   - Verify the hostname resolves from your tablet/phone (for example `http://<hostname>:3012`).
   - Verify Caddy is running and restarted after regenerating local config.
-  - Verify required Caddy LAN port is open (`8447-8449`, `9447-9449`).
+  - Verify required Caddy LAN port is open (`8447-8450`, `9447-9450`).
 - Domain resolves but app is unavailable:
   - Check that the target app server is running on the expected app port.
 - CA changes unexpectedly:

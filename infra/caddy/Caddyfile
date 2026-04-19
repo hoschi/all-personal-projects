@@ -32,6 +32,16 @@ prod.sst.localhost {
   reverse_proxy host.docker.internal:4059
 }
 
+dev.mail-agent.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:3070
+}
+
+prod.mail-agent.localhost {
+  tls internal
+  reverse_proxy host.docker.internal:4070
+}
+
 # Optional LAN aliases for tablet/mobile testing (replace with your LAN IP)
 # sst.192.168.1.100.sslip.io {
 #   tls internal

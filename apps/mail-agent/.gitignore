@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+
+# artifacts
+/.turbo
+/coverage
+
+# env files
+.env*
+!.env.base
+!.env.example
+
+# misc
+.DS_Store
+*.tsbuildinfo

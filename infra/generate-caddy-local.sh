@@ -57,6 +57,16 @@ ${FRITZBOX_DEVICE_HOSTNAME}:9449 {
   tls internal
   reverse_proxy host.docker.internal:4059
 }
+
+${FRITZBOX_DEVICE_HOSTNAME}:8450 {
+  tls internal
+  reverse_proxy host.docker.internal:3070
+}
+
+${FRITZBOX_DEVICE_HOSTNAME}:9450 {
+  tls internal
+  reverse_proxy host.docker.internal:4070
+}
 EOF
 
 echo "Generated $LOCAL_CADDY_FILE for FRITZBOX_DEVICE_HOSTNAME=$FRITZBOX_DEVICE_HOSTNAME"
