@@ -49,25 +49,6 @@ async function main() {
   const mutableProcessingSummary = {
     ...processingSummary,
   }
-  const pollCycleSummary: Array<{
-    cycle: number
-    mode: "history" | "full_sync"
-    cursorBefore: string | null
-    cursorAfter: string | null
-    candidateMessageCount: number
-    normalizedMessageCount: number
-  }> = []
-  const processedOutcomeSample: Array<{
-    gmailMessageId: string
-    outcome:
-      | "idempotency_skip"
-      | "classification_error"
-      | "action_error"
-      | "persistence_error"
-      | "processed"
-      | "notification_error"
-    detail: string
-  }> = []
 
   let pollCycle = 0
   let repeatedFullSyncBatchCount = 0
@@ -83,15 +64,6 @@ async function main() {
       gmailPollResult.candidateMessageIds.length
     mutableProcessingSummary.totalNormalizedMessages +=
       gmailPollResult.normalizedMessages.length
-
-    pollCycleSummary.push({
-      cycle: pollCycle,
-      mode: gmailPollResult.mode,
-      cursorBefore: gmailPollResult.cursorBefore,
-      cursorAfter: gmailPollResult.cursorAfter,
-      candidateMessageCount: gmailPollResult.candidateMessageIds.length,
-      normalizedMessageCount: gmailPollResult.normalizedMessages.length,
-    })
 
     debug(
       "Gmail poll completed: cycle=%d, mode=%s, cursorBefore=%s, cursorAfter=%s, candidateMessageCount=%d, normalizedMessageCount=%d",
@@ -111,34 +83,6 @@ async function main() {
         gmailPollResult.candidateMessageIds.length,
         gmailPollResult.candidateMessageIds,
       )
-
-      // Log all subject lines and wait 3 seconds for user to stop server if needed
-      type SubjectInfo = {
-        gmailMessageId: string
-        subject: string | null
-        sender: string
-        labels?: string[]
-      }
-
-      const subjectData = gmailPollResult.normalizedMessages.map((msg) => {
-        const subjectInfo: SubjectInfo = {
-          gmailMessageId: msg.gmailMessageId,
-          subject: msg.subject,
-          sender: msg.sender,
-        }
-
-        // Add labels if LIST_LABELS is enabled
-        if (config.listLabels && msg.labels.length > 0) {
-          subjectInfo.labels = msg.labels
-        }
-
-        return subjectInfo
-      })
-
-      debug("Processing subjects for cycle=%d: %O", pollCycle, subjectData)
-
-      debug("Waiting 3 seconds - press Ctrl+C to stop server if needed...")
-      await new Promise((resolve) => setTimeout(resolve, 3000))
     }
 
     if (gmailPollResult.normalizedMessages.length === 0) {
@@ -164,11 +108,6 @@ async function main() {
 
       if (alreadyProcessed) {
         mutableProcessingSummary.idempotencySkippedCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "idempotency_skip",
-          detail: "already_processed",
-        })
         debug(
           "Idempotency skip: gmailMessageId=%s already processed",
           message.gmailMessageId,
@@ -199,11 +138,6 @@ async function main() {
         const classificationError =
           error instanceof Error ? error.message : String(error)
         mutableProcessingSummary.classificationErrorCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "classification_error",
-          detail: classificationError,
-        })
 
         debug(
           "Classification failed: gmailMessageId=%s, error=%s",
@@ -233,11 +167,6 @@ async function main() {
         const actionError =
           error instanceof Error ? error.message : String(error)
         mutableProcessingSummary.actionErrorCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "action_error",
-          detail: actionError,
-        })
 
         debug(
           "Action failed: gmailMessageId=%s, error=%s",
@@ -268,11 +197,6 @@ async function main() {
         const persistenceError =
           error instanceof Error ? error.message : String(error)
         mutableProcessingSummary.persistenceErrorCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "persistence_error",
-          detail: persistenceError,
-        })
 
         debug(
           "Persistence failed: gmailMessageId=%s, error=%s",
@@ -294,11 +218,6 @@ async function main() {
           undoUrl,
         })
         mutableProcessingSummary.notificationSuccessCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "processed",
-          detail: `providerMessageId=${notificationResult.providerMessageId}`,
-        })
 
         debug(
           "Notification emitted: gmailMessageId=%s, subject=%s, providerMessageId=%s",
@@ -310,11 +229,6 @@ async function main() {
         const notificationError =
           error instanceof Error ? error.message : String(error)
         mutableProcessingSummary.notificationErrorCount += 1
-        processedOutcomeSample.push({
-          gmailMessageId: message.gmailMessageId,
-          outcome: "notification_error",
-          detail: notificationError,
-        })
 
         debug(
           "Notification failed: gmailMessageId=%s, error=%s",
@@ -344,11 +258,22 @@ async function main() {
 
       if (repeatedFullSyncBatchCount >= 1) {
         debug(
-          "Detected repeated full-sync batch without progress, switching to history polling: cycle=%d, candidateMessageIds=%O",
+          "Detected repeated full-sync batch without progress, forcing history mode: cycle=%d, candidateMessageIds=%O",
           pollCycle,
           gmailPollResult.candidateMessageIds,
         )
-        // Don't break - continue with history polling
+
+        // Force history mode by persisting current cursor as history ID
+        if (gmailPollResult.cursorAfter) {
+          await persistCursor(gmailPollResult.cursorAfter)
+          debug(
+            "Forced history mode by persisting cursor: cursorAfter=%s",
+            gmailPollResult.cursorAfter,
+          )
+        }
+
+        // Reset counter to avoid repeated forcing
+        repeatedFullSyncBatchCount = 0
       } else {
         debug(
           "Continuing with next full-sync page: completedCycle=%d, candidateMessageCount=%d",
