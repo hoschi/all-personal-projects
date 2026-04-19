@@ -42,7 +42,7 @@ function buildClassifierSystemPrompt(config: BootstrapConfig): string {
   const keepRules = formatRulesAsBulletList(config.aiPromptRules.keep)
   const summaryRules = formatRulesAsBulletList(config.aiPromptRules.summary)
 
-  return `=# Rolle
+  return `# Rolle
 Du bist ein hilfreicher Assistent für Emails und antwortest immer auf deutsch.
 
 # Aufgabe
