@@ -130,5 +130,7 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  throw new Error("gmail auth CLI failed", { cause: error })
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  console.error("gmail auth CLI failed:", errorMessage)
+  process.exit(1)
 })

@@ -8,6 +8,7 @@ import type {
 } from "./contracts"
 import { createUndoService } from "./undo-service"
 import { createUndoToken } from "./undo-token"
+import { match } from "ts-pattern"
 
 export type {
   GmailUndoPort,
@@ -61,17 +62,20 @@ export function createHttpRuntime(
       try {
         const result = await undoService.execute(token)
 
-        if (result.outcome === "not_found") {
-          return new Response("Undo target not found.", { status: 404 })
-        }
-
-        if (result.outcome === "applied") {
-          return new Response("Undo applied.", { status: 200 })
-        }
-
-        return new Response("Undo reverted to original action.", {
-          status: 200,
-        })
+        return match(result.outcome)
+          .with(
+            "not_found",
+            () => new Response("Undo target not found.", { status: 404 }),
+          )
+          .with("applied", () => new Response("Undo applied.", { status: 200 }))
+          .with(
+            "reverted",
+            () =>
+              new Response("Undo reverted to original action.", {
+                status: 200,
+              }),
+          )
+          .exhaustive()
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error)
         requestDebug("Undo request failed: error=%s", message)
