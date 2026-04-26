@@ -6,8 +6,8 @@ Migrate `apps/financy-forecast` from Next.js App Router to TanStack Start with f
 
 ## Migration Principles
 
-- Keep the existing Next.js app runnable until cutover is complete.
-- Migrate in small, verifiable increments (route-by-route and action-by-action).
+- Keep a preserved copy of the existing Next.js app as reference during migration; it does not need to stay runnable.
+- Implement in locally testable chunks; strict micro-increments are optional.
 - Preserve current DB schema and domain behavior.
 - Avoid silent runtime error handling; surface unexpected errors via route boundaries.
 
@@ -99,19 +99,18 @@ Deliverable: Stable runtime behavior under DB/network failures.
   - current balance save
   - forecast save/toggle
   - settings scenario state
-- Keep `financy-forecast-next` as fallback until explicit removal decision.
+- Remove `apps/financy-forecast-next` after successful cutover and final validation.
 
-Deliverable: TanStack app is primary and validated; legacy app remains as rollback option.
+Deliverable: TanStack app is primary and validated; legacy copy is removed after verification.
 
 ## Open Decisions
 
-- Final legacy app name: `financy-forecast-next` vs `financy-forecast-nextjs`
-- Keep current Jotai usage as-is or reduce state surface during migration
-- Keep module path as `lib/*` or move to `src/server/*` in new app
+- Remove Jotai if it is not required after route/component migration.
+- Use `src/server/*` for server-side modules in the new app.
 
 ## Definition of Done
 
 - New `apps/financy-forecast` runs on TanStack Start in dev and prod.
 - Feature parity for current core flows is confirmed.
 - New app has no Next.js runtime dependencies.
-- Legacy Next app remains runnable until explicitly removed.
+- Legacy Next app copy is removed after migration is fully validated.
