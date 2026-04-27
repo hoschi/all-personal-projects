@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { eurFormatter } from "@/components/format"
+import { ForecastEditor } from "@/components/ForecastEditor"
 import { getForecastDataFn } from "@/server/actions"
 
 export const Route = createFileRoute("/forecast")({
@@ -24,15 +24,7 @@ function RouteComponent() {
       <p className="text-muted-foreground">
         Scenario planning and timeline view.
       </p>
-      <div className="rounded-lg border border-border p-4 text-sm">
-        <p>Start amount: {eurFormatter.format(data.startAmount / 100)}</p>
-        <p>Recurring items: {data.recurringItems.length}</p>
-        <p>Scenarios: {data.scenarios.length}</p>
-        <p>
-          Last snapshot date:{" "}
-          {new Date(data.lastSnapshotDate).toISOString().slice(0, 10)}
-        </p>
-      </div>
+      <ForecastEditor data={data} />
     </section>
   )
 }
