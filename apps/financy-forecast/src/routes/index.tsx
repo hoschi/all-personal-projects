@@ -6,8 +6,8 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   return (
-    <div className="mt-4">
-      TanStack Start scaffold for the Financy migration.
+    <div className="text-muted-foreground">
+      Open a section from the sidebar.
     </div>
   )
 }

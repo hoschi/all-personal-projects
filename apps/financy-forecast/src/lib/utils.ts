@@ -5,3 +5,5 @@ import type { ClassValue } from "clsx"
 export function cn(...inputs: Array<ClassValue>) {
   return twMerge(clsx(inputs))
 }
+
+export const now = () => new Date()

@@ -2,8 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import type React from "react"
-
-import Header from "../components/Header"
+import { AppSidebar } from "@/components/AppSidebar"
 
 import appCss from "../styles.css?url"
 
@@ -38,9 +37,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="p-4">
-        <Header />
-        {children}
+      <body className="min-h-screen bg-background text-foreground">
+        <div className="flex min-h-screen">
+          <AppSidebar />
+          <main className="min-w-0 flex-1 overflow-auto p-6">{children}</main>
+        </div>
         <TanStackDevtools
           config={{
             position: "bottom-right",

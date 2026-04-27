@@ -9,13 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ListRouteImport } from './routes/list'
+import { Route as ForecastRouteImport } from './routes/forecast'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CurrentEditRouteImport } from './routes/current.edit'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListRoute = ListRouteImport.update({
   id: '/list',
   path: '/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForecastRoute = ForecastRouteImport.update({
+  id: '/forecast',
+  path: '/forecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -28,44 +47,108 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CurrentEditRoute = CurrentEditRouteImport.update({
+  id: '/current/edit',
+  path: '/current/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/dashboard': typeof DashboardRoute
+  '/forecast': typeof ForecastRoute
   '/list': typeof ListRoute
+  '/settings': typeof SettingsRoute
+  '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/dashboard': typeof DashboardRoute
+  '/forecast': typeof ForecastRoute
   '/list': typeof ListRoute
+  '/settings': typeof SettingsRoute
+  '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/categories': typeof CategoriesRoute
+  '/dashboard': typeof DashboardRoute
+  '/forecast': typeof ForecastRoute
   '/list': typeof ListRoute
+  '/settings': typeof SettingsRoute
+  '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/categories' | '/list'
+  fullPaths:
+    | '/'
+    | '/categories'
+    | '/dashboard'
+    | '/forecast'
+    | '/list'
+    | '/settings'
+    | '/current/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/categories' | '/list'
-  id: '__root__' | '/' | '/categories' | '/list'
+  to:
+    | '/'
+    | '/categories'
+    | '/dashboard'
+    | '/forecast'
+    | '/list'
+    | '/settings'
+    | '/current/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/categories'
+    | '/dashboard'
+    | '/forecast'
+    | '/list'
+    | '/settings'
+    | '/current/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CategoriesRoute: typeof CategoriesRoute
+  DashboardRoute: typeof DashboardRoute
+  ForecastRoute: typeof ForecastRoute
   ListRoute: typeof ListRoute
+  SettingsRoute: typeof SettingsRoute
+  CurrentEditRoute: typeof CurrentEditRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/list': {
       id: '/list'
       path: '/list'
       fullPath: '/list'
       preLoaderRoute: typeof ListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forecast': {
+      id: '/forecast'
+      path: '/forecast'
+      fullPath: '/forecast'
+      preLoaderRoute: typeof ForecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -82,13 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/current/edit': {
+      id: '/current/edit'
+      path: '/current/edit'
+      fullPath: '/current/edit'
+      preLoaderRoute: typeof CurrentEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CategoriesRoute: CategoriesRoute,
+  DashboardRoute: DashboardRoute,
+  ForecastRoute: ForecastRoute,
   ListRoute: ListRoute,
+  SettingsRoute: SettingsRoute,
+  CurrentEditRoute: CurrentEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
