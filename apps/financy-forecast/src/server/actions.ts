@@ -4,10 +4,14 @@ import { Either, Option } from "effect"
 import { z } from "zod"
 import {
   approveCurrentBalancesAsSnapshot,
+  changeSettings,
   getLatestAssetSnapshot,
+  getScenarioItems,
   updateAccountCurrentBalances,
+  updateForcastScenario,
 } from "./db"
 import { getCurrentEditData, getForecastData, getMatrixData } from "./data"
+import { saveForecastSchema } from "./schemas"
 import {
   calculateApprovable,
   calculateEarliestApprovalDate,
@@ -53,6 +57,44 @@ export const getForecastDataFn = createServerFn({ method: "GET" }).handler(
 export const getCurrentEditDataFn = createServerFn({ method: "GET" }).handler(
   async () => getCurrentEditData(),
 )
+
+export const getScenarioItemsFn = createServerFn({ method: "GET" }).handler(
+  async () => getScenarioItems(),
+)
+
+export const updateScenarioIsActiveFn = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      scenarioId: z.uuid(),
+      isActive: z.boolean(),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
+    await updateForcastScenario({
+      id: data.scenarioId,
+      isActive: data.isActive,
+    })
+
+    return {
+      success: true as const,
+    }
+  })
+
+export const saveForecastFn = createServerFn({ method: "POST" })
+  .inputValidator(saveForecastSchema.parse)
+  .handler(async ({ data }) => {
+    await changeSettings({
+      estimatedMonthlyVariableCosts: data.variableCosts,
+    })
+
+    await Promise.all(
+      data.scenarios.map((scenario) => updateForcastScenario(scenario)),
+    )
+
+    return {
+      success: true as const,
+    }
+  })
 
 export const approveSnapshotFn = createServerFn({ method: "POST" }).handler(
   async () => {
@@ -113,7 +155,9 @@ export const saveCurrentBalancesFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const updates = extractCurrentBalanceUpdates(data.valuesByAccountId)
     const validatedUpdates = saveCurrentBalancesSchema.parse({ updates })
-    const changedRows = await updateAccountCurrentBalances(validatedUpdates.updates)
+    const changedRows = await updateAccountCurrentBalances(
+      validatedUpdates.updates,
+    )
 
     return {
       success: true as const,
