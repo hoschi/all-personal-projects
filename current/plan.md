@@ -18,7 +18,7 @@ Migrate `apps/financy-forecast` from Next.js App Router to TanStack Start with f
 - Rename folder: `apps/financy-forecast` -> `apps/financy-forecast-next`.
 - Rename package name: `@repo/financy-forecast` -> `@repo/financy-forecast-next`.
 - Update all monorepo references (filters, scripts, docs, CI commands).
-- Verify legacy app still boots after rename.
+- Keep the legacy app as reference copy; runnable state is optional.
 
 Deliverable: Existing Next.js app remains available under a clear legacy name.
 
