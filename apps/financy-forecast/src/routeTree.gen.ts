@@ -10,21 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ListRouteImport } from './routes/list'
 import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CurrentEditRouteImport } from './routes/current.edit'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ListRoute = ListRouteImport.update({
-  id: '/list',
-  path: '/list',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForecastRoute = ForecastRouteImport.update({
@@ -35,11 +28,6 @@ const ForecastRoute = ForecastRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CategoriesRoute = CategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,68 +43,44 @@ const CurrentEditRoute = CurrentEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/categories': typeof CategoriesRoute
   '/dashboard': typeof DashboardRoute
   '/forecast': typeof ForecastRoute
-  '/list': typeof ListRoute
   '/settings': typeof SettingsRoute
   '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/categories': typeof CategoriesRoute
   '/dashboard': typeof DashboardRoute
   '/forecast': typeof ForecastRoute
-  '/list': typeof ListRoute
   '/settings': typeof SettingsRoute
   '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/categories': typeof CategoriesRoute
   '/dashboard': typeof DashboardRoute
   '/forecast': typeof ForecastRoute
-  '/list': typeof ListRoute
   '/settings': typeof SettingsRoute
   '/current/edit': typeof CurrentEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/categories'
-    | '/dashboard'
-    | '/forecast'
-    | '/list'
-    | '/settings'
-    | '/current/edit'
+  fullPaths: '/' | '/dashboard' | '/forecast' | '/settings' | '/current/edit'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/categories'
-    | '/dashboard'
-    | '/forecast'
-    | '/list'
-    | '/settings'
-    | '/current/edit'
+  to: '/' | '/dashboard' | '/forecast' | '/settings' | '/current/edit'
   id:
     | '__root__'
     | '/'
-    | '/categories'
     | '/dashboard'
     | '/forecast'
-    | '/list'
     | '/settings'
     | '/current/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CategoriesRoute: typeof CategoriesRoute
   DashboardRoute: typeof DashboardRoute
   ForecastRoute: typeof ForecastRoute
-  ListRoute: typeof ListRoute
   SettingsRoute: typeof SettingsRoute
   CurrentEditRoute: typeof CurrentEditRoute
 }
@@ -128,13 +92,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/list': {
-      id: '/list'
-      path: '/list'
-      fullPath: '/list'
-      preLoaderRoute: typeof ListRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forecast': {
@@ -149,13 +106,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/categories': {
-      id: '/categories'
-      path: '/categories'
-      fullPath: '/categories'
-      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,10 +127,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CategoriesRoute: CategoriesRoute,
   DashboardRoute: DashboardRoute,
   ForecastRoute: ForecastRoute,
-  ListRoute: ListRoute,
   SettingsRoute: SettingsRoute,
   CurrentEditRoute: CurrentEditRoute,
 }
