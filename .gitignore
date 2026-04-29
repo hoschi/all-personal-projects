@@ -49,3 +49,4 @@ infra/caddy-root-ca.crt
 infra/.env
 infra/caddy/Caddyfile.local
 .claude/
+.playwright-cli/
