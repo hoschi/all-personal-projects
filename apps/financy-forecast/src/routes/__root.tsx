@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import type React from "react"
 import { AppSidebar } from "@/components/AppSidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import appCss from "../styles.css?url"
 
@@ -37,11 +38,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-screen bg-background text-foreground">
-        <div className="flex min-h-screen">
+      <body className="bg-background text-foreground antialiased">
+        <SidebarProvider>
           <AppSidebar />
-          <main className="min-w-0 flex-1 overflow-auto p-6">{children}</main>
-        </div>
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",

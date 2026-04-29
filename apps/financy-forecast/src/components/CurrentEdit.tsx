@@ -2,6 +2,21 @@ import { useState, useTransition } from "react"
 import { useRouter } from "@tanstack/react-router"
 import { Either } from "effect"
 import { format, formatDistanceToNow } from "date-fns"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { CurrentEditData } from "@/server/types"
 import {
   calculateSnapshotDelta,
@@ -79,72 +94,79 @@ export function CurrentEdit({ data }: CurrentEditProps) {
         </p>
       </div>
 
-      <div className="overflow-auto rounded-lg border border-border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/40">
-            <tr>
-              <th className="px-3 py-2 text-left">Account</th>
-              <th className="px-3 py-2 text-left">Snapshot</th>
-              <th className="px-3 py-2 text-left">Current (EUR)</th>
-              <th className="px-3 py-2 text-left">Delta</th>
-              <th className="px-3 py-2 text-left">Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className="border-t border-border">
-                <td className="px-3 py-2 font-medium">{row.name}</td>
-                <td className="px-3 py-2">
-                  {row.snapshotBalance === null
-                    ? "—"
-                    : eurFormatter.format(row.snapshotBalance / 100)}
-                </td>
-                <td className="px-3 py-2">
-                  <input
-                    className="w-full rounded border border-border px-2 py-1"
-                    value={row.inputValue}
-                    onChange={(event) => {
-                      const nextValue = event.currentTarget.value
-                      setValuesByAccountId((prev) => ({
-                        ...prev,
-                        [row.id]: nextValue,
-                      }))
-                    }}
-                  />
-                </td>
-                <td
-                  className={`px-3 py-2 ${Either.match(row.liveDelta, {
-                    onLeft: () => "text-red-600",
-                    onRight: (delta) => getDeltaColorClass(delta),
-                  })}`}
-                >
-                  {Either.match(row.liveDelta, {
-                    onLeft: (leftError) => leftError,
-                    onRight: (delta) => formatDelta(delta),
-                  })}
-                </td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  <span title={format(row.updatedAt, "yyyy-MM-dd HH:mm:ss")}>
-                    {formatDistanceToNow(row.updatedAt, { addSuffix: true })}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table className="table-fixed">
+        <TableHeader>
+          <TableRow>
+            <TableHead colSpan={2}>Latest Snapshot</TableHead>
+            <TableHead colSpan={3}>Current</TableHead>
+          </TableRow>
+          <TableRow>
+            <TableHead className="w-[30%]">Account</TableHead>
+            <TableHead className="w-[20%]">Snapshot</TableHead>
+            <TableHead className="w-[20%]">Current (EUR)</TableHead>
+            <TableHead className="w-[15%]">Delta</TableHead>
+            <TableHead className="w-[15%]">Updated</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell className="font-medium">{row.name}</TableCell>
+              <TableCell>
+                {row.snapshotBalance === null
+                  ? "—"
+                  : eurFormatter.format(row.snapshotBalance / 100)}
+              </TableCell>
+              <TableCell>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  value={row.inputValue}
+                  onChange={(event) => {
+                    const nextValue = event.currentTarget.value
+                    setValuesByAccountId((prev) => ({
+                      ...prev,
+                      [row.id]: nextValue,
+                    }))
+                  }}
+                  aria-label={`Current balance for ${row.name}`}
+                  required
+                />
+              </TableCell>
+              <TableCell
+                className={Either.match(row.liveDelta, {
+                  onLeft: () => "text-red-600",
+                  onRight: (delta) => getDeltaColorClass(delta),
+                })}
+              >
+                {Either.match(row.liveDelta, {
+                  onLeft: (leftError) => leftError,
+                  onRight: (delta) => formatDelta(delta),
+                })}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">
+                      {formatDistanceToNow(row.updatedAt, { addSuffix: true })}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {format(row.updatedAt, "yyyy-MM-dd HH:mm:ss")}
+                  </TooltipContent>
+                </Tooltip>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {error ? <div className="text-sm text-red-600">{error}</div> : null}
 
       <div className="flex justify-end">
-        <button
-          type="button"
-          className="rounded border border-border px-3 py-1"
-          onClick={handleSubmit}
-          disabled={isPending}
-        >
+        <Button type="button" onClick={handleSubmit} disabled={isPending}>
           {isPending ? "Saving..." : "Save"}
-        </button>
+        </Button>
       </div>
     </section>
   )

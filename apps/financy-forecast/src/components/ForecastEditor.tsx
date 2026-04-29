@@ -1,9 +1,22 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "@tanstack/react-router"
 import { Either } from "effect"
+import { format } from "date-fns"
 import type { ForecastTimelineData } from "@/server/types"
 import { saveForecastFn } from "@/server/actions"
 import { parseCurrentBalanceValue } from "@/domain/currentBalances"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { eurFormatter, toInputValue } from "./format"
 
 type ForecastEditorProps = {
@@ -17,8 +30,11 @@ export function ForecastEditor({ data }: ForecastEditorProps) {
   const [variableCostsInput, setVariableCostsInput] = useState<string>(() =>
     toInputValue(data.estimatedMonthlyVariableCosts),
   )
-  const [scenarioStates, setScenarioStates] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(data.scenarios.map((scenario) => [scenario.id, scenario.isActive])),
+  const [scenarioStates, setScenarioStates] = useState<Record<string, boolean>>(
+    () =>
+      Object.fromEntries(
+        data.scenarios.map((scenario) => [scenario.id, scenario.isActive]),
+      ),
   )
 
   const handleSave = () => {
@@ -59,69 +75,73 @@ export function ForecastEditor({ data }: ForecastEditorProps) {
       <div className="grid gap-2 sm:grid-cols-2">
         <div>
           <p className="text-sm text-muted-foreground">Start amount</p>
-          <p className="text-lg font-medium">{eurFormatter.format(data.startAmount / 100)}</p>
+          <p className="text-lg font-medium">
+            {eurFormatter.format(data.startAmount / 100)}
+          </p>
         </div>
         <div>
-          <label className="text-sm text-muted-foreground" htmlFor="variable-costs">
+          <Label
+            className="text-sm text-muted-foreground"
+            htmlFor="variable-costs"
+          >
             Estimated monthly variable costs (EUR)
-          </label>
-          <input
+          </Label>
+          <Input
             id="variable-costs"
-            className="mt-1 w-full rounded border border-border px-2 py-1"
+            className="mt-1"
             value={variableCostsInput}
-            onChange={(event) => setVariableCostsInput(event.currentTarget.value)}
+            onChange={(event) =>
+              setVariableCostsInput(event.currentTarget.value)
+            }
           />
         </div>
       </div>
 
-      <div className="overflow-auto rounded-lg border border-border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-muted/40">
-            <tr>
-              <th className="px-3 py-2 text-left">Scenario</th>
-              <th className="px-3 py-2 text-left">Date</th>
-              <th className="px-3 py-2 text-left">Amount</th>
-              <th className="px-3 py-2 text-left">Active</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Scenario</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="text-center">Active</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.scenarios.map((scenario) => (
-              <tr key={scenario.id} className="border-t border-border">
-                <td className="px-3 py-2">{scenario.name}</td>
-                <td className="px-3 py-2">
-                  {new Date(scenario.date).toISOString().slice(0, 10)}
-                </td>
-                <td className="px-3 py-2">{eurFormatter.format(scenario.amount / 100)}</td>
-                <td className="px-3 py-2">
-                  <input
-                    type="checkbox"
-                    checked={scenarioStates[scenario.id] ?? scenario.isActive}
-                    onChange={(event) => {
-                      const isActive = event.currentTarget.checked
-                      setScenarioStates((prev) => ({
-                        ...prev,
-                        [scenario.id]: isActive,
-                      }))
-                    }}
-                  />
-                </td>
-              </tr>
+              <TableRow key={scenario.id}>
+                <TableCell>{scenario.name}</TableCell>
+                <TableCell>
+                  {format(new Date(scenario.date), "dd.MM.yyyy")}
+                </TableCell>
+                <TableCell className="text-right">
+                  {eurFormatter.format(scenario.amount / 100)}
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center">
+                    <Switch
+                      checked={scenarioStates[scenario.id] ?? scenario.isActive}
+                      onCheckedChange={(isActive) => {
+                        setScenarioStates((prev) => ({
+                          ...prev,
+                          [scenario.id]: isActive,
+                        }))
+                      }}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {error ? <div className="text-sm text-red-600">{error}</div> : null}
 
       <div className="flex justify-end">
-        <button
-          type="button"
-          className="rounded border border-border px-3 py-1"
-          onClick={handleSave}
-          disabled={isPending}
-        >
+        <Button type="button" onClick={handleSave} disabled={isPending}>
           {isPending ? "Saving..." : "Save Forecast"}
-        </button>
+        </Button>
       </div>
     </section>
   )
