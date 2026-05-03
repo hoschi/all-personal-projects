@@ -65,7 +65,10 @@ export function calculateTimeline(
       return false
     })
 
-    const costsTotal = irregularCosts.reduce((sum, item) => sum + item.amount, 0)
+    const costsTotal = irregularCosts.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    )
     runningBalance += costsTotal
 
     const monthScenarios = scenarios.filter((scenario) => {

@@ -16,7 +16,9 @@ export function calculateNextSnapshotDate(lastDate: Date): Date {
   return startOfMonth(addMonths(lastDate, 1))
 }
 
-export function calculateInitialSnapshotDate(referenceDate: Date = now()): Date {
+export function calculateInitialSnapshotDate(
+  referenceDate: Date = now(),
+): Date {
   return startOfMonth(subMonths(referenceDate, 1))
 }
 

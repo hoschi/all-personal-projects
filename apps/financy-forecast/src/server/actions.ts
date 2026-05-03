@@ -114,11 +114,13 @@ export const getScenarioItemsFn = createServerFn({ method: "GET" }).handler(
 )
 
 export const updateScenarioIsActiveFn = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      scenarioId: z.uuid(),
-      isActive: z.boolean(),
-    }).parse,
+  .inputValidator((input) =>
+    z
+      .object({
+        scenarioId: z.uuid(),
+        isActive: z.boolean(),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     debugUpdateScenarioIsActiveFn(
@@ -142,7 +144,7 @@ export const updateScenarioIsActiveFn = createServerFn({ method: "POST" })
   })
 
 export const saveForecastFn = createServerFn({ method: "POST" })
-  .inputValidator(saveForecastSchema.parse)
+  .inputValidator((input) => saveForecastSchema.parse(input))
   .handler(async ({ data }) => {
     debugSaveForecastFn(
       "start variableCosts=%d changedScenarios=%d",
@@ -239,7 +241,7 @@ function extractCurrentBalanceUpdates(
 }
 
 export const saveCurrentBalancesFn = createServerFn({ method: "POST" })
-  .inputValidator(saveCurrentBalancesFormSchema.parse)
+  .inputValidator((input) => saveCurrentBalancesFormSchema.parse(input))
   .handler(async ({ data }) => {
     debugSaveCurrentBalancesFn("start")
     try {

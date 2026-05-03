@@ -1,5 +1,10 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+  useRouter,
+} from "@tanstack/react-router"
 import Debug from "debug"
+import { RouteErrorState, RoutePendingState } from "@/components/RouteStatus"
 import { SettingsScenariosTable } from "@/components/SettingsScenariosTable"
 import { getScenarioItemsFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -9,6 +14,8 @@ const debugSettingsInvalidate = Debug("app:client:settingsInvalidate")
 
 export const Route = createFileRoute("/settings")({
   component: RouteComponent,
+  pendingComponent: SettingsPendingComponent,
+  errorComponent: SettingsErrorComponent,
   loader: async () => {
     debugSettingsLoader("request:start")
     try {
@@ -21,6 +28,19 @@ export const Route = createFileRoute("/settings")({
     }
   },
 })
+
+function SettingsPendingComponent() {
+  return (
+    <RoutePendingState
+      title="Loading settings"
+      description="Fetching scenario state for data management."
+    />
+  )
+}
+
+function SettingsErrorComponent(props: ErrorComponentProps) {
+  return <RouteErrorState {...props} />
+}
 
 function RouteComponent() {
   const scenarios = Route.useLoaderData()

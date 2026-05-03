@@ -1,6 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+} from "@tanstack/react-router"
 import Debug from "debug"
 import { CurrentEdit } from "@/components/CurrentEdit"
+import { RouteErrorState, RoutePendingState } from "@/components/RouteStatus"
 import { getCurrentEditDataFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -8,6 +12,8 @@ const debugCurrentEditLoader = Debug("app:client:currentEditLoader")
 
 export const Route = createFileRoute("/current/edit")({
   component: RouteComponent,
+  pendingComponent: CurrentEditPendingComponent,
+  errorComponent: CurrentEditErrorComponent,
   loader: async () => {
     debugCurrentEditLoader("request:start")
     try {
@@ -20,6 +26,19 @@ export const Route = createFileRoute("/current/edit")({
     }
   },
 })
+
+function CurrentEditPendingComponent() {
+  return (
+    <RoutePendingState
+      title="Loading current balances"
+      description="Preparing latest snapshot comparison data."
+    />
+  )
+}
+
+function CurrentEditErrorComponent(props: ErrorComponentProps) {
+  return <RouteErrorState {...props} />
+}
 
 function RouteComponent() {
   const data = Route.useLoaderData()

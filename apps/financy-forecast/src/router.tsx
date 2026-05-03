@@ -3,6 +3,7 @@ import { createRouter } from "@tanstack/react-router"
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen"
 import { LoadingIndi } from "./components/LoadingIndi"
+import { RouteErrorState } from "./components/RouteStatus"
 
 // Create a new router instance
 export const getRouter = () => {
@@ -12,6 +13,7 @@ export const getRouter = () => {
     defaultPendingComponent: LoadingIndi,
     defaultPendingMinMs: 10,
     defaultPendingMs: 10,
+    defaultErrorComponent: RouteErrorState,
 
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,

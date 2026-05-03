@@ -1,6 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  type ErrorComponentProps,
+} from "@tanstack/react-router"
 import Debug from "debug"
 import { Matrix } from "@/components/Matrix"
+import { RouteErrorState, RoutePendingState } from "@/components/RouteStatus"
 import { getMatrixDataFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -8,6 +12,8 @@ const debugDashboardLoader = Debug("app:client:dashboardLoader")
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
+  pendingComponent: DashboardPendingComponent,
+  errorComponent: DashboardErrorComponent,
   loader: async () => {
     debugDashboardLoader("request:start")
     try {
@@ -20,6 +26,19 @@ export const Route = createFileRoute("/dashboard")({
     }
   },
 })
+
+function DashboardPendingComponent() {
+  return (
+    <RoutePendingState
+      title="Loading financial matrix"
+      description="Fetching snapshots and account balances."
+    />
+  )
+}
+
+function DashboardErrorComponent(props: ErrorComponentProps) {
+  return <RouteErrorState {...props} />
+}
 
 function RouteComponent() {
   const data = Route.useLoaderData()
