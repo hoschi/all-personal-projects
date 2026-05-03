@@ -95,6 +95,7 @@ Deliverable: Stable runtime behavior under DB/network failures.
 
 ### 8) Validation and cutover
 
+- Use `src/server/*` for server-side modules in the new app. Check the recommendations in the Tanstack Start docs to security handling for code which schould nerver run on the client.
 - Run targeted checks:
   - `bun run --filter @repo/financy-forecast lint`
   - `bun run --filter @repo/financy-forecast check-types`
@@ -108,11 +109,6 @@ Deliverable: Stable runtime behavior under DB/network failures.
 - Remove `apps/financy-forecast-next` after successful cutover and final validation.
 
 Deliverable: TanStack app is primary and validated; legacy copy is removed after verification.
-
-## Open Decisions
-
-- Remove Jotai if it is not required after route/component migration, check the usages and Tanstack Start docs if this is still needed
-- Use `src/server/*` for server-side modules in the new app. Check the recommendations in the Tanstack Start docs to security handling for code which schould nerver run on the client.
 
 ## Definition of Done
 
