@@ -4,6 +4,11 @@
 
 Migrate `apps/financy-forecast` from Next.js App Router to TanStack Start with feature parity and a safe fallback path.
 
+## Status
+
+Closed on 2026-05-03 after Step 6 implementation and active runtime testing.
+Potential follow-up work for Step 7 and Step 8 should be tracked in a new plan if needed.
+
 ## Migration Principles
 
 - Keep a preserved copy of the existing Next.js app as reference during migration; it does not need to stay runnable.
