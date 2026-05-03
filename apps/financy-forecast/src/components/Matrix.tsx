@@ -1,6 +1,7 @@
 import { useState, useTransition } from "react"
 import { Link, useRouter } from "@tanstack/react-router"
 import { Array as EffectArray } from "effect"
+import Debug from "debug"
 import type { MatrixData } from "@/server/types"
 import { approveSnapshotFn } from "@/server/actions"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,8 @@ type MatrixProps = {
   data: MatrixData
 }
 
+const debugApproveFlow = Debug("app:client:approveSnapshotFlow")
+
 export function Matrix({ data }: MatrixProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -28,14 +31,19 @@ export function Matrix({ data }: MatrixProps) {
   const handleApprove = () => {
     startTransition(async () => {
       setError(null)
+      debugApproveFlow("request:start")
       const result = await approveSnapshotFn()
+      debugApproveFlow("request:done success=%s", result.success)
 
       if (!result.success) {
+        debugApproveFlow("request:failed message=%s", result.error)
         setError(result.error)
         return
       }
 
+      debugApproveFlow("router:invalidate:start")
       await router.invalidate()
+      debugApproveFlow("router:invalidate:done")
     })
   }
 

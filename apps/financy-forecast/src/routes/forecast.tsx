@@ -1,10 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router"
+import Debug from "debug"
 import { Forecast } from "@/components/Forecast"
 import { getForecastDataFn } from "@/server/actions"
 
+const debugForecastLoader = Debug("app:client:forecastLoader")
+
 export const Route = createFileRoute("/forecast")({
   component: RouteComponent,
-  loader: async () => getForecastDataFn(),
+  loader: async () => {
+    debugForecastLoader("request:start")
+    try {
+      const result = await getForecastDataFn()
+      debugForecastLoader("request:done hasData=%s", result !== null)
+      return result
+    } catch (error) {
+      debugForecastLoader("request:error %O", error)
+      throw error
+    }
+  },
 })
 
 function RouteComponent() {

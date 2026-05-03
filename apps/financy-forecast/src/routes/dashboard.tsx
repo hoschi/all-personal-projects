@@ -1,11 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router"
+import Debug from "debug"
 import { Matrix } from "@/components/Matrix"
 import { getMatrixDataFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
+const debugDashboardLoader = Debug("app:client:dashboardLoader")
+
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
-  loader: async () => getMatrixDataFn(),
+  loader: async () => {
+    debugDashboardLoader("request:start")
+    try {
+      const result = await getMatrixDataFn()
+      debugDashboardLoader("request:done hasData=%s", result !== null)
+      return result
+    } catch (error) {
+      debugDashboardLoader("request:error %O", error)
+      throw error
+    }
+  },
 })
 
 function RouteComponent() {

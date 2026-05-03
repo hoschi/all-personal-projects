@@ -1,11 +1,25 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router"
+import Debug from "debug"
 import { SettingsScenariosTable } from "@/components/SettingsScenariosTable"
 import { getScenarioItemsFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
+const debugSettingsLoader = Debug("app:client:settingsLoader")
+const debugSettingsInvalidate = Debug("app:client:settingsInvalidate")
+
 export const Route = createFileRoute("/settings")({
   component: RouteComponent,
-  loader: async () => getScenarioItemsFn(),
+  loader: async () => {
+    debugSettingsLoader("request:start")
+    try {
+      const result = await getScenarioItemsFn()
+      debugSettingsLoader("request:done count=%d", result.length)
+      return result
+    } catch (error) {
+      debugSettingsLoader("request:error %O", error)
+      throw error
+    }
+  },
 })
 
 function RouteComponent() {
@@ -26,7 +40,9 @@ function RouteComponent() {
         <SettingsScenariosTable
           scenarios={scenarios}
           onScenarioUpdated={async () => {
+            debugSettingsInvalidate("router:invalidate:start")
             await router.invalidate()
+            debugSettingsInvalidate("router:invalidate:done")
           }}
         />
       </main>

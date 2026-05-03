@@ -1,5 +1,6 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "@tanstack/react-router"
+import Debug from "debug"
 import { Either } from "effect"
 import { format, formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,8 @@ import {
 type CurrentEditProps = {
   data: CurrentEditData
 }
+
+const debugCurrentEditSave = Debug("app:client:currentEditSave")
 
 function deserializeDate(value: unknown): Date {
   return value instanceof Date ? value : new Date(String(value))
@@ -69,10 +72,18 @@ export function CurrentEdit({ data }: CurrentEditProps) {
   const handleSubmit = () => {
     startTransition(async () => {
       setError(null)
+      debugCurrentEditSave(
+        "request:start accountCount=%d",
+        Object.keys(valuesByAccountId).length,
+      )
       try {
         await saveCurrentBalancesFn({ data: { valuesByAccountId } })
+        debugCurrentEditSave("request:done")
+        debugCurrentEditSave("router:invalidate:start")
         await router.invalidate()
+        debugCurrentEditSave("router:invalidate:done")
       } catch (submitError) {
+        debugCurrentEditSave("request:error %O", submitError)
         if (submitError instanceof Error) {
           setError(submitError.message)
           return

@@ -1,5 +1,6 @@
 import { useState, useTransition } from "react"
 import { format } from "date-fns"
+import Debug from "debug"
 import type { ScenarioItem } from "@/server/schemas"
 import { updateScenarioIsActiveFn } from "@/server/actions"
 import { Label } from "@/components/ui/label"
@@ -21,6 +22,8 @@ type SettingsScenariosTableProps = {
 
 type SortField = "name" | "amount" | "date" | "isActive"
 type SortDirection = "asc" | "desc"
+
+const debugSettingsScenarioToggle = Debug("app:client:settingsScenarioToggle")
 
 export function SettingsScenariosTable({
   scenarios,
@@ -148,6 +151,11 @@ export function SettingsScenariosTable({
                       onCheckedChange={(isActive) => {
                         startTransition(async () => {
                           setError(null)
+                          debugSettingsScenarioToggle(
+                            "request:start scenarioId=%s isActive=%s",
+                            scenario.id,
+                            isActive,
+                          )
                           try {
                             await updateScenarioIsActiveFn({
                               data: {
@@ -155,8 +163,22 @@ export function SettingsScenariosTable({
                                 isActive,
                               },
                             })
+                            debugSettingsScenarioToggle(
+                              "request:done scenarioId=%s",
+                              scenario.id,
+                            )
+                            debugSettingsScenarioToggle(
+                              "afterRequest:onScenarioUpdated:start",
+                            )
                             await onScenarioUpdated()
+                            debugSettingsScenarioToggle(
+                              "afterRequest:onScenarioUpdated:done",
+                            )
                           } catch (updateError) {
+                            debugSettingsScenarioToggle(
+                              "request:error %O",
+                              updateError,
+                            )
                             if (updateError instanceof Error) {
                               setError(updateError.message)
                               return

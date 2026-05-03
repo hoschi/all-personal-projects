@@ -1,11 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router"
+import Debug from "debug"
 import { CurrentEdit } from "@/components/CurrentEdit"
 import { getCurrentEditDataFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
+const debugCurrentEditLoader = Debug("app:client:currentEditLoader")
+
 export const Route = createFileRoute("/current/edit")({
   component: RouteComponent,
-  loader: async () => getCurrentEditDataFn(),
+  loader: async () => {
+    debugCurrentEditLoader("request:start")
+    try {
+      const result = await getCurrentEditDataFn()
+      debugCurrentEditLoader("request:done rows=%d", result.rows.length)
+      return result
+    } catch (error) {
+      debugCurrentEditLoader("request:error %O", error)
+      throw error
+    }
+  },
 })
 
 function RouteComponent() {

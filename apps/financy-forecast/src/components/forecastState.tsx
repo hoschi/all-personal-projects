@@ -2,6 +2,7 @@
 import { useRouter } from "@tanstack/react-router"
 import { ForecastTimelineData } from "@/server/types"
 import { RecurringItemInterval, ScenarioItem } from "@/server/schemas"
+import Debug from "debug"
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai"
 import { Array } from "effect"
 import { match, P } from "ts-pattern"
@@ -19,6 +20,8 @@ import { saveForecastFn } from "@/server/actions"
 const INITIAL_STATE = {
   variableCosts: 0,
 } as const
+
+const debugForecastSave = Debug("app:client:forecastSave")
 
 // Jotai atoms for state management (values stored in cents)
 export const variableCostsAtom = atom<number>(INITIAL_STATE.variableCosts)
@@ -316,6 +319,11 @@ export function SaveForecast({
 
   const handleSave = async () => {
     if (!hasChanges || isLoading) {
+      debugForecastSave(
+        "request:skipped hasChanges=%s isLoading=%s",
+        hasChanges,
+        isLoading,
+      )
       return
     }
 
@@ -323,6 +331,11 @@ export function SaveForecast({
     setIsLoading(true)
 
     try {
+      debugForecastSave(
+        "request:start variableCosts=%d changedScenarios=%d",
+        variableCosts,
+        scenarios.length,
+      )
       await saveForecastFn({
         data: {
           variableCosts,
@@ -332,12 +345,16 @@ export function SaveForecast({
           })),
         },
       })
+      debugForecastSave("request:done")
+      debugForecastSave("router:invalidate:start")
       await router.invalidate()
+      debugForecastSave("router:invalidate:done")
       setMessage({
         type: "success",
         text: "Saved successfully",
       })
     } catch (error) {
+      debugForecastSave("request:error %O", error)
       console.error("Save operation failed:", error)
       setMessage({
         type: "error",
