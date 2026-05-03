@@ -19,12 +19,54 @@ import { calculateAccountsTotalBalance } from "../domain/snapshots"
 
 const SET_SEARCH_PATH_SQL = `SET search_path TO ${DATABASE_SCHEMA_NAME};`
 
+type DbDebugState = {
+  moduleEvaluationCount: number
+  poolCreateCount: number
+  inFlightQueryCount: number
+}
+
+declare global {
+  var __FINANCY_FORECAST_DB_DEBUG_STATE__: DbDebugState | undefined
+}
+
+function getDbDebugState(): DbDebugState {
+  if (!globalThis.__FINANCY_FORECAST_DB_DEBUG_STATE__) {
+    globalThis.__FINANCY_FORECAST_DB_DEBUG_STATE__ = {
+      moduleEvaluationCount: 0,
+      poolCreateCount: 0,
+      inFlightQueryCount: 0,
+    }
+  }
+
+  return globalThis.__FINANCY_FORECAST_DB_DEBUG_STATE__
+}
+
+const debugDbModule = Debug("app:db:module")
+const dbDebugState = getDbDebugState()
+dbDebugState.moduleEvaluationCount += 1
+debugDbModule(
+  "Module evaluated count=%d pid=%d",
+  dbDebugState.moduleEvaluationCount,
+  process.pid,
+)
+
+function createQueryId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 let sql: ReturnType<typeof postgres>
 async function getDb() {
   const debug = Debug("app:db:getDb")
   debug("Getting database connection")
   if (!sql) {
+    dbDebugState.poolCreateCount += 1
     debug("Creating new database connection")
+    debug(
+      "Creating new database connection pool createCount=%d moduleEvaluationCount=%d pid=%d",
+      dbDebugState.poolCreateCount,
+      dbDebugState.moduleEvaluationCount,
+      process.pid,
+    )
     sql = postgres(serverEnv.databaseUrl, {
       connect_timeout: 10,
       max: 10,
@@ -34,6 +76,12 @@ async function getDb() {
         return Math.min(1000 * Math.pow(2, attempt), 30000)
       },
     })
+  } else {
+    debug(
+      "Reusing existing database connection pool createCount=%d inFlight=%d",
+      dbDebugState.poolCreateCount,
+      dbDebugState.inFlightQueryCount,
+    )
   }
   return sql
 }
@@ -45,10 +93,44 @@ export async function executeWithSchema<T>(
   queryFn: (sql: ReturnType<typeof postgres>) => Promise<T>,
 ): Promise<T> {
   const debug = Debug("app:db:executeWithSchema")
-  debug("Executing query with schema")
+  const queryId = createQueryId()
+  const startedAt = Date.now()
   const db = await getDb()
-  await db.unsafe(SET_SEARCH_PATH_SQL)
-  return queryFn(db)
+  dbDebugState.inFlightQueryCount += 1
+  debug(
+    "Executing query with schema queryId=%s inFlight=%d poolCreateCount=%d",
+    queryId,
+    dbDebugState.inFlightQueryCount,
+    dbDebugState.poolCreateCount,
+  )
+  try {
+    await db.unsafe(SET_SEARCH_PATH_SQL)
+    const result = await queryFn(db)
+    debug(
+      "Query success queryId=%s durationMs=%d",
+      queryId,
+      Date.now() - startedAt,
+    )
+    return result
+  } catch (error) {
+    debug(
+      "Query error queryId=%s durationMs=%d error=%O",
+      queryId,
+      Date.now() - startedAt,
+      error,
+    )
+    throw error
+  } finally {
+    dbDebugState.inFlightQueryCount = Math.max(
+      0,
+      dbDebugState.inFlightQueryCount - 1,
+    )
+    debug(
+      "Query finished queryId=%s inFlight=%d",
+      queryId,
+      dbDebugState.inFlightQueryCount,
+    )
+  }
 }
 
 // Database connection test
