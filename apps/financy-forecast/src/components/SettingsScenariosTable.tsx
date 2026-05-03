@@ -1,4 +1,4 @@
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import Debug from "debug"
 import type { ScenarioItem } from "@/server/schemas"
@@ -30,9 +30,12 @@ export function SettingsScenariosTable({
   onScenarioUpdated,
 }: SettingsScenariosTableProps) {
   const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [pendingScenarioIds, setPendingScenarioIds] = useState<string[]>([])
   const [sortField, setSortField] = useState<SortField>("date")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+
+  const isScenarioPending = (scenarioId: string) =>
+    pendingScenarioIds.includes(scenarioId)
 
   const sortedScenarios = [...scenarios].sort((a, b) => {
     let aValue: string | number | boolean
@@ -147,9 +150,14 @@ export function SettingsScenariosTable({
                     <Switch
                       id={`switch-${scenario.id}`}
                       checked={scenario.isActive}
-                      disabled={isPending}
+                      disabled={isScenarioPending(scenario.id)}
                       onCheckedChange={(isActive) => {
-                        startTransition(async () => {
+                        void (async () => {
+                          setPendingScenarioIds((prev) =>
+                            prev.includes(scenario.id)
+                              ? prev
+                              : [...prev, scenario.id],
+                          )
                           setError(null)
                           debugSettingsScenarioToggle(
                             "request:start scenarioId=%s isActive=%s",
@@ -185,8 +193,12 @@ export function SettingsScenariosTable({
                             }
 
                             setError("Failed to update scenario state.")
+                          } finally {
+                            setPendingScenarioIds((prev) =>
+                              prev.filter((id) => id !== scenario.id),
+                            )
                           }
-                        })
+                        })()
                       }}
                     />
                     <Label
