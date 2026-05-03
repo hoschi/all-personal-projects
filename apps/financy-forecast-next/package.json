@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3056",
+    "dev": "next dev --turbopack --port 3057",
     "build": "(test \"$CI\" = \"true\" && echo 'doesnt work without a DB running' || next build)",
     "start": "next start",
     "lint": "bunx eslint .",

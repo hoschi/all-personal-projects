@@ -29,7 +29,7 @@ export function SettingsScenariosTable({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [sortField, setSortField] = useState<SortField>("date")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
   const sortedScenarios = [...scenarios].sort((a, b) => {
     let aValue: string | number | boolean
