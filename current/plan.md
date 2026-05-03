@@ -105,8 +105,8 @@ Deliverable: TanStack app is primary and validated; legacy copy is removed after
 
 ## Open Decisions
 
-- Remove Jotai if it is not required after route/component migration.
-- Use `src/server/*` for server-side modules in the new app.
+- Remove Jotai if it is not required after route/component migration, check the usages and Tanstack Start docs if this is still needed
+- Use `src/server/*` for server-side modules in the new app. Check the recommendations in the Tanstack Start docs to security handling for code which schould nerver run on the client.
 
 ## Definition of Done
 
