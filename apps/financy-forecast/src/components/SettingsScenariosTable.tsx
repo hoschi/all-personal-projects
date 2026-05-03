@@ -19,12 +19,55 @@ type SettingsScenariosTableProps = {
   onScenarioUpdated: () => Promise<void>
 }
 
+type SortField = "name" | "amount" | "date" | "isActive"
+type SortDirection = "asc" | "desc"
+
 export function SettingsScenariosTable({
   scenarios,
   onScenarioUpdated,
 }: SettingsScenariosTableProps) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [sortField, setSortField] = useState<SortField>("date")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+
+  const sortedScenarios = [...scenarios].sort((a, b) => {
+    let aValue: string | number | boolean
+    let bValue: string | number | boolean
+
+    if (sortField === "name") {
+      aValue = a.name.toLowerCase()
+      bValue = b.name.toLowerCase()
+    } else if (sortField === "amount") {
+      aValue = a.amount
+      bValue = b.amount
+    } else if (sortField === "date") {
+      aValue = new Date(a.date).getTime()
+      bValue = new Date(b.date).getTime()
+    } else {
+      aValue = a.isActive
+      bValue = b.isActive
+    }
+
+    if (aValue < bValue) {
+      return sortDirection === "asc" ? -1 : 1
+    }
+    if (aValue > bValue) {
+      return sortDirection === "asc" ? 1 : -1
+    }
+
+    return 0
+  })
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      return
+    }
+
+    setSortField(field)
+    setSortDirection("asc")
+  }
 
   return (
     <section className="space-y-4">
@@ -32,14 +75,62 @@ export function SettingsScenariosTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-center">Status</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted"
+                onClick={() => handleSort("name")}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>Name</span>
+                  {sortField === "name" ? (
+                    <span className="text-xs text-muted-foreground">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  ) : null}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer text-right hover:bg-muted"
+                onClick={() => handleSort("amount")}
+              >
+                <div className="flex items-center justify-end space-x-2">
+                  <span>Amount</span>
+                  {sortField === "amount" ? (
+                    <span className="text-xs text-muted-foreground">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  ) : null}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted"
+                onClick={() => handleSort("date")}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>Date</span>
+                  {sortField === "date" ? (
+                    <span className="text-xs text-muted-foreground">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  ) : null}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer text-center hover:bg-muted"
+                onClick={() => handleSort("isActive")}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <span>Status</span>
+                  {sortField === "isActive" ? (
+                    <span className="text-xs text-muted-foreground">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  ) : null}
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {scenarios.map((scenario) => (
+            {sortedScenarios.map((scenario) => (
               <TableRow key={scenario.id} className="hover:bg-muted/50">
                 <TableCell className="font-medium">{scenario.name}</TableCell>
                 <TableCell className="text-right font-mono">
