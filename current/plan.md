@@ -79,11 +79,6 @@ Deliverable: Mutations execute through TanStack server functions with equivalent
 
 Deliverable: Core workflows behave the same as in Next.js app.
 
-Missing peaces:
-
-- the `ScenariosTable` component in the next version for the Settings route has sorting with the header while the tanstack version don't
-- the forceast route is COMPLETELY off. the next version renders a timeline while the tanstack version renders only a table! Also the saving logic doesn't work at the moment. After changing something and hitting save it never recovers from the pending state. changing state works in the ScenariorsTable component. When I try to switch to another route I see a loading spinner in the main part. only the sidebar is working at this time.
-
 ### 7) Error/loading boundaries and UX stabilization
 
 - Add route `errorComponent` handling for unexpected exceptions.
