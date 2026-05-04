@@ -13,6 +13,7 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_OPENAI_MODEL: z.string().trim().min(1),
   MAIL_AGENT_AI_RULES_DELETE: z.string().trim().min(1),
   MAIL_AGENT_AI_RULES_KEEP: z.string().trim().min(1),
+  MAIL_AGENT_AI_RULES_SENDER: z.string().trim().min(1),
   MAIL_AGENT_AI_RULES_SUMMARY: z.string().trim().min(1),
   MAIL_AGENT_HTTP_HOST: z.string().trim().min(1),
   MAIL_AGENT_HTTP_PORT: z.coerce.number().int().positive(),
@@ -45,6 +46,7 @@ export type BootstrapConfig = {
   aiPromptRules: {
     delete: string[]
     keep: string[]
+    sender: string[]
     summary: string[]
   }
   publicBaseUrl: string
@@ -191,6 +193,10 @@ export function createBootstrapConfig(): BootstrapConfig {
       keep: parsePromptRuleList(
         env.MAIL_AGENT_AI_RULES_KEEP,
         "MAIL_AGENT_AI_RULES_KEEP",
+      ),
+      sender: parsePromptRuleList(
+        env.MAIL_AGENT_AI_RULES_SENDER,
+        "MAIL_AGENT_AI_RULES_SENDER",
       ),
       summary: parsePromptRuleList(
         env.MAIL_AGENT_AI_RULES_SUMMARY,

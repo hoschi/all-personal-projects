@@ -31,6 +31,7 @@ Required variables:
 - `MAIL_AGENT_OPENAI_MODEL`
 - `MAIL_AGENT_AI_RULES_DELETE`
 - `MAIL_AGENT_AI_RULES_KEEP`
+- `MAIL_AGENT_AI_RULES_SENDER`
 - `MAIL_AGENT_AI_RULES_SUMMARY`
 - `MAIL_AGENT_HTTP_HOST`
 - `MAIL_AGENT_HTTP_PORT`
@@ -55,7 +56,7 @@ Notes:
 
 - `MAIL_AGENT_GMAIL_FILTER_QUERY` has a default in `.env.base` and can be overridden in `.env`.
 - The query is used for full-sync candidate listing (first run and invalid-history fallback).
-- AI prompt rule env vars (`MAIL_AGENT_AI_RULES_DELETE`, `MAIL_AGENT_AI_RULES_KEEP`, `MAIL_AGENT_AI_RULES_SUMMARY`) accept `||`-separated bullet entries and are rendered into the system prompt under their respective headings.
+- AI prompt rule env vars (`MAIL_AGENT_AI_RULES_DELETE`, `MAIL_AGENT_AI_RULES_KEEP`, `MAIL_AGENT_AI_RULES_SUMMARY`, `MAIL_AGENT_AI_RULES_SENDER`) accept `||`-separated bullet entries and are rendered into the system prompt under their respective headings.
 - `MAIL_AGENT_HTTP_HOST` + `MAIL_AGENT_HTTP_PORT` define both:
   - the Bun bind target
   - the generated undo link base URL (`http://<MAIL_AGENT_HTTP_HOST>:<MAIL_AGENT_HTTP_PORT>`)

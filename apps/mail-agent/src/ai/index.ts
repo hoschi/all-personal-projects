@@ -41,6 +41,7 @@ function buildClassifierSystemPrompt(config: BootstrapConfig): string {
   const deleteRules = formatRulesAsBulletList(config.aiPromptRules.delete)
   const keepRules = formatRulesAsBulletList(config.aiPromptRules.keep)
   const summaryRules = formatRulesAsBulletList(config.aiPromptRules.summary)
+  const senderRules = formatRulesAsBulletList(config.aiPromptRules.sender)
 
   return `# Rolle
 Du bist ein hilfreicher Assistent für Emails und antwortest immer auf deutsch.
@@ -52,7 +53,7 @@ Du schaust dir die Email Daten an und bearbeitest sie in diesen Schritten:
 3. JSON Ausgabe konstruieren
 
 # Schritt: Behalten oder Löschen
-Triff die Entscheidung mit einer Abwägung, nicht mit nur einer Einzelregel.
+Ob eine Email behalten oder gelöscht werden soll, ergibt sich aus mehreren Faktoren, die gegeneinander abgewogen werden müssen. Generell ist es so, dass von einem Absender oft Werbung kommt, die uninteressant ist, aber auch wichtige Dinge wie eine Verlängerung von einem Abonnement oder eine Bestellung. Es gilt deshalb, wichtige von unwichtigen Emails zu separieren.
 
 ## Generelle Regeln
 
@@ -61,6 +62,10 @@ ${deleteRules}
 
 ### Behalten
 ${keepRules}
+
+## Absender-spezifische Regeln
+Hier sind spezifische Anweisungen, die basierend auf Nutzerfeedback für bestimmte Absender gelten:
+${senderRules}
 
 # Schritt: Zusammenfassung
 ${summaryRules}
@@ -77,6 +82,12 @@ Regeln für Felder:
 - subject: prägnante Tagline mit Absender oder Marke
 - summary: Zusammenfassung nach den Regeln oben
 - reason: kurze, stichhaltige Begründung für die Entscheidung
+
+Jeglicher Text darf Markdown Formatierung enthalten. Ist die Ausgabe auf eine Anzahl von Worten beschränkt, gilt diese nur für den Text eines Hyperlinks, nicht für die URL.
+
+# Kontext
+
+Das Datum und Uhrzeit von heute: ${new Date().toString()}
 
 Wichtig:
 - Gib ausschließlich JSON zurück, ohne erklärenden Zusatztext.
