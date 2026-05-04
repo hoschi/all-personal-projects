@@ -4,10 +4,8 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Apps
 
-- [financy-forecast](/apps/financy-forecast/README.md) - TanStack Start migration target for financial forecasting
-  - New app under active migration
+- [financy-forecast](/apps/financy-forecast/README.md) - Financial forecasting dashboard
   - TanStack Start + Vite + Nitro stack
-- [financy-forecast-next](/apps/financy-forecast-next/README.md) - Legacy Next.js financial forecasting dashboard
   - Forecast calculations and visualization
   - Scenario management
   - Settings and configuration

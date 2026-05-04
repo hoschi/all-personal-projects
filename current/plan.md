@@ -6,9 +6,10 @@ Migrate `apps/financy-forecast` from Next.js App Router to TanStack Start with f
 
 ## Status
 
-In progress on 2026-05-03.
-Step 7 (error/loading boundaries and runtime-error surfacing) is implemented.
-Step 8 validation checks are complete; final cutover remains pending legacy app removal.
+Completed on 2026-05-04.
+All 8 steps implemented and validated.
+Legacy `apps/financy-forecast-next` has been removed.
+TanStack Start app is now the primary and only implementation.
 
 ## Migration Principles
 
