@@ -12,7 +12,27 @@ type ServerEnv = {
 
 function readServerEnv(): ServerEnv {
   const envSchema = z.object({
-    DATABASE_URL: z.string().trim().min(1),
+    DATABASE_URL: z
+      .string()
+      .trim()
+      .min(1)
+      .superRefine((value, context) => {
+        try {
+          const parsedUrl = new URL(value)
+          if (parsedUrl.searchParams.has("schema")) {
+            context.addIssue({
+              code: "custom",
+              message:
+                "DATABASE_URL must not include ?schema=. Use SET search_path after connecting.",
+            })
+          }
+        } catch {
+          context.addIssue({
+            code: "custom",
+            message: "DATABASE_URL must be a valid URL.",
+          })
+        }
+      }),
   })
 
   const result = envSchema.safeParse(process.env)

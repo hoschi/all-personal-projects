@@ -20,17 +20,17 @@ import {
   calculateInitialSnapshotDate,
 } from "./snapshots"
 
+beforeEach(() => {
+  mockedNow.mockReset()
+})
+
+afterEach(() => {
+  mockedNow.mockReset()
+})
+
 describe("calculateApprovable", () => {
   const lastDate = new Date("2026-01-01T00:00:00.000Z")
   const threshold = calculateEarliestApprovalDate(lastDate)
-
-  beforeEach(() => {
-    mockedNow.mockReset()
-  })
-
-  afterEach(() => {
-    mockedNow.mockReset()
-  })
 
   it("returns false when now is before threshold", () => {
     mockedNow.mockReturnValue(new Date("2026-02-28T00:00:00.000Z"))
@@ -52,14 +52,6 @@ describe("calculateApprovable", () => {
 })
 
 describe("calculateInitialSnapshotDate", () => {
-  beforeEach(() => {
-    mockedNow.mockReset()
-  })
-
-  afterEach(() => {
-    mockedNow.mockReset()
-  })
-
   it("uses mocked now when no reference date is provided", () => {
     const nowDate = new Date("2026-06-18T13:00:00.000Z")
     mockedNow.mockReturnValue(nowDate)

@@ -8,20 +8,20 @@ import { RouteErrorState, RoutePendingState } from "@/components/RouteStatus"
 import { getMatrixDataFn } from "@/server/actions"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
-const debugDashboardLoader = Debug("app:client:dashboardLoader")
+const DEBUG_DASHBOARD_LOADER = Debug("app:client:dashboardLoader" as const)
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
   pendingComponent: DashboardPendingComponent,
   errorComponent: DashboardErrorComponent,
   loader: async () => {
-    debugDashboardLoader("request:start")
+    DEBUG_DASHBOARD_LOADER("request:start")
     try {
       const result = await getMatrixDataFn()
-      debugDashboardLoader("request:done hasData=%s", result !== null)
+      DEBUG_DASHBOARD_LOADER("request:done hasData=%s", result !== null)
       return result
     } catch (error) {
-      debugDashboardLoader("request:error %O", error)
+      DEBUG_DASHBOARD_LOADER("request:error %O", error)
       throw error
     }
   },

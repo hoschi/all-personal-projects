@@ -148,6 +148,7 @@ export async function executeWithSchema<T>(
   const queryId = createQueryId()
   const startedAt = Date.now()
   const db = await getDb()
+  const reserved = await db.reserve()
   dbDebugState.inFlightQueryCount += 1
   debug(
     "Executing query with schema queryId=%s inFlight=%d poolCreateCount=%d",
@@ -156,8 +157,8 @@ export async function executeWithSchema<T>(
     dbDebugState.poolCreateCount,
   )
   try {
-    await db.unsafe(SET_SEARCH_PATH_SQL)
-    const result = await queryFn(db)
+    await reserved.unsafe(SET_SEARCH_PATH_SQL)
+    const result = await queryFn(reserved)
     debug(
       "Query success queryId=%s durationMs=%d",
       queryId,
@@ -173,6 +174,7 @@ export async function executeWithSchema<T>(
     )
     throw error
   } finally {
+    await reserved.release()
     dbDebugState.inFlightQueryCount = Math.max(
       0,
       dbDebugState.inFlightQueryCount - 1,

@@ -10,7 +10,7 @@
     "SST_OLLAMA_ENDPOINT",
     "SST_OLLAMA_MODEL_ID",
     "FRITZBOX_DEVICE_HOSTNAME",
-    "NODE_ENV"
+    "DEV"
   ],
   "tasks": {
     "dev": {

@@ -7,7 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import appCss from "../styles.css?url"
 
-const IS_DEVELOPMENT = process.env.NODE_ENV !== "production"
+const IS_DEVELOPMENT = import.meta.env.DEV
 
 export const Route = createRootRoute({
   head: () => ({
