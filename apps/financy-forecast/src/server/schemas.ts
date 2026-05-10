@@ -180,3 +180,17 @@ export const saveForecastSchema = z.object({
   scenarios: z.array(forecastScenarioChanges).default([]),
 })
 export type SaveForecastSchema = z.infer<typeof saveForecastSchema>
+
+export const currentEditRowSchema = z.object({
+  id: accountSchema.shape.id,
+  name: accountSchema.shape.name,
+  currentBalance: accountSchema.shape.currentBalance,
+  updatedAt: z.coerce.date(),
+  snapshotBalance: accountBalanceDetailSchema.shape.amount.nullable(),
+  delta: z.number().int().nullable(),
+})
+
+export const currentEditDataSchema = z.object({
+  lastSnapshotDate: z.coerce.date().nullable(),
+  rows: z.array(currentEditRowSchema),
+})

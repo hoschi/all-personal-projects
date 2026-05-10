@@ -5,9 +5,9 @@ import { Either, Option } from "effect"
 import { z } from "zod"
 import {
   approveCurrentBalancesAsSnapshot,
-  changeSettings,
   getLatestAssetSnapshot,
   getScenarioItems,
+  saveForecastChanges,
   updateAccountCurrentBalances,
   updateForcastScenario,
 } from "./db"
@@ -49,15 +49,22 @@ const debugExtractCurrentBalanceUpdates = Debug(
 )
 const debugSaveCurrentBalancesFn = Debug("app:actions:saveCurrentBalancesFn")
 
+class CurrentBalanceParseError extends Error {
+  readonly accountId: string
+
+  constructor(accountId: string, message: string) {
+    super(message)
+    this.name = "CurrentBalanceParseError"
+    this.accountId = accountId
+  }
+}
+
 export const getMatrixDataFn = createServerFn({ method: "GET" }).handler(
   async () => {
     debugGetMatrixDataFn("start")
     try {
       const result = await getMatrixData(4)
-      const payload = Option.match(result, {
-        onNone: () => null,
-        onSome: (value) => value,
-      })
+      const payload = Option.getOrNull(result)
       debugGetMatrixDataFn("success hasData=%s", payload !== null)
       return payload
     } catch (error) {
@@ -72,10 +79,7 @@ export const getForecastDataFn = createServerFn({ method: "GET" }).handler(
     debugGetForecastDataFn("start")
     try {
       const result = await getForecastData()
-      const payload = Option.match(result, {
-        onNone: () => null,
-        onSome: (value) => value,
-      })
+      const payload = Option.getOrNull(result)
       debugGetForecastDataFn("success hasData=%s", payload !== null)
       return payload
     } catch (error) {
@@ -152,13 +156,10 @@ export const saveForecastFn = createServerFn({ method: "POST" })
       data.scenarios.length,
     )
     try {
-      await changeSettings({
+      await saveForecastChanges({
         estimatedMonthlyVariableCosts: data.variableCosts,
+        scenarios: data.scenarios,
       })
-
-      await Promise.all(
-        data.scenarios.map((scenario) => updateForcastScenario(scenario)),
-      )
 
       debugSaveForecastFn("success")
       return {
@@ -230,7 +231,7 @@ function extractCurrentBalanceUpdates(
         accountId,
         parsedBalance.left,
       )
-      throw new Error(parsedBalance.left)
+      throw new CurrentBalanceParseError(accountId, parsedBalance.left)
     }
 
     return {
@@ -257,6 +258,15 @@ export const saveCurrentBalancesFn = createServerFn({ method: "POST" })
         changedRows,
       }
     } catch (error) {
+      if (error instanceof CurrentBalanceParseError) {
+        debugSaveCurrentBalancesFn(
+          "parseError accountId=%s message=%s",
+          error.accountId,
+          error.message,
+        )
+        throw error
+      }
+
       debugSaveCurrentBalancesFn("error %O", error)
       throw error
     }

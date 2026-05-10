@@ -6,6 +6,7 @@ import Debug from "debug"
 import { CurrentEdit } from "@/components/CurrentEdit"
 import { RouteErrorState, RoutePendingState } from "@/components/RouteStatus"
 import { getCurrentEditDataFn } from "@/server/actions"
+import { currentEditDataSchema } from "@/server/schemas"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 const debugCurrentEditLoader = Debug("app:client:currentEditLoader")
@@ -18,8 +19,9 @@ export const Route = createFileRoute("/current/edit")({
     debugCurrentEditLoader("request:start")
     try {
       const result = await getCurrentEditDataFn()
-      debugCurrentEditLoader("request:done rows=%d", result.rows.length)
-      return result
+      const parsedResult = currentEditDataSchema.parse(result)
+      debugCurrentEditLoader("request:done rows=%d", parsedResult.rows.length)
+      return parsedResult
     } catch (error) {
       debugCurrentEditLoader("request:error %O", error)
       throw error

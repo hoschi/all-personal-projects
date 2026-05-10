@@ -25,8 +25,57 @@ type DbDebugState = {
   inFlightQueryCount: number
 }
 
+export async function saveForecastChanges(data: {
+  estimatedMonthlyVariableCosts: number
+  scenarios: ForecastScenarioChanges[]
+}): Promise<void> {
+  const debug = Debug("app:db:saveForecastChanges")
+  debug(
+    "Saving forecast changes variableCosts=%d scenarios=%d",
+    data.estimatedMonthlyVariableCosts,
+    data.scenarios.length,
+  )
+
+  try {
+    const db = await getDb()
+    await db.begin(async (tx) => {
+      await tx.unsafe(SET_SEARCH_PATH_SQL)
+
+      const settingsResult = await tx<Settings[]>`
+        UPDATE settings
+        SET estimated_monthly_variable_costs = ${data.estimatedMonthlyVariableCosts},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = '00000000-0000-0000-0000-000000000000'
+        RETURNING estimated_monthly_variable_costs as "estimatedMonthlyVariableCosts"
+      `
+
+      if (!settingsResult[0]) {
+        throw new Error("Settings row not found")
+      }
+
+      for (const scenario of data.scenarios) {
+        const scenarioResult = await tx<{ id: string }[]>`
+          UPDATE scenario_items
+          SET is_active = ${scenario.isActive},
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = ${scenario.id}
+          RETURNING id
+        `
+
+        if (!scenarioResult[0]) {
+          throw new Error(`Scenario item not found: ${scenario.id}`)
+        }
+      }
+    })
+  } catch (error) {
+    console.error("Error saving forecast changes:", error)
+    throw new Error("Failed to save forecast changes")
+  }
+}
+
 declare global {
   var __FINANCY_FORECAST_DB_DEBUG_STATE__: DbDebugState | undefined
+  var __FINANCY_FORECAST_DB_SQL__: ReturnType<typeof postgres> | undefined
 }
 
 function getDbDebugState(): DbDebugState {
@@ -54,8 +103,10 @@ function createQueryId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-let sql: ReturnType<typeof postgres>
-async function getDb() {
+let sql: ReturnType<typeof postgres> | undefined =
+  globalThis.__FINANCY_FORECAST_DB_SQL__
+
+async function getDb(): Promise<ReturnType<typeof postgres>> {
   const debug = Debug("app:db:getDb")
   debug("Getting database connection")
   if (!sql) {
@@ -76,6 +127,7 @@ async function getDb() {
         return Math.min(1000 * Math.pow(2, attempt), 30000)
       },
     })
+    globalThis.__FINANCY_FORECAST_DB_SQL__ = sql
   } else {
     debug(
       "Reusing existing database connection pool createCount=%d inFlight=%d",
@@ -956,8 +1008,14 @@ export async function changeSettings(data: Settings): Promise<Settings> {
 export async function closeConnection(): Promise<void> {
   const debug = Debug("app:db:closeConnection")
   debug("Closing database connection")
+  if (!sql) {
+    return
+  }
+
   try {
     await sql.end()
+    sql = undefined
+    globalThis.__FINANCY_FORECAST_DB_SQL__ = undefined
     console.log("✅ Database connection closed")
   } catch (error) {
     console.error("❌ Error closing database connection:", error)

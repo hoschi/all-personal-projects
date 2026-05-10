@@ -37,10 +37,6 @@ type CurrentEditProps = {
 
 const debugCurrentEditSave = Debug("app:client:currentEditSave")
 
-function deserializeDate(value: unknown): Date {
-  return value instanceof Date ? value : new Date(String(value))
-}
-
 export function CurrentEdit({ data }: CurrentEditProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -63,13 +59,18 @@ export function CurrentEdit({ data }: CurrentEditProps) {
 
     return {
       ...row,
-      updatedAt: deserializeDate(row.updatedAt),
       inputValue,
       liveDelta,
     }
   })
+  const hasParseErrors = rows.some((row) => Either.isLeft(row.liveDelta))
 
   const handleSubmit = () => {
+    if (hasParseErrors) {
+      setError("Please fix invalid balances before saving.")
+      return
+    }
+
     startTransition(async () => {
       setError(null)
       debugCurrentEditSave(
@@ -100,7 +101,7 @@ export function CurrentEdit({ data }: CurrentEditProps) {
         <h3 className="text-xl">Current Balances</h3>
         <p className="text-sm text-muted-foreground">
           {data.lastSnapshotDate
-            ? `Snapshot date: ${format(deserializeDate(data.lastSnapshotDate), "yyyy-MM-dd")}`
+            ? `Snapshot date: ${format(data.lastSnapshotDate, "yyyy-MM-dd")}`
             : "No snapshot available yet."}
         </p>
       </div>
@@ -133,6 +134,7 @@ export function CurrentEdit({ data }: CurrentEditProps) {
                   type="text"
                   inputMode="decimal"
                   value={row.inputValue}
+                  aria-invalid={Either.isLeft(row.liveDelta)}
                   onChange={(event) => {
                     const nextValue = event.currentTarget.value
                     setValuesByAccountId((prev) => ({
@@ -175,7 +177,11 @@ export function CurrentEdit({ data }: CurrentEditProps) {
       {error ? <div className="text-sm text-red-600">{error}</div> : null}
 
       <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit} disabled={isPending}>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isPending || hasParseErrors}
+        >
           {isPending ? "Saving..." : "Save"}
         </Button>
       </div>
