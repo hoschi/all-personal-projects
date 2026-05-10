@@ -4,7 +4,8 @@ This monorepo contains various personal projects including financial forecasting
 
 ## Apps
 
-- [financy-forecast](/apps/financy-forecast/README.md) - Financial forecasting dashboard with snapshot management
+- [financy-forecast](/apps/financy-forecast/README.md) - Financial forecasting dashboard
+  - TanStack Start + Vite + Nitro stack
   - Forecast calculations and visualization
   - Scenario management
   - Settings and configuration

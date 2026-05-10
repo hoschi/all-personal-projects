@@ -1,139 +1,74 @@
-# Financy Forecast
+# Financy Forecast (TanStack Start)
 
-Financy Forecast is a Next.js-based personal finance tracking tool with a matrix
-view for account balances, snapshot approval workflow, and scenario-based
+Financy Forecast is a TanStack Start based personal finance tool with a matrix
+view for account balances, snapshot approval workflow, and scenario-driven
 forecasting.
-[Currently Buggy!](./bug.md)
 
-**Key Features:**
+## Key Features
 
-- **Financial Matrix Dashboard** - Snapshot history, current balances, and monthly deltas
-- **Current Balance Edit Flow** - Side-by-side edit view vs. latest snapshot with live deltas
-- **Snapshot Approval** - Persist current balances as monthly snapshots
-- **Forecast Engine** - Scenario planning with timeline visualization
-- **Settings** - Management of recurring items and fixed costs
+- **Financial Matrix Dashboard**: Snapshot history, current balances, and deltas.
+- **Current Balance Edit Flow**: Side-by-side view against latest snapshot with
+  live parsed deltas and validation feedback.
+- **Snapshot Approval**: Persist current balances as a monthly asset snapshot.
+- **Forecast Engine**: Timeline projection with variable costs and
+  scenario toggles.
+- **Settings**: Manage scenario activation state with immediate server updates.
 
-**Tech Stack:**
+## Tech Stack
 
-- PostgreSQL database with raw SQL queries (no ORM)
-- Next.js 16, React 19, Tailwind CSS 4, ShadCN UI
+- **Runtime/App**: TanStack Start, TanStack Router, React 19, Vite 7, Nitro.
+- **Data Layer**: PostgreSQL via `postgres` (raw SQL, no ORM).
+- **Validation**: Zod schemas at server boundaries.
+- **State/FP**: Jotai and Effect.
+- **UI**: Tailwind CSS 4 + shadcn/ui primitives.
 
-## Next.js v16 Features Used
+## Routes and Workflows
 
-- **App Router** - File-based routing in `app/` directory
-- **Server Actions** - `'use server'` directive for form processing
-- **Server Components** - Default for pages and async data loading
-- **Cache Tags** - `updateTag` for read-your-own-writes cache invalidation
-- **Suspense boundaries** - Used for uncached async data in route segments
-- **Server-side redirects** - `redirect()` after successful mutations
-- **Turbopack** - `next dev --turbopack` for faster development
-- **React Compiler** - Babel plugin enabled in `next.config.ts`
-- **`cacheComponents`** - Enabled for component caching
+- `/dashboard`: Matrix view + snapshot approval trigger.
+- `/current/edit`: Current balance form with parsing and save flow.
+- `/forecast`: Forecast timeline with variable costs and scenario impact.
+- `/settings`: Scenario list with active-state toggles.
+- `/`: Redirects to `/dashboard`.
 
-## File Overview
+## Architecture Overview
 
-### Core App Files
+### Routing
 
-| File                                                     | Purpose                                                           |
-| -------------------------------------------------------- | ----------------------------------------------------------------- |
-| [`app/layout.tsx`](app/layout.tsx)                       | Root layout with sidebar provider, Jotai provider, and font setup |
-| [`app/page.tsx`](app/page.tsx)                           | Entry point, redirects to `/dashboard`                            |
-| [`app/dashboard/page.tsx`](app/dashboard/page.tsx)       | Dashboard with financial matrix                                   |
-| [`app/current/edit/page.tsx`](app/current/edit/page.tsx) | Current balances edit page (`Suspense` + async data load)         |
-| [`app/forecast/page.tsx`](app/forecast/page.tsx)         | Forecast view with scenarios                                      |
-| [`app/settings/page.tsx`](app/settings/page.tsx)         | Settings page for recurring and scenario items                    |
-| [`app/global-error.tsx`](app/global-error.tsx)           | Global runtime error boundary                                     |
+- `src/routes/__root.tsx`: App shell, sidebar layout, document setup.
+- `src/routes/*.tsx`: Route-level loaders, pending states, and error components.
 
-### Server Actions & Data Layer
+### Server Layer
 
-| File                               | Purpose                                                                           |
-| ---------------------------------- | --------------------------------------------------------------------------------- |
-| [`lib/actions.ts`](lib/actions.ts) | Server Actions for forecast, snapshot approval, and saving current balances       |
-| [`lib/data.ts`](lib/data.ts)       | Data shaping for Matrix, Forecast, and Current Edit views                         |
-| [`lib/db.ts`](lib/db.ts)           | Raw SQL data access incl. transactional updates for account current balances      |
-| [`lib/schemas.ts`](lib/schemas.ts) | Zod schemas for validation and DB-result parsing (`Account` includes `updatedAt`) |
-| [`lib/types.ts`](lib/types.ts)     | Additional UI-facing TypeScript interfaces (incl. `CurrentEditData`)              |
+- `src/server/actions.ts`: TanStack server functions for read/write operations.
+- `src/server/data.ts`: Data shaping for route payloads.
+- `src/server/db.ts`: SQL access, transaction logic, and schema-aware execution.
+- `src/server/schemas.ts`: Input/output contracts and parsing.
+- `src/server/env.ts`: Server environment validation.
 
-### Domain Logic
+### Domain and UI
 
-| File                                                     | Purpose                                                        |
-| -------------------------------------------------------- | -------------------------------------------------------------- |
-| [`domain/currentBalances.ts`](domain/currentBalances.ts) | Parsing localized numeric inputs and computing snapshot deltas |
-| [`domain/snapshots.ts`](domain/snapshots.ts)             | Snapshot date rules and total-balance calculation helpers      |
-| [`domain/approveErrors.ts`](domain/approveErrors.ts)     | Domain errors for snapshot approval constraints                |
+- `src/domain/currentBalances.ts`: Numeric parsing + delta calculations.
+- `src/domain/snapshots.ts`: Snapshot rules and date calculations.
+- `src/components/Matrix.tsx`: Matrix table and snapshot approval UX.
+- `src/components/CurrentEdit.tsx`: Current-balance editor UX.
+- `src/components/Forecast.tsx` + `src/components/forecastState.tsx`:
+  Forecast interactions and timeline rendering.
+- `src/components/SettingsScenariosTable.tsx`: Settings table and toggle flow.
 
-### Components
+## Scripts
 
-| File                                                         | Purpose                                                                   |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| [`components/matrix.tsx`](components/matrix.tsx)             | Financial matrix display, snapshot approval trigger, link to current edit |
-| [`components/current-edit.tsx`](components/current-edit.tsx) | Form for editing current balances with live deltas and error feedback     |
-| [`components/forecast.tsx`](components/forecast.tsx)         | Forecast form with timeline                                               |
-| [`components/format.ts`](components/format.ts)               | Shared EUR and delta formatting helpers                                   |
-| [`components/app-sidebar.tsx`](components/app-sidebar.tsx)   | App navigation sidebar                                                    |
+- `bun run dev`: Start dev server on port `3056`.
+- `bun run build`: Create production build.
+- `bun run start:prod`: Start Nitro server on port `4056`.
+- `bun run preview`: Preview the production build locally.
+- `bun run check-types`: Run TypeScript checks.
+- `bun run lint`: Run ESLint.
+- `bun run test`: Run Vitest test suite.
+- `bun run format:check`: Check Prettier formatting.
 
----
+## Environment
 
-## Notes
-
-- Styling is still intentionally secondary to functional correctness.
-- The app now includes form-based current-balance editing and validation in the UI.
-
-## DB
-
-### 1. @repo/db Package
-
-Script linked from @repo/db package to quickly copy/backup/restore the DB.
-
-### 2. `scripts/create-tables.sql` - Database Schema
-
-**Purpose:** SQL schema for all FinanceForecast application tables.
-
-### 3. `scripts/create-tables.ts` - Table Creation Script
-
-**Purpose:** TypeScript wrapper for table creation.
-
-**Commands:**
-
-```bash
-# Create tables
-bun run scripts/create-tables.ts create
-
-# Reset database (drop + create)
-bun run scripts/create-tables.ts reset
-
-# Drop all tables
-bun run scripts/create-tables.ts drop
-```
-
-### 4. `scripts/seed-dev.ts` - Development Data
-
-**Purpose:** Realistic sample data for development and testing.
-
-**Sample data:**
-
-- **5 accounts:** liquid + retirement accounts with realistic balances
-- **6 months data:** July-December 2024 with realistic balance progressions
-- **15 recurring items:** Rent, salary, insurance, etc.
-- **9 scenario items:** Vacation, purchases, etc. (active/inactive)
-- **Settings:** Standard variable costs (1,200.00 EUR)
-- **Snapshots:** `totalLiquidity` is calculated as the sum over all account balances
-
-**Commands:**
-
-```bash
-# Seed database with sample data
-bun run scripts/seed-dev.ts seed
-
-# Clear all sample data
-bun run scripts/seed-dev.ts clear
-```
-
-## Todo
-
-- Replace enums in schemas.ts with what TS page suggests instead (objects with `as const`?!)
-- Use server-only package to not leak DB connection details for security
-- Styling
-  - Move sidebar toggle from content header to sidebar header and create an icon sidebar in collapsed version. Create a "screen too small" message for anything below tablet size, this doesn't make sense!
-  - isActive in sidebar isn't working at the moment
-- Forward root to dashboard route
+- Copy `.env.example` to `.env` and provide values.
+- `DATABASE_URL` must be a valid URL and must not include a Prisma-style
+  `schema=` query parameter.
+- Schema selection is handled in SQL via `SET search_path`.
