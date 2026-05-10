@@ -1,4 +1,3 @@
-"use client"
 import { useRouter } from "@tanstack/react-router"
 import { ForecastTimelineData } from "@/server/types"
 import { RecurringItemInterval, ScenarioItem } from "@/server/schemas"
@@ -99,7 +98,7 @@ export function VariableCosts({
         step="0.01"
         value={variableCostsEuros.toFixed(2)}
         onChange={(event) => {
-          const normalizedValue = event.target.value.replace(/,/g, ".")
+          const normalizedValue = event.currentTarget.value.replace(/,/g, ".")
           const parsedValue = Number(normalizedValue)
           setVariableCosts(
             Number.isFinite(parsedValue) ? Math.round(parsedValue * 100) : 0,

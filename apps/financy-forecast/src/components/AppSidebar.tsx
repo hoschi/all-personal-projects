@@ -32,7 +32,8 @@ export function AppSidebar() {
               {NAV_ITEMS.map((item) => {
                 const isActive =
                   pathname === item.to ||
-                  (item.to !== "/dashboard" && pathname.startsWith(item.to))
+                  (item.to !== "/dashboard" &&
+                    pathname.startsWith(`${item.to}/`))
 
                 return (
                   <SidebarMenuItem key={item.to}>

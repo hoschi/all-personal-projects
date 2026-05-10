@@ -34,12 +34,12 @@ export function calculateTimeline(
         )
         .reduce((sum, item) => sum + item.amount, 0),
     )
+  const firstForecastMonth = addMonths(startOfMonth(startDate), 1)
 
   for (let i = 0; i < monthCount; i++) {
     runningBalance += baseIncome
     runningBalance -= monthlyBurn
 
-    const firstForecastMonth = addMonths(startOfMonth(startDate), 1)
     const currentForecastMonth = addMonths(firstForecastMonth, i)
     const currentMonthInYear = currentForecastMonth.getMonth() + 1
 

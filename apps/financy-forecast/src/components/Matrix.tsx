@@ -49,7 +49,11 @@ export function Matrix({ data }: MatrixProps) {
 
   return (
     <div>
-      {error ? <div className="mb-3 text-sm text-red-600">{error}</div> : null}
+      {error ? (
+        <div role="alert" className="mb-3 text-sm text-red-600">
+          {error}
+        </div>
+      ) : null}
       <Table className="table-layout-fixed text-md">
         <TableHeader>
           <TableRow>
@@ -113,7 +117,8 @@ export function Matrix({ data }: MatrixProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  aria-label="approve"
+                  aria-label={isPending ? "Approving" : "Approve"}
+                  aria-busy={isPending}
                   onClick={handleApprove}
                   disabled={isPending}
                 >

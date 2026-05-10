@@ -75,6 +75,44 @@ export function SettingsScenariosTable({
     setSortDirection("asc")
   }
 
+  const handleScenarioToggle = async (
+    scenarioId: string,
+    isActive: boolean,
+  ) => {
+    setPendingScenarioIds((prev) =>
+      prev.includes(scenarioId) ? prev : [...prev, scenarioId],
+    )
+    setError(null)
+    debugSettingsScenarioToggle(
+      "request:start scenarioId=%s isActive=%s",
+      scenarioId,
+      isActive,
+    )
+
+    try {
+      await updateScenarioIsActiveFn({
+        data: {
+          scenarioId,
+          isActive,
+        },
+      })
+      debugSettingsScenarioToggle("request:done scenarioId=%s", scenarioId)
+      debugSettingsScenarioToggle("afterRequest:onScenarioUpdated:start")
+      await onScenarioUpdated()
+      debugSettingsScenarioToggle("afterRequest:onScenarioUpdated:done")
+    } catch (updateError) {
+      debugSettingsScenarioToggle("request:error %O", updateError)
+      if (updateError instanceof Error) {
+        setError(updateError.message)
+        return
+      }
+
+      setError("Failed to update scenario state.")
+    } finally {
+      setPendingScenarioIds((prev) => prev.filter((id) => id !== scenarioId))
+    }
+  }
+
   return (
     <section className="space-y-4">
       <div className="overflow-hidden rounded-lg border">
@@ -152,53 +190,7 @@ export function SettingsScenariosTable({
                       checked={scenario.isActive}
                       disabled={isScenarioPending(scenario.id)}
                       onCheckedChange={(isActive) => {
-                        void (async () => {
-                          setPendingScenarioIds((prev) =>
-                            prev.includes(scenario.id)
-                              ? prev
-                              : [...prev, scenario.id],
-                          )
-                          setError(null)
-                          debugSettingsScenarioToggle(
-                            "request:start scenarioId=%s isActive=%s",
-                            scenario.id,
-                            isActive,
-                          )
-                          try {
-                            await updateScenarioIsActiveFn({
-                              data: {
-                                scenarioId: scenario.id,
-                                isActive,
-                              },
-                            })
-                            debugSettingsScenarioToggle(
-                              "request:done scenarioId=%s",
-                              scenario.id,
-                            )
-                            debugSettingsScenarioToggle(
-                              "afterRequest:onScenarioUpdated:start",
-                            )
-                            await onScenarioUpdated()
-                            debugSettingsScenarioToggle(
-                              "afterRequest:onScenarioUpdated:done",
-                            )
-                          } catch (updateError) {
-                            debugSettingsScenarioToggle(
-                              "request:error %O",
-                              updateError,
-                            )
-                            if (updateError instanceof Error) {
-                              setError(updateError.message)
-                              return
-                            }
-
-                            setError("Failed to update scenario state.")
-                          } finally {
-                            setPendingScenarioIds((prev) =>
-                              prev.filter((id) => id !== scenario.id),
-                            )
-                          }
-                        })()
+                        void handleScenarioToggle(scenario.id, isActive)
                       }}
                     />
                     <Label
