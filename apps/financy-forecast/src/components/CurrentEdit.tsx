@@ -69,17 +69,12 @@ export function CurrentEdit({ data }: CurrentEditProps) {
 
     startTransition(async () => {
       setError(null)
-      const valuesForSubmit = Object.fromEntries(
-        rows.map((row) => [row.id, row.inputValue]),
-      )
       debugCurrentEditSave(
         "request:start accountCount=%d",
-        Object.keys(valuesForSubmit).length,
+        Object.keys(valuesByAccountId).length,
       )
       try {
-        await saveCurrentBalancesFn({
-          data: { valuesByAccountId: valuesForSubmit },
-        })
+        await saveCurrentBalancesFn({ data: { valuesByAccountId } })
         debugCurrentEditSave("request:done")
         setValuesByAccountId({})
         debugCurrentEditSave("router:invalidate:start")
