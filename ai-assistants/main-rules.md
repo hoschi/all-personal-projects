@@ -70,6 +70,7 @@ Verwende außerdem `NativeSelect` statt `Select`, letzteres hat einen Overlay Sc
 ### Konstanten: `UPPER_SNAKE_CASE` + `as const`
 
 - **Regel**: Modulweite Konstanten (Storage Keys, Event-Namen, feste IDs/Präfixe) immer in `UPPER_SNAKE_CASE` benennen.
+- **Ausnahme**: Logger-/Debug-Instanzen (z.B. `const debugFoo = Debug(...)`) bleiben in `camelCase`, auch wenn sie modulweit deklariert sind.
 - **Regel**: String-Literal-Konstanten mit `as const` deklarieren, um versehentliche Aufweichung der Typen zu vermeiden.
 
 ### Externe Daten im BFF typisieren: `unknown` + Zod-Parsing
