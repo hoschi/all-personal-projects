@@ -8,6 +8,7 @@ import {
   getLatestAssetSnapshot,
   getScenarioItems,
   saveForecastChanges,
+  ScenarioNotFoundError,
   updateAccountCurrentBalances,
   updateForcastScenario,
 } from "./db"
@@ -142,6 +143,17 @@ export const updateScenarioIsActiveFn = createServerFn({ method: "POST" })
         success: true as const,
       }
     } catch (error) {
+      if (error instanceof ScenarioNotFoundError) {
+        debugUpdateScenarioIsActiveFn(
+          "businessError scenarioNotFound scenarioId=%s",
+          data.scenarioId,
+        )
+        return {
+          success: false as const,
+          error: "Scenario not found.",
+        }
+      }
+
       debugUpdateScenarioIsActiveFn("error %O", error)
       throw error
     }

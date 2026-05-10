@@ -851,7 +851,7 @@ export async function createScenarioItem(
   name: string,
   amount: number,
   date: Date,
-  isActive: boolean = true,
+  isActive = true,
 ): Promise<ScenarioItem> {
   const debug = Debug("app:db:createScenarioItem")
   debug("Creating scenario item: %s, amount: %d, date: %s", name, amount, date)
@@ -868,6 +868,13 @@ export async function createScenarioItem(
   } catch (error) {
     console.error("Error creating scenario item:", error)
     throw new Error("Failed to create scenario item")
+  }
+}
+
+export class ScenarioNotFoundError extends Error {
+  constructor(scenarioId: string) {
+    super(`Scenario item not found: ${scenarioId}`)
+    this.name = "ScenarioNotFoundError"
   }
 }
 
@@ -892,10 +899,14 @@ export async function updateForcastScenario(
     )
 
     if (!result[0]) {
-      throw new Error("Scenario item not found")
+      throw new ScenarioNotFoundError(data.id)
     }
     return
   } catch (error) {
+    if (error instanceof ScenarioNotFoundError) {
+      throw error
+    }
+
     console.error("Error updating scenario item:", error)
     throw new Error("Failed to update scenario item")
   }

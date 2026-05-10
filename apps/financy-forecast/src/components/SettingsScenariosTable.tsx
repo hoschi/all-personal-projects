@@ -90,24 +90,28 @@ export function SettingsScenariosTable({
     )
 
     try {
-      await updateScenarioIsActiveFn({
+      const result = await updateScenarioIsActiveFn({
         data: {
           scenarioId,
           isActive,
         },
       })
+      if (!result.success) {
+        debugSettingsScenarioToggle(
+          "request:businessError scenarioId=%s message=%s",
+          scenarioId,
+          result.error,
+        )
+        setError(result.error)
+        return
+      }
       debugSettingsScenarioToggle("request:done scenarioId=%s", scenarioId)
       debugSettingsScenarioToggle("afterRequest:onScenarioUpdated:start")
       await onScenarioUpdated()
       debugSettingsScenarioToggle("afterRequest:onScenarioUpdated:done")
     } catch (updateError) {
       debugSettingsScenarioToggle("request:error %O", updateError)
-      if (updateError instanceof Error) {
-        setError(updateError.message)
-        return
-      }
-
-      setError("Failed to update scenario state.")
+      throw updateError
     } finally {
       setPendingScenarioIds((prev) => prev.filter((id) => id !== scenarioId))
     }
