@@ -1,6 +1,6 @@
 # Financy Forecast (TanStack Start)
 
-This app is the new TanStack Start target for the Financy migration.
+This app is the TanStack Start implementation of the Financy forecast tool.
 
 ## Scripts
 

@@ -7,6 +7,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 import appCss from "../styles.css?url"
 
+const IS_DEVELOPMENT = process.env.NODE_ENV !== "production"
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -50,17 +52,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <AppSidebar />
           <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {IS_DEVELOPMENT ? (
+          <TanStackDevtools
+            config={{
+              position: "bottom-right",
+            }}
+            plugins={[
+              {
+                name: "Tanstack Router",
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        ) : null}
         <Scripts />
       </body>
     </html>

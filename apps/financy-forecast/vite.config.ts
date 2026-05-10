@@ -13,11 +13,12 @@ dotenvConfig({ path: "../../infra/.env", quiet: true })
 
 const fritzboxDeviceHostname =
   process.env.FRITZBOX_DEVICE_HOSTNAME?.trim() ?? ""
+const FRITZBOX_SUFFIX = ".fritz.box"
 const viteAllowedHosts = [
   fritzboxDeviceHostname,
-  fritzboxDeviceHostname.includes(".")
+  fritzboxDeviceHostname.endsWith(FRITZBOX_SUFFIX)
     ? ""
-    : `${fritzboxDeviceHostname}.fritz.box`,
+    : `${fritzboxDeviceHostname}${FRITZBOX_SUFFIX}`,
 ].filter((host) => host.length > 0)
 
 const config = defineConfig({
