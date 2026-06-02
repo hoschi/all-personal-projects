@@ -201,7 +201,10 @@ function getOpenAiClient(openAiApiKeyRaw: string): OpenAI {
   }
 
   if (!openAiClientSingleton || openAiClientApiKey !== openAiApiKey) {
-    openAiClientSingleton = new OpenAI({ apiKey: openAiApiKey })
+    openAiClientSingleton = new OpenAI({
+      apiKey: openAiApiKey,
+      baseURL: "https://api.openai.com/v1",
+    })
     openAiClientApiKey = openAiApiKey
   }
 
