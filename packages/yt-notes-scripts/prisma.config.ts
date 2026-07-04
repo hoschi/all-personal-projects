@@ -1,7 +1,8 @@
 import { config as dotenvConfig } from "dotenv"
 import { defineConfig } from "prisma/config"
 
-dotenvConfig({ path: ".env", quiet: true })
+dotenvConfig({ path: ".env.base", quiet: true })
+dotenvConfig({ path: ".env", override: true, quiet: true })
 
 export const DATABASE_SCHEMA_NAME = process.env.DATABASE_SCHEMA_NAME
 

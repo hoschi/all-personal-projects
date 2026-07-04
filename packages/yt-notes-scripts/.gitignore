@@ -1,2 +1,7 @@
 watched.json
 src/generated/
+
+# env files
+.env*
+!.env.base
+!.env.example
