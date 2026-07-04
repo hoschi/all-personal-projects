@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["yt"]
+}
+
+enum ChannelClass {
+  privat
+  arbeit
+  mixed
+  unknown
+
+  @@schema("yt")
+}
+
+enum AuditStatus {
+  pending
+  ok
+  // Zwischenstatus: Critical-Phase erfolgreich, Background noch ausstehend
+  critical_ok
+  // Pre-Critical: audited_md NICHT gesetzt
+  error_llm
+  error_empty_output
+  error_pass1
+  // Pass 2 (ASR-Fix) wirft in Background-Phase
+  error_pass2
+  // Post-Critical: audited_md gesetzt, einer der späten Passes hat geworfen
+  error_pass3_display_title
+  error_pass4_description
+  error_pass5_summary_long
+  error_stub_write
+  // Skip-Stati
+  skip_too_long
+  skip_classification_mismatch
+  transcript_missing
+  transcript_error_upstream
+
+  @@schema("yt")
+}
+
+model Channel {
+  id             String       @id
+  name           String
+  classification ChannelClass @default(unknown)
+  subscribers    Int?
+  notes          String?      @db.Text
+  videos         Video[]
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("channel")
+  @@schema("yt")
+}
+
+model Video {
+  youtubeId        String           @id @map("youtube_id")
+  title            String
+  displayTitle     String?          @map("display_title")
+  description      String?          @db.Text
+  descriptionShort String?          @map("description_short") @db.Text
+  publishedAt      DateTime?        @map("published_at")
+  durationSec      Int?             @map("duration_sec")
+  chapters         Json?
+  hashtags         Json             @default("[]")
+  thumbnailUrl     String?          @map("thumbnail_url")
+  unavailable      Boolean          @default(false) @map("unavailable")
+  channelId        String?          @map("channel_id")
+  channel          Channel?         @relation(fields: [channelId], references: [id])
+  transcript       Transcript?
+  history          WatchHistory[]
+  noteLinks        NoteLink[]
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  @@index([publishedAt])
+  @@index([channelId])
+  @@map("video")
+  @@schema("yt")
+}
+
+model WatchHistory {
+  id               BigInt   @id @default(autoincrement())
+  youtubeId        String   @map("youtube_id")
+  watchedAt        DateTime @map("watched_at")
+  details          Json?
+  activityControls Json     @default("[]") @map("activity_controls")
+  video            Video    @relation(fields: [youtubeId], references: [youtubeId])
+
+  @@unique([youtubeId, watchedAt])
+  @@map("watch_history")
+  @@schema("yt")
+}
+
+model NoteLink {
+  id        BigInt   @id @default(autoincrement())
+  youtubeId String   @map("youtube_id")
+  vault     String
+  filePath  String   @map("file_path")
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  video     Video    @relation(fields: [youtubeId], references: [youtubeId])
+  vaultRef  Vault    @relation(fields: [vault], references: [name])
+
+  @@unique([youtubeId, vault, filePath])
+  @@index([vault])
+  @@map("note_link")
+  @@schema("yt")
+}
+
+model Transcript {
+  youtubeId    String      @id @map("youtube_id")
+  srt          String?     @db.Text
+  plain        String?     @db.Text
+  llmFormatted String?     @db.Text
+  lang         String?
+  error        String?
+  namedEntities Json?      @map("named_entities")
+  auditedMd    String?     @map("audited_md") @db.Text
+  auditedAt    DateTime?   @map("audited_at")
+  auditDiffPct Float?      @map("audit_diff_pct")
+  auditStatus  AuditStatus @default(pending) @map("audit_status")
+  auditError   String?     @map("audit_error") @db.Text
+  auditModel   String?     @map("audit_model")
+  auditRunId   String?     @map("audit_run_id")
+  consecutiveFailureCount Int       @default(0) @map("consecutive_failure_count")
+  firstErroredAt          DateTime? @map("first_errored_at")
+  lastErroredAt           DateTime? @map("last_errored_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  video        Video       @relation(fields: [youtubeId], references: [youtubeId])
+
+  @@map("transcript")
+  @@schema("yt")
+}
+
+model EnrichRun {
+  id             String    @id @default(uuid())
+  startedAt      DateTime  @default(now()) @map("started_at")
+  finishedAt     DateTime? @map("finished_at")
+  trigger        String
+  classification String
+  countTotal     Int       @default(0) @map("count_total")
+  countOk        Int       @default(0) @map("count_ok")
+  countSkipped   Int       @default(0) @map("count_skipped")
+  countErrored   Int       @default(0) @map("count_errored")
+
+  @@map("enrich_run")
+  @@schema("yt")
+}
+
+model Vault {
+  name      String     @id
+  rootPath  String     @map("root_path")
+  createdAt DateTime   @default(now()) @map("created_at")
+  noteLinks NoteLink[]
+
+  @@map("vault")
+  @@schema("yt")
+}

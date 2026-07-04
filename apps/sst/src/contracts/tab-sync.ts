@@ -2,7 +2,16 @@ import { z } from "zod"
 
 const isoDateTimeSchema = z.string().datetime()
 
-export const tabSyncFieldValues = ["title", "topText", "bottomText"] as const
+export const tabModeValues = ["private", "work"] as const
+export const tabModeSchema = z.enum(tabModeValues)
+export type TabMode = z.infer<typeof tabModeSchema>
+
+export const tabSyncFieldValues = [
+  "title",
+  "topText",
+  "bottomText",
+  "mode",
+] as const
 export const tabSyncFieldSchema = z.enum(tabSyncFieldValues)
 export type TabSyncField = z.infer<typeof tabSyncFieldSchema>
 
@@ -32,6 +41,14 @@ export const tabSnapshotSchema = z.object({
   bottomTextUpdatedAt: isoDateTimeSchema,
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
+  mode: tabModeSchema,
+  youtubeId: z.string().nullable(),
+  youtubeReused: z.boolean(),
+  // Optional: Transcript-Status für Background-Badge (wird in Phase B verkabelt)
+  ytTranscriptStatus: z.string().nullable().optional(),
+  ytTranscriptError: z.string().nullable().optional(),
+  // Optional: displayTitle aus yt.video für Read-only-Badge im Button-Bereich
+  ytDisplayTitle: z.string().nullable().optional(),
 })
 export type TabSnapshot = z.infer<typeof tabSnapshotSchema>
 

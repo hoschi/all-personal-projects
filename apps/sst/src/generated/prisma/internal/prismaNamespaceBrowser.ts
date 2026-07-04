@@ -83,6 +83,9 @@ export const TabScalarFieldEnum = {
   titleUpdatedAt: 'titleUpdatedAt',
   topTextUpdatedAt: 'topTextUpdatedAt',
   bottomTextUpdatedAt: 'bottomTextUpdatedAt',
+  mode: 'mode',
+  youtubeId: 'youtubeId',
+  youtubeReused: 'youtubeReused',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

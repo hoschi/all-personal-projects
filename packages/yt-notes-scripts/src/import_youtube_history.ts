@@ -1,260 +1,141 @@
 import { readFile } from "fs/promises"
-import { config } from "dotenv"
-import { Client } from "pg"
-import { z } from "zod"
+import { Command } from "commander"
+import { prisma } from "./db"
+import { parseVideoId } from "./utils/parser"
 
-// https://www.perplexity.ai/search/ich-brauche-ein-typescript-scr-46H3EuQ7QMmR_sZi.v_SAQ#5
+interface RawEntry {
+  title?: string
+  titleUrl?: string
+  time?: string
+  details?: Array<{ name: string }>
+  activityControls?: string[]
+}
 
-config()
-
-const RawYouTubeHistoryEntrySchema = z.object({
-  header: z.string().optional(),
-  title: z.string().min(1),
-  titleUrl: z.string().url().optional(),
-  subtitles: z
-    .array(
-      z.object({
-        name: z.string(),
-        url: z.string().url(),
-      }),
-    )
-    .optional(),
-  time: z.string().datetime(),
-  products: z.array(z.string()).optional(),
-  activityControls: z.array(z.string()).optional(),
-  details: z.array(z.object({ name: z.string() })).optional(),
-})
-
-type RawYouTubeHistoryEntry = z.infer<typeof RawYouTubeHistoryEntrySchema>
-
-type ProcessedEntry = {
-  title: string
+interface ProcessedEntry {
   youtubeId: string
-  watchedTime: Date
-  details?: string
+  title: string
+  watchedAt: Date
+  details: unknown
   activityControls: string[]
 }
 
-const extractYouTubeId = (url: string): string | null => {
-  const patterns = [/[?&]v=([^&]+)/, /youtu\.be\/([^?]+)/, /embed\/([^?]+)/]
+const isAd = (entry: RawEntry): boolean =>
+  (entry.details ?? []).some((d) => d.name.includes("Google Anzeigen"))
 
-  return (
-    patterns
-      .map((pattern) => url.match(pattern)?.[1])
-      .find((id) => id !== undefined) ?? null
-  )
-}
-
-const processEntry = (entry: RawYouTubeHistoryEntry): ProcessedEntry | null => {
-  if (!entry.titleUrl) {
-    return null
-  }
-
-  const youtubeId = extractYouTubeId(entry.titleUrl)
-
-  if (!youtubeId) {
-    return null
-  }
-
+const processEntry = (entry: RawEntry): ProcessedEntry | null => {
+  if (!entry.titleUrl || !entry.title || !entry.time) return null
+  const youtubeId = parseVideoId(entry.titleUrl)
+  if (!youtubeId) return null
   return {
-    title: entry.title,
     youtubeId,
-    watchedTime: new Date(entry.time),
-    details: (entry.details || [])[0]?.name,
+    title: entry.title,
+    watchedAt: new Date(entry.time),
+    details: entry.details?.[0] ?? null,
     activityControls: entry.activityControls ?? [],
   }
 }
 
-const insertEntry = async (
-  client: Client,
-  entry: ProcessedEntry,
-  rawEntry: RawYouTubeHistoryEntry,
-): Promise<{ success: boolean; isDuplicate: boolean }> => {
-  try {
-    const result = await client.query(
-      `INSERT INTO main.youtube_history (title, youtube_id, watched_time, details, activity_controls)
-       VALUES ($1, $2, $3, $4, $5::jsonb)
-       ON CONFLICT (youtube_id, watched_time) DO NOTHING`,
-      [
-        entry.title,
-        entry.youtubeId,
-        entry.watchedTime,
-        entry.details,
-        JSON.stringify(entry.activityControls),
-      ],
-    )
-
-    const isDuplicate = result.rowCount === 0
-
-    if (isDuplicate) {
-      console.log(
-        `Duplikat übersprungen: ${entry.youtubeId} am ${entry.watchedTime.toISOString()}`,
-      )
-    }
-
-    return { success: true, isDuplicate }
-  } catch (error) {
-    console.error(
-      `Fehler beim Einfügen von "${entry.title}":`,
-      error instanceof Error ? error.message : error,
-    )
-    console.error("Original-Daten:", JSON.stringify(rawEntry, null, 2))
-    return { success: false, isDuplicate: false }
-  }
-}
-
-const processBatch = async (
-  client: Client,
-  entries: Array<{ processed: ProcessedEntry; raw: RawYouTubeHistoryEntry }>,
-): Promise<{
-  successful: number
-  failed: number
-  duplicates: number
-  validationErrors: number
-}> => {
-  const results = await Promise.all(
-    entries.map(({ processed, raw }) => insertEntry(client, processed, raw)),
+const program = new Command()
+  .name("import_youtube_history")
+  .description(
+    "Imports a Google Takeout watch-history.json into yt.watch_history (deduplicated on youtube_id+watched_at)",
   )
+  .argument("<file>", "Path to watch-history.json (Google Takeout format)")
+  .option("--dry-run", "Parse + count, no DB writes", false)
+  .option("--limit <n>", "Process only first N entries", (v) => parseInt(v, 10))
+  .addHelpText(
+    "after",
+    `
+Environment:
+  DATABASE_URL          Postgres connection string
+  DATABASE_SCHEMA_NAME  Must be "yt"
 
-  return results.reduce(
-    (acc, result) => ({
-      successful:
-        acc.successful + (result.success && !result.isDuplicate ? 1 : 0),
-      failed: acc.failed + (result.success ? 0 : 1),
-      duplicates: acc.duplicates + (result.isDuplicate ? 1 : 0),
-      validationErrors: acc.validationErrors + 0, // validationErrors werden in der Batch-Verarbeitung nicht gezählt
-    }),
-    { successful: 0, failed: 0, duplicates: 0, validationErrors: 0 },
+Examples:
+  bun run src/import_youtube_history.ts packages/yt-notes-scripts/watched-small.json
+  bun run src/import_youtube_history.ts ~/Downloads/watch-history.json --dry-run --limit 100
+
+Exit codes:
+  0  success
+  1  parse error / missing file
+  2  DB connection error
+  3  validation error (Takeout format unexpected)
+`,
   )
-}
-
-const main = async (): Promise<number> => {
-  const filename = process.argv[2]
-
-  if (!filename) {
-    console.error("Fehler: Kein Dateiname angegeben")
-    console.error("Verwendung: tsx import-youtube-history.ts <dateiname>")
-    return 1
-  }
-
-  if (!process.env.DATABASE_URL) {
-    console.error("Fehler: DATABASE_URL nicht in .env gesetzt")
-    return 1
-  }
-
-  const client = new Client({ connectionString: process.env.DATABASE_URL })
-  const totalStats = {
-    successful: 0,
-    failed: 0,
-    duplicates: 0,
-    validationErrors: 0,
-  }
-  let validationErrors = 0
-
-  const BATCH_SIZE = 8
-
-  try {
-    const fileContent = await readFile(filename, "utf-8")
-    let rawEntries: unknown[]
-
+  .action(async (file: string, opts: { dryRun: boolean; limit?: number }) => {
+    let raw: string
     try {
-      rawEntries = JSON.parse(fileContent)
-    } catch (error) {
-      console.error(
-        "Fehler beim Parsen der JSON-Datei:",
-        error instanceof Error ? error.message : error,
-      )
-      return 1
+      raw = await readFile(file, "utf-8")
+    } catch (e) {
+      console.error(`File read error: ${(e as Error).message}`)
+      process.exit(1)
     }
 
-    if (!Array.isArray(rawEntries)) {
-      console.error("Fehler: Datei enthält kein JSON-Array")
-      return 1
+    let entries: unknown
+    try {
+      entries = JSON.parse(raw)
+    } catch (e) {
+      console.error(`JSON parse error: ${(e as Error).message}`)
+      process.exit(1)
+    }
+    if (!Array.isArray(entries)) {
+      console.error("Validation error: expected JSON array at top level")
+      process.exit(3)
     }
 
-    // Validierung und Verarbeitung
-    const processedEntries: Array<{
-      processed: ProcessedEntry
-      raw: RawYouTubeHistoryEntry
-    }> = []
+    const slice = opts.limit ? entries.slice(0, opts.limit) : entries
+    const processed: ProcessedEntry[] = []
+    let skippedAd = 0
+    let skippedNoId = 0
 
-    for (const [index, rawEntry] of rawEntries.entries()) {
-      try {
-        const validated = RawYouTubeHistoryEntrySchema.parse(rawEntry)
-
-        if ((validated.details || [])[0]?.name.includes("Google Anzeigen")) {
-          console.info(
-            `Überspringe Werbungsvideo "${validated.title}" bei Eintrag ${index}`,
-          )
-          continue
-        }
-
-        const processed = processEntry(validated)
-
-        if (!processed) {
-          console.error(
-            `Fehler bei Eintrag ${index}: Keine YouTube-ID aus URL extrahierbar`,
-          )
-          console.error("Original-Daten:", JSON.stringify(rawEntry, null, 2))
-          // Validierungsfehler werden später zu totalStats addiert
-          continue
-        }
-
-        processedEntries.push({ processed, raw: validated })
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          console.error(`Validierungsfehler bei Eintrag ${index}:`)
-          console.error(JSON.stringify(error, null, 2))
-          validationErrors++
-        } else {
-          console.error(
-            `Fehler bei Eintrag ${index}:`,
-            error instanceof Error ? error.message : error,
-          )
-        }
-        console.error("Original-Daten:", JSON.stringify(rawEntry, null, 2))
-        // Validierungsfehler werden später zu totalStats addiert
+    for (const e of slice as RawEntry[]) {
+      if (isAd(e)) {
+        skippedAd++
+        continue
       }
+      const p = processEntry(e)
+      if (!p) {
+        skippedNoId++
+        continue
+      }
+      processed.push(p)
     }
 
-    await client.connect()
-    console.log(
-      `\nVerarbeite ${processedEntries.length} validierte Einträge in Batches à ${BATCH_SIZE}...`,
-    )
+    console.log(`=== Summary ===`)
+    console.log(`read:        ${slice.length}`)
+    console.log(`processable: ${processed.length}`)
+    console.log(`skipped_ad:  ${skippedAd}`)
+    console.log(`skipped_no_id: ${skippedNoId}`)
 
-    // Batch-Verarbeitung
-    for (let i = 0; i < processedEntries.length; i += BATCH_SIZE) {
-      const batch = processedEntries.slice(i, i + BATCH_SIZE)
-      const batchStats = await processBatch(client, batch)
-
-      totalStats.successful += batchStats.successful
-      totalStats.failed += batchStats.failed
-      totalStats.duplicates += batchStats.duplicates
-
-      console.log(
-        `Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batchStats.successful} erfolgreich, ${batchStats.failed} DB-Fehler, ${batchStats.duplicates} Duplikate`,
-      )
+    if (opts.dryRun) {
+      console.log(`\n[dry-run] no writes performed`)
+      await prisma.$disconnect()
+      return
     }
-  } catch (error) {
-    console.error(
-      "Kritischer Fehler:",
-      error instanceof Error ? error.message : error,
-    )
-    // Kritische Fehler werden später zu totalStats addiert
-  } finally {
-    await client.end()
-  }
 
-  console.log("\n========== Zusammenfassung ==========")
-  console.log(`Erfolgreich importiert: ${totalStats.successful}`)
-  console.log(`Duplikate übersprungen: ${totalStats.duplicates}`)
-  console.log(`Datenbank-Fehler: ${totalStats.failed}`)
-  console.log(`Validierungsfehler: ${validationErrors}`)
-  console.log(
-    `Gesamtfehler: ${totalStats.failed + totalStats.validationErrors}`,
-  )
+    // Ensure video stubs exist (FK constraint on watch_history.youtubeId)
+    const uniqueIds = Array.from(new Set(processed.map((p) => p.youtubeId)))
+    for (const id of uniqueIds) {
+      const title = processed.find((p) => p.youtubeId === id)?.title ?? ""
+      await prisma.video.upsert({
+        where: { youtubeId: id },
+        update: {},
+        create: { youtubeId: id, title },
+      })
+    }
 
-  return totalStats.failed + validationErrors > 0 ? 1 : 0
-}
+    const result = await prisma.watchHistory.createMany({
+      data: processed.map((p) => ({
+        youtubeId: p.youtubeId,
+        watchedAt: p.watchedAt,
+        details: p.details as never,
+        activityControls: p.activityControls as never,
+      })),
+      skipDuplicates: true,
+    })
 
-main().then(process.exit)
+    console.log(`\ninserted:    ${result.count}`)
+    console.log(`duplicates:  ${processed.length - result.count}`)
+    await prisma.$disconnect()
+  })
+
+await program.parseAsync(process.argv)

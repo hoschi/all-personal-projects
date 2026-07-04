@@ -24,3 +24,11 @@ export const ModelProvider = {
 } as const
 
 export type ModelProvider = (typeof ModelProvider)[keyof typeof ModelProvider]
+
+
+export const TabMode = {
+  private: 'private',
+  work: 'work'
+} as const
+
+export type TabMode = (typeof TabMode)[keyof typeof TabMode]

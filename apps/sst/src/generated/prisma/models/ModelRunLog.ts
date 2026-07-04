@@ -545,10 +545,6 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type ModelRunLogCreateWithoutTabInput = {
   id?: string
   stage: $Enums.ModelRunStage

@@ -49,6 +49,9 @@ export type TabMinAggregateOutputType = {
   titleUpdatedAt: Date | null
   topTextUpdatedAt: Date | null
   bottomTextUpdatedAt: Date | null
+  mode: $Enums.TabMode | null
+  youtubeId: string | null
+  youtubeReused: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +67,9 @@ export type TabMaxAggregateOutputType = {
   titleUpdatedAt: Date | null
   topTextUpdatedAt: Date | null
   bottomTextUpdatedAt: Date | null
+  mode: $Enums.TabMode | null
+  youtubeId: string | null
+  youtubeReused: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -79,6 +85,9 @@ export type TabCountAggregateOutputType = {
   titleUpdatedAt: number
   topTextUpdatedAt: number
   bottomTextUpdatedAt: number
+  mode: number
+  youtubeId: number
+  youtubeReused: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -108,6 +117,9 @@ export type TabMinAggregateInputType = {
   titleUpdatedAt?: true
   topTextUpdatedAt?: true
   bottomTextUpdatedAt?: true
+  mode?: true
+  youtubeId?: true
+  youtubeReused?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -123,6 +135,9 @@ export type TabMaxAggregateInputType = {
   titleUpdatedAt?: true
   topTextUpdatedAt?: true
   bottomTextUpdatedAt?: true
+  mode?: true
+  youtubeId?: true
+  youtubeReused?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -138,6 +153,9 @@ export type TabCountAggregateInputType = {
   titleUpdatedAt?: true
   topTextUpdatedAt?: true
   bottomTextUpdatedAt?: true
+  mode?: true
+  youtubeId?: true
+  youtubeReused?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -240,6 +258,9 @@ export type TabGroupByOutputType = {
   titleUpdatedAt: Date
   topTextUpdatedAt: Date
   bottomTextUpdatedAt: Date
+  mode: $Enums.TabMode
+  youtubeId: string | null
+  youtubeReused: boolean
   createdAt: Date
   updatedAt: Date
   _count: TabCountAggregateOutputType | null
@@ -278,6 +299,9 @@ export type TabWhereInput = {
   titleUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
+  mode?: Prisma.EnumTabModeFilter<"Tab"> | $Enums.TabMode
+  youtubeId?: Prisma.StringNullableFilter<"Tab"> | string | null
+  youtubeReused?: Prisma.BoolFilter<"Tab"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   syncStates?: Prisma.TabSyncStateListRelationFilter
@@ -295,6 +319,9 @@ export type TabOrderByWithRelationInput = {
   titleUpdatedAt?: Prisma.SortOrder
   topTextUpdatedAt?: Prisma.SortOrder
   bottomTextUpdatedAt?: Prisma.SortOrder
+  mode?: Prisma.SortOrder
+  youtubeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  youtubeReused?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   syncStates?: Prisma.TabSyncStateOrderByRelationAggregateInput
@@ -315,6 +342,9 @@ export type TabWhereUniqueInput = Prisma.AtLeast<{
   titleUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
+  mode?: Prisma.EnumTabModeFilter<"Tab"> | $Enums.TabMode
+  youtubeId?: Prisma.StringNullableFilter<"Tab"> | string | null
+  youtubeReused?: Prisma.BoolFilter<"Tab"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Tab"> | Date | string
   syncStates?: Prisma.TabSyncStateListRelationFilter
@@ -332,6 +362,9 @@ export type TabOrderByWithAggregationInput = {
   titleUpdatedAt?: Prisma.SortOrder
   topTextUpdatedAt?: Prisma.SortOrder
   bottomTextUpdatedAt?: Prisma.SortOrder
+  mode?: Prisma.SortOrder
+  youtubeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  youtubeReused?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TabCountOrderByAggregateInput
@@ -355,6 +388,9 @@ export type TabScalarWhereWithAggregatesInput = {
   titleUpdatedAt?: Prisma.DateTimeWithAggregatesFilter<"Tab"> | Date | string
   topTextUpdatedAt?: Prisma.DateTimeWithAggregatesFilter<"Tab"> | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeWithAggregatesFilter<"Tab"> | Date | string
+  mode?: Prisma.EnumTabModeWithAggregatesFilter<"Tab"> | $Enums.TabMode
+  youtubeId?: Prisma.StringNullableWithAggregatesFilter<"Tab"> | string | null
+  youtubeReused?: Prisma.BoolWithAggregatesFilter<"Tab"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Tab"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Tab"> | Date | string
 }
@@ -370,6 +406,9 @@ export type TabCreateInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   syncStates?: Prisma.TabSyncStateCreateNestedManyWithoutTabInput
@@ -387,6 +426,9 @@ export type TabUncheckedCreateInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   syncStates?: Prisma.TabSyncStateUncheckedCreateNestedManyWithoutTabInput
@@ -404,6 +446,9 @@ export type TabUpdateInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   syncStates?: Prisma.TabSyncStateUpdateManyWithoutTabNestedInput
@@ -421,6 +466,9 @@ export type TabUncheckedUpdateInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   syncStates?: Prisma.TabSyncStateUncheckedUpdateManyWithoutTabNestedInput
@@ -438,6 +486,9 @@ export type TabCreateManyInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -453,6 +504,9 @@ export type TabUpdateManyMutationInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -468,6 +522,9 @@ export type TabUncheckedUpdateManyInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -483,6 +540,9 @@ export type TabCountOrderByAggregateInput = {
   titleUpdatedAt?: Prisma.SortOrder
   topTextUpdatedAt?: Prisma.SortOrder
   bottomTextUpdatedAt?: Prisma.SortOrder
+  mode?: Prisma.SortOrder
+  youtubeId?: Prisma.SortOrder
+  youtubeReused?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -504,6 +564,9 @@ export type TabMaxOrderByAggregateInput = {
   titleUpdatedAt?: Prisma.SortOrder
   topTextUpdatedAt?: Prisma.SortOrder
   bottomTextUpdatedAt?: Prisma.SortOrder
+  mode?: Prisma.SortOrder
+  youtubeId?: Prisma.SortOrder
+  youtubeReused?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -519,6 +582,9 @@ export type TabMinOrderByAggregateInput = {
   titleUpdatedAt?: Prisma.SortOrder
   topTextUpdatedAt?: Prisma.SortOrder
   bottomTextUpdatedAt?: Prisma.SortOrder
+  mode?: Prisma.SortOrder
+  youtubeId?: Prisma.SortOrder
+  youtubeReused?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -553,6 +619,18 @@ export type IntFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type EnumTabModeFieldUpdateOperationsInput = {
+  set?: $Enums.TabMode
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type TabCreateNestedOneWithoutSyncStatesInput = {
@@ -596,6 +674,9 @@ export type TabCreateWithoutSyncStatesInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   modelRuns?: Prisma.ModelRunLogCreateNestedManyWithoutTabInput
@@ -612,6 +693,9 @@ export type TabUncheckedCreateWithoutSyncStatesInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   modelRuns?: Prisma.ModelRunLogUncheckedCreateNestedManyWithoutTabInput
@@ -644,6 +728,9 @@ export type TabUpdateWithoutSyncStatesInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   modelRuns?: Prisma.ModelRunLogUpdateManyWithoutTabNestedInput
@@ -660,6 +747,9 @@ export type TabUncheckedUpdateWithoutSyncStatesInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   modelRuns?: Prisma.ModelRunLogUncheckedUpdateManyWithoutTabNestedInput
@@ -676,6 +766,9 @@ export type TabCreateWithoutModelRunsInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   syncStates?: Prisma.TabSyncStateCreateNestedManyWithoutTabInput
@@ -692,6 +785,9 @@ export type TabUncheckedCreateWithoutModelRunsInput = {
   titleUpdatedAt?: Date | string
   topTextUpdatedAt?: Date | string
   bottomTextUpdatedAt?: Date | string
+  mode?: $Enums.TabMode
+  youtubeId?: string | null
+  youtubeReused?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   syncStates?: Prisma.TabSyncStateUncheckedCreateNestedManyWithoutTabInput
@@ -724,6 +820,9 @@ export type TabUpdateWithoutModelRunsInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   syncStates?: Prisma.TabSyncStateUpdateManyWithoutTabNestedInput
@@ -740,6 +839,9 @@ export type TabUncheckedUpdateWithoutModelRunsInput = {
   titleUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   topTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bottomTextUpdatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  mode?: Prisma.EnumTabModeFieldUpdateOperationsInput | $Enums.TabMode
+  youtubeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtubeReused?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   syncStates?: Prisma.TabSyncStateUncheckedUpdateManyWithoutTabNestedInput
@@ -796,6 +898,9 @@ export type TabSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   titleUpdatedAt?: boolean
   topTextUpdatedAt?: boolean
   bottomTextUpdatedAt?: boolean
+  mode?: boolean
+  youtubeId?: boolean
+  youtubeReused?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   syncStates?: boolean | Prisma.Tab$syncStatesArgs<ExtArgs>
@@ -814,6 +919,9 @@ export type TabSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   titleUpdatedAt?: boolean
   topTextUpdatedAt?: boolean
   bottomTextUpdatedAt?: boolean
+  mode?: boolean
+  youtubeId?: boolean
+  youtubeReused?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["tab"]>
@@ -829,6 +937,9 @@ export type TabSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   titleUpdatedAt?: boolean
   topTextUpdatedAt?: boolean
   bottomTextUpdatedAt?: boolean
+  mode?: boolean
+  youtubeId?: boolean
+  youtubeReused?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["tab"]>
@@ -844,11 +955,14 @@ export type TabSelectScalar = {
   titleUpdatedAt?: boolean
   topTextUpdatedAt?: boolean
   bottomTextUpdatedAt?: boolean
+  mode?: boolean
+  youtubeId?: boolean
+  youtubeReused?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TabOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "topText" | "bottomText" | "titleVersion" | "topTextVersion" | "bottomTextVersion" | "titleUpdatedAt" | "topTextUpdatedAt" | "bottomTextUpdatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["tab"]>
+export type TabOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "topText" | "bottomText" | "titleVersion" | "topTextVersion" | "bottomTextVersion" | "titleUpdatedAt" | "topTextUpdatedAt" | "bottomTextUpdatedAt" | "mode" | "youtubeId" | "youtubeReused" | "createdAt" | "updatedAt", ExtArgs["result"]["tab"]>
 export type TabInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncStates?: boolean | Prisma.Tab$syncStatesArgs<ExtArgs>
   modelRuns?: boolean | Prisma.Tab$modelRunsArgs<ExtArgs>
@@ -874,6 +988,9 @@ export type $TabPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     titleUpdatedAt: Date
     topTextUpdatedAt: Date
     bottomTextUpdatedAt: Date
+    mode: $Enums.TabMode
+    youtubeId: string | null
+    youtubeReused: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["tab"]>
@@ -1311,6 +1428,9 @@ export interface TabFieldRefs {
   readonly titleUpdatedAt: Prisma.FieldRef<"Tab", 'DateTime'>
   readonly topTextUpdatedAt: Prisma.FieldRef<"Tab", 'DateTime'>
   readonly bottomTextUpdatedAt: Prisma.FieldRef<"Tab", 'DateTime'>
+  readonly mode: Prisma.FieldRef<"Tab", 'TabMode'>
+  readonly youtubeId: Prisma.FieldRef<"Tab", 'String'>
+  readonly youtubeReused: Prisma.FieldRef<"Tab", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Tab", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Tab", 'DateTime'>
 }

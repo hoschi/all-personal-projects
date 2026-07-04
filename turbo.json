@@ -10,6 +10,7 @@
     "SST_OLLAMA_ENDPOINT",
     "SST_OLLAMA_MODEL_ID"
   ],
+  "globalPassThroughEnv": ["TMPDIR"],
   "tasks": {
     "dev": {
       "cache": false,

@@ -4,7 +4,11 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router"
 import RecordRTC from "recordrtc"
+import Debug from "debug"
 import { useEffect, useEffectEvent, useRef, useState } from "react"
+
+const debugClient = Debug("sst:yt:client")
+const debugClientButtons = Debug("sst:yt:client:buttons")
 
 import type {
   ImproveTextResult,
@@ -26,7 +30,17 @@ import {
   updateTabFieldFn,
 } from "@/data/tab-sync-actions"
 import { improveTabRecordingFn } from "@/data/text-improvement-actions"
+import {
+  bindYoutubeToTabFn,
+  validateYoutubeUrlFn,
+  pushNoteAndDeleteTabFn,
+} from "@/data/yt-binding-actions"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  YoutubeModal,
+  type YoutubeValidationResult,
+} from "@/components/youtube-modal"
+import { truncateTitle } from "@/lib/title-truncation"
 
 const CLIENT_ID_STORAGE_KEY = "sst-client-id" as const
 const ACTIVE_TAB_STORAGE_PREFIX = "sst-active-tab-id" as const
@@ -271,6 +285,9 @@ function RouteComponent() {
   const [topTextDraft, setTopTextDraft] = useState("")
   const [bottomTextDraft, setBottomTextDraft] = useState("")
   const [pendingAction, setPendingAction] = useState<string | null>(null)
+  // YT-Binding läuft minutenlang — sperrt nur den eigenen Tab, nicht globale
+  // Aktionen wie "neuen Tab anlegen" oder andere Tabs editieren.
+  const [bindingTabId, setBindingTabId] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [conflict, setConflict] = useState<TabFieldConflict | null>(null)
   const [recordingStatus, setRecordingStatus] =
@@ -285,6 +302,12 @@ function RouteComponent() {
     Record<string, ImproveTextResult>
   >({})
   const [isDebugPanelOpen, setIsDebugPanelOpen] = useState(false)
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false)
+  const [youtubeValidationResult, setYoutubeValidationResult] =
+    useState<YoutubeValidationResult>({ kind: "idle" })
+  const [bindingErrorMessage, setBindingErrorMessage] = useState<string | null>(
+    null,
+  )
   const [isTabTitleEditMode, setIsTabTitleEditMode] = useState(false)
   const [runtimeError, setRuntimeError] = useState<Error | null>(null)
   const [autoSaveState, setAutoSaveState] = useState({
@@ -327,25 +350,67 @@ function RouteComponent() {
           activeTabImproveResult.correctedText,
         )
 
+  const hasBackgroundError =
+    activeTab?.ytTranscriptStatus === "error_pass2" ||
+    activeTab?.ytTranscriptStatus === "error_pass5_summary_long" ||
+    activeTab?.ytTranscriptStatus === "error_stub_write"
+  const hasCriticalError =
+    activeTab?.ytTranscriptStatus === "error_pass1" ||
+    activeTab?.ytTranscriptStatus === "error_pass3_display_title" ||
+    activeTab?.ytTranscriptStatus === "error_pass4_description" ||
+    activeTab?.ytTranscriptStatus === "error_empty_output" ||
+    activeTab?.ytTranscriptStatus === "error_llm"
+
   const canSaveTitle =
     activeTab !== null &&
     titleDraft.trim().length > 0 &&
     titleDraft.trim() !== activeTab.title &&
     conflict === null
-  const canPutText =
-    activeTab !== null &&
-    topTextDraft.length > 0 &&
-    pendingAction === null &&
-    conflict === null
   const isStartBlockedByTopText =
     recordingStatus !== "recording" && topTextDraft.trim().length > 0
   const isConflictActive = conflict !== null
+  // Pending-Action-Locks aufgesplittet: yt-binding läuft minutenlang und blockt
+  // sonst die ganze App. Daher: yt-binding sperrt nur Aktionen am eigenen Tab
+  // (Titel, Text, Recording, Delete), andere pendingActions blocken weiter alles.
+  const isOtherActionPending = Boolean(
+    pendingAction && pendingAction !== "yt-binding",
+  )
+  // bindingTabId überlebt Tab-Wechsel; pendingAction wird durch loadActiveTab
+  // („select-tab") überschrieben und ist daher nicht verlässlich.
+  const isActiveTabBinding =
+    bindingTabId !== null && activeTab?.id === bindingTabId
+  const isActiveTabLocked = isOtherActionPending || isActiveTabBinding
+  const canPutText =
+    activeTab !== null &&
+    topTextDraft.length > 0 &&
+    !isActiveTabLocked &&
+    conflict === null
   const isTopTextDirty =
     activeTab !== null && topTextDraft !== activeTab.topText
   const isBottomTextDirty =
     activeTab !== null && bottomTextDraft !== activeTab.bottomText
+  const showCloudButton =
+    activeTab?.mode === "work" &&
+    activeTab?.youtubeId !== null &&
+    !activeTab?.youtubeReused
+  const tabActionEmoji = showCloudButton ? "☁️" : "✂️"
+  const tabActionHandler = showCloudButton
+    ? handlePushNoteAndDeleteTab
+    : handleCutBottomTextAndDeleteTab
+  const tabActionLabel = showCloudButton
+    ? "Push note to vault and delete tab"
+    : "Copy bottom text and delete tab"
 
   function applyActiveTab(nextTab: TabSnapshot) {
+    debugClient(
+      "applyActiveTab id=%s title=%j mode=%s youtubeId=%s youtubeReused=%s ytTranscriptStatus=%s",
+      nextTab.id,
+      nextTab.title,
+      nextTab.mode,
+      nextTab.youtubeId,
+      nextTab.youtubeReused,
+      nextTab.ytTranscriptStatus ?? "(absent)",
+    )
     setActiveTab(nextTab)
     setTitleDraft(nextTab.title)
     setTopTextDraft(nextTab.topText)
@@ -384,7 +449,7 @@ function RouteComponent() {
   }
 
   async function handlePutText() {
-    if (!activeTab || topTextDraft.length === 0 || pendingAction !== null) {
+    if (!activeTab || topTextDraft.length === 0 || isActiveTabLocked) {
       return
     }
 
@@ -491,6 +556,31 @@ function RouteComponent() {
     } catch (error) {
       setRuntimeError(
         toRuntimeError(error, "Failed to copy bottom text and delete tab."),
+      )
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handlePushNoteAndDeleteTab() {
+    if (!activeTab) {
+      return
+    }
+
+    const tabIdToDelete = activeTab.id
+
+    setPendingAction("push-note-and-delete-tab")
+    setStatusMessage(null)
+
+    try {
+      await pushNoteAndDeleteTabFn({
+        data: { tabId: tabIdToDelete, noteText: bottomTextDraft },
+      })
+      removeTabFromLocalState(tabIdToDelete)
+      setStatusMessage("Note in Stub-MD gepusht, Tab gelöscht.")
+    } catch (error) {
+      setRuntimeError(
+        toRuntimeError(error, "Failed to push note to vault and delete tab."),
       )
     } finally {
       setPendingAction(null)
@@ -873,6 +963,7 @@ function RouteComponent() {
   }
 
   async function loadActiveTab(tabId: string, isCancelled?: () => boolean) {
+    debugClient("loadActiveTab start tabId=%s", tabId)
     setPendingAction("select-tab")
     setStatusMessage(null)
 
@@ -883,8 +974,15 @@ function RouteComponent() {
           clientId,
         },
       })
+      debugClient(
+        "selectTabFn returned tab=%s youtubeId=%s mode=%s",
+        selectedTab?.id ?? "(null)",
+        selectedTab?.youtubeId ?? "(null)",
+        selectedTab?.mode ?? "(null)",
+      )
 
       if (isCancelled?.()) {
+        debugClient("loadActiveTab cancelled tabId=%s", tabId)
         return
       }
 
@@ -985,7 +1083,7 @@ function RouteComponent() {
       return
     }
 
-    if (pendingAction !== null || conflict !== null) {
+    if (isActiveTabLocked || conflict !== null) {
       return
     }
 
@@ -1106,6 +1204,93 @@ function RouteComponent() {
     }
   }
 
+  async function handleModeToggle() {
+    if (!activeTab || activeTab.youtubeId !== null) return
+    const nextMode = activeTab.mode === "private" ? "work" : "private"
+    setPendingAction("toggle-mode")
+    try {
+      const result = await updateTabFieldFn({
+        data: {
+          tabId: activeTab.id,
+          field: "mode",
+          value: nextMode,
+          expectedVersion: activeTab.titleVersion,
+          clientId,
+        },
+      })
+      if (result.status === "updated") {
+        applyActiveTab(result.tab)
+      }
+    } catch (e) {
+      setRuntimeError(toRuntimeError(e, "Mode-Wechsel fehlgeschlagen"))
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  function handleOpenYoutubeModal() {
+    setYoutubeValidationResult({ kind: "idle" })
+    setIsYoutubeModalOpen(true)
+  }
+
+  async function handleYoutubeValidate(input: { url: string }) {
+    if (!activeTab) return
+    setYoutubeValidationResult({ kind: "validating" })
+    try {
+      const result = (await validateYoutubeUrlFn({
+        data: { url: input.url, tabId: activeTab.id },
+      })) as YoutubeValidationResult
+      setYoutubeValidationResult(result)
+    } catch (e) {
+      setYoutubeValidationResult({
+        kind: "error",
+        message: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
+
+  async function handleYoutubeConfirmBind(input: {
+    youtubeId: string
+    reuse: boolean
+  }) {
+    debugClient(
+      "handleYoutubeConfirmBind tabId=%s youtubeId=%s reuse=%s",
+      activeTab?.id ?? "(no-active)",
+      input.youtubeId,
+      input.reuse,
+    )
+    if (!activeTab) return
+    setIsYoutubeModalOpen(false)
+    setBindingTabId(activeTab.id)
+    setPendingAction("yt-binding")
+    try {
+      const result = (await bindYoutubeToTabFn({
+        data: {
+          tabId: activeTab.id,
+          youtubeId: input.youtubeId,
+          reuse: input.reuse,
+          clientId,
+        },
+      })) as
+        | { kind: "error"; message: string }
+        | { kind: "ok"; tab: TabSnapshot }
+      debugClient("bindYoutubeToTabFn returned kind=%s", result.kind)
+      if (result.kind === "error") {
+        debugClient("bind error message=%j", result.message)
+        setBindingErrorMessage(result.message)
+      } else if (result.kind === "ok") {
+        // applyActiveTab loggt die Tab-Felder selbst — kein zweiter Log nötig.
+        applyActiveTab(result.tab)
+      }
+    } catch (e) {
+      debugClient("bindYoutubeToTabFn threw: %s", (e as Error).message)
+      setRuntimeError(toRuntimeError(e, "YouTube-Bindung fehlgeschlagen"))
+    } finally {
+      setPendingAction(null)
+      setBindingTabId(null)
+    }
+  }
+
   useEffect(() => {
     tabRecordingsRef.current = tabRecordings
   }, [tabRecordings])
@@ -1137,11 +1322,32 @@ function RouteComponent() {
   }, [activeTabId])
 
   useEffect(() => {
+    const showModeToggle = activeTab !== null && activeTab.youtubeId === null
+    const showYtButton =
+      activeTab !== null &&
+      activeTab.mode === "work" &&
+      activeTab.youtubeId === null
+    debugClientButtons(
+      "render activeTabId=%s activeTab.id=%s mode=%s youtubeId=%s reused=%s pending=%s recording=%s conflict=%s => showModeToggle=%s showYtButton=%s",
+      activeTabId,
+      activeTab?.id ?? "(null)",
+      activeTab?.mode ?? "(null)",
+      activeTab?.youtubeId ?? "(null)",
+      activeTab?.youtubeReused ?? "(null)",
+      pendingAction ?? "(null)",
+      recordingStatus,
+      isConflictActive,
+      showModeToggle,
+      showYtButton,
+    )
+  }, [activeTab, activeTabId, pendingAction, recordingStatus, isConflictActive])
+
+  useEffect(() => {
     if (!activeTab) {
       return
     }
 
-    if (pendingAction !== null || conflict !== null) {
+    if (isActiveTabLocked || conflict !== null) {
       return
     }
 
@@ -1156,14 +1362,14 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, topTextDraft, pendingAction, conflict])
+  }, [activeTab, topTextDraft, pendingAction, bindingTabId, conflict])
 
   useEffect(() => {
     if (!activeTab) {
       return
     }
 
-    if (pendingAction !== null || conflict !== null) {
+    if (isActiveTabLocked || conflict !== null) {
       return
     }
 
@@ -1178,7 +1384,7 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, bottomTextDraft, pendingAction, conflict])
+  }, [activeTab, bottomTextDraft, pendingAction, bindingTabId, conflict])
 
   useEffect(() => {
     return () => {
@@ -1226,9 +1432,7 @@ function RouteComponent() {
                     setTitleDraft(event.currentTarget.value)
                   }}
                   disabled={
-                    activeTab === null ||
-                    pendingAction !== null ||
-                    conflict !== null
+                    activeTab === null || isActiveTabLocked || conflict !== null
                   }
                 />
                 <button
@@ -1237,9 +1441,7 @@ function RouteComponent() {
                     void handleSaveTitleAndCloseEditor()
                   }}
                   disabled={
-                    activeTab === null ||
-                    pendingAction !== null ||
-                    isConflictActive
+                    activeTab === null || isActiveTabLocked || isConflictActive
                   }
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   aria-label="Save tab title"
@@ -1283,7 +1485,7 @@ function RouteComponent() {
                   onClick={handleCreateTab}
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={
-                    pendingAction !== null ||
+                    isOtherActionPending ||
                     recordingStatus === "recording" ||
                     isConflictActive
                   }
@@ -1299,7 +1501,7 @@ function RouteComponent() {
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={
                     activeTab === null ||
-                    pendingAction !== null ||
+                    isActiveTabLocked ||
                     recordingStatus === "recording" ||
                     isConflictActive
                   }
@@ -1315,7 +1517,7 @@ function RouteComponent() {
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={
                     activeTab === null ||
-                    pendingAction !== null ||
+                    isActiveTabLocked ||
                     recordingStatus === "recording" ||
                     isConflictActive
                   }
@@ -1328,6 +1530,22 @@ function RouteComponent() {
           </div>
         </div>
 
+        {bindingErrorMessage && (
+          <div className="mt-2 rounded-md border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-700">
+            <div className="flex items-start justify-between gap-2">
+              <span>{bindingErrorMessage}</span>
+              <button
+                type="button"
+                onClick={() => setBindingErrorMessage(null)}
+                aria-label="Dismiss error"
+                className="rounded-md px-2 py-1 hover:bg-red-500/20"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-2 flex flex-col gap-2">
           <textarea
             id="top-textarea"
@@ -1338,7 +1556,7 @@ function RouteComponent() {
             }}
             placeholder="Live transcription output..."
             disabled={
-              activeTab === null || pendingAction !== null || conflict !== null
+              activeTab === null || isActiveTabLocked || conflict !== null
             }
           />
 
@@ -1365,7 +1583,7 @@ function RouteComponent() {
                 ].join(" ")}
                 disabled={
                   activeTab === null ||
-                  pendingAction !== null ||
+                  isActiveTabLocked ||
                   isConflictActive ||
                   isStartBlockedByTopText
                 }
@@ -1434,6 +1652,73 @@ function RouteComponent() {
               >
                 <span aria-hidden="true">🐞</span>
               </button>
+              {isActiveTabBinding ? (
+                <span
+                  role="status"
+                  aria-live="polite"
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"
+                  />
+                  YouTube-Enrichment läuft (~1–2 Min)…
+                </span>
+              ) : (
+                <>
+                  {activeTab && activeTab.youtubeId === null && (
+                    <button
+                      type="button"
+                      onClick={() => void handleModeToggle()}
+                      disabled={
+                        isActiveTabLocked ||
+                        recordingStatus === "recording" ||
+                        isConflictActive
+                      }
+                      aria-label={
+                        activeTab.mode === "private"
+                          ? "Switch to work mode"
+                          : "Switch to private mode"
+                      }
+                      className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span aria-hidden="true">
+                        {activeTab.mode === "private" ? "🥳" : "💼"}
+                      </span>
+                    </button>
+                  )}
+                  {activeTab &&
+                    activeTab.mode === "work" &&
+                    activeTab.youtubeId === null && (
+                      <button
+                        type="button"
+                        onClick={handleOpenYoutubeModal}
+                        disabled={
+                          isActiveTabLocked ||
+                          recordingStatus === "recording" ||
+                          isConflictActive
+                        }
+                        aria-label="Add YouTube video"
+                        className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <span aria-hidden="true">🎥</span>
+                      </button>
+                    )}
+                  {activeTab && activeTab.youtubeId !== null && (
+                    <span
+                      className="rounded-md border border-border bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
+                      title={activeTab.ytDisplayTitle ?? activeTab.youtubeId}
+                      aria-label={`Tab gebunden an YouTube-Video ${activeTab.ytDisplayTitle ?? activeTab.youtubeId}`}
+                    >
+                      🎬{" "}
+                      {truncateTitle(
+                        activeTab.ytDisplayTitle ?? activeTab.youtubeId,
+                        10,
+                      )}
+                    </span>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 text-sm">
@@ -1515,7 +1800,7 @@ function RouteComponent() {
               placeholder="Context and corrected terms..."
               disabled={
                 activeTab === null ||
-                (pendingAction !== null && !isProcessingRecording) ||
+                (isActiveTabLocked && !isProcessingRecording) ||
                 conflict !== null
               }
             />
@@ -1560,7 +1845,7 @@ function RouteComponent() {
                 type="button"
                 onClick={handleOverwriteServer}
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={pendingAction !== null}
+                disabled={isActiveTabLocked}
               >
                 Use Server Data
               </button>
@@ -1568,7 +1853,7 @@ function RouteComponent() {
                 type="button"
                 onClick={handleOverwriteClient}
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={pendingAction !== null}
+                disabled={isActiveTabLocked}
               >
                 Write Client to Server
               </button>
@@ -1591,7 +1876,45 @@ function RouteComponent() {
                       Working: {pendingAction}
                     </p>
                   ) : null}
+                  {hasCriticalError && (
+                    <div
+                      className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-700"
+                      title={`Critical-Phase-Fehler: ${activeTab?.ytTranscriptStatus ?? ""}. ${activeTab?.ytTranscriptError ?? ""}. Details siehe yt-cli.`}
+                    >
+                      <span aria-hidden="true">⛔</span> Critical-Phase-Fehler (
+                      {activeTab?.ytTranscriptStatus}). Bind unvollständig —
+                      Details: bun run
+                      packages/yt-notes-scripts/src/enrich-status.ts --errors
+                    </div>
+                  )}
+                  {hasBackgroundError && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-amber-700"
+                      title={`Background-Enrichment unvollständig: ${activeTab?.ytTranscriptStatus ?? ""}. ${activeTab?.ytTranscriptError ?? ""}. Details siehe yt-cli.`}
+                    >
+                      <span aria-hidden="true">⚠️</span>
+                      Background unvollständig
+                    </span>
+                  )}
                 </div>
+              ) : hasCriticalError ? (
+                <div
+                  className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-700"
+                  title={`Critical-Phase-Fehler: ${activeTab?.ytTranscriptStatus ?? ""}. ${activeTab?.ytTranscriptError ?? ""}. Details siehe yt-cli.`}
+                >
+                  <span aria-hidden="true">⛔</span> Critical-Phase-Fehler (
+                  {activeTab?.ytTranscriptStatus}). Bind unvollständig —
+                  Details: bun run
+                  packages/yt-notes-scripts/src/enrich-status.ts --errors
+                </div>
+              ) : hasBackgroundError ? (
+                <span
+                  className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-amber-700"
+                  title={`Background-Enrichment unvollständig: ${activeTab?.ytTranscriptStatus ?? ""}. ${activeTab?.ytTranscriptError ?? ""}. Details siehe yt-cli.`}
+                >
+                  <span aria-hidden="true">⚠️</span>
+                  Background unvollständig
+                </span>
               ) : activeTabImproveResult ? (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <span>
@@ -1612,23 +1935,29 @@ function RouteComponent() {
 
             <button
               type="button"
-              onClick={() => {
-                void handleCutBottomTextAndDeleteTab()
-              }}
+              onClick={() => void tabActionHandler()}
               disabled={
                 activeTab === null ||
-                pendingAction !== null ||
+                isActiveTabLocked ||
                 bottomTextDraft.length === 0 ||
                 isConflictActive
               }
               className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              aria-label="Copy bottom text and delete tab"
+              aria-label={tabActionLabel}
             >
-              <span aria-hidden="true">✂️</span>
+              <span aria-hidden="true">{tabActionEmoji}</span>
             </button>
           </div>
         </div>
       </section>
+
+      <YoutubeModal
+        isOpen={isYoutubeModalOpen}
+        onClose={() => setIsYoutubeModalOpen(false)}
+        onSubmit={(input) => void handleYoutubeValidate(input)}
+        onConfirmBind={(input) => void handleYoutubeConfirmBind(input)}
+        validationResult={youtubeValidationResult}
+      />
     </main>
   )
 }
