@@ -113,9 +113,11 @@ Exit codes:
     }
 
     // Ensure video stubs exist (FK constraint on watch_history.youtubeId)
-    const uniqueIds = Array.from(new Set(processed.map((p) => p.youtubeId)))
-    for (const id of uniqueIds) {
-      const title = processed.find((p) => p.youtubeId === id)?.title ?? ""
+    const titleById = new Map<string, string>()
+    for (const p of processed) {
+      if (!titleById.has(p.youtubeId)) titleById.set(p.youtubeId, p.title)
+    }
+    for (const [id, title] of titleById) {
       await prisma.video.upsert({
         where: { youtubeId: id },
         update: {},

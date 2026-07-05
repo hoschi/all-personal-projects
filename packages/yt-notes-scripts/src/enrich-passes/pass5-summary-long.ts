@@ -131,9 +131,24 @@ export async function runPass5(
   tag?: string,
 ): Promise<string> {
   const prompt = buildPass5Prompt(auditedMd, retryHint)
+  // auditedMd ist untrusted Transcript-Text (Prompt-Injection-Risiko). Der
+  // Sub-Agent braucht Bash NUR für den einen OHS-Wrapper-Aufruf des
+  // Wikilink-Verfahrens (siehe buildPass5Prompt) — deshalb wird die
+  // Bash-Berechtigung exakt auf diesen Befehl gescoped statt pauschal "Bash"
+  // freizugeben, sonst könnte ein manipuliertes Transcript den Sub-Agenten zu
+  // beliebigen Shell-Kommandos verleiten. Claude Code prüft jeden Sub-Befehl
+  // eines Compound-Kommandos (`;`, `&&`, `|`, …) einzeln gegen die Allow-Regel,
+  // ein eingeschleustes `… ; rm -rf /` wird also abgelehnt.
+  //
+  // Das Muster enthält den `OHS_NODE_BIN=`-Prefix, weil der Wrapper-Aufruf im
+  // Prompt mit dieser Env-Var-Zuweisung beginnt und Claude Code Env-Prefixe
+  // NICHT wie Prozess-Wrapper (timeout/nice/…) abstreift — ohne den Prefix im
+  // Muster würde der legitime Aufruf abgelehnt. Gleiche ${OHS_WRAPPER_PATH}-
+  // Variable wie im Prompt, damit Regel und instruierter Befehl nie driften.
+  const allowedTools = `Bash(OHS_NODE_BIN=* ${OHS_WRAPPER_PATH} *)`
   return await callClaudeCli({
     prompt,
-    allowedTools: "Bash",
+    allowedTools,
     model: "opus",
     effort: "high",
     tag,

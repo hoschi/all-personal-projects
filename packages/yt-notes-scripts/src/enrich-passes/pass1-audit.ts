@@ -10,6 +10,12 @@ export interface Pass1Input {
   plain: string
 }
 
+// Standalone/manual-only audit path (sections + ad removal, without the
+// named-entity extraction that buildPass1ExtendedPrompt/runPass1Extended add).
+// Production enriches via runPass1Extended (see enrich-pipeline.ts). This
+// buildPass1Prompt/runPass1 pair is kept as the non-extended reference variant
+// and as the regression guard referenced by enrich-pipeline.test.ts, which
+// asserts the pipeline no longer calls runPass1.
 export function buildPass1Prompt(input: Pass1Input): string {
   const chaptersJson = input.chapters
     ? JSON.stringify(input.chapters, null, 2)

@@ -220,5 +220,5 @@ program.action(async (opts) => {
 })
 
 if (import.meta.main) {
-  program.parseAsync(process.argv)
+  await program.parseAsync(process.argv)
 }

@@ -52,6 +52,20 @@ describe("parseLastNightlyRun", () => {
     if (result.kind !== "ended") return
     expect(result.steps).toEqual({ step1: 0, step2: 2, step3: 0, step4: 1 })
   })
+
+  test("start nach letztem end → 'hanging' (nicht 'ended')", () => {
+    const log = `
+[yt-pipeline-nightly] start 2026-06-14 03:00:05 CEST
+... stuff ...
+[yt-pipeline-nightly] end 2026-06-14 07:00:27 CEST  step1=0 step2=0 step3=0 step4=0
+[yt-pipeline-nightly] start 2026-06-15 03:00:05 CEST
+... stuff but no end yet ...
+`
+    const result = parseLastNightlyRun(log)
+    expect(result.kind).toBe("hanging")
+    if (result.kind !== "hanging") return
+    expect(result.startTime).toBe("2026-06-15 03:00:05 CEST")
+  })
 })
 
 describe("classifyJobHealth", () => {

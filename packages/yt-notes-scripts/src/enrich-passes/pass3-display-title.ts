@@ -54,5 +54,11 @@ export async function runPass3(
     model: "sonnet",
     effort: "low",
   })
-  return raw.trim().replace(/^["']|["']$/g, "")
+  const title = raw.trim().replace(/^["']|["']$/g, "")
+  if (title.length > 80) {
+    console.warn(
+      `[pass3] display title exceeds 80 chars (${title.length}): ${title}`,
+    )
+  }
+  return title
 }

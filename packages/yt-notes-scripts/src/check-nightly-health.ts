@@ -17,33 +17,50 @@ export function parseLastNightlyRun(logContent: string): NightlyRunStatus {
   if (!logContent.trim()) return { kind: "no-run" }
 
   const lines = logContent.split("\n")
-  // Letzten end-Marker suchen
   const endRegex =
     /\[yt-pipeline-nightly\] end (.+?)\s+step1=(\d+) step2=(\d+) step3=(\d+) step4=(\d+)/
+  const startRegex = /\[yt-pipeline-nightly\] start (.+)$/
+
+  // Jeweils letzten start- und end-Marker suchen (rückwärts, ein Durchlauf).
+  let endMatch: RegExpExecArray | null = null
+  let endIndex = -1
+  let startMatch: RegExpExecArray | null = null
+  let startIndex = -1
+
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i] ?? ""
-    const m = endRegex.exec(line)
-    if (m) {
-      return {
-        kind: "ended",
-        endTime: m[1] ?? "",
-        steps: {
-          step1: parseInt(m[2] ?? "0", 10),
-          step2: parseInt(m[3] ?? "0", 10),
-          step3: parseInt(m[4] ?? "0", 10),
-          step4: parseInt(m[5] ?? "0", 10),
-        },
+    if (endIndex === -1) {
+      const m = endRegex.exec(line)
+      if (m) {
+        endMatch = m
+        endIndex = i
       }
     }
+    if (startIndex === -1) {
+      const m = startRegex.exec(line)
+      if (m) {
+        startMatch = m
+        startIndex = i
+      }
+    }
+    if (endIndex !== -1 && startIndex !== -1) break
   }
 
-  // Kein end gefunden — letzten start suchen
-  const startRegex = /\[yt-pipeline-nightly\] start (.+)$/
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i] ?? ""
-    const m = startRegex.exec(line)
-    if (m) {
-      return { kind: "hanging", startTime: m[1] ?? "" }
+  // Ein start nach dem letzten end bedeutet: aktueller Lauf hängt noch.
+  // (Deckt auch den Fall ab, dass es gar kein end gibt.)
+  if (startMatch && startIndex > endIndex) {
+    return { kind: "hanging", startTime: startMatch[1] ?? "" }
+  }
+  if (endMatch) {
+    return {
+      kind: "ended",
+      endTime: endMatch[1] ?? "",
+      steps: {
+        step1: parseInt(endMatch[2] ?? "0", 10),
+        step2: parseInt(endMatch[3] ?? "0", 10),
+        step3: parseInt(endMatch[4] ?? "0", 10),
+        step4: parseInt(endMatch[5] ?? "0", 10),
+      },
     }
   }
 
