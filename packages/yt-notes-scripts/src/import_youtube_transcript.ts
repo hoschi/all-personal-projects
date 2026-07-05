@@ -38,7 +38,7 @@ const runYtDlp = async (
   workdir: string,
   useCookies: boolean,
 ): Promise<{ stdout: string; stderr: string; code: number }> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const args = [
       ...YT_DLP_FLAGS_BASE,
       ...(useCookies ? [YT_DLP_CHROME_COOKIE_FLAG] : []),
@@ -51,6 +51,7 @@ const runYtDlp = async (
     let stderr = ""
     child.stdout.on("data", (d) => (stdout += d.toString()))
     child.stderr.on("data", (d) => (stderr += d.toString()))
+    child.on("error", (err) => reject(err))
     child.on("close", (code) => resolve({ stdout, stderr, code: code ?? 0 }))
   })
 }
@@ -91,12 +92,23 @@ const collectTranscripts = async (
   )
 }
 
+const LANG_PRIORITY = ["de", "en"]
+
 const pickPrimaryTranscript = (
   transcripts: CapturedTranscript[],
 ): CapturedTranscript | null => {
   if (transcripts.length === 0) return null
-  const srtPref = transcripts.find((t) => t.filename.endsWith(".srt"))
-  return srtPref ?? transcripts[0]
+  const byPriority = (list: CapturedTranscript[]) =>
+    LANG_PRIORITY.map((lang) => list.find((t) => t.lang === lang)).find(
+      (t): t is CapturedTranscript => t !== undefined,
+    )
+  const srtCandidates = transcripts.filter((t) => t.filename.endsWith(".srt"))
+  return (
+    byPriority(srtCandidates) ??
+    srtCandidates[0] ??
+    byPriority(transcripts) ??
+    transcripts[0]
+  )
 }
 
 export const processTranscript = async (
@@ -105,7 +117,24 @@ export const processTranscript = async (
 ): Promise<{ ok: boolean; reason?: string }> => {
   const workdir = await mkdtemp(join(tmpdir(), `yt-tx-${videoId}-`))
   try {
-    const { stdout, stderr } = await runYtDlp(videoId, workdir, useCookies)
+    // Spawn-Fehler (z.B. ENOENT wenn yt-dlp nicht installiert) separat abfangen,
+    // damit der for-Loop im CLI nicht abbricht und der Fehler in die DB geschrieben wird.
+    let runResult: { stdout: string; stderr: string; code: number }
+    try {
+      runResult = await runYtDlp(videoId, workdir, useCookies)
+    } catch (spawnErr) {
+      const reason =
+        (spawnErr as Error & { code?: string }).code === "ENOENT"
+          ? "yt-dlp not installed"
+          : `yt-dlp spawn error: ${spawnErr instanceof Error ? spawnErr.message : String(spawnErr)}`
+      await prisma.transcript.upsert({
+        where: { youtubeId: videoId },
+        update: { error: reason },
+        create: { youtubeId: videoId, error: reason },
+      })
+      return { ok: false, reason }
+    }
+    const { stdout, stderr } = runResult
     // Erst gucken ob Files da sind: yt-dlp kann mit non-zero exit kommen
     // (z.B. HTTP 429 für eine von zwei Sprachen), trotzdem die andere
     // Sprache erfolgreich geschrieben haben. Mit --sub-langs "de,en" ist

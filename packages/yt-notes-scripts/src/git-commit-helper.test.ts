@@ -47,6 +47,9 @@ test("commitFile committet eine neue Datei", async () => {
 })
 
 test("commitFile no-op wenn Datei nicht dirty", async () => {
+  mkdirSync(join(repo, "youtube"), { recursive: true })
+  writeFileSync(join(repo, "youtube/foo.md"), "hello")
+  await commitFile(repo, "youtube/foo.md", "initial commit")
   const result = await commitFile(repo, "youtube/foo.md", "test commit")
   expect(result.committed).toBe(false)
   expect(result.reason).toBe("no changes")

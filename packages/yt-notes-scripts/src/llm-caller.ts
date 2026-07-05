@@ -1,5 +1,8 @@
 import { spawn } from "node:child_process"
 
+// Maximale Wartezeit für einen claude-CLI-Aufruf — verhindert ewig hängende Promises.
+const LLM_CALL_TIMEOUT_MS = 10 * 60 * 1000
+
 export type Classification = "arbeit" | "privat"
 
 export interface LlmCallOptions {
@@ -80,6 +83,16 @@ export async function callClaudeCliWithMeta(
     })
     let stdout = ""
     let stderr = ""
+
+    const timer = setTimeout(() => {
+      proc.kill()
+      reject(
+        new Error(
+          `claude timed out after ${LLM_CALL_TIMEOUT_MS / 1000}s (tag=${opts.tag ?? "-"})`,
+        ),
+      )
+    }, LLM_CALL_TIMEOUT_MS)
+
     proc.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString("utf-8")
     })
@@ -87,9 +100,11 @@ export async function callClaudeCliWithMeta(
       stderr += chunk.toString("utf-8")
     })
     proc.on("error", (err) => {
+      clearTimeout(timer)
       reject(err)
     })
     proc.on("close", (exitCode) => {
+      clearTimeout(timer)
       if (exitCode !== 0) {
         // Claude CLI gibt Fehler-Details oft im stdout-JSON aus (z.B. "Not logged in"),
         // stderr bleibt leer. Versuche das zu extrahieren, sonst fallback auf stderr.
@@ -108,8 +123,12 @@ export async function callClaudeCliWithMeta(
         const tagPart = opts.tag ? `tag=${opts.tag} ` : ""
         const turnsPart =
           parsed.numTurns !== undefined ? `turns=${parsed.numTurns} ` : ""
+        const sessionShort =
+          parsed.sessionId != null
+            ? parsed.sessionId.slice(0, 8) + "…"
+            : "(none)"
         console.log(
-          `[llm-caller] ${tagPart}model=${opts.model} session=${parsed.sessionId ?? "(none)"} duration_ms=${parsed.durationMs} ${turnsPart}allowed_tools="${opts.allowedTools}"`,
+          `[llm-caller] ${tagPart}model=${opts.model} session=${sessionShort} duration_ms=${parsed.durationMs} ${turnsPart}allowed_tools="${opts.allowedTools}"`,
         )
         resolve(parsed)
       } catch (err) {

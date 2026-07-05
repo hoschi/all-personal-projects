@@ -6,9 +6,12 @@ export interface CommitResult {
   reason?: string // Nur gesetzt wenn committed=false (warum nicht committed)
 }
 
+const GIT_TIMEOUT_MS = 30_000
+
 async function runGit(
   args: string[],
   cwd: string,
+  timeoutMs = GIT_TIMEOUT_MS,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const proc = spawn("git", ["-C", cwd, ...args], {
@@ -16,6 +19,28 @@ async function runGit(
     })
     let stdout = ""
     let stderr = ""
+    let settled = false
+
+    const settle = (result: {
+      exitCode: number
+      stdout: string
+      stderr: string
+    }) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      resolve(result)
+    }
+
+    const timer = setTimeout(() => {
+      proc.kill()
+      settle({
+        exitCode: 1,
+        stdout,
+        stderr: `git timed out after ${timeoutMs}ms`,
+      })
+    }, timeoutMs).unref()
+
     proc.stdout.on("data", (chunk: Buffer) => {
       stdout += chunk.toString("utf-8")
     })
@@ -23,10 +48,10 @@ async function runGit(
       stderr += chunk.toString("utf-8")
     })
     proc.on("close", (code) => {
-      resolve({ exitCode: code ?? 1, stdout, stderr })
+      settle({ exitCode: code ?? 1, stdout, stderr })
     })
     proc.on("error", (err) => {
-      resolve({
+      settle({
         exitCode: 1,
         stdout: "",
         stderr: err.message,
