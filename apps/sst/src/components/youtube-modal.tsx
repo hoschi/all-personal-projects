@@ -35,6 +35,16 @@ export function YoutubeModal({
     if (isOpen) setUrlDraft("")
   }, [isOpen])
 
+  // Escape schließt das Modal (DOM-Subscription als echter Side Effect).
+  useEffect(() => {
+    if (!isOpen) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   const isValidating = validationResult.kind === "validating"
@@ -72,11 +82,16 @@ export function YoutubeModal({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="youtube-modal-title"
         className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Add YouTube Video</h2>
+          <h2 id="youtube-modal-title" className="text-lg font-semibold">
+            Add YouTube Video
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -90,10 +105,11 @@ export function YoutubeModal({
         <div className="mt-4 space-y-3">
           <input
             type="url"
+            autoFocus
             value={urlDraft}
             onChange={(e) => setUrlDraft(e.currentTarget.value)}
             placeholder="https://youtu.be/..."
-            disabled={isValidating}
+            disabled={isValidating || isReusable || isReady}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
 

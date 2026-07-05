@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start"
+import { P, match } from "ts-pattern"
 import { z } from "zod"
 
 import { textImprovementEnvSchema } from "@/contracts/text-improvement-env"
@@ -164,31 +165,32 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
 
     // 3. Korrektur-Verteiler
     const correctionStartAtMs = Date.now()
-    let correctionResult: { text: string; modelId: string }
-
-    if (tab.mode === "private" || tab.youtubeId === null) {
-      const prompt = buildPrivatePrompt({
-        transcriptionText: transcriptionResult.text,
-        contextText: recordingInput.contextText,
+    const correctionResult = await match([tab.mode, tab.youtubeId] as [
+      "private" | "work",
+      string | null,
+    ])
+      .with(["work", P.select(P.string)], async (youtubeId) => {
+        const ytContext = await loadYtContext(youtubeId)
+        const prompt = buildWorkPrompt({
+          transcriptionText: transcriptionResult.text,
+          bottomTextContext: recordingInput.contextText,
+          ytContext,
+        })
+        const claudeResult = await correctWithClaude({ prompt })
+        return { text: claudeResult.text, modelId: claudeResult.modelId }
       })
-      correctionResult = await correctWithOllama({
-        ollamaEndpoint: env.SST_OLLAMA_ENDPOINT,
-        ollamaModelId: env.SST_OLLAMA_MODEL_ID,
-        prompt,
+      .with(["private", P._], ["work", null], async () => {
+        const prompt = buildPrivatePrompt({
+          transcriptionText: transcriptionResult.text,
+          contextText: recordingInput.contextText,
+        })
+        return correctWithOllama({
+          ollamaEndpoint: env.SST_OLLAMA_ENDPOINT,
+          ollamaModelId: env.SST_OLLAMA_MODEL_ID,
+          prompt,
+        })
       })
-    } else {
-      const ytContext = await loadYtContext(tab.youtubeId)
-      const prompt = buildWorkPrompt({
-        transcriptionText: transcriptionResult.text,
-        bottomTextContext: recordingInput.contextText,
-        ytContext,
-      })
-      const claudeResult = await correctWithClaude({ prompt })
-      correctionResult = {
-        text: claudeResult.text,
-        modelId: claudeResult.modelId,
-      }
-    }
+      .exhaustive()
 
     const correctionDurationMs = Date.now() - correctionStartAtMs
 
