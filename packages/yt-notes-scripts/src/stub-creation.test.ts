@@ -8,6 +8,7 @@ import {
 } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import type { PrismaClient } from "./generated/prisma/client"
 
 // Wir mocken den Prisma-Client minimal — nur die note_link-API,
 // die createStubFile braucht. findFirst und upsert teilen sich einen
@@ -56,7 +57,7 @@ const fakePrisma = {
       return { id: 1 }
     },
   },
-} as never
+} as unknown as PrismaClient
 
 import { createStubFile, type CreateStubInput } from "./stub-creation"
 

@@ -78,7 +78,10 @@ Exit codes:
 if (import.meta.main) {
   await program.parseAsync(process.argv)
   const opts = program.opts<{ dryRun?: boolean; limit?: number }>()
-  if (opts.limit !== undefined && !Number.isFinite(opts.limit)) {
+  if (
+    opts.limit !== undefined &&
+    (!Number.isInteger(opts.limit) || opts.limit < 0)
+  ) {
     console.error(
       "[recompute-plain-from-srt] --limit muss eine positive Ganzzahl sein",
     )
