@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises"
 import { Command } from "commander"
 
 import { prisma } from "./db"
+import type { Prisma } from "./generated/prisma/client"
 import { parseStub } from "./markdown-parser"
 
 export type LookupField =
@@ -141,32 +142,33 @@ BEISPIELE:
   bun run yt-lookup.ts --id wv779vmyPVY --field named_entities --format json
 `.trim()
 
-// Schema-Korrekturen vs Cluster-5-Plan-Skizze:
-// - descriptionShort liegt auf Video, nicht Transcript
-// - Feldname ist durationSec, nicht durationSeconds
-// - channel ist nullable (siehe schema.prisma)
-interface VideoMetaForFormat {
-  displayTitle: string | null
-  title: string
-  publishedAt: Date | null
-  durationSec: number | null
-  descriptionShort: string | null
-  channel: {
-    name: string
-    classification: string
-  } | null
-}
-
-interface TranscriptRowForFormat {
-  youtubeId: string
-  auditStatus: string
-  auditedMd: string | null
-  plain: string | null
-  llmFormatted: string | null
-  srt: string | null
-  namedEntities: unknown
-  video: VideoMetaForFormat
-}
+// Prisma-generierter Payload-Typ statt handgepflegter Interfaces: er driftet
+// automatisch mit dem Schema (Feld-Rename/Nullability-Änderung → Typfehler hier
+// statt Silent-Fail zur Laufzeit). select (nicht include), weil der Formatter
+// nur diese Teilmenge liest — der volle include-Row aus lookupAndPrint ist
+// strukturell zuweisbar. So bleibt der Formatter-Kontrakt schmal und die
+// nullable Felder (youtubeId, auditStatus) kommen korrekt aus dem Schema.
+type TranscriptRowForFormat = Prisma.TranscriptGetPayload<{
+  select: {
+    youtubeId: true
+    auditStatus: true
+    auditedMd: true
+    plain: true
+    llmFormatted: true
+    srt: true
+    namedEntities: true
+    video: {
+      select: {
+        displayTitle: true
+        title: true
+        publishedAt: true
+        durationSec: true
+        descriptionShort: true
+        channel: { select: { name: true; classification: true } }
+      }
+    }
+  }
+}>
 
 function getFieldValue(
   row: TranscriptRowForFormat,
@@ -297,22 +299,32 @@ export async function lookupAndPrint(opts: LookupOpts): Promise<number> {
     console.error("yt-lookup: keine yt-id ermittelt")
     return 2
   }
-  const row = await prisma.transcript.findUnique({
-    where: { youtubeId: ytId },
-    include: { video: { include: { channel: true } } },
-  })
+  let row: Prisma.TranscriptGetPayload<{
+    include: { video: { include: { channel: true } } }
+  }> | null
+  try {
+    row = await prisma.transcript.findUnique({
+      where: { youtubeId: ytId },
+      include: { video: { include: { channel: true } } },
+    })
+  } catch (e) {
+    console.error(
+      `yt-lookup: DB-Verbindungs-Fehler: ${e instanceof Error ? e.message : e}`,
+    )
+    return 3
+  }
   if (!row) {
     console.error(`yt-lookup: yt-id "${ytId}" nicht in DB`)
     return 1
   }
-  const out = formatOutput(
-    row as unknown as TranscriptRowForFormat,
-    opts.field,
-    opts.format,
-    opts.noHeader,
-  )
-  console.log(out)
-  return 0
+  try {
+    const out = formatOutput(row, opts.field, opts.format, opts.noHeader)
+    console.log(out)
+    return 0
+  } catch (e) {
+    console.error(`yt-lookup: ${e instanceof Error ? e.message : e}`)
+    return 2
+  }
 }
 
 if (import.meta.main) {

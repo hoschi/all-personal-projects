@@ -22,13 +22,16 @@ if (DATABASE_SCHEMA_NAME !== "yt") {
   )
 }
 
+const datasourceUrl = new URL(DATABASE_URL)
+datasourceUrl.searchParams.set("schema", DATABASE_SCHEMA_NAME)
+
 export const config = {
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: `${DATABASE_URL}?schema=${DATABASE_SCHEMA_NAME}`,
+    url: datasourceUrl.toString(),
   },
 }
 

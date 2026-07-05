@@ -30,7 +30,7 @@ function getClient(): PrismaClient {
   }
 
   const adapter = new PrismaPg(
-    { connectionString: `${DATABASE_URL}?schema=${YT_SCHEMA}` },
+    { connectionString: DATABASE_URL },
     { schema: YT_SCHEMA },
   )
   client = new PrismaClient({ adapter })

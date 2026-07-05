@@ -54,6 +54,6 @@ describe("recomputePlainFromSrt", () => {
       where: { youtubeId: TEST_VIDEO_ID },
     })
     expect(row.plain).not.toBeNull()
-    expect(result.updated).toBeGreaterThanOrEqual(0)
+    expect(result.updated).toBe(0)
   })
 })

@@ -27,7 +27,7 @@ export async function recomputePlainFromSrt(
   const candidates = await prisma.transcript.findMany({
     where: { srt: { not: null }, plain: null },
     select: { youtubeId: true, srt: true },
-    ...(opts.limit ? { take: opts.limit } : {}),
+    ...(Number.isFinite(opts.limit) ? { take: opts.limit } : {}),
   })
 
   let updated = 0
@@ -78,6 +78,12 @@ Exit codes:
 if (import.meta.main) {
   await program.parseAsync(process.argv)
   const opts = program.opts<{ dryRun?: boolean; limit?: number }>()
+  if (opts.limit !== undefined && !Number.isFinite(opts.limit)) {
+    console.error(
+      "[recompute-plain-from-srt] --limit muss eine positive Ganzzahl sein",
+    )
+    process.exit(1)
+  }
   try {
     const result = await recomputePlainFromSrt(opts)
     console.log(

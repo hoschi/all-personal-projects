@@ -2,8 +2,9 @@
 import { Command } from "commander"
 import { prisma } from "./db"
 
-async function showDefault() {
+async function showDefault(since?: Date) {
   const runs = await prisma.enrichRun.findMany({
+    where: since ? { startedAt: { gte: since } } : undefined,
     orderBy: { startedAt: "desc" },
     take: 5,
   })
@@ -20,6 +21,7 @@ async function showDefault() {
 
   const counts = await prisma.transcript.groupBy({
     by: ["auditStatus"],
+    where: since ? { auditedAt: { gte: since } } : undefined,
     _count: { auditStatus: true },
   })
   console.log("\nAudit-Status-Verteilung:")
@@ -32,9 +34,10 @@ async function showDefault() {
   }
 }
 
-async function showErrors() {
+async function showErrors(since?: Date) {
   const rows = await prisma.transcript.findMany({
     where: {
+      ...(since ? { auditedAt: { gte: since } } : {}),
       OR: [
         // Pre-Critical: audited_md fehlt
         { auditStatus: "error_llm" },
@@ -76,8 +79,9 @@ program
   .option("--since <date>", "Filter ab Datum (ISO YYYY-MM-DD)")
 
 program.action(async (opts) => {
-  if (opts.errors) await showErrors()
-  else await showDefault()
+  const since = opts.since ? new Date(opts.since) : undefined
+  if (opts.errors) await showErrors(since)
+  else await showDefault(since)
   await prisma.$disconnect()
 })
 
