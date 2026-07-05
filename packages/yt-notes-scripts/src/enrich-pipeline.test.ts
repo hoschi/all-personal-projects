@@ -527,18 +527,22 @@ describe("enrichVideoCritical", () => {
 
   test("parallelisiert Pass 3 + Pass 4 via Promise.all", async () => {
     let pass3Started = false
+    let pass3Finished = false
     let pass4Started = false
-    let pass3ResolvedWhilePass4Running = false
+    let pass4StartedWhilePass3Running = false
 
     ;(runPass3 as MockFn).mockImplementation(async () => {
       pass3Started = true
       await new Promise<void>((r) => setTimeout(r, 20))
+      pass3Finished = true
       return "display title"
     })
     ;(runPass4 as MockFn).mockImplementation(async () => {
       pass4Started = true
-      if (pass3Started && !pass3ResolvedWhilePass4Running) {
-        pass3ResolvedWhilePass4Running = true
+      // Bei echter Parallelisierung (Promise.all) wird Pass 4 dispatcht,
+      // während Pass 3 noch läuft — nicht erst nachdem Pass 3 aufgelöst hat.
+      if (pass3Started && !pass3Finished) {
+        pass4StartedWhilePass3Running = true
       }
       await new Promise<void>((r) => setTimeout(r, 10))
       return "description three sentences"
@@ -547,7 +551,6 @@ describe("enrichVideoCritical", () => {
     const video = makeMockVideo()
     const prisma = makeMockPrisma(video)
 
-    const start = Date.now()
     await enrichVideoCritical({
       prisma,
       youtubeId: "test-id",
@@ -555,13 +558,14 @@ describe("enrichVideoCritical", () => {
       runId: "run-1",
       stubPath: async () => null,
     })
-    const elapsed = Date.now() - start
 
-    // Parallel: max(20, 10) + overhead ≈ <50ms. Seriell wäre 30ms+ = 20+10
-    // Wir testen, dass beide gestartet wurden und Gesamtzeit < 35ms
+    // Deterministischer Parallelitäts-Nachweis ohne fragile Wall-Clock-
+    // Schwelle (die auf langsamer CI-Hardware flaky ist): Pass 4 lief an,
+    // bevor Pass 3 fertig war. Bei serieller Ausführung wäre Pass 3 bereits
+    // beendet, bevor Pass 4 überhaupt startet.
     expect(pass3Started).toBe(true)
     expect(pass4Started).toBe(true)
-    expect(elapsed).toBeLessThan(35)
+    expect(pass4StartedWhilePass3Running).toBe(true)
   })
 })
 
