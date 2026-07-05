@@ -744,6 +744,7 @@ describe("enrichVideoBackground", () => {
         classification: "arbeit",
         runId: "run-fm",
         stubPath: async () => ({
+          name: "shared-vault",
           absPath,
           vaultRoot: tmp,
           relPath: "stub.md",

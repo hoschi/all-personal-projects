@@ -28,6 +28,8 @@ import {
 } from "./cross-vault-link-validator"
 
 export interface StubLocation {
+  /** Obsidian-Vault-Name (yt.vault.name) des Vaults, in dem der Stub liegt. */
+  name: string
   vaultRoot: string
   relPath: string
   absPath: string
@@ -248,9 +250,14 @@ export async function enrichVideoBackground(
     // Stub-Write-Block weiter unten behandelt stubPath-Fehler dann als
     // error_stub_write.
     let resolver: VaultResolver | null = null
+    // Nur relevant, wenn resolver gesetzt ist (dann existiert stubForResolver
+    // und damit der echte Shared-Vault-Name). formatRetryHint wird ausschließlich
+    // hinter dem `if (!resolver) break` erreicht.
+    let sharedVaultName = ""
     try {
       const stubForResolver = await stubPath(youtubeId)
       if (stubForResolver) {
+        sharedVaultName = stubForResolver.name
         resolver = makeFsResolver(
           dirname(stubForResolver.vaultRoot),
           await resolveKbVaultRoot(prisma),
@@ -283,7 +290,7 @@ export async function enrichVideoBackground(
       console.log(
         `[enrich ${youtubeId}] Pass 5 Versuch ${attempt}/${MAX_ATTEMPTS}: ${broken.length} broken Cross-Vault-Link(s), retry`,
       )
-      retryHint = formatRetryHint(broken)
+      retryHint = formatRetryHint(broken, sharedVaultName)
     }
     summaryLong = linkifyTimestamps(pass5Output, youtubeId)
   } catch (e) {

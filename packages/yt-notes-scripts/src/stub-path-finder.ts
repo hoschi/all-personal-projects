@@ -33,7 +33,8 @@ export async function findStubPath(
     const vaultRoot = link.vaultRef.rootPath
     const relPath = link.filePath
     const absPath = join(vaultRoot, relPath)
-    if (existsSync(absPath)) return { vaultRoot, relPath, absPath }
+    if (existsSync(absPath))
+      return { name: link.vaultRef.name, vaultRoot, relPath, absPath }
   }
   return null
 }

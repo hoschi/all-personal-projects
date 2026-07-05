@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import {
   extractMarkdownLinks,
   extractWikilinks,
+  formatRetryHint,
   validateCrossVaultLinks,
   rewriteBrokenLinks,
   type VaultResolver,
@@ -282,6 +283,21 @@ describe("rewriteBrokenLinks — Markdown-Intra-Vault-Links", () => {
     const input =
       "[URL](https://www.youtube.com/watch?v=abc) und [x](obsidian://open?vault=knowledge-base&file=y)"
     expect(rewriteBrokenLinks(input, resolver)).toBe(input)
+  })
+})
+
+describe("formatRetryHint", () => {
+  test("leere broken-Liste → leerer Hint", () => {
+    expect(formatRetryHint([], "mein-vault")).toBe("")
+  })
+
+  test("nutzt den übergebenen Shared-Vault-Namen (kein hartkodiertes 'test')", () => {
+    const hint = formatRetryHint(
+      [{ target: "ghost", kind: "wikilink" }],
+      "mein-vault",
+    )
+    expect(hint).toContain("mein-vault")
+    expect(hint).not.toContain("test")
   })
 })
 

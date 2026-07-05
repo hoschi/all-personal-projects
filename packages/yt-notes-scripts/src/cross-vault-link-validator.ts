@@ -284,7 +284,7 @@ export function makeFsResolver(
 
 export function formatRetryHint(
   broken: BrokenLink[],
-  sharedVaultName = "test",
+  sharedVaultName: string,
 ): string {
   if (broken.length === 0) return ""
   const lines = broken.map((b) => {
