@@ -30,8 +30,10 @@ export function findH2Sections(body: string): H2Section[] {
   const sections: H2Section[] = []
   let offset = 0
   let current: { heading: string; start: number } | null = null
+  let inFence = false
   for (const line of lines) {
-    if (line.startsWith("## ")) {
+    if (/^```/.test(line.trim())) inFence = !inFence
+    if (!inFence && line.startsWith("## ")) {
       if (current)
         sections.push({
           heading: current.heading,
@@ -49,6 +51,11 @@ export function findH2Sections(body: string): H2Section[] {
       end: body.length,
     })
   return sections
+}
+
+export function getRawFrontmatterBlock(md: string): string {
+  const m = /^---\n[\s\S]*?\n---/.exec(md)
+  return m ? m[0] : ""
 }
 
 export function getBodyBetweenH1AndFirstH2OrEnd(body: string): string {

@@ -3,6 +3,7 @@ import {
   parseStub,
   findH2Sections,
   getBodyBetweenH1AndFirstH2OrEnd,
+  getRawFrontmatterBlock,
 } from "./markdown-parser"
 
 describe("parseStub", () => {
@@ -33,6 +34,26 @@ describe("findH2Sections", () => {
   test("liefert leeres Array wenn keine H2", () => {
     const body = `# H1\n\nNur Intro, kein H2`
     expect(findH2Sections(body)).toEqual([])
+  })
+
+  test("ignoriert ## innerhalb Fenced-Code-Block", () => {
+    const body = `# H1\n\n## Echte Sektion\n\n\`\`\`python\n## kein-heading\ncode\n\`\`\`\n\nInhalt`
+    const sections = findH2Sections(body)
+    expect(sections).toHaveLength(1)
+    expect(sections[0]?.heading).toBe("Echte Sektion")
+  })
+})
+
+describe("getRawFrontmatterBlock", () => {
+  test("extrahiert den rohen Frontmatter-Block inklusive Trennzeichen", () => {
+    const md = `---\ntitle: Foo\nyoutube_id: abc\n---\n\n# Body`
+    expect(getRawFrontmatterBlock(md)).toBe(
+      "---\ntitle: Foo\nyoutube_id: abc\n---",
+    )
+  })
+
+  test("gibt leeren String zurück wenn kein Frontmatter", () => {
+    expect(getRawFrontmatterBlock("# Kein Frontmatter")).toBe("")
   })
 })
 

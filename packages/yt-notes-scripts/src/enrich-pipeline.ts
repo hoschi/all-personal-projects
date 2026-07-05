@@ -11,7 +11,7 @@ import { runPass3 } from "./enrich-passes/pass3-display-title"
 import { runPass4 } from "./enrich-passes/pass4-description"
 import { runPass5 } from "./enrich-passes/pass5-summary-long"
 import { stripLinkBackticks } from "./pass5-sanitize"
-import { parseStub } from "./markdown-parser"
+import { parseStub, getRawFrontmatterBlock } from "./markdown-parser"
 import {
   setFrontmatterFields,
   mergeAliasField,
@@ -139,7 +139,7 @@ export async function enrichVideoCritical(
       const parsed = parseStub(md)
       const newBody = migrateStubBody(parsed.body)
       if (newBody !== parsed.body) {
-        const newMd = `---\n${md.split(/\n---\n/)[0]?.replace(/^---\n/, "")}\n---\n\n${newBody}`
+        const newMd = `${getRawFrontmatterBlock(md)}\n\n${newBody}`
         await writeFile(stub.absPath, newMd, "utf-8")
       }
     }
@@ -313,7 +313,7 @@ export async function enrichVideoBackground(
       })
       const parsedAfterFm = parseStub(withFm)
       const newBody = assembleEnrichedBody(summaryLong, parsedAfterFm.body)
-      const fmRaw = /^---\n[\s\S]*?\n---/.exec(withFm)?.[0] ?? ""
+      const fmRaw = getRawFrontmatterBlock(withFm)
       await writeFile(stub.absPath, `${fmRaw}\n\n${newBody}`, "utf-8")
       const titleForMsg = (video.displayTitle ?? video.title)
         .slice(0, 60)

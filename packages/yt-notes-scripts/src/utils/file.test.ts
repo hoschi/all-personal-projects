@@ -33,6 +33,14 @@ describe("sanitizeFilename", () => {
     expect(sanitizeFilename("")).toBe("")
   })
 
+  test("falls back to replacement when input is dots only", () => {
+    expect(sanitizeFilename("...")).toBe("_")
+  })
+
+  test("falls back to replacement when input is spaces only", () => {
+    expect(sanitizeFilename("   ")).toBe("_")
+  })
+
   test("UTF-8 byte truncation at 255 bytes with multi-byte emoji", () => {
     const emoji = "🎵" // 4 bytes
     const input = emoji.repeat(70) // 280 bytes

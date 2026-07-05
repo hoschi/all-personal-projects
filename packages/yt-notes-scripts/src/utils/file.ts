@@ -28,6 +28,7 @@ export const sanitizeFilename = (text: string, replacement = "_"): string => {
   }
   result = result.replace(TRAILING_DOTS_OR_SPACES, "")
   result = truncateToBytes(result, MAX_BYTES)
+  if (!result) result = replacement
   return result
 }
 

@@ -64,7 +64,7 @@ const AD_MARKER_LINE_REGEX = /^(\s*> ?\[!info\] Werbung ausgeschnitten .*)$/gm
 //   "- Behauptung ... (3:24)"
 // Wir matchen nur wenn die Klammer einen einzelnen Timestamp enthält
 // (optional mit Trailing-Whitespace), nicht z.B. "(3:24, weiter)".
-const PAREN_TS_REGEX = new RegExp(String.raw`\((${TS_INLINE})\)`, "g")
+const PAREN_TS_REGEX = new RegExp(String.raw`\((${TS_INLINE})\s*\)`, "g")
 
 // Matcht einen Timestamp, der NICHT schon in einem Markdown-Link `[ts](url)`
 // steckt. Wir nutzen das für die Werbung-Marker-Zeile, wo die Timestamps frei

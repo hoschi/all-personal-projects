@@ -29,12 +29,26 @@ export const findUrlsToStub = (
 
     let idx = 0
     while ((idx = content.indexOf(sourceUrl, idx)) !== -1) {
-      patches.push({
-        start: idx,
-        end: idx + sourceUrl.length,
-        oldUrl: sourceUrl,
-        newUrl: targetUrl,
-      })
+      // Grenze prüfen: Der Treffer darf nur matchen wenn danach ein URL-Abschluss
+      // folgt, nicht ein weiteres Pfad-Zeichen (z.B. %20 bei "Title 2").
+      // Erlaubt: ), &, Whitespace, Ende-des-Strings (& für &line=N-Suffixe).
+      const charAfter = content[idx + sourceUrl.length]
+      const bounded =
+        charAfter === undefined ||
+        charAfter === ")" ||
+        charAfter === "&" ||
+        charAfter === " " ||
+        charAfter === "\n" ||
+        charAfter === "\t" ||
+        charAfter === "\r"
+      if (bounded) {
+        patches.push({
+          start: idx,
+          end: idx + sourceUrl.length,
+          oldUrl: sourceUrl,
+          newUrl: targetUrl,
+        })
+      }
       idx += sourceUrl.length
     }
   }

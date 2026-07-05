@@ -104,6 +104,19 @@ test("findUrlsToStub: falscher vault-Name → kein Match", () => {
   expect(patches).toHaveLength(0)
 })
 
+test("findUrlsToStub: Präfix-Match mit längerem Pfad wird nicht gepatcht", () => {
+  // "Title 2" (Title%202) darf nicht als Treffer für "Title" durchgehen
+  const content = `[V](obsidian://open?vault=test&file=shared%2Fyoutube%2FCh%2FTitle%202)`
+  const patches = findUrlsToStub(
+    content,
+    "youtube/Ch/Title.md",
+    "test",
+    "shared",
+    "private",
+  )
+  expect(patches).toHaveLength(0)
+})
+
 test("findUrlsToStub: kein Match in URL-freiem Content", () => {
   const content = `# Nur Prosa\n\nKein YouTube-Link hier.`
   const patches = findUrlsToStub(
