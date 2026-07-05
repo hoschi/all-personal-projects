@@ -67,7 +67,7 @@ const runSanity = async (): Promise<{
     execFileSync(
       "obsidian",
       [`vault=${sharedVaultName}`, "search", "query=youtube", "limit=1"],
-      { stdio: "pipe" },
+      { stdio: "pipe", timeout: 30_000 },
     )
   } catch {
     console.error(
@@ -396,7 +396,7 @@ const runLive = async (
       `to=${targetVaultRelative}`,
     ]
     try {
-      execFileSync("obsidian", obsidianArgs, { stdio: "pipe" })
+      execFileSync("obsidian", obsidianArgs, { stdio: "pipe", timeout: 30_000 })
     } catch (err) {
       console.error(
         `\nFATAL: obsidian move failed for ${sourceVaultRelative} → ${targetVaultRelative}.\n` +

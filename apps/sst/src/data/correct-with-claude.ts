@@ -38,8 +38,9 @@ export async function correctWithClaude(
     effort: env.SST_CLAUDE_EFFORT,
   })
 
+  let timer: ReturnType<typeof setTimeout>
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(
+    timer = setTimeout(
       () =>
         reject(
           new Error(
@@ -50,7 +51,12 @@ export async function correctWithClaude(
     )
   })
 
-  const text = await Promise.race([callPromise, timeoutPromise])
+  let text: Awaited<typeof callPromise>
+  try {
+    text = await Promise.race([callPromise, timeoutPromise])
+  } finally {
+    clearTimeout(timer!)
+  }
 
   return {
     text: text.trim(),
