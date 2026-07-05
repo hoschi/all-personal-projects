@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-router"
 import RecordRTC from "recordrtc"
 import Debug from "debug"
+import { match, P } from "ts-pattern"
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 
 const debugClient = Debug("sst:yt:client")
@@ -286,8 +287,12 @@ function RouteComponent() {
   const [bottomTextDraft, setBottomTextDraft] = useState("")
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   // YT-Binding läuft minutenlang — sperrt nur den eigenen Tab, nicht globale
-  // Aktionen wie "neuen Tab anlegen" oder andere Tabs editieren.
-  const [bindingTabId, setBindingTabId] = useState<string | null>(null)
+  // Aktionen wie "neuen Tab anlegen" oder andere Tabs editieren. Pro Tab
+  // getrackt (Set statt einzelnem Slot), damit ein zweites Binding auf einem
+  // anderen Tab das erste nicht überschreibt — beide dürfen parallel laufen.
+  const [bindingTabIds, setBindingTabIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  )
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [conflict, setConflict] = useState<TabFieldConflict | null>(null)
   const [recordingStatus, setRecordingStatus] =
@@ -350,16 +355,24 @@ function RouteComponent() {
           activeTabImproveResult.correctedText,
         )
 
-  const hasBackgroundError =
-    activeTab?.ytTranscriptStatus === "error_pass2" ||
-    activeTab?.ytTranscriptStatus === "error_pass5_summary_long" ||
-    activeTab?.ytTranscriptStatus === "error_stub_write"
-  const hasCriticalError =
-    activeTab?.ytTranscriptStatus === "error_pass1" ||
-    activeTab?.ytTranscriptStatus === "error_pass3_display_title" ||
-    activeTab?.ytTranscriptStatus === "error_pass4_description" ||
-    activeTab?.ytTranscriptStatus === "error_empty_output" ||
-    activeTab?.ytTranscriptStatus === "error_llm"
+  const errorPhase = match(activeTab?.ytTranscriptStatus)
+    .with(
+      P.union("error_pass2", "error_pass5_summary_long", "error_stub_write"),
+      () => "background" as const,
+    )
+    .with(
+      P.union(
+        "error_pass1",
+        "error_pass3_display_title",
+        "error_pass4_description",
+        "error_empty_output",
+        "error_llm",
+      ),
+      () => "critical" as const,
+    )
+    .otherwise(() => null)
+  const hasBackgroundError = errorPhase === "background"
+  const hasCriticalError = errorPhase === "critical"
 
   const canSaveTitle =
     activeTab !== null &&
@@ -375,10 +388,10 @@ function RouteComponent() {
   const isOtherActionPending = Boolean(
     pendingAction && pendingAction !== "yt-binding",
   )
-  // bindingTabId überlebt Tab-Wechsel; pendingAction wird durch loadActiveTab
+  // bindingTabIds überlebt Tab-Wechsel; pendingAction wird durch loadActiveTab
   // („select-tab") überschrieben und ist daher nicht verlässlich.
   const isActiveTabBinding =
-    bindingTabId !== null && activeTab?.id === bindingTabId
+    activeTab !== null && bindingTabIds.has(activeTab.id)
   const isActiveTabLocked = isOtherActionPending || isActiveTabBinding
   const canPutText =
     activeTab !== null &&
@@ -1237,15 +1250,15 @@ function RouteComponent() {
     if (!activeTab) return
     setYoutubeValidationResult({ kind: "validating" })
     try {
-      const result = (await validateYoutubeUrlFn({
+      // Erwartete Validierungsfehler liefert validateYoutubeUrlFn als
+      // { kind: "error" } zurück und landen im Modal. Unerwartete Ausnahmen
+      // (Netzwerk, Server-Crash) gehören an die Route-Boundary, nicht ins Modal.
+      const result = await validateYoutubeUrlFn({
         data: { url: input.url, tabId: activeTab.id },
-      })) as YoutubeValidationResult
+      })
       setYoutubeValidationResult(result)
     } catch (e) {
-      setYoutubeValidationResult({
-        kind: "error",
-        message: e instanceof Error ? e.message : String(e),
-      })
+      setRuntimeError(toRuntimeError(e, "YouTube-Validierung fehlgeschlagen"))
     }
   }
 
@@ -1260,13 +1273,14 @@ function RouteComponent() {
       input.reuse,
     )
     if (!activeTab) return
+    const bindTabId = activeTab.id
     setIsYoutubeModalOpen(false)
-    setBindingTabId(activeTab.id)
+    setBindingTabIds((current) => new Set(current).add(bindTabId))
     setPendingAction("yt-binding")
     try {
       const result = (await bindYoutubeToTabFn({
         data: {
-          tabId: activeTab.id,
+          tabId: bindTabId,
           youtubeId: input.youtubeId,
           reuse: input.reuse,
           clientId,
@@ -1279,15 +1293,28 @@ function RouteComponent() {
         debugClient("bind error message=%j", result.message)
         setBindingErrorMessage(result.message)
       } else if (result.kind === "ok") {
-        // applyActiveTab loggt die Tab-Felder selbst — kein zweiter Log nötig.
-        applyActiveTab(result.tab)
+        // Binding läuft minutenlang; der User darf derweil den Tab wechseln.
+        // updateServerTabSnapshot aktualisiert activeTab nur, wenn noch derselbe
+        // Tab aktiv ist — sonst würde ein fertiges Binding einen inzwischen
+        // fremden aktiven Tab überschreiben. Drafts nur nachziehen, wenn der
+        // gebundene Tab weiterhin der aktive ist.
+        updateServerTabSnapshot(result.tab)
+        if (activeTabIdRef.current === result.tab.id) {
+          setTitleDraft(result.tab.title)
+          setTopTextDraft(result.tab.topText)
+          setBottomTextDraft(result.tab.bottomText)
+        }
       }
     } catch (e) {
       debugClient("bindYoutubeToTabFn threw: %s", (e as Error).message)
       setRuntimeError(toRuntimeError(e, "YouTube-Bindung fehlgeschlagen"))
     } finally {
       setPendingAction(null)
-      setBindingTabId(null)
+      setBindingTabIds((current) => {
+        const next = new Set(current)
+        next.delete(bindTabId)
+        return next
+      })
     }
   }
 
@@ -1362,7 +1389,7 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, topTextDraft, pendingAction, bindingTabId, conflict])
+  }, [activeTab, topTextDraft, pendingAction, bindingTabIds, conflict])
 
   useEffect(() => {
     if (!activeTab) {
@@ -1384,7 +1411,7 @@ function RouteComponent() {
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTab, bottomTextDraft, pendingAction, bindingTabId, conflict])
+  }, [activeTab, bottomTextDraft, pendingAction, bindingTabIds, conflict])
 
   useEffect(() => {
     return () => {

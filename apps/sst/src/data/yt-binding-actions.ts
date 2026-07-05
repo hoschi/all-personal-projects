@@ -6,6 +6,7 @@ import { prisma as sstPrisma } from "./prisma"
 import { spawn } from "node:child_process"
 import { existsSync } from "node:fs"
 import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { createStubFile } from "@repo/yt-notes-scripts/stub-creation"
 import {
   enrichVideoCritical,
@@ -17,13 +18,15 @@ import { toTabSnapshot } from "./tab-sync-actions"
 import { findH2Sections } from "@repo/yt-notes-scripts/markdown-parser"
 import { commitFile } from "@repo/yt-notes-scripts/git-commit-helper"
 
-const debugValidate = Debug("sst:yt:server:validate")
-const debugBind = Debug("sst:yt:server:bind")
+const debugValidate = Debug("app:yt:server:validate")
+const debugBind = Debug("app:yt:server:bind")
 
 // CLI-Spawns für yt-notes-scripts brauchen Repo-Root als cwd, weil der
-// Skript-Pfad Repo-Root-relativ ist; dev-cwd ist aber apps/sst/.
+// Skript-Pfad Repo-Root-relativ ist; dev-cwd ist aber apps/sst/. Startpunkt
+// aus import.meta.url ableiten (nicht aus cwd raten), damit die Suche
+// unabhängig vom Arbeitsverzeichnis stabil beim Repo-Root landet.
 function findRepoRoot(): string {
-  let dir = process.cwd()
+  let dir = dirname(fileURLToPath(import.meta.url))
   while (dir !== dirname(dir)) {
     if (existsSync(join(dir, "turbo.json"))) return dir
     dir = dirname(dir)
@@ -112,12 +115,10 @@ export const validateYoutubeUrlFn = createServerFn({ method: "POST" })
           "Channel ist privat klassifiziert. Inhalte gehören nicht in die KB.",
       }
     }
-    if (video.channel?.classification === "unknown") {
-      await ytPrisma.channel.update({
-        where: { id: video.channel.id },
-        data: { classification: "arbeit" },
-      })
-    }
+    // Reklassifikation unknown→arbeit passiert erst beim tatsächlichen Bind
+    // (bindYoutubeToTabFn), nicht hier: validateYoutubeUrlFn ist ein
+    // Dry-Run-Check vor der User-Bestätigung und darf den Channel nicht
+    // dauerhaft umklassifizieren, wenn der Flow abgebrochen wird.
 
     // 5. Video-Dauer
     if (video.durationSec && video.durationSec > 2700) {
@@ -275,7 +276,10 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
     debugBind("tab loaded mode=%s currentYoutubeId=%s", tab.mode, tab.youtubeId)
     if (tab.mode !== "work" || tab.youtubeId !== null) {
       debugBind("guard reject: not in work-mode or already bound")
-      throw new Error("Tab ist nicht im Work-Modus oder schon gebunden.")
+      return {
+        kind: "error" as const,
+        message: "Tab ist nicht im Work-Modus oder schon gebunden.",
+      }
     }
 
     const video = await ytPrisma.video.findUniqueOrThrow({
@@ -295,6 +299,19 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
       throw new Error(
         "SHARED_VAULT_PATH + YT_TEMPLATE_PATH müssen gesetzt sein.",
       )
+    }
+
+    // Channel-Reklassifikation unknown→arbeit: aus validateYoutubeUrlFn
+    // hierher verschoben, damit sie erst beim bestätigten Bind persistiert
+    // wird. Muss vor enrichVideoCritical laufen, weil dessen shouldSkip() die
+    // Channel-Klassifikation frisch aus der DB liest und sonst mit
+    // skip_classification_mismatch abbricht.
+    if (video.channel?.classification === "unknown") {
+      await ytPrisma.channel.update({
+        where: { id: video.channel.id },
+        data: { classification: "arbeit" },
+      })
+      debugBind("channel reclassified unknown→arbeit id=%s", video.channel.id)
     }
 
     // 2. Stub-Datei anlegen (idempotent)
@@ -464,11 +481,21 @@ export const pushNoteAndDeleteTabFn = createServerFn({ method: "POST" })
     const mdContent = await readFile(stub.absPath, "utf-8")
     const appendedMd = appendToNotizenSection(mdContent, data.noteText)
     await writeFile(stub.absPath, appendedMd, "utf-8")
-    await commitFile(
+    const commitResult = await commitFile(
       stub.vaultRoot,
       stub.relPath,
       `sst-note: ${tab.youtubeId} — append note`,
     )
+    // Die Notiz liegt bereits auf der Platte (writeFile oben). Wenn der Commit
+    // fehlschlägt (echter git-Fehler, nicht das harmlose "no changes"), darf
+    // der Tab NICHT gelöscht werden: sonst verschwindet die einzige
+    // UI-sichtbare Spur der Notiz und ein späterer Stub-Regen könnte die
+    // uncommittete Änderung still verwerfen. Propagieren statt schlucken.
+    if (!commitResult.committed && commitResult.reason !== "no changes") {
+      throw new Error(
+        `Notiz konnte nicht committet werden: ${commitResult.reason ?? "unbekannt"}`,
+      )
+    }
 
     await sstPrisma.tab.delete({ where: { id: data.tabId } })
     return { status: "deleted" as const, tabId: data.tabId }
