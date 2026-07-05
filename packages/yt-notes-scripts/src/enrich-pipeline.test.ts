@@ -97,160 +97,158 @@ function resetPassMocks() {
   ;(runPass5 as MockFn).mockReset().mockResolvedValue("summary long markdown")
 }
 
-describe("shouldSkip", () => {
-  test("skip wenn duration > 2700", () => {
-    const v = {
-      durationSec: 3000,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "pending" as const,
-        auditedMd: null,
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("skip_too_long")
-  })
+test("shouldSkip skip wenn duration > 2700", () => {
+  const v = {
+    durationSec: 3000,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "pending" as const,
+      auditedMd: null,
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("skip_too_long")
+})
 
-  test("skip wenn classification mismatch", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "privat" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "pending" as const,
-        auditedMd: null,
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("skip_classification_mismatch")
-  })
+test("shouldSkip skip wenn classification mismatch", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "privat" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "pending" as const,
+      auditedMd: null,
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("skip_classification_mismatch")
+})
 
-  test("skip wenn transcript fehlt", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: null,
-        error: null,
-        auditStatus: "pending" as const,
-        auditedMd: null,
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("transcript_missing")
-  })
+test("shouldSkip skip wenn transcript fehlt", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: null,
+      error: null,
+      auditStatus: "pending" as const,
+      auditedMd: null,
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("transcript_missing")
+})
 
-  test("skip wenn transcript Upstream-Error", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: "yt-dlp fail",
-        auditStatus: "pending" as const,
-        auditedMd: null,
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("transcript_error_upstream")
-  })
+test("shouldSkip skip wenn transcript Upstream-Error", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: "yt-dlp fail",
+      auditStatus: "pending" as const,
+      auditedMd: null,
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("transcript_error_upstream")
+})
 
-  test("Idempotenz: schon ok mit audited_md → skip null = no-op", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "ok" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("idempotent")
-  })
+test("shouldSkip Idempotenz: schon ok mit audited_md → skip null = no-op", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "ok" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("idempotent")
+})
 
-  test("nicht skippen wenn alles passt + noch pending", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "pending" as const,
-        auditedMd: null,
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBeNull()
-  })
+test("shouldSkip nicht skippen wenn alles passt + noch pending", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "pending" as const,
+      auditedMd: null,
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBeNull()
+})
 
-  test("Nicht idempotent: error_pass3_display_title mit audited_md", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "error_pass3_display_title" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBeNull()
-  })
+test("shouldSkip Nicht idempotent: error_pass3_display_title mit audited_md", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "error_pass3_display_title" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBeNull()
+})
 
-  test("Nicht idempotent: error_pass4_description mit audited_md", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "error_pass4_description" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBeNull()
-  })
+test("shouldSkip Nicht idempotent: error_pass4_description mit audited_md", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "error_pass4_description" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBeNull()
+})
 
-  test("Nicht idempotent: error_pass5_summary_long mit audited_md", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "error_pass5_summary_long" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBeNull()
-  })
+test("shouldSkip Nicht idempotent: error_pass5_summary_long mit audited_md", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "error_pass5_summary_long" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBeNull()
+})
 
-  test("Nicht idempotent: error_stub_write mit audited_md", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "error_stub_write" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBeNull()
-  })
+test("shouldSkip Nicht idempotent: error_stub_write mit audited_md", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "error_stub_write" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBeNull()
+})
 
-  test("Regression: ok mit audited_md bleibt idempotent", () => {
-    const v = {
-      durationSec: 600,
-      channel: { classification: "arbeit" } as const,
-      transcript: {
-        plain: "x",
-        error: null,
-        auditStatus: "ok" as const,
-        auditedMd: "audited",
-      },
-    }
-    expect(shouldSkip(v, "arbeit")).toBe("idempotent")
-  })
+test("shouldSkip Regression: ok mit audited_md bleibt idempotent", () => {
+  const v = {
+    durationSec: 600,
+    channel: { classification: "arbeit" } as const,
+    transcript: {
+      plain: "x",
+      error: null,
+      auditStatus: "ok" as const,
+      auditedMd: "audited",
+    },
+  }
+  expect(shouldSkip(v, "arbeit")).toBe("idempotent")
 })
 
 describe("enrichVideo", () => {
