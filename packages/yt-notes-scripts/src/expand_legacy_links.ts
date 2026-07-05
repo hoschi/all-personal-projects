@@ -1,4 +1,3 @@
-import * as path from "path"
 import { Command } from "commander"
 import { prisma } from "./db"
 import { runImportForVault } from "./import_youtube_note_links"
@@ -9,11 +8,6 @@ import {
   writeChannelStats,
 } from "./get_video_details"
 import { createStubFile } from "./stub-creation"
-
-const DEFAULT_TEMPLATE_PATH = path.join(
-  process.env.HOME ?? "",
-  "Library/CloudStorage/Dropbox/obsidian-test/test/yt-template.md",
-)
 
 interface Summary {
   scannedLinks: number
@@ -44,8 +38,8 @@ const program = new Command()
   )
   .option(
     "--template <path>",
-    "Override template file path",
-    DEFAULT_TEMPLATE_PATH,
+    "Template file path (default: $YT_TEMPLATE_PATH)",
+    process.env.YT_TEMPLATE_PATH,
   )
   .addHelpText(
     "after",
@@ -53,6 +47,7 @@ const program = new Command()
 Environment:
   DATABASE_URL               Postgres connection string
   YOUTUBE_API_KEY            YouTube Data API v3 key (lazy fetch for missing details)
+  YT_TEMPLATE_PATH           Path to the yt-template.md file (required if --template is omitted)
 
 Examples:
   bun run src/expand_legacy_links.ts --dry-run
@@ -72,7 +67,7 @@ Exit codes:
       limit?: number
       vault?: string
       skipScan: boolean
-      template: string
+      template: string | undefined
     }) => {
       try {
         const summary = await run(opts)
@@ -92,11 +87,20 @@ const run = async (opts: {
   limit?: number
   vault?: string
   skipScan: boolean
-  template: string
+  template: string | undefined
 }): Promise<Summary> => {
-  // Sanity-Check: Template existiert. Vaults werden im Pre-Pass + Link-Schleife
-  // pro Eintrag via FK validiert — kein hartkodierter Default-Vault mehr.
-  // (createStubFile liest das Template intern; hier nur Vorprüfung.)
+  // Sanity-Check: Template-Pfad gesetzt und existiert. Vaults werden im
+  // Pre-Pass + Link-Schleife pro Eintrag via FK validiert — kein hartkodierter
+  // Default-Vault mehr. (createStubFile liest das Template intern; hier nur
+  // Vorprüfung.)
+  if (!opts.template) {
+    throw Object.assign(
+      new Error(
+        "Template path required: pass --template <path> or set YT_TEMPLATE_PATH",
+      ),
+      { exitCode: 1 },
+    )
+  }
   const { access } = await import("fs/promises")
   await access(opts.template)
 

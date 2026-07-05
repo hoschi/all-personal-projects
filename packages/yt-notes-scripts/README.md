@@ -32,11 +32,13 @@ Anthropic hat zwischen Januar und Juni 2026 die Policy zum Thema „Agent SDK + 
 
 This pipeline uses `yt-dlp` **only for subtitles/captions**. Audio/video downloads are neither planned nor needed. Hardcoded flags in `import_youtube_transcript.ts`:
 
-```
---write-auto-subs --skip-download --write-sub --sub-format vtt/srt --cookies-from-browser=chrome
+```text
+--write-auto-subs --skip-download --write-sub --sub-format vtt/srt --js-runtimes node --sub-langs de,en --ignore-errors
 ```
 
-Reason: YouTube Web ToS prohibits audio/video downloads. Captions are not an A/V stream (EFF position; YouTube Data API has a separate captions endpoint). `--cookies-from-browser=chrome` re-uses a logged-in Chrome profile so age-gated or region-restricted videos can still expose their captions.
+`--cookies-from-browser=chrome` is **opt-in** (`--with-chrome-cookies`), not hardcoded — see the two-pass strategy below.
+
+Reason: YouTube Web ToS prohibits audio/video downloads. Captions are not an A/V stream (EFF position; YouTube Data API has a separate captions endpoint).
 
 ## Prerequisites
 
@@ -457,7 +459,7 @@ Pro Status den entsprechenden Filter ersetzen.
 
 ### 3. Recovery-Workflow
 
-**Auto-Recovery** läuft täglich um 03:00 via Nightly-Wrapper (`infra/launchd/yt-pipeline-nightly.sh` Step 4) — nichts zu tun, Errors konvergieren von allein wenn die zugrundeliegende Ursache (Sandbox-Bug, transienter Netzwerk-Hänger, etc.) behoben ist.
+**Auto-Recovery** läuft täglich um 03:00 als Step 4 deiner eigenen Nightly-Automatisierung (siehe [Scheduling](#scheduling)) — nichts zu tun, Errors konvergieren von allein wenn die zugrundeliegende Ursache (Sandbox-Bug, transienter Netzwerk-Hänger, etc.) behoben ist.
 
 **Manueller Trigger** ist sinnvoll wenn du gerade einen Bug gefixt hast und nicht bis 03:00 warten willst:
 
