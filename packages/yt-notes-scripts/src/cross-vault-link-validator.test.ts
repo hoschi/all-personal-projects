@@ -286,19 +286,17 @@ describe("rewriteBrokenLinks — Markdown-Intra-Vault-Links", () => {
   })
 })
 
-describe("formatRetryHint", () => {
-  test("leere broken-Liste → leerer Hint", () => {
-    expect(formatRetryHint([], "mein-vault")).toBe("")
-  })
+test("formatRetryHint: leere broken-Liste → leerer Hint", () => {
+  expect(formatRetryHint([], "mein-vault")).toBe("")
+})
 
-  test("nutzt den übergebenen Shared-Vault-Namen (kein hartkodiertes 'test')", () => {
-    const hint = formatRetryHint(
-      [{ target: "ghost", kind: "wikilink" }],
-      "mein-vault",
-    )
-    expect(hint).toContain("mein-vault")
-    expect(hint).not.toContain("test")
-  })
+test("formatRetryHint: nutzt den übergebenen Shared-Vault-Namen (kein hartkodiertes 'test')", () => {
+  const hint = formatRetryHint(
+    [{ target: "ghost", kind: "wikilink" }],
+    "mein-vault",
+  )
+  expect(hint).toContain("mein-vault")
+  expect(hint).not.toContain("test")
 })
 
 describe("E2E — echter Bug aus Video UzMNBN6xLLA (Matt Pocock /grill-*)", () => {
