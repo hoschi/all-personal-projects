@@ -51,7 +51,7 @@
       "cache": false
     },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": ["generate:prisma", "^test"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputLogs": "new-only"
     },
