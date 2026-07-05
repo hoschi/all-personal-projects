@@ -268,7 +268,9 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
       data.youtubeId,
       data.reuse,
     )
-    // 1. Tab + Video laden
+    // 1. Tab laden — Fast-Fail-Guard für eine nette Fehlermeldung vor dem
+    // Video-Load. Die autoritative, race-sichere Prüfung ist der atomare Claim
+    // weiter unten (Schritt 2).
     const tab = await sstPrisma.tab.findUniqueOrThrow({
       where: { id: data.tabId },
       select: { id: true, mode: true, youtubeId: true, titleVersion: true },
@@ -301,21 +303,59 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
       )
     }
 
-    // Channel-Reklassifikation unknown→arbeit: aus validateYoutubeUrlFn
-    // hierher verschoben, damit sie erst beim bestätigten Bind persistiert
-    // wird. Muss vor enrichVideoCritical laufen, weil dessen shouldSkip() die
-    // Channel-Klassifikation frisch aus der DB liest und sonst mit
-    // skip_classification_mismatch abbricht.
-    if (video.channel?.classification === "unknown") {
-      await ytPrisma.channel.update({
-        where: { id: video.channel.id },
-        data: { classification: "arbeit" },
+    // 2. Atomarer Claim VOR der minutenlangen Critical-Phase: youtube_id +
+    // bindingStartedAt in einem updateMany setzen, das nur greift, solange der
+    // Tab noch ungebunden und im Work-Modus ist. Das schließt die TOCTOU-Race
+    // (zwei parallele Binds auf denselben Tab → nur einer gewinnt, count===0
+    // verliert) und macht den In-Progress-Zustand durable: ein neu geladener
+    // Client re-deriviert den Spinner aus bindingStartedAt. Ab hier ist
+    // youtube_id gesetzt — JEDER Fehler-/Abbruchpfad MUSS den Claim
+    // zurücksetzen (resetClaim), sonst bliebe der Tab fälschlich "gebunden".
+    const claimedAt = new Date()
+    const claimed = await sstPrisma.tab.updateMany({
+      where: { id: data.tabId, youtubeId: null, mode: "work" },
+      data: { youtubeId: data.youtubeId, bindingStartedAt: claimedAt },
+    })
+    if (claimed.count === 0) {
+      debugBind("claim lost: tab already bound/binding or not work-mode")
+      return {
+        kind: "error" as const,
+        message: "Tab wird bereits gebunden oder ist schon gebunden.",
+      }
+    }
+    debugBind(
+      "claim acquired youtubeId=%s at=%s",
+      data.youtubeId,
+      claimedAt.toISOString(),
+    )
+
+    // Setzt den Claim zurück, sodass der Tab wieder bindbar ist. Wird auf jedem
+    // Fehlerpfad nach dem erfolgreichen Claim aufgerufen (Critical-not-ok sowie
+    // jeder geworfene Fehler). youtubeReused wurde vom Claim nicht angefasst
+    // und bleibt daher unverändert false.
+    const resetClaim = async () => {
+      await sstPrisma.tab.updateMany({
+        where: { id: data.tabId },
+        data: { youtubeId: null, bindingStartedAt: null },
       })
-      debugBind("channel reclassified unknown→arbeit id=%s", video.channel.id)
+      debugBind("claim reset youtubeId→null bindingStartedAt→null")
     }
 
-    // 2. Stub-Datei anlegen (idempotent)
     try {
+      // Channel-Reklassifikation unknown→arbeit: aus validateYoutubeUrlFn
+      // hierher verschoben, damit sie erst beim bestätigten Bind persistiert
+      // wird. Muss vor enrichVideoCritical laufen, weil dessen shouldSkip() die
+      // Channel-Klassifikation frisch aus der DB liest und sonst mit
+      // skip_classification_mismatch abbricht.
+      if (video.channel?.classification === "unknown") {
+        await ytPrisma.channel.update({
+          where: { id: video.channel.id },
+          data: { classification: "arbeit" },
+        })
+        debugBind("channel reclassified unknown→arbeit id=%s", video.channel.id)
+      }
+
+      // 3. Stub-Datei anlegen (idempotent)
       await createStubFile({
         prisma: ytPrisma,
         video: {
@@ -329,96 +369,103 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
         templatePath,
       })
       debugBind("createStubFile ok")
-    } catch (e) {
-      debugBind("createStubFile threw: %s", (e as Error).message)
-      throw e
-    }
 
-    // 3. Reuse-Pfad: kein Enrich-Lauf
-    if (data.reuse) {
-      const displayTitle = video.displayTitle ?? video.title
+      // 4. Reuse-Pfad: kein Enrich-Lauf — Claim direkt finalisieren
+      // (youtube_id bleibt gesetzt, bindingStartedAt clearen).
+      if (data.reuse) {
+        const displayTitle = video.displayTitle ?? video.title
+        const updatedTab = await sstPrisma.tab.update({
+          where: { id: data.tabId },
+          data: {
+            youtubeReused: true,
+            title: `reused: ${displayTitle}`,
+            titleVersion: { increment: 1 },
+            titleUpdatedAt: new Date(),
+            bindingStartedAt: null,
+          },
+        })
+        debugBind(
+          "reuse-path tab updated id=%s youtubeId=%s title=%j titleVersion=%d",
+          updatedTab.id,
+          updatedTab.youtubeId,
+          updatedTab.title,
+          updatedTab.titleVersion,
+        )
+        return {
+          kind: "ok" as const,
+          tab: { ...toTabSnapshot(updatedTab), ytDisplayTitle: displayTitle },
+        }
+      }
+
+      // 5. Fresh-Enrich: Critical-Phase synchron
+      const run = await ytPrisma.enrichRun.create({
+        data: { trigger: "sst-binding", classification: "arbeit" },
+      })
+      debugBind("fresh-enrich enrichRun created id=%s", run.id)
+      const criticalResult = await enrichVideoCritical({
+        prisma: ytPrisma,
+        youtubeId: data.youtubeId,
+        classification: "arbeit",
+        runId: run.id,
+        stubPath: stubPathFor,
+        bypassClassificationCheck: video.channel?.classification === "mixed",
+      })
+      debugBind("critical result status=%s", criticalResult.status)
+
+      if (criticalResult.status !== "critical_ok") {
+        debugBind("critical not ok, resetting claim + returning error")
+        await resetClaim()
+        return {
+          kind: "error" as const,
+          criticalStatus: criticalResult.status,
+          message: `Enrichment fehlgeschlagen: ${criticalResult.status}. Details: bun run packages/yt-notes-scripts/src/enrich-status.ts --errors`,
+        }
+      }
+
+      // 6. Tab finalisieren — Tab-Titel auf voller Länge; UI kürzt visuell per
+      // CSS. youtube_id bleibt vom Claim gesetzt, nur bindingStartedAt clearen.
+      const displayTitle =
+        criticalResult.displayTitle ?? video.displayTitle ?? video.title
       const updatedTab = await sstPrisma.tab.update({
         where: { id: data.tabId },
         data: {
-          youtubeId: data.youtubeId,
-          youtubeReused: true,
-          title: `reused: ${displayTitle}`,
+          youtubeReused: false,
+          title: displayTitle,
           titleVersion: { increment: 1 },
           titleUpdatedAt: new Date(),
+          bindingStartedAt: null,
         },
       })
       debugBind(
-        "reuse-path tab updated id=%s youtubeId=%s title=%j titleVersion=%d",
+        "fresh-path tab updated id=%s youtubeId=%s title=%j",
         updatedTab.id,
         updatedTab.youtubeId,
         updatedTab.title,
-        updatedTab.titleVersion,
       )
+
+      // 7. Background-Phase im Hintergrund (kein await)
+      void enrichVideoBackground({
+        prisma: ytPrisma,
+        youtubeId: data.youtubeId,
+        classification: "arbeit",
+        runId: run.id,
+        stubPath: stubPathFor,
+        bypassClassificationCheck: video.channel?.classification === "mixed",
+      }).catch((err) => {
+        console.error(`[sst-yt-background] ${data.youtubeId}: ${err}`)
+      })
+
       return {
         kind: "ok" as const,
         tab: { ...toTabSnapshot(updatedTab), ytDisplayTitle: displayTitle },
       }
-    }
-
-    // 4. Fresh-Enrich: Critical-Phase synchron
-    const run = await ytPrisma.enrichRun.create({
-      data: { trigger: "sst-binding", classification: "arbeit" },
-    })
-    debugBind("fresh-enrich enrichRun created id=%s", run.id)
-    const criticalResult = await enrichVideoCritical({
-      prisma: ytPrisma,
-      youtubeId: data.youtubeId,
-      classification: "arbeit",
-      runId: run.id,
-      stubPath: stubPathFor,
-      bypassClassificationCheck: video.channel?.classification === "mixed",
-    })
-    debugBind("critical result status=%s", criticalResult.status)
-
-    if (criticalResult.status !== "critical_ok") {
-      debugBind("critical not ok, returning error")
-      return {
-        kind: "error" as const,
-        criticalStatus: criticalResult.status,
-        message: `Enrichment fehlgeschlagen: ${criticalResult.status}. Details: bun run packages/yt-notes-scripts/src/enrich-status.ts --errors`,
-      }
-    }
-
-    // 5. Tab updaten — Tab-Titel auf voller Länge; UI kürzt visuell per CSS.
-    const displayTitle =
-      criticalResult.displayTitle ?? video.displayTitle ?? video.title
-    const updatedTab = await sstPrisma.tab.update({
-      where: { id: data.tabId },
-      data: {
-        youtubeId: data.youtubeId,
-        youtubeReused: false,
-        title: displayTitle,
-        titleVersion: { increment: 1 },
-        titleUpdatedAt: new Date(),
-      },
-    })
-    debugBind(
-      "fresh-path tab updated id=%s youtubeId=%s title=%j",
-      updatedTab.id,
-      updatedTab.youtubeId,
-      updatedTab.title,
-    )
-
-    // 6. Background-Phase im Hintergrund (kein await)
-    void enrichVideoBackground({
-      prisma: ytPrisma,
-      youtubeId: data.youtubeId,
-      classification: "arbeit",
-      runId: run.id,
-      stubPath: stubPathFor,
-      bypassClassificationCheck: video.channel?.classification === "mixed",
-    }).catch((err) => {
-      console.error(`[sst-yt-background] ${data.youtubeId}: ${err}`)
-    })
-
-    return {
-      kind: "ok" as const,
-      tab: { ...toTabSnapshot(updatedTab), ytDisplayTitle: displayTitle },
+    } catch (e) {
+      // Unerwarteter Fehler nach dem Claim (createStubFile, enrichVideoCritical
+      // wirft, DB-Fehler beim Finalisieren, …): Claim zurücksetzen, damit der
+      // Tab wieder bindbar ist, dann propagieren (an die Error-Boundary).
+      debugBind("post-claim error, resetting claim: %s", (e as Error).message)
+      await resetClaim()
+      throw e
     }
   })
 

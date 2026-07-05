@@ -27,6 +27,7 @@ import {
 import { prisma } from "@/data/prisma"
 import { prisma as ytPrisma } from "@repo/yt-notes-scripts/db"
 import type { TabModel } from "@/generated/prisma/models/Tab"
+import { deriveBindingInProgress } from "@/lib/binding-progress"
 
 const clientIdSchema = z.string().trim().min(1)
 const selectTabInputSchema = z.object({
@@ -55,6 +56,7 @@ export function toTabSnapshot(tab: TabModel): TabSnapshot {
     mode: tab.mode,
     youtubeId: tab.youtubeId,
     youtubeReused: tab.youtubeReused,
+    bindingInProgress: deriveBindingInProgress(tab.bindingStartedAt),
   }
 }
 

@@ -40,6 +40,9 @@ model Tab {
   mode      TabMode @default(private)
   youtubeId String? @map("youtube_id")
   youtubeReused Boolean @default(false) @map("youtube_reused")
+  // Set atomically when a YT-bind claims the tab, cleared on success/rollback.
+  // Durable marker so a reloaded client re-derives the in-progress spinner.
+  bindingStartedAt DateTime? @map("binding_started_at")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

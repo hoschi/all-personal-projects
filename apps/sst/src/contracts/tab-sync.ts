@@ -44,6 +44,10 @@ export const tabSnapshotSchema = z.object({
   mode: tabModeSchema,
   youtubeId: z.string().nullable(),
   youtubeReused: z.boolean(),
+  // Durable in-progress flag: true while a YT-bind holds the tab (derived from
+  // the tab's bindingStartedAt with a stale cutoff). Lets a reloaded client
+  // re-derive the spinner instead of losing it with the client-only state.
+  bindingInProgress: z.boolean(),
   // Optional: Transcript-Status für Background-Badge (wird in Phase B verkabelt)
   ytTranscriptStatus: z.string().nullable().optional(),
   ytTranscriptError: z.string().nullable().optional(),

@@ -390,8 +390,13 @@ function RouteComponent() {
   )
   // bindingTabIds überlebt Tab-Wechsel; pendingAction wird durch loadActiveTab
   // („select-tab") überschrieben und ist daher nicht verlässlich.
+  // Zweite Quelle: activeTab.bindingInProgress ist die durable Server-Wahrheit
+  // (aus bindingStartedAt). Nach einem Reload ist bindingTabIds leer — der
+  // Spinner wird dann aus dem geladenen Snapshot re-deriviert, statt verloren
+  // zu gehen. In-Session deckt bindingTabIds die sofortige Optimistik ab.
   const isActiveTabBinding =
-    activeTab !== null && bindingTabIds.has(activeTab.id)
+    activeTab !== null &&
+    (bindingTabIds.has(activeTab.id) || activeTab.bindingInProgress)
   const isActiveTabLocked = isOtherActionPending || isActiveTabBinding
   const canPutText =
     activeTab !== null &&
