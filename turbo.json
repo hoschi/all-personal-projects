@@ -17,7 +17,7 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["generate:prisma", "^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", ".output/**", "dist/**", "!.next/cache/**"]
     },
