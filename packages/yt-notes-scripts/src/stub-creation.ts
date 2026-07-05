@@ -31,7 +31,24 @@ export async function createStubFile(
 ): Promise<CreateStubResult> {
   const filename = sanitizeFilename(input.video.title)
   const channelDir = sanitizeFilename(input.video.channel.name)
-  const relPath = `youtube/${channelDir}/${filename}.md`
+  const baseRelPath = `youtube/${channelDir}/${filename}.md`
+
+  // Two videos with different youtubeId can sanitize to the same
+  // title + channel, and thus the same basename. Without disambiguation the
+  // second video would find the first video's stub already on disk
+  // (existsSync short-circuits the write) yet still upsert a note_link row at
+  // that shared filePath — pointing the second video's DB record at the first
+  // video's content. Detect that collision against the note_link table and,
+  // only then, embed the youtubeId in the basename. A unique basename (or a
+  // re-run for the same youtubeId) keeps the unsuffixed path, so existing
+  // on-disk files are never renamed and the result stays idempotent.
+  const existingLink = await input.prisma.noteLink.findFirst({
+    where: { vault: input.vaultName, filePath: baseRelPath },
+  })
+  const relPath =
+    existingLink && existingLink.youtubeId !== input.video.youtubeId
+      ? `youtube/${channelDir}/${filename}-${input.video.youtubeId}.md`
+      : baseRelPath
   const absPath = join(input.vaultRoot, relPath)
 
   if (!existsSync(absPath)) {
