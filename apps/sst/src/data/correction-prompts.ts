@@ -17,6 +17,11 @@ export interface WorkPromptInput {
 export function buildPrivatePrompt(input: PrivatePromptInput): string {
   const contextBlock =
     input.contextText.trim().length > 0 ? input.contextText : "(noch nichts)"
+  // NOTE: shared boilerplate (intro, "AKTIV ERLAUBT", rule blocks, "VERBOTEN") —
+  // keep in sync with buildWorkPrompt. Deliberately NOT extracted into shared
+  // constants so each prompt reads as one self-contained block. buildWorkPrompt
+  // intentionally diverges by inserting the YT-context priority rule (its rule 3)
+  // and shifting the subsequent rule numbering.
   return [
     "Du glättest Whisper-Diktate (Deutsch, Themen: KI, Software, Tools, YouTube-Notizen) zu lesbarem Text. Aktive Rolle: nicht nur Punkte setzen, sondern Grammatik, Satzbau und Eigennamen reparieren — ohne den Inhalt zu verändern.",
     "",
@@ -72,6 +77,12 @@ export function buildWorkPrompt(input: WorkPromptInput): string {
   const entitiesList =
     input.ytContext.namedEntities.map((e) => `- ${e}`).join("\n") || "(keine)"
 
+  // NOTE: shared boilerplate (intro, "AKTIV ERLAUBT", rule blocks, "VERBOTEN") —
+  // keep in sync with buildPrivatePrompt. Deliberately NOT extracted into shared
+  // constants so each prompt reads as one self-contained block. This builder
+  // intentionally diverges: it adds the YT-context priority rule (rule 3) + the
+  // resulting numbering shift, references "YT-Kontext" in the phonetic rule, and
+  // appends the YT-context / ASR-notes sections.
   return [
     "Du glättest Whisper-Diktate (Deutsch, Themen: KI, Software, Tools, YouTube-Notizen zu Fachvideos) zu lesbarem Text. Aktive Rolle: nicht nur Punkte setzen, sondern Grammatik, Satzbau und Eigennamen reparieren — ohne den Inhalt zu verändern.",
     "",
@@ -84,26 +95,25 @@ export function buildWorkPrompt(input: WorkPromptInput): string {
     "REGELN — in dieser Reihenfolge anwenden:",
     "",
     '1. Diktier-Befehle als Wörter → Satzzeichen (NUR wenn das Wort isoliert zwischen normalen Satz-Bestandteilen steht; nicht z.B. "auf den Punkt kommen"):',
-    "   Punkt → . | Komma → , | Doppelpunkt → : | Fragezeichen → ? | Ausrufezeichen → !",
-    "   | Klammer auf → ( | Klammer zu → )",
+    "   Punkt → . | Komma → , | Doppelpunkt → : | Fragezeichen → ? | Ausrufezeichen → ! | Klammer auf → ( | Klammer zu → )",
     '   Beispiel: "hat Punkt dann kann" → "hat. Dann kann".',
     "",
-    '2. "ki" als Akronym → "KI" (z.B. "ki-agent" → "KI-Agent"). NICHT in Wikilinks/Code.',
+    '2. "ki" als Akronym → "KI" (z.B. "ki-agent" → "KI-Agent", "mit ki" → "mit KI"). NICHT in Wikilinks/Code/URLs.',
     "",
     "3. EIGENNAMEN aus dem YT-KONTEXT (unten) haben Vorrang über generische Schreibweisen.",
     "   Tool-/Personen-/Marken-/Feature-Namen aus der Liste exakt so übernehmen — auch wenn das Wort isoliert generisch wirkt (z.B. 'handoff', 'compact', 'Skill' können im YT-Kontext konkrete Befehle/Features sein).",
     "",
-    "4. Deutsche Substantive großschreiben (Kontext, Sprachmodell, Wissensgraph,",
-    "   Kalendertermin etc.). Etablierte Anglizismen bleiben klein: workflow, template,",
-    "   prompt, framework, chunk.",
+    "4. Deutsche Substantive großschreiben:",
+    "   kontext → Kontext, sprachmodell → Sprachmodell, wissensgraph → Wissensgraph, softwareentwicklung → Softwareentwicklung, kalendertermin → Kalendertermin.",
+    "   Etablierte Anglizismen bleiben klein: workflow, template, prompt, framework, chunk.",
     "",
-    "5. Satzanfang nach Punkt großschreiben.",
+    '5. Satzanfang nach Punkt großschreiben: "funktioniert. wenn ich" → "funktioniert. Wenn ich".',
     "",
     "6. Phonetisch-ähnliche Korrekturen wenn ALLE drei Bedingungen erfüllt sind:",
     "   (a) das ursprüngliche Wort ergibt im Kontext keinen Sinn UND",
     "   (b) das Ersatzwort klingt phonetisch sehr ähnlich UND",
     "   (c) der YT-Kontext stützt das Ersatzwort eindeutig.",
-    '   Beispiele: terministisch → deterministisch, Jupiter → Jupyter, "im bettings" → Embeddings, "KV Cash" → "KV Cache", ephermal → ephemeral, "Hand-Off" → handoff (wenn YT-Entity-Liste "handoff" enthält).',
+    '   Beispiele: terministisch → deterministisch, Jupiter → Jupyter, "im bettings" → Embeddings, "KV Cash" → "KV Cache", Looperzeugt → "Loop erzeugt", anpreißen → anpreisen, ephermal → ephemeral, "Hand-Off" → handoff (wenn YT-Entity-Liste "handoff" enthält).',
     "   Wenn nur 2 von 3 Bedingungen erfüllt: NICHT ändern.",
     "",
     "VERBOTEN (Inhalt bleibt unangetastet):",
