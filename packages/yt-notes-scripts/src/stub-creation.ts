@@ -73,5 +73,13 @@ function renderTemplate(
   template: string,
   fields: Record<string, string>,
 ): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => fields[key] ?? "")
+  // Unknown placeholders (e.g. a typo in the user-editable vault template) are
+  // left untouched so they stay visible in the output instead of silently
+  // collapsing to an empty string. A key that is present but empty (like
+  // publishDate for videos without a publish date) still renders as "".
+  return template.replace(/\{\{(\w+)\}\}/g, (placeholder, key) =>
+    Object.prototype.hasOwnProperty.call(fields, key)
+      ? fields[key]
+      : placeholder,
+  )
 }

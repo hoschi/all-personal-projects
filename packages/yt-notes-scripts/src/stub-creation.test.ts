@@ -21,7 +21,18 @@ const fakePrisma = {
   },
 } as never
 
-import { createStubFile } from "./stub-creation"
+import { createStubFile, type CreateStubInput } from "./stub-creation"
+
+function makeVideo(
+  overrides: Partial<CreateStubInput["video"]> = {},
+): CreateStubInput["video"] {
+  return {
+    youtubeId: "abc123XYZ-1",
+    title: "Test Video Title",
+    channel: { name: "Test Channel" },
+    ...overrides,
+  }
+}
 
 let vaultRoot: string
 let templatePath: string
@@ -53,11 +64,7 @@ describe("createStubFile", () => {
   it("erzeugt MD-Datei mit gefilltem Template", async () => {
     const result = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
-        title: "Test Video Title",
-        channel: { name: "Test Channel" },
-      },
+      video: makeVideo(),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -73,11 +80,7 @@ describe("createStubFile", () => {
   it("schreibt note_link-Eintrag in DB", async () => {
     await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
-        title: "Test Video Title",
-        channel: { name: "Test Channel" },
-      },
+      video: makeVideo(),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -101,11 +104,7 @@ describe("createStubFile", () => {
   it("ist idempotent — zweiter Aufruf überschreibt nicht", async () => {
     const result1 = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
-        title: "Test Video Title",
-        channel: { name: "Test Channel" },
-      },
+      video: makeVideo(),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -113,11 +112,7 @@ describe("createStubFile", () => {
     writeFileSync(result1.absPath, "USER EDIT", "utf-8")
     const result2 = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
-        title: "Test Video Title",
-        channel: { name: "Test Channel" },
-      },
+      video: makeVideo(),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -134,12 +129,10 @@ describe("createStubFile", () => {
     )
     const result = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
+      video: makeVideo({
         title: "Date Test Video",
-        channel: { name: "Test Channel" },
         publishedAt: new Date("2024-03-15T10:00:00Z"),
-      },
+      }),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -156,12 +149,11 @@ describe("createStubFile", () => {
     )
     const result = await createStubFile({
       prisma: fakePrisma,
-      video: {
+      video: makeVideo({
         youtubeId: "abc123XYZ-2",
         title: "No Date Video",
-        channel: { name: "Test Channel" },
         publishedAt: null,
-      },
+      }),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -174,11 +166,9 @@ describe("createStubFile", () => {
     writeFileSync(templatePath, `{{youtubeUrl}}`, "utf-8")
     const result = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
+      video: makeVideo({
         title: "URL Format Test",
-        channel: { name: "Test Channel" },
-      },
+      }),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,
@@ -190,11 +180,9 @@ describe("createStubFile", () => {
   it("sanitisiert Filenames mit Slashes/Doppelpunkten", async () => {
     const result = await createStubFile({
       prisma: fakePrisma,
-      video: {
-        youtubeId: "abc123XYZ-1",
+      video: makeVideo({
         title: "Title: with / forbidden \\ chars?",
-        channel: { name: "Test Channel" },
-      },
+      }),
       vaultRoot,
       vaultName: "stefans-vault/shared",
       templatePath,

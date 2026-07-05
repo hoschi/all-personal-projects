@@ -26,6 +26,7 @@ export async function findStubPath(
       filePath: { startsWith: "youtube/" },
     },
     include: { vaultRef: true },
+    orderBy: { id: "asc" },
   })
   for (const link of links) {
     if (!link?.vaultRef?.rootPath) continue

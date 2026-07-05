@@ -231,17 +231,24 @@ function* walkMarkdownFiles(root: string): Generator<string> {
 
 interface VaultIndex {
   byBasename: Map<string, string>
+  /** Lowercased keys that map to more than one file — lookups must not silently pick one. */
+  ambiguous: Set<string>
 }
 
 function buildVaultIndex(root: string): VaultIndex {
   const byBasename = new Map<string, string>()
+  const ambiguous = new Set<string>()
   for (const abs of walkMarkdownFiles(root)) {
     const rel = relative(root, abs).split(sep).join("/")
     const base = rel.replace(/\.md$/i, "").split("/").pop() ?? ""
     const key = base.toLowerCase()
-    if (!byBasename.has(key)) byBasename.set(key, rel)
+    if (byBasename.has(key)) {
+      ambiguous.add(key)
+    } else {
+      byBasename.set(key, rel)
+    }
   }
-  return { byBasename }
+  return { byBasename, ambiguous }
 }
 
 export function makeFsResolver(
@@ -251,20 +258,39 @@ export function makeFsResolver(
   const sharedIdx = buildVaultIndex(sharedVaultRoot)
   const kbIdx = buildVaultIndex(kbVaultRoot)
   return {
-    existsInShared: (target) => sharedIdx.byBasename.has(target.toLowerCase()),
+    existsInShared: (target) => {
+      const key = target.toLowerCase()
+      if (sharedIdx.ambiguous.has(key)) {
+        console.warn(
+          `[cross-vault-validator] Basename collision in shared vault for "${target}" — treating as unresolvable`,
+        )
+        return false
+      }
+      return sharedIdx.byBasename.has(key)
+    },
     findInKb: (target) => {
-      const filePath = kbIdx.byBasename.get(target.toLowerCase())
+      const key = target.toLowerCase()
+      if (kbIdx.ambiguous.has(key)) {
+        console.warn(
+          `[cross-vault-validator] Basename collision in KB vault for "${target}" — treating as unresolvable`,
+        )
+        return null
+      }
+      const filePath = kbIdx.byBasename.get(key)
       return filePath ? { filePath } : null
     },
   }
 }
 
-export function formatRetryHint(broken: BrokenLink[]): string {
+export function formatRetryHint(
+  broken: BrokenLink[],
+  sharedVaultName = "test",
+): string {
   if (broken.length === 0) return ""
   const lines = broken.map((b) => {
     if (b.kind === "markdown-intra-vault") {
       if (b.existsInShared) {
-        return `- Markdown-Link auf \`${b.target}\` mit relativem Vault-Pfad ist verboten. Die Datei liegt im selben Vault \`test\` (shared) → schreibe sie als Wikilink [[${b.target}]] (KEIN [text](…/datei.md)).`
+        return `- Markdown-Link auf \`${b.target}\` mit relativem Vault-Pfad ist verboten. Die Datei liegt im selben Vault \`${sharedVaultName}\` (shared) → schreibe sie als Wikilink [[${b.target}]] (KEIN [text](…/datei.md)).`
       }
       if (b.kbFilePath) {
         return `- Markdown-Link auf \`${b.target}\` mit relativem Vault-Pfad ist verboten. Die Datei liegt im KB-Vault als \`${b.kbFilePath}\` → schreibe [${b.target}](obsidian://open?vault=knowledge-base&file=${encodeObsidianFile(b.kbFilePath)}).`
@@ -274,7 +300,7 @@ export function formatRetryHint(broken: BrokenLink[]): string {
     if (b.kbFilePath) {
       return `- [[${b.target}]] → existiert im KB-Vault (knowledge-base) als \`${b.kbFilePath}\`. Schreibe stattdessen [${b.target}](obsidian://open?vault=knowledge-base&file=${encodeObsidianFile(b.kbFilePath)})`
     }
-    return `- [[${b.target}]] → existiert weder in test (shared) noch in knowledge-base. Entferne den Wikilink (Klartext lassen).`
+    return `- [[${b.target}]] → existiert weder in ${sharedVaultName} (shared) noch in knowledge-base. Entferne den Wikilink (Klartext lassen).`
   })
-  return `Folgende Links lösen NICHT korrekt im Ziel-Vault \`test\` (shared) auf:\n${lines.join("\n")}`
+  return `Folgende Links lösen NICHT korrekt im Ziel-Vault \`${sharedVaultName}\` (shared) auf:\n${lines.join("\n")}`
 }
