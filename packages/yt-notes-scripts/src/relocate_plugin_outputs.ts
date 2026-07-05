@@ -2,7 +2,8 @@ import { Command } from "commander"
 import { prisma, USER_KB_VAULT_NAME } from "./db"
 import { planMove, type PlanResult } from "./utils/relocator-planner"
 import * as fs from "fs"
-import { execSync } from "child_process"
+import { execFileSync } from "child_process"
+import { confirm } from "@inquirer/prompts"
 import * as path from "path"
 import {
   findUrlsToStub,
@@ -63,9 +64,11 @@ const runSanity = async (): Promise<{
 
   // obsidian CLI Smoke
   try {
-    execSync(`obsidian vault=${sharedVaultName} search query=youtube limit=1`, {
-      stdio: "pipe",
-    })
+    execFileSync(
+      "obsidian",
+      [`vault=${sharedVaultName}`, "search", "query=youtube", "limit=1"],
+      { stdio: "pipe" },
+    )
   } catch {
     console.error(
       `[sanity] FAIL: obsidian CLI not reachable (vault '${sharedVaultName}'). ` +
@@ -386,9 +389,14 @@ const runLive = async (
       path.join(targetVaultRootPath, c.vaultRelativePath),
     )
     fs.mkdirSync(targetAbsDir, { recursive: true })
-    const cmd = `obsidian vault=${ctx.sharedVaultName} move path="${sourceVaultRelative}" to="${targetVaultRelative}"`
+    const obsidianArgs = [
+      `vault=${ctx.sharedVaultName}`,
+      "move",
+      `path=${sourceVaultRelative}`,
+      `to=${targetVaultRelative}`,
+    ]
     try {
-      execSync(cmd, { stdio: "pipe" })
+      execFileSync("obsidian", obsidianArgs, { stdio: "pipe" })
     } catch (err) {
       console.error(
         `\nFATAL: obsidian move failed for ${sourceVaultRelative} → ${targetVaultRelative}.\n` +
@@ -411,7 +419,7 @@ const runLive = async (
       console.error(
         `\nFATAL: obsidian move reported success but target file is missing.\n` +
           `Expected: ${expectedTargetAbsPath}\n` +
-          `Command:  ${cmd}\n` +
+          `Args:  ${["obsidian", ...obsidianArgs].join(" ")}\n` +
           `User-KB patches already written (${sets.length} article(s)).\n` +
           `Manual cleanup required:\n` +
           `  1. Inspect user-KB diffs (git diff in your KB repo)\n` +
@@ -456,6 +464,7 @@ program
     "--include <list>",
     "Restrict to channels matching comma-separated names",
   )
+  .option("-y, --yes", "Skip confirmation prompt (auto-confirm live run)")
   .action(async (opts) => {
     const ctx = await runSanity()
     console.log("[sanity] OK", {
@@ -487,6 +496,26 @@ program
       printDryRunReport(candidates, userKbPatchesPerCandidate)
       await prisma.$disconnect()
       return
+    }
+
+    // Confirmation gate: require explicit consent before destructive live run
+    if (!opts.yes) {
+      if (!process.stdin.isTTY) {
+        console.error(
+          "[live] Non-interactive session and --yes not provided. Aborting.",
+        )
+        await prisma.$disconnect()
+        process.exit(1)
+      }
+      const confirmed = await confirm({
+        message: `Execute ${candidates.length} live move(s)? This writes files and updates the DB.`,
+        default: false,
+      })
+      if (!confirmed) {
+        console.log("[live] Aborted.")
+        await prisma.$disconnect()
+        return
+      }
     }
 
     const summary = await runLive(

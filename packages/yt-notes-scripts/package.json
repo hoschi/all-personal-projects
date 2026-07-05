@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@aj-archipelago/subvibe": "^1.0.12",
+    "@inquirer/prompts": "^8.2.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "axios": "^1.13.1",

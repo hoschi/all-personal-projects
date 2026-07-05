@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { confirm } from "@inquirer/prompts"
 import { Command } from "commander"
 import { Prisma } from "./generated/prisma/client"
 import { prisma } from "./db"
@@ -81,6 +82,7 @@ async function runMode(
         },
       },
       select: { youtubeId: true },
+      take: limit,
     })
     await prisma.transcript.updateMany({
       where: { youtubeId: { in: criticalErrors.map((v) => v.youtubeId) } },
@@ -94,6 +96,10 @@ async function runMode(
     // Background-Phase-Fehler (Pass 2 / Pass 5 / Stub-Write): audited_md
     // recyclen — Reset auf critical_ok triggert shouldSkip-Idempotenz in
     // enrichVideoCritical, dann läuft enrichVideoBackground() neu.
+    const remaining =
+      limit !== undefined
+        ? Math.max(0, limit - criticalErrors.length)
+        : undefined
     const backgroundErrors = await prisma.video.findMany({
       where: {
         channel: { classification },
@@ -104,6 +110,7 @@ async function runMode(
         },
       },
       select: { youtubeId: true },
+      take: remaining,
     })
     await prisma.transcript.updateMany({
       where: { youtubeId: { in: backgroundErrors.map((v) => v.youtubeId) } },
@@ -111,9 +118,6 @@ async function runMode(
     })
 
     videos = [...criticalErrors, ...backgroundErrors]
-    if (limit !== undefined) {
-      videos = videos.slice(0, limit)
-    }
   } else if (mode === "bulk") {
     videos = await prisma.video.findMany({
       where: { channel: { classification } },
@@ -181,6 +185,10 @@ program
     "Max. n Videos pro Lauf verarbeiten (zählt OK + Skip + Fail). Sinnvoll im Nightly, damit ein Lauf zeitlich bounded ist.",
     (v) => parseInt(v, 10),
   )
+  .option(
+    "-y, --yes",
+    "Destructive Modes ohne interaktive Bestätigung ausführen",
+  )
 
 program.action(async (opts) => {
   const classification = opts.classification as Classification
@@ -191,6 +199,35 @@ program.action(async (opts) => {
     process.exit(2)
   }
   const limit = typeof opts.limit === "number" ? opts.limit : undefined
+
+  // Confirmation gate für destructive Modi (--bulk, --retry-errors,
+  // --retry-post-critical-errors): setzen DB-State für viele Videos zurück.
+  const isDestructive =
+    opts.bulk || opts.retryErrors || opts.retryPostCriticalErrors
+  if (isDestructive && !opts.yes) {
+    if (!process.stdin.isTTY) {
+      console.error(
+        "Destructive mode (--bulk / --retry-errors / --retry-post-critical-errors) requires --yes in non-interactive environments.",
+      )
+      await prisma.$disconnect()
+      process.exit(1)
+    }
+    const modeLabel = opts.bulk
+      ? "--bulk"
+      : opts.retryErrors
+        ? "--retry-errors"
+        : "--retry-post-critical-errors"
+    const confirmed = await confirm({
+      message: `${modeLabel} setzt DB-State für potenziell viele Videos zurück. Fortfahren?`,
+      default: false,
+    })
+    if (!confirmed) {
+      console.log("Abgebrochen.")
+      await prisma.$disconnect()
+      process.exit(0)
+    }
+  }
+
   if (opts.id) await runMode("id", classification, opts.id, limit)
   else if (opts.pending)
     await runMode("pending", classification, undefined, limit)

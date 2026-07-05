@@ -3,10 +3,10 @@ import { Command } from "commander"
 import { readFile, writeFile, appendFile } from "node:fs/promises"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { exec } from "node:child_process"
+import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 export const CRITICAL_FILES = [
   "src/utils/parser.ts",
@@ -48,8 +48,10 @@ export function classifyDrift(files: string[]): DriftClassification {
 }
 
 async function fetchHeadSha(): Promise<string> {
-  const { stdout } = await execAsync(
-    `gh api repos/${UPSTREAM_REPO}/commits/master --jq .sha`,
+  const { stdout } = await execFileAsync(
+    "gh",
+    ["api", `repos/${UPSTREAM_REPO}/commits/master`, "--jq", ".sha"],
+    { timeout: 30_000 },
   )
   return stdout.trim()
 }
@@ -58,8 +60,15 @@ async function fetchChangedFiles(
   baseline: string,
   head: string,
 ): Promise<string[]> {
-  const { stdout } = await execAsync(
-    `gh api repos/${UPSTREAM_REPO}/compare/${baseline}...${head} --jq '.files[].filename'`,
+  const { stdout } = await execFileAsync(
+    "gh",
+    [
+      "api",
+      `repos/${UPSTREAM_REPO}/compare/${baseline}...${head}`,
+      "--jq",
+      ".files[].filename",
+    ],
+    { timeout: 30_000 },
   )
   return parseChangedFiles(stdout)
 }
@@ -102,7 +111,7 @@ async function main() {
 
   // gh-Auth-Check
   try {
-    await execAsync("gh auth status")
+    await execFileAsync("gh", ["auth", "status"], { timeout: 10_000 })
   } catch {
     console.error(
       "check-plugin-drift: gh-Auth fehlt. Bitte `gh auth login` ausführen.",
@@ -134,7 +143,7 @@ async function main() {
   console.log(`\nCompare-URL: ${compareUrl}`)
 
   if (opts.showDiff) {
-    await execAsync(`open ${compareUrl}`)
+    await execFileAsync("open", [compareUrl], { timeout: 10_000 })
   }
 
   if (opts.acceptBaseline) {

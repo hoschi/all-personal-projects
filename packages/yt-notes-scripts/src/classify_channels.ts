@@ -61,14 +61,20 @@ const runPhaseA_Backfill = async (reviewAuto: boolean): Promise<number> => {
     } catch (e) {
       // Nur bei echtem 404 (Video gelöscht/privat) als unavailable markieren,
       // damit es beim nächsten Lauf nicht erneut Quota verbrennt. Bei 403
-      // (Quota erschöpft) und Netzwerk-/Timeout-Fehlern NICHT markieren —
-      // sonst würden bei Quota-Ende fälschlich tausende Videos abgestempelt.
+      // (Quota erschöpft) die Schleife sofort abbrechen — weitere Requests
+      // würden ebenso scheitern und nur Noise produzieren. Netzwerk-/Timeout-
+      // Fehler überspringen ohne unavailable-Flag.
       if (e instanceof HttpError && e.status === 404) {
         await prisma.video.update({
           where: { youtubeId: v.youtubeId },
           data: { unavailable: true },
         })
         console.warn(`[phase-a] mark unavailable ${v.youtubeId}: ${e.message}`)
+      } else if (e instanceof HttpError && e.status === 403) {
+        console.warn(
+          `[phase-a] quota exhausted — stopping at ${v.youtubeId}: ${e.message}`,
+        )
+        break
       } else {
         console.warn(`[phase-a] skip ${v.youtubeId}: ${(e as Error).message}`)
       }
