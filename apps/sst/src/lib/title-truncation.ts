@@ -1,6 +1,7 @@
-const ELLIPSIS = "…"
+const ELLIPSIS = "…" as const
 
 export function truncateTitle(s: string, maxLength = 12): string {
-  if (s.length <= maxLength) return s
-  return s.slice(0, maxLength) + ELLIPSIS
+  const chars = Array.from(s)
+  if (chars.length <= maxLength) return s
+  return chars.slice(0, maxLength).join("") + ELLIPSIS
 }

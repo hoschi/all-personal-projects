@@ -227,21 +227,30 @@ async function writeTabFieldWithExpectedVersion(
   if (input.field === "mode") {
     const parsedMode = tabModeSchema.parse(input.value)
 
-    const existingTab = await prisma.tab.findUnique({
+    // updateMany (not findUnique + update) so a delete racing between the
+    // existence check and the write yields not_found instead of a thrown P2025.
+    const updateResult = await prisma.tab.updateMany({
       where: { id: input.tabId },
+      data: { mode: parsedMode },
     })
 
-    if (!existingTab) {
+    if (updateResult.count === 0) {
       return {
         status: "not_found",
         tabId: input.tabId,
       }
     }
 
-    const updatedTab = await prisma.tab.update({
+    const updatedTab = await prisma.tab.findUnique({
       where: { id: input.tabId },
-      data: { mode: parsedMode },
     })
+
+    if (!updatedTab) {
+      return {
+        status: "not_found",
+        tabId: input.tabId,
+      }
+    }
 
     await upsertSyncStateFromTab({
       tab: updatedTab,
