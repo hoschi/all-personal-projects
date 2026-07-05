@@ -18,3 +18,30 @@ export function deriveBindingInProgress(
   }
   return bindingStartedAt.getTime() > now.getTime() - BINDING_STALE_CUTOFF_MS
 }
+
+// Where-clause for the atomic bind-claim (used by bindYoutubeToTabFn's
+// updateMany). A tab is claimable when it is in work mode AND either unbound
+// (youtubeId null) OR its bindingStartedAt marker is older than the stale
+// cutoff. The stale branch lets a fresh bind RECLAIM a tab whose previous bind
+// died after the claim but before finalize/reset — without it, such a tab would
+// stay permanently un-bindable. Semantics (mode work assumed):
+//   - finalized (youtubeId set, bindingStartedAt null): `lt` on NULL is never
+//     true → not claimable (correct, never steal a bound tab).
+//   - in-progress (recent bindingStartedAt): not older than cutoff → not
+//     claimable (correct, never steal a live bind).
+//   - stale/crashed (old bindingStartedAt): older than cutoff → claimable.
+// Extracted (prisma-free) so the where-clause is unit-testable without a DB.
+export function buildStaleClaimWhere(tabId: string, now: Date = new Date()) {
+  return {
+    id: tabId,
+    mode: "work" as const,
+    OR: [
+      { youtubeId: null },
+      {
+        bindingStartedAt: {
+          lt: new Date(now.getTime() - BINDING_STALE_CUTOFF_MS),
+        },
+      },
+    ],
+  }
+}

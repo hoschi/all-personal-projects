@@ -17,6 +17,7 @@ import { readFile, writeFile } from "node:fs/promises"
 import { toTabSnapshot } from "./tab-sync-actions"
 import { findH2Sections } from "@repo/yt-notes-scripts/markdown-parser"
 import { commitFile } from "@repo/yt-notes-scripts/git-commit-helper"
+import { buildStaleClaimWhere } from "@/lib/binding-progress"
 
 const debugValidate = Debug("app:yt:server:validate")
 const debugBind = Debug("app:yt:server:bind")
@@ -305,15 +306,18 @@ export const bindYoutubeToTabFn = createServerFn({ method: "POST" })
 
     // 2. Atomarer Claim VOR der minutenlangen Critical-Phase: youtube_id +
     // bindingStartedAt in einem updateMany setzen, das nur greift, solange der
-    // Tab noch ungebunden und im Work-Modus ist. Das schließt die TOCTOU-Race
-    // (zwei parallele Binds auf denselben Tab → nur einer gewinnt, count===0
-    // verliert) und macht den In-Progress-Zustand durable: ein neu geladener
-    // Client re-deriviert den Spinner aus bindingStartedAt. Ab hier ist
-    // youtube_id gesetzt — JEDER Fehler-/Abbruchpfad MUSS den Claim
-    // zurücksetzen (resetClaim), sonst bliebe der Tab fälschlich "gebunden".
+    // Tab im Work-Modus und entweder ungebunden ODER sein bindingStartedAt-
+    // Marker älter als der Stale-Cutoff ist (buildStaleClaimWhere). Das schließt
+    // die TOCTOU-Race (zwei parallele Binds → nur einer gewinnt, count===0
+    // verliert), macht den In-Progress-Zustand durable (ein neu geladener Client
+    // re-deriviert den Spinner aus bindingStartedAt) und erlaubt das Reclaim
+    // eines Tabs, dessen vorheriger Bind nach dem Claim abgestürzt ist (sonst
+    // bliebe er dauerhaft un-bindbar). Ab hier ist youtube_id gesetzt — JEDER
+    // Fehler-/Abbruchpfad MUSS den Claim zurücksetzen (resetClaim), sonst bliebe
+    // der Tab fälschlich "gebunden".
     const claimedAt = new Date()
     const claimed = await sstPrisma.tab.updateMany({
-      where: { id: data.tabId, youtubeId: null, mode: "work" },
+      where: buildStaleClaimWhere(data.tabId, claimedAt),
       data: { youtubeId: data.youtubeId, bindingStartedAt: claimedAt },
     })
     if (claimed.count === 0) {
