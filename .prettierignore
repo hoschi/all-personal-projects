@@ -5,6 +5,8 @@ coverage
 **/routeTree.gen.ts
 **/next-env.d.ts
 apps/*/src/generated/**
+packages/*/src/generated/**
+.playwright-cli
 **/.output/**
 package-lock.json
 yarn.lock

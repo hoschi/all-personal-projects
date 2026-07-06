@@ -531,10 +531,6 @@ export type TabSyncStateUncheckedUpdateManyWithoutTabNestedInput = {
   deleteMany?: Prisma.TabSyncStateScalarWhereInput | Prisma.TabSyncStateScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type TabSyncStateCreateWithoutTabInput = {
   id?: string
   clientId: string

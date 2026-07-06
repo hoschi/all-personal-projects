@@ -678,6 +678,10 @@ export const TabScalarFieldEnum = {
   titleUpdatedAt: 'titleUpdatedAt',
   topTextUpdatedAt: 'topTextUpdatedAt',
   bottomTextUpdatedAt: 'bottomTextUpdatedAt',
+  mode: 'mode',
+  youtubeId: 'youtubeId',
+  youtubeReused: 'youtubeReused',
+  bindingStartedAt: 'bindingStartedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -804,6 +808,27 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TabMode'
+ */
+export type EnumTabModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TabMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TabMode[]'
+ */
+export type ListEnumTabModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TabMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

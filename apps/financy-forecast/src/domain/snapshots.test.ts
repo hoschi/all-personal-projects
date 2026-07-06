@@ -1,18 +1,13 @@
 import { addMonths, startOfMonth, subMonths } from "date-fns"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test"
 
-const { mockedNow } = vi.hoisted(() => ({
-  mockedNow: vi.fn<() => Date>(),
+const mockedNow = mock<() => Date>(() => new Date())
+
+// mock.module() patcht in Bun bereits geladene Aufrufer retroaktiv, daher
+// steht dieser Call vor dem Import von ./snapshots, damit now() den Mock sieht.
+mock.module("@/lib/utils", () => ({
+  now: mockedNow,
 }))
-
-vi.mock("@/lib/utils", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/lib/utils")>()
-
-  return {
-    ...original,
-    now: mockedNow,
-  }
-})
 
 import {
   calculateApprovable,

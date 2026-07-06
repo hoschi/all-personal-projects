@@ -56,6 +56,21 @@ const config = defineConfig({
       { find: "use-sync-external-store/shim/index.js", replacement: "react" },
     ],
   },
+  build: {
+    rollupOptions: {
+      external: ["bun"],
+    },
+  },
+  ssr: {
+    external: ["bun"],
+  },
+  environments: {
+    ssr: {
+      resolve: {
+        external: ["bun"],
+      },
+    },
+  },
 })
 
 export default config

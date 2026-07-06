@@ -1,202 +1,199 @@
 import * as fs from "fs/promises"
 import * as path from "path"
-import * as dotenv from "dotenv"
-import { Client } from "pg"
-import { z } from "zod"
+import { Command } from "commander"
+import { prisma } from "./db"
+import { parseVideoId } from "./utils/parser"
 
-// https://www.perplexity.ai/search/du-bist-eine-coding-ki-fur-ein-XTsxFCmKTn2oAEsk_K_S8g#1
-
-// Lade .env
-dotenv.config()
-
-const DATABASE_URL = process.env.DATABASE_URL
-if (!DATABASE_URL) {
-  console.error("DATABASE_URL nicht gesetzt")
-  process.exit(2)
-}
-
-// --- SCHEMAS ---
-const NoteLinkSchema = z.object({
-  youtube_id: z.string().min(5),
-  title: z.string().optional(),
-  file_name: z.string().min(1),
-})
-type NoteLink = z.infer<typeof NoteLinkSchema>
-
-// -- Hilfsfunktionen --
 const isYouTubeUrl = (url: string): boolean =>
   /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(url)
 
-const extractYouTubeId = (url: string): string | null => {
-  // Unterstützung für verschiedene URL-Formate
-  let m = url.match(/[?&]v=([\w-]{11})/)
-  if (m && m[1]) return m[1]
-  m = url.match(/youtube\.com\/shorts\/([\w-]{11})/)
-  if (m && m[1]) return m[1]
-  m = url.match(/youtu\.be\/([\w-]{11})/)
-  if (m && m[1]) return m[1]
-  m = url.match(/youtube\.com\/embed\/([\w-]{11})/)
-  if (m && m[1]) return m[1]
-  return null
-}
-
 const extractFirstH1 = (md: string): string | undefined =>
-  (md.match(/^# (.+)$/m) || [])[1]
+  (md.match(/^# (.+)$/m) ?? [])[1]
 
 const findAllMarkdownFiles = async (dir: string): Promise<string[]> => {
   const entries = await fs.readdir(dir, { withFileTypes: true })
-  const files = await Promise.all(
+  const nested = await Promise.all(
     entries.map(async (entry) => {
       const res = path.resolve(dir, entry.name)
-      return entry.isDirectory()
-        ? findAllMarkdownFiles(res)
-        : res.endsWith(".md")
-          ? [res]
-          : []
+      if (entry.isDirectory()) return findAllMarkdownFiles(res)
+      return res.endsWith(".md") ? [res] : []
     }),
   )
-  return files.flat()
+  return nested.flat()
 }
 
-const extractLinks = (markdown: string): { label: string; url: string }[] => {
-  // Regex für [text](url)
-  const linkRe = /\[([^\]]+)\]\(([^)]+)\)/g
-  const result: { label: string; url: string }[] = []
+const extractLinks = (md: string): Array<{ label: string; url: string }> => {
+  const re = /\[([^\]]+)\]\(([^)]+)\)/g
+  const result: Array<{ label: string; url: string }> = []
   let m: RegExpExecArray | null
-  while ((m = linkRe.exec(markdown))) {
-    result.push({ label: m[1], url: m[2] })
-  }
+  while ((m = re.exec(md))) result.push({ label: m[1], url: m[2] })
   return result
 }
 
-// --- DB LOGIK ---
-const insertNoteLink = async (
-  client: Client,
-  note: NoteLink,
-): Promise<"inserted" | "duplicate" | "title-mismatch"> => {
-  const { youtube_id, title, file_name } = note
-
-  // Prüfe, ob exakt dieser Eintrag schon existiert (youtube_id + title + file_name)
-  const exactMatch = await client.query(
-    "SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND title IS NOT DISTINCT FROM $2 AND file_name = $3",
-    [youtube_id, title ?? null, file_name],
-  )
-
-  if (exactMatch.rows.length > 0) {
-    return "duplicate"
-  }
-
-  // Prüfe, ob YouTube-ID mit anderem title existiert
-  const conflictingRes = await client.query(
-    "SELECT * FROM main.youtube_note_links WHERE youtube_id = $1 AND title IS DISTINCT FROM $2",
-    [youtube_id, title ?? null],
-  )
-
-  if (conflictingRes.rows.length > 0) {
-    return "title-mismatch"
-  }
-
-  // Insert neuen Eintrag
-  await client.query(
-    "INSERT INTO main.youtube_note_links (youtube_id, title, file_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-    [youtube_id, title ?? null, file_name],
-  )
-
-  return "inserted"
+export interface RunImportOpts {
+  dryRun?: boolean
 }
 
-// --- HAUPTLOGIK ---
-const logInfo = (msg: string) => console.log("\x1b[34m[INFO]\x1b[0m", msg)
-const logWarn = (msg: string) => console.warn("\x1b[33m[WARN]\x1b[0m", msg)
-const logErr = (msg: string) => console.error("\x1b[31m[ERR]\x1b[0m", msg)
+export interface RunImportResult {
+  vault: string
+  rootPath: string
+  scannedFiles: number
+  candidates: number
+  nonYoutube: number
+  unparsable: number
+  inserted: number
+  duplicates: number
+  dryRun: boolean
+}
 
-const main = async (): Promise<number> => {
-  const [, , folder] = process.argv
-  if (!folder) {
-    logErr("Ordnername fehlt als Argument.")
-    return 2
+export const runImportForVault = async (
+  vaultName: string,
+  opts: RunImportOpts = {},
+): Promise<RunImportResult> => {
+  const vault = await prisma.vault.findUnique({ where: { name: vaultName } })
+  if (!vault) {
+    throw new Error(
+      `Vault '${vaultName}' not configured in yt.vault. See --help for the seed INSERT.`,
+    )
   }
+  const folder = vault.rootPath
+  console.log(`vault: ${vaultName} → ${folder}`)
+  const files = await findAllMarkdownFiles(folder)
+  console.log(`scanned: ${files.length} markdown files`)
+  let nonYoutube = 0
+  let unparsable = 0
+  const candidates: Array<{
+    youtubeId: string
+    title: string | null
+    filePath: string
+  }> = []
 
-  // DB Connect
-  const client = new Client({ connectionString: DATABASE_URL })
-  await client.connect()
-
-  let inserted = 0
-  let errors = 0
-  const errorMessages: string[] = []
-
-  try {
-    const files = await findAllMarkdownFiles(folder)
-    logInfo(`${files.length} Markdown-Dateien gefunden.`)
-
-    for (const file of files) {
-      const content = await fs.readFile(file, "utf8")
-      const title = extractFirstH1(content)
-      const links = extractLinks(content).filter((l) => l.label === "URL")
-
-      for (const link of links) {
-        const { url } = link
-
-        if (!isYouTubeUrl(url)) {
-          const errorMessage = `${file}: Link kein YouTube-Link: ${url}`
-          errorMessages.push(errorMessage)
-          errors++
-          continue
-        }
-
-        const youtube_id = extractYouTubeId(url)
-        if (!youtube_id) {
-          const errorMessage = `${file}: konnte YouTube-Id nicht extrahieren: ${url}`
-          errorMessages.push(errorMessage)
-          errors++
-          continue
-        }
-
-        const data: NoteLink = {
-          youtube_id,
-          file_name: path.resolve(file),
-          ...(title ? { title } : {}),
-        }
-
-        const parse = NoteLinkSchema.safeParse(data)
-        if (!parse.success) {
-          const errorMessage = `Validierungsfehler: ${JSON.stringify(parse.error)}`
-          errorMessages.push(errorMessage)
-          errors++
-          continue
-        }
-
-        const result = await insertNoteLink(client, data)
-        if (result === "inserted") {
-          logInfo(
-            `DB: Eingefügt: id=${youtube_id}, title=${title}, datei=${file}`,
-          )
-          inserted++
-        } else if (result === "duplicate") {
-          logWarn(
-            `Bereits vorhanden (kein Fehler): id=${youtube_id} / title=${title} / datei=${file}`,
-          )
-        } else if (result === "title-mismatch") {
-          const errorMessage = `Fehler: id ${youtube_id} existiert mit anderem title als "${title}" (in ${file})`
-          errorMessages.push(errorMessage)
-          errors++
-        }
+  for (const file of files) {
+    const content = await fs.readFile(file, "utf8")
+    const title = extractFirstH1(content) ?? null
+    const links = extractLinks(content).filter((l) => l.label === "URL")
+    for (const link of links) {
+      if (!isYouTubeUrl(link.url)) {
+        nonYoutube++
+        console.warn(`[non-youtube] ${file}: ${link.url}`)
+        continue
       }
+      const youtubeId = parseVideoId(link.url)
+      if (!youtubeId) {
+        unparsable++
+        console.warn(`[no-id] ${file}: ${link.url}`)
+        continue
+      }
+      candidates.push({
+        youtubeId,
+        title,
+        filePath: path.relative(folder, file),
+      })
     }
-  } finally {
-    await client.end()
   }
 
-  // Gib alle gesammelten Fehler aus
-  if (errorMessages.length > 0) {
-    logErr("\x1b[31m=== GESAMMELTE FEHLER ===\x1b[0m")
-    errorMessages.forEach((msg, index) => {
-      logErr(`${index + 1}. ${msg}`)
+  console.log(`=== Summary (${vaultName}) ===`)
+  console.log(`candidates: ${candidates.length}`)
+  console.log(`non_youtube: ${nonYoutube}`)
+  console.log(`unparsable:  ${unparsable}`)
+
+  if (opts.dryRun) {
+    console.log(`\n[dry-run] no writes performed`)
+    return {
+      vault: vaultName,
+      rootPath: folder,
+      scannedFiles: files.length,
+      candidates: candidates.length,
+      nonYoutube,
+      unparsable,
+      inserted: 0,
+      duplicates: 0,
+      dryRun: true,
+    }
+  }
+
+  // Ensure video stubs exist (FK constraint)
+  const uniqueIds = Array.from(new Set(candidates.map((c) => c.youtubeId)))
+  for (const id of uniqueIds) {
+    await prisma.video.upsert({
+      where: { youtubeId: id },
+      update: {},
+      create: { youtubeId: id, title: "" },
     })
   }
 
-  logInfo(`\nFertig. Neu eingetragen: ${inserted}. Fehler: ${errors}`)
-  return errors > 0 ? 1 : 0
+  const result = await prisma.noteLink.createMany({
+    data: candidates.map((c) => ({
+      youtubeId: c.youtubeId,
+      title: c.title,
+      filePath: c.filePath,
+      vault: vaultName,
+    })),
+    skipDuplicates: true,
+  })
+
+  console.log(`\ninserted:   ${result.count}`)
+  console.log(`duplicates: ${candidates.length - result.count}`)
+  return {
+    vault: vaultName,
+    rootPath: folder,
+    scannedFiles: files.length,
+    candidates: candidates.length,
+    nonYoutube,
+    unparsable,
+    inserted: result.count,
+    duplicates: candidates.length - result.count,
+    dryRun: false,
+  }
 }
 
-main().then((code) => process.exit(code))
+const program = new Command()
+  .name("import_youtube_note_links")
+  .description(
+    "Scans the configured Markdown root of a vault for YouTube URL links and imports them into yt.note_link. Vault root paths are stored in yt.vault — see --help for seed.",
+  )
+  .requiredOption(
+    "--vault <name>",
+    "Vault identifier. Must be present in yt.vault; the script reads root_path from there.",
+  )
+  .option("--dry-run", "Scan + count, no DB writes", false)
+  .addHelpText(
+    "after",
+    `
+Environment:
+  DATABASE_URL          Postgres connection string
+  DATABASE_SCHEMA_NAME  Must be "yt"
+
+Vault configuration:
+  Vault root paths live in yt.vault (name PK, root_path). Seed once via psql:
+
+    INSERT INTO yt.vault (name, root_path) VALUES
+      ('shared',              '/path/to/shared/vault'),
+      ('<your-kb-vault-name>', '/path/to/your/knowledge-base')
+    ON CONFLICT (name) DO UPDATE SET root_path = EXCLUDED.root_path;
+
+Examples:
+  bun run src/import_youtube_note_links.ts --vault shared
+  bun run src/import_youtube_note_links.ts --vault <your-kb-vault-name> --dry-run
+
+Exit codes:
+  0  success
+  1  input error (vault not in yt.vault, root_path unreadable)
+  2  DB connection error
+  3  validation error
+`,
+  )
+  .action(async (opts: { vault: string; dryRun: boolean }) => {
+    try {
+      await runImportForVault(opts.vault, { dryRun: opts.dryRun })
+    } catch (e) {
+      console.error((e as Error).message)
+      process.exit(1)
+    } finally {
+      await prisma.$disconnect()
+    }
+  })
+
+if (import.meta.main) {
+  await program.parseAsync(process.argv)
+}

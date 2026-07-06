@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start"
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start"
 import { z } from "zod"
 
 import {
@@ -12,6 +12,7 @@ import {
   syncCursorSchema,
   tabIdSchema,
   tabListItemSchema,
+  tabModeSchema,
   tabSnapshotSchema,
   tabWriteResultSchema,
   updateTabFieldInputSchema,
@@ -24,7 +25,9 @@ import {
   type UpdateTabFieldInput,
 } from "@/contracts/tab-sync"
 import { prisma } from "@/data/prisma"
+import { prisma as ytPrisma } from "@repo/yt-notes-scripts/db"
 import type { TabModel } from "@/generated/prisma/models/Tab"
+import { deriveBindingInProgress } from "@/lib/binding-progress"
 
 const clientIdSchema = z.string().trim().min(1)
 const selectTabInputSchema = z.object({
@@ -36,7 +39,7 @@ const listTabsResultSchema = z.array(tabListItemSchema)
 const selectTabResultSchema = tabSnapshotSchema.nullable()
 const upsertSyncCursorResultSchema = syncCursorSchema.nullable()
 
-function toTabSnapshot(tab: TabModel): TabSnapshot {
+export function toTabSnapshot(tab: TabModel): TabSnapshot {
   return {
     id: tab.id,
     title: tab.title,
@@ -50,8 +53,52 @@ function toTabSnapshot(tab: TabModel): TabSnapshot {
     bottomTextUpdatedAt: tab.bottomTextUpdatedAt.toISOString(),
     createdAt: tab.createdAt.toISOString(),
     updatedAt: tab.updatedAt.toISOString(),
+    mode: tab.mode,
+    youtubeId: tab.youtubeId,
+    youtubeReused: tab.youtubeReused,
+    bindingInProgress: deriveBindingInProgress(tab.bindingStartedAt),
   }
 }
+
+// Lazy-enriches a tab snapshot with read-only yt.* fields (displayTitle,
+// transcript status). Required for every snapshot returned to the client —
+// otherwise the client state would lose ytDisplayTitle on the next field-update
+// response and the 🎬-badge would fall back to the raw youtubeId.
+//
+// createServerOnlyFn hält den ytPrisma-Zugriff innerhalb einer vom
+// Start-Compiler erkannten Server-Boundary: Der Body wird im Client-Build durch
+// einen Throw-Stub ersetzt und der `@repo/yt-notes-scripts/db`-Import (→ pg
+// adapter + @prisma/client-Runtime mit node:*-Builtins) samt Chunk entfernt.
+// enrichTabSnapshot ist ein exportierter Helper, der aus dem Modulgraph
+// erreichbar ist — ohne den Wrapper landet der Prisma-Client im Browser-Bundle
+// (ein dynamischer import() verschiebt ihn nur in einen Lazy-Chunk, der im
+// Client-Build ebenfalls gebaut wird und an den node:*-Builtins bricht). Siehe
+// TanStack-Start "Import Protection" (Common Pitfall: Why Some Imports Stay
+// Alive).
+export const enrichTabSnapshot = createServerOnlyFn(
+  async (tab: TabModel): Promise<TabSnapshot> => {
+    const base = toTabSnapshot(tab)
+    if (!tab.youtubeId) {
+      return base
+    }
+    const [transcript, video] = await Promise.all([
+      ytPrisma.transcript.findUnique({
+        where: { youtubeId: tab.youtubeId },
+        select: { auditStatus: true, auditError: true },
+      }),
+      ytPrisma.video.findUnique({
+        where: { youtubeId: tab.youtubeId },
+        select: { displayTitle: true, title: true },
+      }),
+    ])
+    return {
+      ...base,
+      ytTranscriptStatus: transcript?.auditStatus ?? null,
+      ytTranscriptError: transcript?.auditError ?? null,
+      ytDisplayTitle: video?.displayTitle ?? video?.title ?? null,
+    }
+  },
+)
 
 // TODO after v0 features implemented: eval if ts-patterns makes this code better looking and undestandable
 function readTabFieldValue(tab: TabModel, field: TabSyncField): string {
@@ -150,12 +197,12 @@ async function upsertSyncStateFromTab(params: {
   })
 }
 
-function createFieldConflictResult(input: {
+async function createFieldConflictResult(input: {
   tab: TabModel
   field: TabSyncField
   expectedVersion: number
   clientValue: string
-}): TabWriteResult {
+}): Promise<TabWriteResult> {
   const { tab, field, expectedVersion, clientValue } = input
 
   return {
@@ -168,7 +215,7 @@ function createFieldConflictResult(input: {
       serverValue: readTabFieldValue(tab, field),
       serverUpdatedAt: readTabFieldUpdatedAt(tab, field).toISOString(),
     },
-    tab: toTabSnapshot(tab),
+    tab: await enrichTabSnapshot(tab),
   }
 }
 
@@ -176,6 +223,49 @@ async function writeTabFieldWithExpectedVersion(
   input: UpdateTabFieldInput,
 ): Promise<TabWriteResult> {
   const now = new Date()
+
+  // mode has no version-field on the Tab model — skip the optimistic version
+  // check entirely. Clients pass a placeholder expectedVersion which is ignored.
+  if (input.field === "mode") {
+    const parsedMode = tabModeSchema.parse(input.value)
+
+    // updateMany (not findUnique + update) so a delete racing between the
+    // existence check and the write yields not_found instead of a thrown P2025.
+    const updateResult = await prisma.tab.updateMany({
+      where: { id: input.tabId },
+      data: { mode: parsedMode },
+    })
+
+    if (updateResult.count === 0) {
+      return {
+        status: "not_found",
+        tabId: input.tabId,
+      }
+    }
+
+    const updatedTab = await prisma.tab.findUnique({
+      where: { id: input.tabId },
+    })
+
+    if (!updatedTab) {
+      return {
+        status: "not_found",
+        tabId: input.tabId,
+      }
+    }
+
+    await upsertSyncStateFromTab({
+      tab: updatedTab,
+      clientId: input.clientId,
+      lastPulledAt: now,
+      lastPushedAt: now,
+    })
+
+    return {
+      status: "updated",
+      tab: await enrichTabSnapshot(updatedTab),
+    }
+  }
 
   let updateResultCount = 0
 
@@ -260,7 +350,7 @@ async function writeTabFieldWithExpectedVersion(
 
   return {
     status: "updated",
-    tab: toTabSnapshot(latestTab),
+    tab: await enrichTabSnapshot(latestTab),
   }
 }
 
@@ -334,7 +424,7 @@ async function moveTopTextToBottom(
 
   return {
     status: "updated",
-    tab: toTabSnapshot(latestTab),
+    tab: await enrichTabSnapshot(latestTab),
   }
 }
 
@@ -421,7 +511,7 @@ async function overwriteTabFieldOnServer(
 
   return {
     status: "updated",
-    tab: toTabSnapshot(latestTab),
+    tab: await enrichTabSnapshot(latestTab),
   }
 }
 
@@ -464,7 +554,7 @@ export const createTabFn = createServerFn({ method: "POST" })
       })
     })
 
-    return tabSnapshotSchema.parse(toTabSnapshot(createdTab))
+    return tabSnapshotSchema.parse(await enrichTabSnapshot(createdTab))
   })
 
 export const deleteTabFn = createServerFn({ method: "POST" })
@@ -508,7 +598,7 @@ export const selectTabFn = createServerFn({ method: "GET" })
       lastPulledAt: new Date(),
     })
 
-    return selectTabResultSchema.parse(toTabSnapshot(tab))
+    return selectTabResultSchema.parse(await enrichTabSnapshot(tab))
   })
 
 export const renameTabFn = createServerFn({ method: "POST" })
@@ -563,7 +653,7 @@ export const overwriteServerFn = createServerFn({ method: "POST" })
 
     return tabWriteResultSchema.parse({
       status: "updated",
-      tab: toTabSnapshot(tab),
+      tab: await enrichTabSnapshot(tab),
     })
   })
 

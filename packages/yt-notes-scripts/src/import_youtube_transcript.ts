@@ -1,351 +1,333 @@
-import { Effect, pipe, Duration, Data, String, Stream } from "effect"
-import { Command as CliCommand, Args } from "@effect/cli"
-import { Command } from "@effect/platform"
-import { FileSystem } from "@effect/platform"
-import { BunContext, BunRuntime } from "@effect/platform-bun"
-import { Client } from "pg"
-import * as dotenv from "dotenv"
+import { mkdtemp, readFile, readdir, rm } from "fs/promises"
+import { tmpdir } from "os"
+import { join } from "path"
+import { spawn } from "child_process"
+import { Command } from "commander"
+import { prisma } from "./db"
+import { toLLMFormat, toPlainText } from "./subtitle-processors"
+import { ChannelClass } from "./generated/prisma/enums"
 
-dotenv.config()
+const YT_DLP_FLAGS_BASE = [
+  "--write-auto-subs",
+  "--skip-download",
+  "--write-sub",
+  "--sub-format",
+  "vtt/srt",
+  // yt-dlp 2026.x braucht expliziten JS-Runtime für n-challenge-Solver;
+  // default ist nur deno. Node ist im Repo via asdf shim verfügbar.
+  "--js-runtimes",
+  "node",
+  // Sprach-Whitelist: DE+EN. Default-Verhalten von yt-dlp ist "en"-only,
+  // was bei deutschsprachigen Videos zu HTTP-429-Wellen für übersetzte
+  // Auto-Captions führt. Mit dieser Whitelist hat yt-dlp einen Fallback.
+  "--sub-langs",
+  "de,en",
+  // 429 auf einer von zwei Sprachen darf nicht den ganzen Run abbrechen —
+  // yt-dlp default-Verhalten ist "abort on first error". Mit --ignore-errors
+  // wird der 429 zu WARNING, die zweite Sprache wird trotzdem versucht.
+  "--ignore-errors",
+]
 
-interface TranscriptFile {
+const YT_DLP_CHROME_COOKIE_FLAG = "--cookies-from-browser=chrome"
+
+const buildYouTubeUrl = (videoId: string): string =>
+  `https://www.youtube.com/watch?v=${videoId}`
+
+const runYtDlp = async (
+  videoId: string,
+  workdir: string,
+  useCookies: boolean,
+): Promise<{ stdout: string; stderr: string; code: number }> => {
+  return new Promise((resolve, reject) => {
+    const args = [
+      ...YT_DLP_FLAGS_BASE,
+      ...(useCookies ? [YT_DLP_CHROME_COOKIE_FLAG] : []),
+      "-o",
+      "transcript.%(ext)s",
+      buildYouTubeUrl(videoId),
+    ]
+    const child = spawn("yt-dlp", args, { cwd: workdir })
+    let stdout = ""
+    let stderr = ""
+    child.stdout.on("data", (d) => (stdout += d.toString()))
+    child.stderr.on("data", (d) => (stderr += d.toString()))
+    child.on("error", (err) => reject(err))
+    child.on("close", (code) => resolve({ stdout, stderr, code: code ?? 0 }))
+  })
+}
+
+const classifyYtDlpFailure = (output: string): string | null => {
+  if (output.includes("There are no subtitles for the requested languages"))
+    return "no subtitles available for languages requested"
+  if (output.includes("Unable to download video subtitles"))
+    return "unable to download video subtitles"
+  if (output.includes("Video unavailable. This video is private"))
+    return "video is private"
+  if (output.includes("No subtitle format found"))
+    return "no subtitle format found"
+  return null
+}
+
+interface CapturedTranscript {
   filename: string
   lang: string
   content: string
 }
 
-interface VideoRecord {
-  youtube_id: string
-  title: string
-}
-
-const DATABASE_URL = process.env.DATABASE_URL
-if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL nicht in .env gefunden")
-}
-
-const buildYouTubeUrl = (videoId: string): string =>
-  `https://www.youtube.com/watch?v=${videoId}`
-
-// Helper function to collect stream output as a string
-const runString = <E, R>(
-  stream: Stream.Stream<Uint8Array, E, R>,
-): Effect.Effect<string, E, R> =>
-  stream.pipe(Stream.decodeText(), Stream.runFold(String.empty, String.concat))
-
-class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
-  message: string
-  commandLog: string
-}> {}
-
-const executeYtDlp = (videoId: string) =>
-  Effect.gen(function* () {
-    const url = buildYouTubeUrl(videoId)
-
-    const args = [
-      "yt-dlp",
-      "--skip-download",
-      "--write-subs",
-      "--write-auto-subs",
-      "--sub-format",
-      "srt",
-      "--cookies-from-browser=chrome",
-      "-o",
-      `"transcript.%(ext)s"`,
-      `"${url}"`,
-    ]
-    const command = Command.make(
-      "yt-dlp",
-      "--skip-download",
-      "--write-subs",
-      "--write-auto-subs",
-      "--sub-format",
-      "srt",
-      "--cookies-from-browser=chrome",
-      "-o",
-      "transcript.%(ext)s",
-      url,
-    )
-    yield* Effect.logInfo(
-      `Führe yt-dlp aus für Video: ${videoId}: ${args.join(" ")}`,
-    )
-
-    //const output: string = yield* Command.string(command)
-    const [, stdout, stderr] = yield* pipe(
-      // Start running the command and return a handle to the running process
-      Command.start(command),
-      Effect.flatMap((process) =>
-        Effect.all(
-          [
-            // Waits for the process to exit and returns
-            // the ExitCode of the command that was run
-            process.exitCode,
-            // The standard output stream of the process
-            runString(process.stdout),
-            // The standard error stream of the process
-            runString(process.stderr),
-          ],
-          { concurrency: 3 },
-        ),
-      ),
-    )
-    const output = stdout + stderr
-    if (output.includes("There are no subtitles for the requested languages")) {
-      yield* new TranscriptionError({
-        message: `yt-dlp fehlgeschlagen, keine subtitles für dieses Video!`,
-        commandLog: output,
-      })
-      return
-    }
-    if (output.includes("Unable to download video subtitles")) {
-      yield* Effect.fail(
-        new TranscriptionError({
-          message: `yt-dlp fehlgeschlagen, konnte subtitle sicht herunterladen!`,
-          commandLog: output,
-        }),
-      )
-      return
-    }
-    if (output.includes("Video unavailable. This video is private")) {
-      yield* Effect.fail(
-        new TranscriptionError({
-          message: `yt-dlp fehlgeschlagen, privates Video!`,
-          commandLog: output,
-        }),
-      )
-      return
-    }
-    if (output.includes("No subtitle format found")) {
-      yield* Effect.fail(
-        new TranscriptionError({
-          message: `yt-dlp fehlgeschlagen, kein SRT Format gefunden!`,
-          commandLog: output,
-        }),
-      )
-      return
-    }
-
-    if (output.includes("Writing video subtitles")) {
-      console.log(output)
-      yield* Effect.log(`CLI erfolgreich ausgeführt für Video: ${videoId}`)
-      return
-    }
-
-    yield* Effect.dieMessage(
-      `Unknown error during yt-dlp execution for Video "${videoId}". Output:\n\n${output}`,
-    )
-  })
-
-const findAndReadTranscripts = () =>
-  Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem
-
-    const files = yield* fs.readDirectory(".")
-    const transcriptFiles = files.filter(
-      (f) => f.startsWith("transcript.") && f.endsWith(".srt"),
-    )
-
-    if (transcriptFiles.length === 0) {
-      yield* Effect.logError(
-        "Keine Transkriptdateien gefunden nach CLI-Ausführung",
-      )
-      return yield* Effect.fail(new Error("Keine Transkriptdateien gefunden"))
-    }
-
-    const transcripts: TranscriptFile[] = []
-
-    for (const filename of transcriptFiles) {
-      const content = yield* fs
-        .readFileString(filename)
-        .pipe(
-          Effect.mapError(
-            (error) => new Error(`Fehler beim Lesen von ${filename}: ${error}`),
-          ),
-        )
-
-      const langMatch = filename.match(/transcript\.([^.]+)\.srt/)
+const collectTranscripts = async (
+  workdir: string,
+): Promise<CapturedTranscript[]> => {
+  const files = await readdir(workdir)
+  const subs = files.filter(
+    (f) =>
+      f.startsWith("transcript.") && (f.endsWith(".srt") || f.endsWith(".vtt")),
+  )
+  return Promise.all(
+    subs.map(async (filename) => {
+      const content = await readFile(join(workdir, filename), "utf-8")
+      const langMatch = filename.match(/transcript\.([^.]+)\.(srt|vtt)/)
       const lang = langMatch?.[1] ?? "unknown"
+      return { filename, lang, content }
+    }),
+  )
+}
 
-      transcripts.push({ filename, lang, content })
-      yield* Effect.logTrace(`Transkriptdatei gefunden: ${filename} (${lang})`)
-    }
+const LANG_PRIORITY = ["de", "en"]
 
-    return transcripts
-  }).pipe(Effect.orDie)
+const pickPrimaryTranscript = (
+  transcripts: CapturedTranscript[],
+): CapturedTranscript | null => {
+  if (transcripts.length === 0) return null
+  const byPriority = (list: CapturedTranscript[]) =>
+    LANG_PRIORITY.map((lang) => list.find((t) => t.lang === lang)).find(
+      (t): t is CapturedTranscript => t !== undefined,
+    )
+  const srtCandidates = transcripts.filter((t) => t.filename.endsWith(".srt"))
+  return (
+    byPriority(srtCandidates) ??
+    srtCandidates[0] ??
+    byPriority(transcripts) ??
+    transcripts[0]
+  )
+}
 
-const saveTranscriptsToDb = (
-  client: Client,
+export const processTranscript = async (
   videoId: string,
-  transcripts: TranscriptFile[],
-) =>
-  Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem
+  useCookies = false,
+): Promise<{ ok: boolean; reason?: string }> => {
+  const workdir = await mkdtemp(join(tmpdir(), `yt-tx-${videoId}-`))
+  try {
+    // Spawn-Fehler (z.B. ENOENT wenn yt-dlp nicht installiert) separat abfangen,
+    // damit der for-Loop im CLI nicht abbricht und der Fehler in die DB geschrieben wird.
+    let runResult: { stdout: string; stderr: string; code: number }
+    try {
+      runResult = await runYtDlp(videoId, workdir, useCookies)
+    } catch (spawnErr) {
+      const reason =
+        (spawnErr as Error & { code?: string }).code === "ENOENT"
+          ? "yt-dlp not installed"
+          : `yt-dlp spawn error: ${spawnErr instanceof Error ? spawnErr.message : String(spawnErr)}`
+      await prisma.transcript.upsert({
+        where: { youtubeId: videoId },
+        update: { error: reason },
+        create: { youtubeId: videoId, error: reason },
+      })
+      return { ok: false, reason }
+    }
+    const { stdout, stderr } = runResult
+    // Erst gucken ob Files da sind: yt-dlp kann mit non-zero exit kommen
+    // (z.B. HTTP 429 für eine von zwei Sprachen), trotzdem die andere
+    // Sprache erfolgreich geschrieben haben. Mit --sub-langs "de,en" ist
+    // das der Normalfall bei deutschsprachigen Videos.
+    const transcripts = await collectTranscripts(workdir)
+    const primary = pickPrimaryTranscript(transcripts)
+    if (!primary) {
+      const failureReason =
+        classifyYtDlpFailure(stdout + stderr) ?? "no transcript files produced"
+      await prisma.transcript.upsert({
+        where: { youtubeId: videoId },
+        update: { error: failureReason },
+        create: { youtubeId: videoId, error: failureReason },
+      })
+      return { ok: false, reason: failureReason }
+    }
+    const plain = toPlainText(primary.content)
+    const llm = JSON.stringify(toLLMFormat(primary.content))
+    await prisma.transcript.upsert({
+      where: { youtubeId: videoId },
+      update: {
+        srt: primary.content,
+        plain,
+        llmFormatted: llm,
+        lang: primary.lang,
+        error: null,
+      },
+      create: {
+        youtubeId: videoId,
+        srt: primary.content,
+        plain,
+        llmFormatted: llm,
+        lang: primary.lang,
+      },
+    })
+    return { ok: true }
+  } finally {
+    await rm(workdir, { recursive: true, force: true })
+  }
+}
 
-    yield* Effect.tryPromise({
-      try: async () => {
-        for (const transcript of transcripts) {
-          await client.query(
-            `INSERT INTO main.youtube_transcript (youtube_id, transcript_original, lang, created_at, updated_at)
-             VALUES ($1, $2, $3, NOW(), NOW())
-             ON CONFLICT (youtube_id) 
-             DO UPDATE SET 
-               transcript_original = EXCLUDED.transcript_original,
-               lang = EXCLUDED.lang,
-               updated_at = NOW()`,
-            [videoId, transcript.content, transcript.lang],
+const program = new Command()
+  .name("import_youtube_transcript")
+  .description(
+    "Downloads YouTube captions for videos in yt.video and stores them in yt.transcript. Uses yt-dlp in captions-only mode (no audio/video download).",
+  )
+  .option("--video-id <id>", "Process a single video id only")
+  .option(
+    "--limit <n>",
+    "Process at most N videos missing a transcript (or with error if --retry-failed)",
+    (v) => parseInt(v, 10),
+  )
+  .option(
+    "--retry-failed",
+    "Re-process videos whose transcript row currently has error != null (instead of videos missing a transcript). Combine with --with-chrome-cookies for the second pass.",
+    false,
+  )
+  .option(
+    "--with-chrome-cookies",
+    "Pass --cookies-from-browser=chrome to yt-dlp (triggers a macOS Keychain prompt per video — see KB)",
+    false,
+  )
+  .option(
+    "--classification <value>",
+    "Restrict bulk selection to videos of a channel classification (arbeit | privat | mixed | unknown). Ignored for --video-id.",
+  )
+  .addHelpText(
+    "after",
+    `
+This pipeline uses yt-dlp ONLY for subtitles/captions. Audio/video downloads
+are neither planned nor needed.
+
+Hardcoded yt-dlp flags: --write-auto-subs --skip-download --write-sub --sub-format vtt/srt
+
+Reason: YouTube Web ToS prohibits AV download; captions are not an AV stream
+(EFF position + YouTube Data API has own captions endpoint).
+
+Cookie strategy (two-pass):
+  1) First pass (default): cookie-less. yt-dlp downloads captions for most public
+     videos even without cookies (just emits SABR/decryption warnings). Failures
+     are persisted to yt.transcript.error.
+  2) Second pass: --retry-failed --with-chrome-cookies. The DB query switches
+     from "videos with no transcript row" to "videos with transcript.error != null",
+     and yt-dlp is called with --cookies-from-browser=chrome to retry region-locked
+     or member-only videos.
+
+Note: --with-chrome-cookies triggers a macOS Keychain prompt PER video, because
+yt-dlp spawns are seen as new app identities by Keychain ACL. Background and
+workarounds: knowledge-base/yt-dlp-chrome-cookies-keychain-prompt.md
+
+Environment:
+  DATABASE_URL          Postgres connection string
+  DATABASE_SCHEMA_NAME  Must be "yt"
+
+Examples:
+  bun run src/import_youtube_transcript.ts --video-id abc12345xyz
+  bun run src/import_youtube_transcript.ts --limit 10
+  bun run src/import_youtube_transcript.ts --limit 10 --classification arbeit
+  bun run src/import_youtube_transcript.ts --retry-failed --with-chrome-cookies
+
+Exit codes:
+  0  success
+  1  input error
+  2  DB connection error
+  3  yt-dlp not installed / unknown failure
+`,
+  )
+  .action(
+    async (opts: {
+      videoId?: string
+      limit?: number
+      retryFailed: boolean
+      withChromeCookies: boolean
+      classification?: string
+    }) => {
+      let classification: ChannelClass | undefined
+      if (opts.classification !== undefined) {
+        const valid = Object.values(ChannelClass) as string[]
+        if (!valid.includes(opts.classification)) {
+          console.error(
+            `Invalid --classification "${opts.classification}". Valid values: ${valid.join(" | ")}`,
+          )
+          process.exit(1)
+        }
+        classification = opts.classification as ChannelClass
+      }
+
+      let ids: string[]
+      if (opts.videoId) {
+        ids = [opts.videoId]
+      } else if (opts.retryFailed) {
+        const rows = await prisma.transcript.findMany({
+          where: {
+            error: { not: null },
+            ...(classification
+              ? { video: { channel: { classification } } }
+              : {}),
+          },
+          select: { youtubeId: true },
+          take: opts.limit,
+        })
+        ids = rows.map((r) => r.youtubeId)
+      } else {
+        const rows = await prisma.video.findMany({
+          where: {
+            transcript: { is: null },
+            ...(classification ? { channel: { classification } } : {}),
+          },
+          select: { youtubeId: true },
+          take: opts.limit,
+        })
+        ids = rows.map((r) => r.youtubeId)
+      }
+      const mode = opts.retryFailed ? "retry-failed" : "fresh"
+      const classificationLabel = classification
+        ? `, classification=${classification}`
+        : ""
+      console.log(
+        `processing ${ids.length} videos (${mode}${classificationLabel}${opts.withChromeCookies ? ", with chrome cookies" : ""})`,
+      )
+      let ok = 0
+      const failed: Array<{ videoId: string; reason: string }> = []
+
+      for (const videoId of ids) {
+        const r = await processTranscript(videoId, opts.withChromeCookies)
+        if (r.ok) {
+          console.log(`[ok] ${videoId}`)
+          ok++
+        } else {
+          console.warn(`[fail] ${videoId}: ${r.reason}`)
+          failed.push({ videoId, reason: r.reason ?? "unknown" })
+        }
+      }
+
+      console.log(`\n=== Summary ===`)
+      console.log(`ok:     ${ok}`)
+      console.log(`failed: ${failed.length}`)
+
+      if (failed.length > 0) {
+        console.log(`\n=== Failed videos ===`)
+        for (const f of failed) {
+          console.log(`${f.videoId}\t${f.reason}`)
+        }
+        if (!opts.withChromeCookies) {
+          console.log(
+            `\nTip: re-run with --retry-failed --with-chrome-cookies to retry these from the DB with a logged-in session (e.g. German/region-locked videos).`,
           )
         }
-        return void 0
-      },
-      catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
-    })
-
-    yield* Effect.forEach(transcripts, (transcript) =>
-      pipe(
-        fs.remove(transcript.filename),
-        Effect.tapError((error) =>
-          Effect.logError(
-            `Fehler beim Löschen von ${transcript.filename}: ${error}`,
-          ),
-        ),
-        Effect.flatMap(() =>
-          Effect.logTrace(`Datei gelöscht: ${transcript.filename}`),
-        ),
-      ),
-    )
-
-    yield* Effect.log(
-      `Transkripte für Video ${videoId} (${transcripts.length} Dateien) verarbeitet`,
-    )
-  })
-
-const saveErrorToDb = (
-  client: Client,
-  videoId: string,
-  err: TranscriptionError,
-) =>
-  Effect.tryPromise({
-    try: async () => {
-      await client.query(
-        `INSERT INTO main.youtube_transcript (youtube_id, error)
-                     VALUES ($1, $2)`,
-        [videoId, `TranscriptionError: ${err.message}\n\n${err.commandLog}`],
-      )
-
-      return void 0
-    },
-    catch: (error) => new Error(`Datenbankfehler beim Speichern: ${error}`),
-  }).pipe(
-    Effect.andThen(
-      Effect.logInfo(`Fehler in DB gespeichert für Video ${videoId}`),
-    ),
-  )
-
-const videoExistsInDb = (client: Client, videoId: string) =>
-  Effect.tryPromise({
-    try: async () => {
-      const result = await client.query(
-        "SELECT youtube_id FROM main.youtube_transcript WHERE youtube_id = $1",
-        [videoId],
-      )
-      return result.rows.length > 0
-    },
-    catch: (error) => new Error(`Datenbankfehler beim Prüfen: ${error}`),
-  })
-
-const loadVideoIds = (client: Client, tableName: string) =>
-  Effect.tryPromise({
-    try: async () => {
-      const result = await client.query<VideoRecord>(
-        `SELECT youtube_id,title FROM ${tableName}`,
-      )
-      return result.rows.map((row) => [row.youtube_id, row.title])
-    },
-    catch: (error) =>
-      new Error(`Fehler beim Laden der Video-IDs aus ${tableName}: ${error}`),
-  })
-
-const processVideo = (client: Client, videoId: string, title: string) =>
-  pipe(
-    videoExistsInDb(client, videoId),
-    Effect.flatMap((exists) =>
-      exists
-        ? Effect.logInfo(`Video ${videoId} bereits vorhanden, überspringe`)
-        : pipe(
-            Effect.log(`Verarbeite Video: ${videoId} - ${title}`),
-            Effect.flatMap(() => executeYtDlp(videoId)),
-            Effect.flatMap(() => findAndReadTranscripts()),
-            Effect.flatMap((transcripts) =>
-              saveTranscriptsToDb(client, videoId, transcripts),
-            ),
-            Effect.flatMap(() =>
-              Effect.log(`Video ${videoId} erfolgreich verarbeitet`),
-            ),
-            Effect.flatMap(() => Effect.sleep(Duration.seconds(30))),
-            Effect.catchTag("TranscriptionError", (err) =>
-              Effect.gen(function* () {
-                console.log(err.commandLog)
-                yield* Effect.logError(
-                  `TranscriptionError für Video "${title}": ${err.message}`,
-                )
-                yield* saveErrorToDb(client, videoId, err)
-                yield* Effect.sleep(Duration.seconds(30))
-              }),
-            ),
-          ),
-    ),
-  )
-
-const mainProgram = (schemaAndTable: string) =>
-  Effect.gen(function* () {
-    const client = new Client({ connectionString: DATABASE_URL })
-
-    yield* Effect.tryPromise({
-      try: () => client.connect(),
-      catch: (error) =>
-        new Error(`Datenbankverbindung fehlgeschlagen: ${error}`),
-    })
-
-    yield* Effect.log(`Verbunden mit Datenbank`)
-
-    const videoIds = yield* loadVideoIds(client, schemaAndTable)
-
-    yield* Effect.log(`${videoIds.length} Videos gefunden`)
-
-    for (const [videoId, title] of videoIds) {
-      if (!videoId || !title) {
-        return yield* Effect.fail("No video id or title!")
       }
-      yield* processVideo(client, videoId, title)
-    }
+      await prisma.$disconnect()
+    },
+  )
 
-    yield* Effect.tryPromise({
-      try: () => client.end(),
-      catch: (error) =>
-        new Error(`Fehler beim Schließen der Verbindung: ${error}`),
-    })
-
-    yield* Effect.log("Alle Videos verarbeitet")
-  })
-
-const tableArg = Args.text({ name: "table" }).pipe(
-  Args.withDescription("Schema und Tabellenname (z.B. public.videos)"),
-)
-
-const command = CliCommand.make(
-  "download-transcripts",
-  { table: tableArg },
-  ({ table }) => mainProgram(table),
-)
-
-const cli = CliCommand.run(command, {
-  name: "YouTube Transcript Downloader",
-  version: "1.0.0",
-})
-
-pipe(
-  cli(process.argv),
-  Effect.provide(BunContext.layer),
-  Effect.scoped,
-  BunRuntime.runMain,
-)
+if (import.meta.main) {
+  await program.parseAsync(process.argv)
+}
