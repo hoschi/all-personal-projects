@@ -9,6 +9,7 @@
     "start": "bun src/index.ts",
     "prisma": "prisma",
     "generate:prisma": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
     "gmail:auth": "bun src/gmail/generate-refresh-token.ts",
     "cursor:clear": "bun src/cli/clear-cursor.ts",
     "lint": "bunx eslint .",

@@ -15,7 +15,7 @@
     "ci": "turbo run ci && bun run lint",
     "ci-noc": "turbo run ci --cache=local: && TURBO_CONCURRENCY=1 turbo run lint --cache=local:",
     "start:prod": "turbo run start:prod",
-    "update-prod": "git pull && bun install && bun run build",
+    "update-prod": "git pull && bun install && bun run build && turbo run migrate:deploy",
     "infra:up": "bash infra/generate-caddy-local.sh && docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "init-fresh-clone": "bun run packages/tools/src/init-fresh-clone.ts",

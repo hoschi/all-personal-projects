@@ -14,7 +14,8 @@
     "fix": "bun run format && bunx eslint --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
     "format:check": "prettier --check . --ignore-path ../../.prettierignore",
-    "generate:prisma": "prisma generate"
+    "generate:prisma": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",

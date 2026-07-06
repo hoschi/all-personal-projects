@@ -76,6 +76,9 @@
     "generate:prisma": {
       "dependsOn": ["^generate:prisma"],
       "outputs": ["src/generated/prisma/**"]
+    },
+    "migrate:deploy": {
+      "cache": false
     }
   }
 }

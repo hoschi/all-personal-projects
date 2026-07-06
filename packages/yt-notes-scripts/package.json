@@ -18,6 +18,7 @@
     "prisma": "prisma",
     "generate:prisma": "prisma generate",
     "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
     "expand-legacy-links": "bun run src/expand_legacy_links.ts",
     "classify-channels": "bun run src/classify_channels.ts",
     "relocate-plugin-outputs": "bun run src/relocate_plugin_outputs.ts"
