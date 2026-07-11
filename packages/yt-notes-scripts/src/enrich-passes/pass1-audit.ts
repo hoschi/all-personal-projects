@@ -71,8 +71,8 @@ export async function runPass1(input: Pass1Input): Promise<string> {
   return await callClaudeCli({
     prompt,
     allowedTools: "",
-    model: "sonnet",
-    effort: "medium",
+    model: "opus",
+    effort: "low",
   })
 }
 
@@ -182,8 +182,8 @@ export async function runPass1Extended(
   const raw = await callClaudeCli({
     prompt,
     allowedTools: "",
-    model: "sonnet",
-    effort: "medium",
+    model: "opus",
+    effort: "low",
   })
   return parsePass1ExtendedOutput(raw)
 }

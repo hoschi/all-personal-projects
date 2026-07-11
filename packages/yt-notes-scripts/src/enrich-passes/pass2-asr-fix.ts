@@ -27,7 +27,7 @@ export async function runPass2(auditedMd: string): Promise<string> {
   return await callClaudeCli({
     prompt,
     allowedTools: "",
-    model: "sonnet",
-    effort: "medium",
+    model: "opus",
+    effort: "low",
   })
 }

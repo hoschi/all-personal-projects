@@ -339,7 +339,7 @@ Run tests: `bun test`.
 5-Pass-Pipeline (Pass 0 deterministische Stub-Migration + Pass 1-5 via Claude-Sub-Agent) für `arbeit`-Videos. Schreibt `yt.transcript.audited_md`, `yt.video.display_title` und — falls ein Vault-Stub existiert — Frontmatter + `## Agent Zusammenfassung`-Sektion in den Stub-File.
 
 > [!info] Modell- und Effort-Wahl pro Pass
-> Pass 1+2 laufen auf `sonnet` (effort `medium`), Pass 3+4 auf `sonnet` (effort
+> Pass 1+2 laufen auf `opus` (effort `low`), Pass 3+4 auf `sonnet` (effort
 > `low`), Pass 5 auf `opus` (effort `high`). `LlmCallOptions.model` und
 > `LlmCallOptions.effort` sind Pflichtfelder — TypeScript-Compiler erzwingt
 > explizite Wahl pro Call-Site. Begründung und Verifikationsbefunde aus der

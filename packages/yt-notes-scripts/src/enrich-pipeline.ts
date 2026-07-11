@@ -182,7 +182,7 @@ export async function enrichVideoCritical(
         auditedMd: pass1.auditedMd,
         namedEntities: pass1.namedEntities,
         auditedAt: new Date(),
-        auditModel: "claude-sonnet-4-6",
+        auditModel: "claude-opus-4-8",
         auditRunId: runId,
         auditStatus: "critical_ok",
       },
