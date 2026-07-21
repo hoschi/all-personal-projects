@@ -73,15 +73,13 @@ gibt dem Hauptkontext Synthese-fähige Daten zurück.
 3. **CLI aufrufen** via Bash:
 
    ```bash
-   cd ~/repos/personal-three/packages/yt-notes-scripts && \
+   cd ~/repos/personal-prod/packages/yt-notes-scripts && \
      bun run src/yt-lookup.ts --id <yt-id> --field <feldname>
    ```
 
    `cd` ist nötig, damit Bun die `.env` mit `DATABASE_URL` aus dem Package-Root lädt.
 
-   Für mehr Format-/Field-Details: `cd ~/repos/personal-three/packages/yt-notes-scripts && bun run src/yt-lookup.ts --help`.
-
-   > Hinweis: Während Cluster 6 (Feature-Branch `feat/better-yt`) zeigt der Pfad auf `personal-three`. Nach PR-Merge wird er in Post-Merge-Schritt **P2** auf `personal-prod` umgestellt.
+   Für mehr Format-/Field-Details: `cd ~/repos/personal-prod/packages/yt-notes-scripts && bun run src/yt-lookup.ts --help`.
 
 4. **Mit dem Output arbeiten**
    - Beim Zitieren in einem KB-Artikel: **Pattern 1** beachten (Erkenntnis
@@ -101,14 +99,14 @@ gibt dem Hauptkontext Synthese-fähige Daten zurück.
 
 ## Symlink-Setup (User-Aktion, einmalig)
 
-Damit der Skill global verfügbar ist (nicht nur in personal-three/personal-prod):
+Damit der Skill global verfügbar ist (nicht nur in personal-prod):
 
 ```bash
-ln -s ~/repos/personal-three/packages/yt-notes-scripts/skills/youtube-context-lookup \
+ln -s ~/repos/personal-prod/packages/yt-notes-scripts/skills/youtube-context-lookup \
       <your-claude-skills-dir>/youtube-context-lookup
 ```
 
-`<your-claude-skills-dir>` ist typischerweise `~/.claude/skills/`. (Source-Pfad während Feature-Entwicklung — post-Merge auf `personal-prod` umstellen.)
+`<your-claude-skills-dir>` ist typischerweise `~/.claude/skills/`.
 
 Sandbox blockt `ln -s` in `~/.claude/` — Symlink-Setup MUSS der User
 manuell im Terminal ausführen.
