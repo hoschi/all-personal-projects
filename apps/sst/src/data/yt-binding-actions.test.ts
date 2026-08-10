@@ -11,7 +11,27 @@ mock.module("@tanstack/react-start", () => ({
 }))
 
 import { test, expect } from "bun:test"
-import { appendToNotizenSection } from "./yt-binding-actions"
+import {
+  appendToNotizenSection,
+  formatMissingTranscriptMessage,
+} from "./yt-binding-actions"
+
+test("formatMissingTranscriptMessage maps known caption absence", () => {
+  expect(
+    formatMissingTranscriptMessage(
+      "no subtitles available for languages requested",
+    ),
+  ).toBe("Für dieses Video sind keine YouTube-Untertitel (de/en) verfügbar.")
+})
+
+test("formatMissingTranscriptMessage falls back for unknown / empty error", () => {
+  expect(formatMissingTranscriptMessage("weird upstream")).toBe(
+    "Untertitel konnten nicht geladen werden: weird upstream",
+  )
+  expect(formatMissingTranscriptMessage(null)).toBe(
+    "Untertitel konnten nicht geladen werden (kein Transcript-Text).",
+  )
+})
 
 test("appendToNotizenSection hängt an existierende Sektion an (Pass-5-Layout mit ---)", () => {
   const md = `---

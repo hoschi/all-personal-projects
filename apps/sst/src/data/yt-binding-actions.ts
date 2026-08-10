@@ -1,6 +1,7 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start"
 import { z } from "zod"
 import Debug from "debug"
+import { match, P } from "ts-pattern"
 import { prisma as ytPrisma } from "@repo/yt-notes-scripts/db"
 import { prisma as sstPrisma } from "./prisma"
 import { spawn } from "node:child_process"
@@ -18,6 +19,36 @@ import { toTabSnapshot } from "./tab-sync-actions"
 import { findH2Sections } from "@repo/yt-notes-scripts/markdown-parser"
 import { commitFile } from "@repo/yt-notes-scripts/git-commit-helper"
 import { buildStaleClaimWhere } from "@/lib/binding-progress"
+
+/** Maps yt.transcript.error (from import_youtube_transcript) to a UI message. */
+export function formatMissingTranscriptMessage(
+  error: string | null | undefined,
+): string {
+  return match(error)
+    .with(
+      "no subtitles available for languages requested",
+      () => "Für dieses Video sind keine YouTube-Untertitel (de/en) verfügbar.",
+    )
+    .with(
+      "unable to download video subtitles",
+      () => "YouTube-Untertitel konnten nicht heruntergeladen werden.",
+    )
+    .with("video is private", () => "Video ist privat — keine Untertitel.")
+    .with(
+      "no subtitle format found",
+      () => "Kein unterstütztes Untertitel-Format gefunden.",
+    )
+    .with("yt-dlp not installed", () => "yt-dlp ist nicht installiert.")
+    .with(
+      P.string,
+      (reason) => `Untertitel konnten nicht geladen werden: ${reason}`,
+    )
+    .with(
+      P.nullish,
+      () => "Untertitel konnten nicht geladen werden (kein Transcript-Text).",
+    )
+    .exhaustive()
+}
 
 const debugValidate = Debug("app:yt:server:validate")
 const debugBind = Debug("app:yt:server:bind")
@@ -148,16 +179,27 @@ export const validateYoutubeUrlFn = createServerFn({ method: "POST" })
       where: { youtubeId },
     })
     debugValidate(
-      "transcript auditStatus=%s plainLen=%d",
+      "transcript auditStatus=%s plainLen=%d error=%s",
       transcript?.auditStatus ?? "(none)",
       transcript?.plain?.length ?? 0,
+      transcript?.error ?? "(none)",
     )
+
+    // import_youtube_transcript exits 0 even when captions are missing and
+    // only writes transcript.error — catch that as an expected UI error here,
+    // otherwise we'd falsely advertise ready_for_enrichment.
+    if (!transcript?.plain) {
+      debugValidate("=> transcript plain missing after probe")
+      return {
+        kind: "error" as const,
+        message: formatMissingTranscriptMessage(transcript?.error),
+      }
+    }
 
     // 7. Reuse-Check
     if (
-      transcript &&
-      (transcript.auditStatus === "ok" ||
-        transcript.auditStatus === "critical_ok")
+      transcript.auditStatus === "ok" ||
+      transcript.auditStatus === "critical_ok"
     ) {
       debugValidate("=> reusable youtubeId=%s", youtubeId)
       return {
