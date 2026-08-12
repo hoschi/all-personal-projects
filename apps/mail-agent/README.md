@@ -287,12 +287,13 @@ Useful scopes:
 
 ### Gmail sync behavior
 
-- `agent_state.gmail_history_id` stores the last known mailbox cursor.
+- On every process start the stored cursor is cleared so boot always begins with full sync.
+- `agent_state.gmail_history_id` stores the mailbox cursor used only after boot full sync finishes.
 - Incremental mode uses `users.history.list(startHistoryId=...)` with pagination until all pages are consumed.
 - Full sync mode uses `users.messages.list` with `MAIL_AGENT_GMAIL_FILTER_QUERY` in small pages (`maxResults=5`), one page per poll cycle.
 - Each full-sync page is processed immediately before the next page is requested.
 - Message detail normalization is fetched in batches to avoid large one-shot requests.
-- After full-sync backlog is drained (no candidates left), the latest valid cursor is persisted.
+- After full-sync backlog is drained (no candidates left), the current profile `historyId` is persisted and later poll cycles use history mode.
 
 ### Classification behavior
 

@@ -3,7 +3,7 @@ import Debug from "debug"
 import { createAiPipeline } from "./ai"
 import { createBootstrapConfig } from "./config"
 import { createProcessedEmailStore } from "./data"
-import { createGmailSync, persistCursor } from "./gmail"
+import { clearCursor, createGmailSync, persistCursor } from "./gmail"
 import { createHttpRuntime } from "./http"
 import { createNotifier } from "./notify"
 import { createPipelineStageDescriptors } from "./pipeline"
@@ -31,6 +31,11 @@ async function main() {
     notifier,
   )
   debug("Adapters initialized: pipelineStageCount=%d", pipeline.length)
+
+  // Always start with full sync (filtered inbox). History mode only after the
+  // inbox backlog is drained and a fresh cursor is persisted.
+  debug("Clearing Gmail cursor so boot starts with full sync")
+  await clearCursor()
 
   const processingSummary = {
     totalNormalizedMessages: 0,
