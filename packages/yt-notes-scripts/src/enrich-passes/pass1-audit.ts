@@ -1,5 +1,12 @@
 import { callClaudeCli } from "../llm-caller"
 
+// Full model id, not the CLI alias "opus". The alias resolves through
+// ~/.claude/settings.json modelAliases, so the pipeline had no way to know
+// which model actually ran — enrich-pipeline.ts wrote a hardcoded id into
+// Transcript.auditModel that drifted away from the alias. Both the call and
+// the provenance field now read this constant.
+export const PASS1_AUDIT_MODEL = "claude-opus-5"
+
 export interface Chapter {
   timestamp: string
   title: string
@@ -71,7 +78,7 @@ export async function runPass1(input: Pass1Input): Promise<string> {
   return await callClaudeCli({
     prompt,
     allowedTools: "",
-    model: "opus",
+    model: PASS1_AUDIT_MODEL,
     effort: "low",
   })
 }
@@ -182,7 +189,7 @@ export async function runPass1Extended(
   const raw = await callClaudeCli({
     prompt,
     allowedTools: "",
-    model: "opus",
+    model: PASS1_AUDIT_MODEL,
     effort: "low",
   })
   return parsePass1ExtendedOutput(raw)

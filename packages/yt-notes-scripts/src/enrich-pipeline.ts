@@ -5,7 +5,7 @@ import { AuditStatus } from "./generated/prisma/enums"
 import { USER_KB_VAULT_NAME } from "./db"
 import type { Classification } from "./llm-caller"
 import { migrateStubBody } from "./enrich-passes/pass0-stub-migration"
-import { runPass1Extended } from "./enrich-passes/pass1-audit"
+import { PASS1_AUDIT_MODEL, runPass1Extended } from "./enrich-passes/pass1-audit"
 import { runPass2 } from "./enrich-passes/pass2-asr-fix"
 import { runPass3 } from "./enrich-passes/pass3-display-title"
 import { runPass4 } from "./enrich-passes/pass4-description"
@@ -182,7 +182,7 @@ export async function enrichVideoCritical(
         auditedMd: pass1.auditedMd,
         namedEntities: pass1.namedEntities,
         auditedAt: new Date(),
-        auditModel: "claude-opus-4-8",
+        auditModel: PASS1_AUDIT_MODEL,
         auditRunId: runId,
         auditStatus: "critical_ok",
       },
