@@ -4,10 +4,13 @@ TypeScript scripts for ingesting YouTube data into the `yt.*` schema of a Postgr
 
 ## Compliance: Claude-Code-CLI + Subscription (ab 15. Juni 2026: Credit-Pool)
 
-**Stand 2026-06-07.** Die Enrichment-Pipeline ruft `claude --print` per Subprocess
-auf (`src/llm-caller.ts`) — keine direkte Anthropic-API-Nutzung, keine SDK-Integration,
-kein `ANTHROPIC_API_KEY`. Auth läuft über die normale Claude-Code-OAuth-Session
-(macOS Keychain `Claude Code-credentials`), genauso wie Claude Code interaktiv.
+**Stand 2026-06-07, Kanal-Ergänzung 2026-08-23.** Die Enrichment-Pipeline ruft
+`claude --print` per Subprocess auf (`src/llm-caller.ts`) — keine direkte
+Anthropic-API-Nutzung, keine SDK-Integration, kein `ANTHROPIC_API_KEY`. Auth
+läuft über die normale Claude-Code-OAuth-Session (macOS Keychain
+`Claude Code-credentials`), genauso wie Claude Code interaktiv. Das gilt für
+Pass 1–4; Pass 5 geht seit 2026-08-23 über `cursor-agent --print` und damit über
+das Cursor-Abo, nicht über den Claude-Topf.
 
 **Ab 15. Juni 2026** wandert `claude -p`-Nutzung in einen separaten monatlichen
 Agent-SDK-Credit-Pool (Team Premium: $100/Monat, Pro: $20, Max 20x: $200). Der
@@ -338,12 +341,14 @@ Run tests: `bun test`.
 
 5-Pass-Pipeline (Pass 0 deterministische Stub-Migration + Pass 1-5 via Claude-Sub-Agent) für `arbeit`-Videos. Schreibt `yt.transcript.audited_md`, `yt.video.display_title` und — falls ein Vault-Stub existiert — Frontmatter + `## Agent Zusammenfassung`-Sektion in den Stub-File.
 
-> [!info] Modell- und Effort-Wahl pro Pass
+> [!info] Kanal-, Modell- und Effort-Wahl pro Pass
 > Pass 1+2 laufen auf `opus` (effort `low`), Pass 3+4 auf `sonnet` (effort
-> `low`), Pass 5 auf `opus` (effort `high`). `LlmCallOptions.model` und
-> `LlmCallOptions.effort` sind Pflichtfelder — TypeScript-Compiler erzwingt
-> explizite Wahl pro Call-Site. Begründung und Verifikationsbefunde aus der
-> Sonnet-vs-Opus-Migration: siehe [`docs/model-choice.md`](docs/model-choice.md).
+> `low`) — alle vier über `claude --print`. Pass 5 läuft seit 2026-08-23 über
+> `cursor-agent --print` auf `cursor-grok-4.6-xhigh`. `LlmCallOptions` ist eine
+> Union über `channel`; `model` und `effort` sind in beiden Zweigen
+> Pflichtfelder — TypeScript-Compiler erzwingt explizite Wahl pro Call-Site.
+> Begründung, Werkzeug-Schranke des cursor-Kanals und Verifikationsbefunde:
+> siehe [`docs/model-choice.md`](docs/model-choice.md).
 
 > [!info] R18 verworfen — nur `arbeit` via Claude
 > Die ursprünglich geplante Account-Trennung Business/Privat in Claude wurde 2026-06-05 verworfen (Override im Decision-Log `<vault>/shared/yt-pipeline-decisions.md`). Pipeline läuft ausschließlich für `--classification arbeit`; `--classification privat` triggert Hard-Fail mit Exit 2. Privat/Secret-Content kommt später durch eine separate Codex-Pipeline.

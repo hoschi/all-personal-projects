@@ -1,4 +1,4 @@
-import { callClaudeCli } from "../llm-caller"
+import { callLlmCli } from "../llm-caller"
 
 export interface Pass4Input {
   description: string
@@ -29,7 +29,8 @@ export async function runPass4(
   auditedMd: string,
 ): Promise<string> {
   const prompt = buildPass4Prompt({ description, auditedMd })
-  const raw = await callClaudeCli({
+  const raw = await callLlmCli({
+    channel: "claude-cli",
     prompt,
     allowedTools: "",
     model: "sonnet",

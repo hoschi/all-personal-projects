@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test"
-import { buildPass5Prompt } from "./pass5-summary-long"
+import { buildCursorModelSlug } from "../llm-caller"
+import {
+  buildPass5AllowedShellPrefixes,
+  buildPass5CallOptions,
+  buildPass5Prompt,
+} from "./pass5-summary-long"
 
 test("buildPass5Prompt listet 6 Sektionen auf", () => {
   const p = buildPass5Prompt("<a>")
@@ -62,4 +67,32 @@ test("buildPass5Prompt retryHint wird eingefügt wenn übergeben", () => {
 test("buildPass5Prompt ohne retryHint kein Retry-Block", () => {
   const p = buildPass5Prompt("<a>")
   expect(p).not.toContain("Retry-Hinweis")
+})
+
+test("Pass 5 läuft über den cursor-Kanal auf dem gemessenen Grok-Slug", () => {
+  const opts = buildPass5CallOptions("PROMPT", "pass5/yt=abc attempt=1")
+  expect(opts.channel).toBe("cursor-cli")
+  expect(buildCursorModelSlug(opts.model, opts.effort)).toBe(
+    "cursor-grok-4.6-xhigh",
+  )
+  expect(opts.prompt).toBe("PROMPT")
+  expect(opts.tag).toBe("pass5/yt=abc attempt=1")
+})
+
+test("Pass 5 gibt dem Sub-Agenten nur den OHS-Aufruf frei", () => {
+  const prefixes = buildPass5CallOptions("PROMPT").allowedShellPrefixes
+  expect(prefixes).toEqual(buildPass5AllowedShellPrefixes())
+  expect(prefixes.length).toBe(3)
+  for (const prefix of prefixes) {
+    expect(prefix).toContain("ohs-search-merged.sh")
+    // Kein Platzhalter im Präfix — sonst wäre der Interpreter frei wählbar.
+    expect(prefix).not.toContain("*")
+  }
+})
+
+test("das erste Shell-Präfix steht zeichengleich im Prompt (Anti-Drift)", () => {
+  const prompt = buildPass5Prompt("<a>")
+  const instructed = buildPass5AllowedShellPrefixes()[0]
+  expect(instructed).toBeDefined()
+  expect(prompt).toContain(`${instructed} --vault-type arbeit`)
 })
