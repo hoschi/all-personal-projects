@@ -104,8 +104,14 @@ export function buildCursorCliArgs(opts: CursorCliCallOptions): string[] {
     "--trust",
     "--model",
     buildCursorModelSlug(opts.model, opts.effort),
+    // stream-json statt json: das `result`-Feld der json-Fassung ist die
+    // FUGENLOSE Verkettung aller Assistenz-Bloecke des Turns — die
+    // Zwischen-Kommentare vor den Tool-Aufrufen kleben dort ohne Zeilenumbruch
+    // vor der eigentlichen Antwort (gemessen 2026-08-23, siehe
+    // parseCursorCliStream). stream-json haelt die Bloecke getrennt, damit die
+    // Schlussnachricht greifbar bleibt.
     "--output-format",
-    "json",
+    "stream-json",
     "--",
     opts.prompt,
   ]
@@ -235,6 +241,93 @@ export function parseAgentCliOutput(
   }
 }
 
+interface StreamEvent {
+  type?: unknown
+  subtype?: unknown
+  is_error?: unknown
+  error?: unknown
+  result?: unknown
+  session_id?: unknown
+  duration_ms?: unknown
+  message?: { content?: { type?: unknown; text?: unknown }[] }
+}
+
+function parseNdjson(raw: string): StreamEvent[] {
+  const events: StreamEvent[] = []
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim()
+    if (trimmed === "") continue
+    try {
+      events.push(JSON.parse(trimmed) as StreamEvent)
+    } catch {
+      // Keine JSON-Zeile — die CLI mischt gelegentlich Klartext dazwischen.
+      continue
+    }
+  }
+  return events
+}
+
+function assistantText(event: StreamEvent): string {
+  const parts = event.message?.content ?? []
+  return parts
+    .filter((part) => part.type === "text" && typeof part.text === "string")
+    .map((part) => part.text as string)
+    .join("")
+}
+
+/**
+ * Zieht aus dem `stream-json`-Mitschnitt die Schlussnachricht des Agenten.
+ *
+ * Gemessen am 2026-08-23 (cursor-agent 2026.08.11-e8db854): das `result`-Feld
+ * ist exakt `assistant-Bloecke.join("")` — ohne Trennzeichen. Ein Modell, das
+ * vor jedem Tool-Aufruf einen Satz sagt, liefert dort also
+ * `…Satz drei.## Worum es geht`, und die erste Ueberschrift steht nicht mehr
+ * am Zeilenanfang. Deshalb wird hier nur genommen, was der Agent NACH seinem
+ * letzten Werkzeug-Aufruf gesagt hat — das ist seine Antwort, nicht der
+ * Mitschnitt seines Vorgehens.
+ *
+ * Die Absicherung dagegen, dass auch dieser letzte Block noch Vorrede
+ * enthaelt, sitzt in `pass5-sanitize.ts` und ist deterministisch.
+ */
+export function parseCursorCliStream(raw: string): LlmCallResult {
+  const events = parseNdjson(raw)
+  const resultEvent = events.findLast((e) => e.type === "result")
+  if (!resultEvent)
+    throw new Error("Cursor CLI: kein result-Event im stream-json")
+  if (resultEvent.subtype !== "success" || resultEvent.is_error) {
+    throw new Error(
+      `Cursor CLI error subtype=${String(resultEvent.subtype)} is_error=${String(resultEvent.is_error)}: ${String(resultEvent.error ?? resultEvent.result ?? "(no message)")}`,
+    )
+  }
+
+  const lastToolIndex = events.findLastIndex((e) => e.type === "tool_call")
+  const finalTexts = events
+    .filter((e, i) => e.type === "assistant" && i > lastToolIndex)
+    .map(assistantText)
+    .filter((text) => text.trim() !== "")
+  const lastAssistant = events.findLast((e) => e.type === "assistant")
+
+  // Mehrere Bloecke nach dem letzten Werkzeug-Aufruf bekommen einen
+  // Zeilenumbruch dazwischen — genau die Fuge, die dem `result`-Feld fehlt.
+  const text =
+    finalTexts.length > 0
+      ? finalTexts.join("\n")
+      : lastAssistant
+        ? assistantText(lastAssistant)
+        : String(resultEvent.result ?? "")
+
+  return {
+    result: text,
+    sessionId:
+      typeof resultEvent.session_id === "string"
+        ? resultEvent.session_id
+        : undefined,
+    durationMs:
+      typeof resultEvent.duration_ms === "number" ? resultEvent.duration_ms : 0,
+    numTurns: undefined,
+  }
+}
+
 // OHS_NODE_BIN: die Sub-Agent-CLI erbt einen PATH, in dem
 // /opt/homebrew/bin/node (v26) vor ~/.asdf/shims/node (v22) steht.
 // obsidian-hybrid-search (Shebang `#!/usr/bin/env node`) lädt damit das
@@ -253,7 +346,8 @@ function subAgentEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
 interface SpawnCliParams {
   command: string
   args: string[]
-  cliLabel: string
+  /** Wandelt das komplette stdout in das Ergebnis — je Kanal ein anderes Format. */
+  parseOutput: (raw: string) => LlmCallResult
   env: NodeJS.ProcessEnv
   cwd?: string
   input?: string
@@ -301,17 +395,28 @@ function spawnCli(params: SpawnCliParams): Promise<LlmCallResult> {
         // logged in"), stderr bleibt leer. Versuche das zu extrahieren, sonst
         // fallback auf stderr.
         let detail = stderr.slice(0, 500)
-        try {
-          const obj = JSON.parse(stdout.trim())
-          if (obj?.result) detail = `${obj.result} (is_error=${obj.is_error})`
-        } catch {
-          /* nicht-JSON, behalte stderr */
+        // Bei stream-json ist nur die LETZTE Zeile das result-Event, bei json
+        // das ganze stdout — beides probieren.
+        const candidates = [
+          stdout.trim(),
+          stdout.trim().split("\n").pop() ?? "",
+        ]
+        for (const candidate of candidates) {
+          try {
+            const obj = JSON.parse(candidate)
+            if (obj?.result) {
+              detail = `${obj.result} (is_error=${obj.is_error})`
+              break
+            }
+          } catch {
+            /* nicht-JSON, naechster Kandidat */
+          }
         }
         reject(new Error(`${params.command} exit ${exitCode}: ${detail}`))
         return
       }
       try {
-        const parsed = parseAgentCliOutput(stdout.trim(), params.cliLabel)
+        const parsed = params.parseOutput(stdout.trim())
         const tagPart = params.tag ? `tag=${params.tag} ` : ""
         const turnsPart =
           parsed.numTurns !== undefined ? `turns=${parsed.numTurns} ` : ""
@@ -340,7 +445,7 @@ async function callClaudeCliWithMeta(
   return await spawnCli({
     command: "claude",
     args: buildClaudeCliArgs(opts),
-    cliLabel: "Claude CLI",
+    parseOutput: (raw) => parseAgentCliOutput(raw, "Claude CLI"),
     env: subAgentEnv(),
     input: opts.input,
     timeoutMs: CLAUDE_CALL_TIMEOUT_MS,
@@ -358,7 +463,7 @@ async function callCursorCliWithMeta(
     return await spawnCli({
       command: "cursor-agent",
       args: buildCursorCliArgs(opts),
-      cliLabel: "Cursor CLI",
+      parseOutput: parseCursorCliStream,
       // CURSOR_CONFIG_DIR hängt die CLI an eine Wegwerf-Konfiguration statt an
       // die globale des Nutzers — der Lauf hängt damit nicht daran, welchen
       // approvalMode gerade jemand interaktiv gesetzt hat.

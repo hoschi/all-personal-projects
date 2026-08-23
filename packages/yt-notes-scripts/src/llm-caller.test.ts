@@ -7,6 +7,7 @@ import {
   buildCursorModelSlug,
   buildCursorShellAllowEntries,
   buildAgentGuardCommand,
+  parseCursorCliStream,
   parseAgentCliOutput,
   type CursorCliCallOptions,
   type LlmCallOptions,
@@ -145,7 +146,9 @@ describe("buildCursorCliArgs", () => {
     const idx = args.indexOf("--model")
     expect(args[idx + 1]).toBe("cursor-grok-4.6-xhigh")
     const fmt = args.indexOf("--output-format")
-    expect(args[fmt + 1]).toBe("json")
+    // stream-json, nicht json: das result-Feld der json-Fassung verklebt die
+    // Assistenz-Bloecke ohne Trennzeichen.
+    expect(args[fmt + 1]).toBe("stream-json")
   })
 
   test("übergibt den Prompt hinter -- als letztes Argument", () => {
@@ -278,5 +281,113 @@ describe("parseAgentCliOutput", () => {
     expect(() => parseAgentCliOutput(raw, "Claude CLI")).toThrow(
       /Not logged in/,
     )
+  })
+})
+
+describe("parseCursorCliStream", () => {
+  // Nachgebaut aus einem echten stream-json-Mitschnitt (cursor-agent
+  // 2026.08.11-e8db854): Zwischen-Kommentar, Tool-Aufruf, Schlussnachricht.
+  // Das result-Event traegt exakt die fugenlose Verkettung beider Bloecke —
+  // genau der Defekt, der `## Worum es geht` vom Zeilenanfang holt.
+  const GLUED =
+    "Ich hole zuerst die OHS-Treffer zu den Video-Begriffen, damit die Wikilinks nur auf geprüfte Vault-Artikel zeigen."
+  const FINAL = "## Worum es geht\n\nDer Sprecher zeigt herdr."
+  const stream = [
+    JSON.stringify({ type: "system", subtype: "init", session_id: "s1" }),
+    JSON.stringify({
+      type: "assistant",
+      message: { role: "assistant", content: [{ type: "text", text: GLUED }] },
+    }),
+    JSON.stringify({ type: "tool_call", subtype: "started", call_id: "t1" }),
+    JSON.stringify({ type: "tool_call", subtype: "completed", call_id: "t1" }),
+    JSON.stringify({
+      type: "assistant",
+      message: { role: "assistant", content: [{ type: "text", text: FINAL }] },
+    }),
+    JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      result: GLUED + FINAL,
+      session_id: "s1",
+      duration_ms: 250635,
+    }),
+  ].join("\n")
+
+  test("nimmt die Schlussnachricht statt des verklebten result-Felds (Regression qnIu-Xu64H0)", () => {
+    const parsed = parseCursorCliStream(stream)
+    expect(parsed.result.split("\n")[0]).toBe("## Worum es geht")
+    expect(parsed.result).not.toContain("Ich hole zuerst die OHS-Treffer")
+  })
+
+  test("liest Sitzung und Dauer aus dem result-Event", () => {
+    const parsed = parseCursorCliStream(stream)
+    expect(parsed.sessionId).toBe("s1")
+    expect(parsed.durationMs).toBe(250635)
+    expect(parsed.numTurns).toBeUndefined()
+  })
+
+  test("trennt mehrere Bloecke nach dem letzten Tool-Aufruf mit Zeilenumbruch", () => {
+    const two = [
+      JSON.stringify({ type: "tool_call", subtype: "completed" }),
+      JSON.stringify({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "## A" }] },
+      }),
+      JSON.stringify({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "## B" }] },
+      }),
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        result: "## A## B",
+      }),
+    ].join("\n")
+    expect(parseCursorCliStream(two).result).toBe("## A\n## B")
+  })
+
+  test("kommt ohne Tool-Aufruf aus", () => {
+    const plain = [
+      JSON.stringify({
+        type: "assistant",
+        message: { content: [{ type: "text", text: "## Worum es geht" }] },
+      }),
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        result: "## Worum es geht",
+      }),
+    ].join("\n")
+    expect(parseCursorCliStream(plain).result).toBe("## Worum es geht")
+  })
+
+  test("faellt auf das result-Feld zurueck, wenn kein Assistenz-Block da ist", () => {
+    const only = JSON.stringify({
+      type: "result",
+      subtype: "success",
+      result: "## Worum es geht",
+    })
+    expect(parseCursorCliStream(only).result).toBe("## Worum es geht")
+  })
+
+  test("ueberspringt Nicht-JSON-Zeilen", () => {
+    expect(parseCursorCliStream(`kein json\n${stream}`).result).toContain(
+      "## Worum es geht",
+    )
+  })
+
+  test("wirft ohne result-Event", () => {
+    expect(() => parseCursorCliStream("")).toThrow(/kein result-Event/)
+  })
+
+  test("wirft bei is_error und nennt die CLI", () => {
+    const failed = JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: true,
+      result: "Not logged in",
+    })
+    expect(() => parseCursorCliStream(failed)).toThrow(/Cursor CLI/)
   })
 })
