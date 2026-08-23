@@ -58,6 +58,7 @@ interface Messung {
   obsidianLinks: number
   linksGesamt: number
   brokenWikilinks: number
+  brokenObsidianUris: number
   brokenRelativeMdLinks: number
   linksInBacktick: number
   linksInBehauptungen: number
@@ -123,6 +124,24 @@ function messe(
   const relMd = extractMarkdownLinks(body)
   const { broken } = validateCrossVaultLinks(body, resolver)
 
+  // obsidian://-URIs pruefen: die Ziel-Datei muss im KB-Vault existieren.
+  // validateCrossVaultLinks laesst Scheme-URLs unangetastet durch, ein
+  // erfundenes Ziel faellt dort also nicht auf.
+  let brokenUris = 0
+  for (const m of body.matchAll(
+    /\[[^\]\n]*\]\(obsidian:\/\/open\?([^)]+)\)/g,
+  )) {
+    const params = new URLSearchParams((m[1] ?? "").replace(/&amp;/g, "&"))
+    const vault = params.get("vault")
+    const datei = params.get("file")
+    if (!datei) {
+      brokenUris++
+      continue
+    }
+    const wurzel = vault === "knowledge-base" ? KB_VAULT : SHARED_VAULT
+    if (!existsSync(join(wurzel, `${datei}.md`))) brokenUris++
+  }
+
   // Links in Backticks: `[[…]]` oder `[…](obsidian://…)` innerhalb von Inline-Code.
   const inBacktick = [
     ...body.matchAll(/`[^`\n]*(\[\[[^\]\n]+\]\]|\]\(obsidian:\/\/)[^`\n]*`/g),
@@ -152,11 +171,16 @@ function messe(
   const titelKern = videoTitel.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
   const selbstRef = [
     ...wikilinks.map((w) => w.target),
-    ...obsidianLinks.map((m) => m[0]),
+    ...obsidianLinks.map((m) =>
+      decodeURIComponent(/file=([^)&]+)/.exec(m[0])?.[1] ?? ""),
+    ),
   ].filter((t) => {
     const norm = t.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
+    // Kurze Ziele ("n8n") treffen sonst zufaellig eine Teilzeichenkette des
+    // Titels und erzeugen Falsch-Positive.
     return (
       titelKern.length > 12 &&
+      norm.length >= 20 &&
       (norm.includes(titelKern.slice(0, 40)) ||
         titelKern.includes(norm.slice(0, 40)))
     )
@@ -175,6 +199,7 @@ function messe(
     obsidianLinks: obsidianLinks.length,
     linksGesamt: wikilinks.length + obsidianLinks.length,
     brokenWikilinks: broken.filter((b) => b.kind === "wikilink").length,
+    brokenObsidianUris: brokenUris,
     brokenRelativeMdLinks: relMd.length,
     linksInBacktick: inBacktick,
     linksInBehauptungen,
@@ -228,7 +253,8 @@ const kopf = [
   "fremd",
   "vorrede",
   "links",
-  "broken",
+  "brokWiki",
+  "brokUri",
   "relMd",
   "btick",
   "linkInBeh",
@@ -253,6 +279,7 @@ for (const e of ergebnisse) {
         x.vorredeZeichen,
         x.linksGesamt,
         x.brokenWikilinks,
+        x.brokenObsidianUris,
         x.brokenRelativeMdLinks,
         x.linksInBacktick,
         x.linksInBehauptungen,

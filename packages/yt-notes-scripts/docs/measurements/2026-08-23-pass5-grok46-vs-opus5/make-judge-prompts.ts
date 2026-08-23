@@ -1,8 +1,8 @@
 /**
  * Baut je Video eine verblindete Richter-Vorlage: Transkript (audited_md) plus
  * die beiden Zusammenfassungen als "Fassung A" und "Fassung B". Die Zuordnung
- * A/B wird pro Video deterministisch aus der Video-Kennung gewuerfelt und in
- * judge/_zuordnung.json protokolliert — der Richter erfaehrt sie nicht.
+ * A/B wechselt je Video-Art ab (zweimal Grok als A, zweimal als B) und steht in
+ * judge/_zuordnung.json — der Richter erfaehrt sie nicht.
  *
  * Aufruf (aus packages/yt-notes-scripts):
  *   bun run docs/measurements/2026-08-23-pass5-grok46-vs-opus5/make-judge-prompts.ts
@@ -33,6 +33,11 @@ const metas = JSON.parse(
 
 const zuordnung: Record<string, { A: string; B: string }> = {}
 
+// Ausgewogene Verblindung statt Zufall: je Video-Art bekommt Grok zweimal die
+// Position A und zweimal die Position B. Eine ungleiche Verteilung wuerde die
+// bekannte Positions-Vorliebe von Richter-Modellen auf einen Arm legen.
+const laufNrJeArt: Record<string, number> = {}
+
 for (const meta of metas) {
   const grokPfad = join(RUN_DIR, "grok", `${meta.youtubeId}.raw.md`)
   if (!existsSync(grokPfad)) continue
@@ -42,9 +47,8 @@ for (const meta of metas) {
   )
   const grok = readFileSync(grokPfad, "utf-8").trim()
 
-  // Deterministische Verblindung: Quersumme der Zeichen der Video-Kennung.
-  const summe = [...meta.youtubeId].reduce((a, c) => a + c.charCodeAt(0), 0)
-  const grokIstA = summe % 2 === 0
+  const nr = (laufNrJeArt[meta.art] = (laufNrJeArt[meta.art] ?? 0) + 1)
+  const grokIstA = nr % 2 === 1
   zuordnung[meta.youtubeId] = grokIstA
     ? { A: "grok", B: "opus" }
     : { A: "opus", B: "grok" }
