@@ -1,0 +1,15 @@
+{
+  "youtubeId": "RuH3uiJy84A",
+  "art": "art4-kurzes-tool-demo",
+  "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+  "title": "This Claude Skill Cuts Your Token Costs In HALF",
+  "channel": "Better Stack",
+  "durationSec": 305,
+  "auditedAt": "2026-07-08T12:16:17.910Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 6960,
+  "promptChars": 12401,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Better Stack/This Claude Skill Cuts Your Token Costs In HALF.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/This Claude Skill Cuts Your Token Costs In HALF.md"
+}

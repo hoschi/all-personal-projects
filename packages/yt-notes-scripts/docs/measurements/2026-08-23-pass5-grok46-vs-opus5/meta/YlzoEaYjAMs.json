@@ -1,0 +1,15 @@
+{
+  "youtubeId": "YlzoEaYjAMs",
+  "art": "art3-kurzes-news-video",
+  "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+  "title": "Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model",
+  "channel": "AI Revolution",
+  "durationSec": 529,
+  "auditedAt": "2026-06-20T01:15:09.106Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 8471,
+  "promptChars": 13912,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/AI Revolution/Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Revolution/Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model.md"
+}

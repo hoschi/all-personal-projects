@@ -1,0 +1,15 @@
+{
+  "youtubeId": "WkBPX-oDMnA",
+  "art": "art1-konferenz-talk",
+  "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+  "title": "Understanding is the new bottleneck — Geoffrey Litt, Notion",
+  "channel": "AI Engineer",
+  "durationSec": 1173,
+  "auditedAt": "2026-08-22T11:59:04.516Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 7742,
+  "promptChars": 13183,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/AI Engineer/Understanding is the new bottleneck — Geoffrey Litt, Notion.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/Understanding is the new bottleneck — Geoffrey Litt, Notion.md"
+}

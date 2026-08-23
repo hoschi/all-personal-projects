@@ -1,0 +1,15 @@
+{
+  "youtubeId": "PlN86TvzGy4",
+  "art": "art4-kurzes-tool-demo",
+  "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+  "title": "herdr: Is This the Ultimate Agent Multiplexer?",
+  "channel": "Better Stack",
+  "durationSec": 430,
+  "auditedAt": "2026-07-21T08:06:02.056Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 10864,
+  "promptChars": 16305,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Better Stack/herdr_ Is This the Ultimate Agent Multiplexer_.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/herdr_ Is This the Ultimate Agent Multiplexer_.md"
+}

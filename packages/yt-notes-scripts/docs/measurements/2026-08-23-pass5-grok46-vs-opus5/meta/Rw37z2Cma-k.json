@@ -1,0 +1,15 @@
+{
+  "youtubeId": "Rw37z2Cma-k",
+  "art": "art3-kurzes-news-video",
+  "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+  "title": "New Chinese AI Model Destroys DeepSeek: 100X More Powerful",
+  "channel": "AI Revolution",
+  "durationSec": 749,
+  "auditedAt": "2026-06-17T01:38:21.370Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 10422,
+  "promptChars": 15863,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/AI Revolution/New Chinese AI Model Destroys DeepSeek 100X More Powerful.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Revolution/New Chinese AI Model Destroys DeepSeek 100X More Powerful.md"
+}

@@ -1,0 +1,15 @@
+{
+  "youtubeId": "TxlVdB2gmGE",
+  "art": "art2-langes-workflow-tutorial",
+  "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+  "title": "Docker Just Made Using MCP Servers 100x Easier (One Click Installs!)",
+  "channel": "Cole Medin",
+  "durationSec": 1388,
+  "auditedAt": "2026-06-18T01:38:35.450Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 26066,
+  "promptChars": 31507,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Cole Medin/Docker Just Made Using MCP Servers 100x Easier (One Click Installs!).md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/Docker Just Made Using MCP Servers 100x Easier (One Click Installs!).md"
+}

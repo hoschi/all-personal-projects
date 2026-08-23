@@ -1,0 +1,18 @@
+{
+  "art1-konferenz-talk": {
+    "beschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+    "videos": ["Ib5GBkD555M", "YgEv7IQzGdM", "WkBPX-oDMnA", "uy2WSS1MjGM"]
+  },
+  "art2-langes-workflow-tutorial": {
+    "beschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+    "videos": ["qMnClynCAmM", "vDVSGVpB2vc", "TxlVdB2gmGE", "Ya51a1EJPZk"]
+  },
+  "art3-kurzes-news-video": {
+    "beschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+    "videos": ["YlzoEaYjAMs", "YAJPdlWaWzM", "Rw37z2Cma-k", "R1_bL8g7HIY"]
+  },
+  "art4-kurzes-tool-demo": {
+    "beschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+    "videos": ["RuH3uiJy84A", "2xuFcmUAQUc", "qnIu-Xu64H0", "PlN86TvzGy4"]
+  }
+}

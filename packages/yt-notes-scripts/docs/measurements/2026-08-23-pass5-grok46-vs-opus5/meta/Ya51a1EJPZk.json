@@ -1,0 +1,15 @@
+{
+  "youtubeId": "Ya51a1EJPZk",
+  "art": "art2-langes-workflow-tutorial",
+  "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+  "title": "Make the PERFECT Videos with Claude Code (Full Workflow)",
+  "channel": "Cole Medin",
+  "durationSec": 913,
+  "auditedAt": "2026-06-17T16:34:53.335Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 17894,
+  "promptChars": 23335,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Cole Medin/Make the PERFECT Videos with Claude Code (Full Workflow).md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/Make the PERFECT Videos with Claude Code (Full Workflow).md"
+}
