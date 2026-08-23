@@ -1,0 +1,202 @@
+[
+  {
+    "youtubeId": "Ib5GBkD555M",
+    "art": "art1-konferenz-talk",
+    "A": "grok",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "opus",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 5,
+        "opus": 1
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 2
+      },
+      "fehlend": {
+        "grok": 9,
+        "opus": 11
+      }
+    }
+  },
+  {
+    "youtubeId": "uy2WSS1MjGM",
+    "art": "art1-konferenz-talk",
+    "A": "opus",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 2,
+        "grok": 2
+      },
+      "spekulation": {
+        "opus": 1,
+        "grok": 0
+      },
+      "fehlend": {
+        "opus": 11,
+        "grok": 3
+      }
+    }
+  },
+  {
+    "youtubeId": "qMnClynCAmM",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "grok",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 5,
+        "opus": 3
+      },
+      "spekulation": {
+        "grok": 3,
+        "opus": 1
+      },
+      "fehlend": {
+        "grok": 4,
+        "opus": 14
+      }
+    }
+  },
+  {
+    "youtubeId": "Ya51a1EJPZk",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "opus",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "grok"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 4,
+        "grok": 4
+      },
+      "spekulation": {
+        "opus": 1,
+        "grok": 1
+      },
+      "fehlend": {
+        "opus": 9,
+        "grok": 1
+      }
+    }
+  },
+  {
+    "youtubeId": "YlzoEaYjAMs",
+    "art": "art3-kurzes-news-video",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 2,
+        "opus": 2
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 1
+      },
+      "fehlend": {
+        "grok": 3,
+        "opus": 7
+      }
+    }
+  },
+  {
+    "youtubeId": "R1_bL8g7HIY",
+    "art": "art3-kurzes-news-video",
+    "A": "opus",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 5,
+        "grok": 2
+      },
+      "spekulation": {
+        "opus": 1,
+        "grok": 0
+      },
+      "fehlend": {
+        "opus": 7,
+        "grok": 2
+      }
+    }
+  },
+  {
+    "youtubeId": "RuH3uiJy84A",
+    "art": "art4-kurzes-tool-demo",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 1,
+        "opus": 1
+      },
+      "spekulation": {
+        "grok": 1,
+        "opus": 1
+      },
+      "fehlend": {
+        "grok": 1,
+        "opus": 6
+      }
+    }
+  },
+  {
+    "youtubeId": "PlN86TvzGy4",
+    "art": "art4-kurzes-tool-demo",
+    "A": "opus",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 3,
+        "grok": 3
+      },
+      "spekulation": {
+        "opus": 1,
+        "grok": 1
+      },
+      "fehlend": {
+        "opus": 9,
+        "grok": 1
+      }
+    }
+  }
+]

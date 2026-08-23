@@ -68,10 +68,12 @@ def zaehlungen(text):
     return out
 
 
+RICHTER = sys.argv[1] if len(sys.argv) > 1 else "opus"
+
 zeilen = []
 fehlend = []
 for vid, zu in ZUORDNUNG.items():
-    pfad = os.path.join(HIER, "judge", f"{vid}.opus.md")
+    pfad = os.path.join(HIER, "judge", f"{vid}.{RICHTER}.md")
     if not os.path.exists(pfad):
         fehlend.append(vid)
         continue
@@ -85,10 +87,16 @@ for vid, zu in ZUORDNUNG.items():
         eintrag["zaehlung"][abschnitt] = {zu["A"]: a, zu["B"]: b}
     zeilen.append(eintrag)
 
-if fehlend:
+if fehlend and RICHTER == "opus":
     print("FEHLENDE BERICHTE:", ", ".join(fehlend), file=sys.stderr)
 
-json.dump(zeilen, open(os.path.join(HIER, "judge-scores.json"), "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+json.dump(
+    zeilen,
+    open(os.path.join(HIER, f"judge-scores-{RICHTER}.json"), "w", encoding="utf-8"),
+    indent=2,
+    ensure_ascii=False,
+)
+print(f"Richter: {RICHTER} — {len(zeilen)} Berichte\n")
 
 # Tabelle je Video
 print("id\tart\tA\ttreue\tvollst\tpraez\tregel\tnichtGedeckt g/o\tspek g/o\tfehlend g/o")
