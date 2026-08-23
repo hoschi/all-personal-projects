@@ -1,4 +1,4 @@
-import { callClaudeCli } from "../llm-caller"
+import { callLlmCli } from "../llm-caller"
 
 export function extractFirstH3Section(auditedMd: string): string {
   const firstH3 = /^### .*$/m.exec(auditedMd)
@@ -48,7 +48,8 @@ export async function runPass3(
 ): Promise<string> {
   const firstSection = extractFirstH3Section(auditedMd)
   const prompt = buildPass3Prompt({ originalTitle, description, firstSection })
-  const raw = await callClaudeCli({
+  const raw = await callLlmCli({
+    channel: "claude-cli",
     prompt,
     allowedTools: "",
     model: "sonnet",

@@ -1,8 +1,16 @@
-import { callClaudeCli } from "../llm-caller"
+import { homedir } from "node:os"
+import { callLlmCli, type CursorCliCallOptions } from "../llm-caller"
 
 // OHS-Wrapper-Pfad wird vom Sub-Agent zur Discovery aufgerufen. Per
 // Env-Var konfigurierbar, damit kein User-spezifischer Pfad im Code steht.
 const OHS_WRAPPER_PATH = process.env.OHS_WRAPPER_PATH ?? "ohs-search-merged.sh"
+
+// Node-Interpreter, den der Prompt dem Sub-Agenten vorschreibt. Steht als
+// Konstante hier, weil dieselbe Zeichenfolge auch in die Shell-Allowlist geht
+// (siehe buildPass5AllowedShellPrefixes) — instruierter Befehl und Regel
+// dürfen nie auseinanderlaufen. `$HOME` bleibt hier bewusst uninterpoliert:
+// die Shell des Sub-Agenten löst es auf.
+const OHS_NODE_BIN_LITERAL = "$HOME/.asdf/shims/node"
 
 export function buildPass5Prompt(
   auditedMd: string,
@@ -84,7 +92,7 @@ Wikilink-Verfahren (für Konzepte, Tools, Verwandt — Pflicht):
 1. Bash-Aufruf (mit explizitem Node-Interpreter — claude-CLI Sub-Agent erbt
    einen PATH, in dem ein Node v26 vor Node v22 steht, was den OHS-internen
    \`better-sqlite3\` mit NODE_MODULE_VERSION-Mismatch kaputtmacht):
-   OHS_NODE_BIN=$HOME/.asdf/shims/node ${OHS_WRAPPER_PATH} --vault-type arbeit --no-yt --limit 3 --json '<query>'
+   OHS_NODE_BIN=${OHS_NODE_BIN_LITERAL} ${OHS_WRAPPER_PATH} --vault-type arbeit --no-yt --limit 3 --json '<query>'
 2. Score-Lese: nur Hits mit \`score_native >= 0.8\` betrachten (NICHT score_rrf —
    der ist Rank-basiert und liegt im Bereich ~0.01-0.02, also nie >= 0.8).
 3. Title-Match-Prüfung gegen Video-Kontext:
@@ -125,32 +133,66 @@ Input audited_md:
 ${auditedMd}`
 }
 
+/**
+ * Die vollständige Liste der Shell-Befehle, die der Pass-5-Sub-Agent absetzen
+ * darf.
+ *
+ * `auditedMd` ist ungeprüfter Transkript-Text (Prompt-Injection-Risiko). Der
+ * Sub-Agent braucht die Shell NUR für den einen OHS-Wrapper-Aufruf des
+ * Wikilink-Verfahrens (siehe buildPass5Prompt) — deshalb wird die
+ * Shell-Berechtigung exakt auf diesen Befehl gescoped statt pauschal
+ * freigegeben, sonst könnte ein manipuliertes Transkript den Sub-Agenten zu
+ * beliebigen Shell-Kommandos verleiten.
+ *
+ * Drei Formen, alle mit demselben Ziel-Script:
+ * 1. der Befehl exakt so, wie der Prompt ihn vorschreibt (`$HOME` uninterpoliert),
+ * 2. derselbe Befehl mit aufgelöstem Home — manche Modelle setzen den Pfad ein,
+ * 3. der Wrapper ohne Env-Prefix; `OHS_NODE_BIN` setzt der llm-caller ohnehin
+ *    in die Umgebung des Sub-Agenten.
+ *
+ * Der Interpreter-Pfad ist in Form 1 und 2 festgenagelt und nicht als Muster
+ * offen: `OHS_NODE_BIN` ist der Interpreter, mit dem der Wrapper das
+ * OHS-Script startet — ein freies Muster dort wäre ein Weg zu einer beliebigen
+ * ausführbaren Datei.
+ */
+export function buildPass5AllowedShellPrefixes(): string[] {
+  return [
+    `OHS_NODE_BIN=${OHS_NODE_BIN_LITERAL} ${OHS_WRAPPER_PATH}`,
+    `OHS_NODE_BIN=${homedir()}/.asdf/shims/node ${OHS_WRAPPER_PATH}`,
+    OHS_WRAPPER_PATH,
+  ]
+}
+
+/**
+ * Kanal, Modell und Reasoning-Stufe von Pass 5 an einer Stelle — als eigene
+ * Funktion, damit ein Test sie prüfen kann, ohne die CLI zu starten.
+ *
+ * Kanal ist cursor-agent statt claude. Grund ist die Vergleichsmessung vom
+ * 2026-08-23 (docs/measurements/2026-08-23-pass5-grok46-vs-opus5/BERICHT.md):
+ * Grok 4.6 xhigh schlägt Opus 5 high bei Vollständigkeit (einstimmig über zwei
+ * Richter) und Präzision und hält das Wikilink-Verfahren in 16 von 16 Läufen
+ * fehlerfrei ein, bei doppelter Link-Ausbeute. `cursor-grok-4.6` + `xhigh`
+ * ergibt `cursor-grok-4.6-xhigh` — den Slug, an dem gemessen wurde.
+ */
+export function buildPass5CallOptions(
+  prompt: string,
+  tag?: string,
+): CursorCliCallOptions {
+  return {
+    channel: "cursor-cli",
+    prompt,
+    model: "cursor-grok-4.6",
+    effort: "xhigh",
+    allowedShellPrefixes: buildPass5AllowedShellPrefixes(),
+    tag,
+  }
+}
+
 export async function runPass5(
   auditedMd: string,
   retryHint?: string,
   tag?: string,
 ): Promise<string> {
   const prompt = buildPass5Prompt(auditedMd, retryHint)
-  // auditedMd ist untrusted Transcript-Text (Prompt-Injection-Risiko). Der
-  // Sub-Agent braucht Bash NUR für den einen OHS-Wrapper-Aufruf des
-  // Wikilink-Verfahrens (siehe buildPass5Prompt) — deshalb wird die
-  // Bash-Berechtigung exakt auf diesen Befehl gescoped statt pauschal "Bash"
-  // freizugeben, sonst könnte ein manipuliertes Transcript den Sub-Agenten zu
-  // beliebigen Shell-Kommandos verleiten. Claude Code prüft jeden Sub-Befehl
-  // eines Compound-Kommandos (`;`, `&&`, `|`, …) einzeln gegen die Allow-Regel,
-  // ein eingeschleustes `… ; rm -rf /` wird also abgelehnt.
-  //
-  // Das Muster enthält den `OHS_NODE_BIN=`-Prefix, weil der Wrapper-Aufruf im
-  // Prompt mit dieser Env-Var-Zuweisung beginnt und Claude Code Env-Prefixe
-  // NICHT wie Prozess-Wrapper (timeout/nice/…) abstreift — ohne den Prefix im
-  // Muster würde der legitime Aufruf abgelehnt. Gleiche ${OHS_WRAPPER_PATH}-
-  // Variable wie im Prompt, damit Regel und instruierter Befehl nie driften.
-  const allowedTools = `Bash(OHS_NODE_BIN=* ${OHS_WRAPPER_PATH} *)`
-  return await callClaudeCli({
-    prompt,
-    allowedTools,
-    model: "opus",
-    effort: "high",
-    tag,
-  })
+  return await callLlmCli(buildPass5CallOptions(prompt, tag))
 }

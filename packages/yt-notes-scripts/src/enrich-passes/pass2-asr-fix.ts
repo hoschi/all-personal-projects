@@ -1,4 +1,4 @@
-import { callClaudeCli } from "../llm-caller"
+import { callLlmCli } from "../llm-caller"
 
 export function buildPass2Prompt(auditedMd: string): string {
   return `Du bekommst ein audited_md eines YouTube-Video-Transcripts. Es wurde
@@ -24,7 +24,8 @@ ${auditedMd}`
 
 export async function runPass2(auditedMd: string): Promise<string> {
   const prompt = buildPass2Prompt(auditedMd)
-  return await callClaudeCli({
+  return await callLlmCli({
+    channel: "claude-cli",
     prompt,
     allowedTools: "",
     model: "opus",
