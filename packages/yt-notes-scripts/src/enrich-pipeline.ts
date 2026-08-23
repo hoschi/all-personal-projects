@@ -10,7 +10,7 @@ import { runPass2 } from "./enrich-passes/pass2-asr-fix"
 import { runPass3 } from "./enrich-passes/pass3-display-title"
 import { runPass4 } from "./enrich-passes/pass4-description"
 import { runPass5 } from "./enrich-passes/pass5-summary-long"
-import { stripLinkBackticks } from "./pass5-sanitize"
+import { dropPreambleBeforeFirstH2, stripLinkBackticks } from "./pass5-sanitize"
 import { parseStub, getRawFrontmatterBlock } from "./markdown-parser"
 import {
   setFrontmatterFields,
@@ -274,8 +274,11 @@ export async function enrichVideoBackground(
     const MAX_ATTEMPTS = 3
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       const tag = `pass5/yt=${youtubeId} attempt=${attempt}`
+      // dropPreambleBeforeFirstH2 zuerst: eine Vorrede, die ohne Zeilenumbruch
+      // an `## Worum es geht` klebt, wuerde die Sektion sonst in
+      // assembleEnrichedBody verlieren.
       pass5Output = stripLinkBackticks(
-        await runPass5(auditedMd, retryHint, tag),
+        dropPreambleBeforeFirstH2(await runPass5(auditedMd, retryHint, tag)),
       )
       if (!resolver) break
       const { broken } = validateCrossVaultLinks(pass5Output, resolver)
