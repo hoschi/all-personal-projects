@@ -1,4 +1,4 @@
-import { callClaudeCli } from "../llm-caller"
+import { callLlmCli } from "../llm-caller"
 
 // Full model id, not the CLI alias "opus". The alias resolves through
 // ~/.claude/settings.json modelAliases, so the pipeline had no way to know
@@ -75,7 +75,8 @@ ${input.plain}`
 
 export async function runPass1(input: Pass1Input): Promise<string> {
   const prompt = buildPass1Prompt(input)
-  return await callClaudeCli({
+  return await callLlmCli({
+    channel: "claude-cli",
     prompt,
     allowedTools: "",
     model: PASS1_AUDIT_MODEL,
@@ -186,7 +187,8 @@ export async function runPass1Extended(
   input: Pass1Input,
 ): Promise<Pass1ExtendedResult> {
   const prompt = buildPass1ExtendedPrompt(input)
-  const raw = await callClaudeCli({
+  const raw = await callLlmCli({
+    channel: "claude-cli",
     prompt,
     allowedTools: "",
     model: PASS1_AUDIT_MODEL,
