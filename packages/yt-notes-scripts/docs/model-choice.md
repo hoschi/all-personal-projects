@@ -105,6 +105,33 @@ Dazu kommt ein eigenes `CURSOR_CONFIG_DIR` je Aufruf: der Lauf hängt damit nich
 an der interaktiven Cursor-Konfiguration des Nutzers und bekommt mangels
 `mcp.json` auch keine MCP-Werkzeuge.
 
+## Warum der cursor-Kanal `stream-json` liest
+
+Die `json`-Fassung von `--print` liefert im Feld `result` **nicht** die
+Schlussnachricht, sondern alle Assistenz-Blöcke des Turns fugenlos
+aneinandergehängt — gemessen am 2026-08-23: `result` ist exakt
+`assistant-Blöcke.join("")`, ohne Trennzeichen. Ein Modell, das vor jedem
+Tool-Aufruf einen Satz sagt, liefert dort also `…Satz drei.## Worum es geht`.
+
+Die Folge ist nicht kosmetisch: `findH2Sections` erkennt eine Überschrift nur
+am Zeilenanfang, `assembleEnrichedBody` verwirft die Sektion daraufhin
+ersatzlos. Im Lauf für Video `qnIu-Xu64H0` fehlte `## Worum es geht` deshalb in
+der erzeugten Vault-Datei, während die übrigen fünf Sektionen ankamen.
+
+Zwei Stufen dagegen:
+
+1. `parseCursorCliStream` in `src/llm-caller.ts` liest den
+   `stream-json`-Mitschnitt und nimmt nur, was der Agent **nach seinem letzten
+   Werkzeug-Aufruf** gesagt hat. Mehrere Blöcke dort bekommen einen
+   Zeilenumbruch dazwischen.
+2. `dropPreambleBeforeFirstH2` in `src/pass5-sanitize.ts` verwirft davor
+   deterministisch alles vor der ersten `## `-Überschrift und heilt den
+   fehlenden Zeilenumbruch — auch dann, wenn die Überschrift mitten in einer
+   Zeile klebt. Läuft in `enrich-pipeline.ts` vor `assembleEnrichedBody`.
+
+Stufe 2 bleibt auch dann nötig, wenn Stufe 1 greift: die Schlussnachricht
+selbst kann Vorrede enthalten. Eine Vorrede darf keine Sektion kosten.
+
 ## Caption-Klausel (Pass 1)
 
 Pass-1-Prompt erlaubt explizit, **ASR-erfasste On-Screen-Captions zu streichen**
@@ -205,6 +232,8 @@ Siehe `current/youtube-pipeline-rollout.md` § "Verbleibende Detail-Punkte":
 - CLI-Brücke, beide Kanäle: `src/llm-caller.ts` (`LlmCallOptions` als Union über
   `channel`, `model` + `effort` in beiden Zweigen Pflichtfelder)
 - Werkzeug-Schranke des cursor-Kanals: `src/cursor-agent-guard.ts`
+- Vorreden-Absicherung vor `assembleEnrichedBody`: `dropPreambleBeforeFirstH2`
+  in `src/pass5-sanitize.ts`
 - Vergleichsmessung, die den Pass-5-Kanalwechsel trägt:
   [`docs/measurements/2026-08-23-pass5-grok46-vs-opus5/BERICHT.md`](measurements/2026-08-23-pass5-grok46-vs-opus5/BERICHT.md)
 - Pipeline-Orchestrierung: `src/enrich-pipeline.ts` (`auditModel`-Spalte
