@@ -1,0 +1,1938 @@
+[
+  {
+    "meta": {
+      "youtubeId": "Ib5GBkD555M",
+      "art": "art1-konferenz-talk",
+      "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+      "title": "Harness Engineering is not Enough: Why Software Factories Fail — Dex Horthy, HumanLayer",
+      "channel": "AI Engineer",
+      "durationSec": 1158,
+      "auditedAt": "2026-08-23T11:52:00.365Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 21987,
+      "promptChars": 27428,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Engineer/Harness Engineering is not Enough_ Why Software Factories Fail — Dex Horthy, HumanLayer.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/Harness Engineering is not Enough_ Why Software Factories Fail — Dex Horthy, HumanLayer.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "Ib5GBkD555M",
+      "zeichen": 13613,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 352,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 2949,
+          "bullets": 14
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 7010,
+          "bullets": 38
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1152,
+          "bullets": 13
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 934,
+          "bullets": 11
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 933,
+          "bullets": 5
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 3,
+      "obsidianLinks": 6,
+      "linksGesamt": 9,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 38,
+      "behauptungenMitTimestamp": 20,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "Ib5GBkD555M",
+      "zeichen": 9983,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 294,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1427,
+          "bullets": 13
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 4938,
+          "bullets": 40
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 810,
+          "bullets": 11
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1076,
+          "bullets": 16
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1326,
+          "bullets": 9
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 6,
+      "obsidianLinks": 7,
+      "linksGesamt": 13,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 40,
+      "behauptungenMitTimestamp": 24,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "YgEv7IQzGdM",
+      "art": "art1-konferenz-talk",
+      "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+      "title": "How to Kill the Code Review — Ankit Jain, Aviator",
+      "channel": "AI Engineer",
+      "durationSec": 986,
+      "auditedAt": "2026-08-23T11:46:33.661Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 14489,
+      "promptChars": 19930,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Engineer/How to Kill the Code Review — Ankit Jain, Aviator.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/How to Kill the Code Review — Ankit Jain, Aviator.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "YgEv7IQzGdM",
+      "zeichen": 10224,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 297,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1456,
+          "bullets": 13
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 5861,
+          "bullets": 41
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 649,
+          "bullets": 7
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 585,
+          "bullets": 7
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1131,
+          "bullets": 6
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 2,
+      "obsidianLinks": 6,
+      "linksGesamt": 8,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 41,
+      "behauptungenMitTimestamp": 21,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "YgEv7IQzGdM",
+      "zeichen": 8983,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 370,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1243,
+          "bullets": 10
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 4357,
+          "bullets": 46
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 442,
+          "bullets": 5
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 584,
+          "bullets": 8
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1875,
+          "bullets": 12
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 5,
+      "obsidianLinks": 9,
+      "linksGesamt": 14,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 46,
+      "behauptungenMitTimestamp": 27,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "WkBPX-oDMnA",
+      "art": "art1-konferenz-talk",
+      "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+      "title": "Understanding is the new bottleneck — Geoffrey Litt, Notion",
+      "channel": "AI Engineer",
+      "durationSec": 1173,
+      "auditedAt": "2026-08-22T11:59:04.516Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 7742,
+      "promptChars": 13183,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Engineer/Understanding is the new bottleneck — Geoffrey Litt, Notion.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/Understanding is the new bottleneck — Geoffrey Litt, Notion.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "WkBPX-oDMnA",
+      "zeichen": 7278,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 343,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1420,
+          "bullets": 12
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2999,
+          "bullets": 28
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1146,
+          "bullets": 8
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 695,
+          "bullets": 6
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 420,
+          "bullets": 2
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 0,
+      "obsidianLinks": 3,
+      "linksGesamt": 3,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 28,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "WkBPX-oDMnA",
+      "zeichen": 7940,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 295,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1277,
+          "bullets": 8
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3170,
+          "bullets": 27
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1253,
+          "bullets": 10
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 515,
+          "bullets": 5
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1318,
+          "bullets": 7
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 4,
+      "obsidianLinks": 5,
+      "linksGesamt": 9,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 27,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "uy2WSS1MjGM",
+      "art": "art1-konferenz-talk",
+      "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+      "title": "TanStack is Your New Favorite Framework",
+      "channel": "CascadiaJS",
+      "durationSec": 1550,
+      "auditedAt": "2026-06-18T01:49:31.555Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 23134,
+      "promptChars": 28575,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/CascadiaJS/TanStack is Your New Favorite Framework.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/CascadiaJS/TanStack is Your New Favorite Framework.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "uy2WSS1MjGM",
+      "zeichen": 10228,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 253,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1320,
+          "bullets": 11
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 4419,
+          "bullets": 27
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 649,
+          "bullets": 8
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1753,
+          "bullets": 20
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1084,
+          "bullets": 7
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 8,
+      "obsidianLinks": 6,
+      "linksGesamt": 14,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 27,
+      "behauptungenMitTimestamp": 14,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "uy2WSS1MjGM",
+      "zeichen": 8967,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 181,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1466,
+          "bullets": 15
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3341,
+          "bullets": 31
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 509,
+          "bullets": 6
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1842,
+          "bullets": 28
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1516,
+          "bullets": 10
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 8,
+      "obsidianLinks": 8,
+      "linksGesamt": 16,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 31,
+      "behauptungenMitTimestamp": 19,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "qMnClynCAmM",
+      "art": "art2-langes-workflow-tutorial",
+      "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+      "title": "The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them",
+      "channel": "Cole Medin",
+      "durationSec": 1848,
+      "auditedAt": "2026-06-17T02:20:30.711Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 34139,
+      "promptChars": 39580,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Cole Medin/The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "qMnClynCAmM",
+      "zeichen": 10255,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 361,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1249,
+          "bullets": 8
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3130,
+          "bullets": 18
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1955,
+          "bullets": 11
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1141,
+          "bullets": 14
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 787,
+          "bullets": 4
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 3,
+      "obsidianLinks": 4,
+      "linksGesamt": 7,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 18,
+      "behauptungenMitTimestamp": 10,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "qMnClynCAmM",
+      "zeichen": 12362,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 280,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1849,
+          "bullets": 14
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 5457,
+          "bullets": 50
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1562,
+          "bullets": 16
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1705,
+          "bullets": 23
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1397,
+          "bullets": 9
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 8,
+      "obsidianLinks": 9,
+      "linksGesamt": 17,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 50,
+      "behauptungenMitTimestamp": 31,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "vDVSGVpB2vc",
+      "art": "art2-langes-workflow-tutorial",
+      "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+      "title": "How to Build Claude Agent Teams Better Than 99% of People",
+      "channel": "Nate Herk | AI Automation",
+      "durationSec": 990,
+      "auditedAt": "2026-06-17T11:52:23.154Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 23299,
+      "promptChars": 28740,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Nate Herk _ AI Automation/How to Build Claude Agent Teams Better Than 99% of People.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Nate Herk _ AI Automation/How to Build Claude Agent Teams Better Than 99% of People.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "vDVSGVpB2vc",
+      "zeichen": 9334,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 349,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1095,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 4391,
+          "bullets": 24
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1098,
+          "bullets": 5
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 444,
+          "bullets": 4
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 537,
+          "bullets": 3
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 4,
+      "linksGesamt": 5,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 24,
+      "behauptungenMitTimestamp": 13,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "vDVSGVpB2vc",
+      "zeichen": 9422,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 386,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1445,
+          "bullets": 11
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 4377,
+          "bullets": 42
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1370,
+          "bullets": 9
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 773,
+          "bullets": 7
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 834,
+          "bullets": 5
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 124,
+      "wikilinks": 1,
+      "obsidianLinks": 8,
+      "linksGesamt": 9,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 42,
+      "behauptungenMitTimestamp": 24,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "TxlVdB2gmGE",
+      "art": "art2-langes-workflow-tutorial",
+      "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+      "title": "Docker Just Made Using MCP Servers 100x Easier (One Click Installs!)",
+      "channel": "Cole Medin",
+      "durationSec": 1388,
+      "auditedAt": "2026-06-18T01:38:35.450Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 26066,
+      "promptChars": 31507,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Cole Medin/Docker Just Made Using MCP Servers 100x Easier (One Click Installs!).md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/Docker Just Made Using MCP Servers 100x Easier (One Click Installs!).md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "TxlVdB2gmGE",
+      "zeichen": 9338,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 324,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1156,
+          "bullets": 8
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3151,
+          "bullets": 19
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1216,
+          "bullets": 9
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1295,
+          "bullets": 17
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 766,
+          "bullets": 5
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 5,
+      "obsidianLinks": 3,
+      "linksGesamt": 8,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 19,
+      "behauptungenMitTimestamp": 10,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "TxlVdB2gmGE",
+      "zeichen": 10393,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 378,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 976,
+          "bullets": 10
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3213,
+          "bullets": 33
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1928,
+          "bullets": 16
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 2359,
+          "bullets": 30
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1427,
+          "bullets": 10
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 11,
+      "obsidianLinks": 7,
+      "linksGesamt": 18,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 33,
+      "behauptungenMitTimestamp": 20,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "Ya51a1EJPZk",
+      "art": "art2-langes-workflow-tutorial",
+      "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+      "title": "Make the PERFECT Videos with Claude Code (Full Workflow)",
+      "channel": "Cole Medin",
+      "durationSec": 913,
+      "auditedAt": "2026-06-17T16:34:53.335Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 17894,
+      "promptChars": 23335,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Cole Medin/Make the PERFECT Videos with Claude Code (Full Workflow).md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/Make the PERFECT Videos with Claude Code (Full Workflow).md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "Ya51a1EJPZk",
+      "zeichen": 8252,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 327,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1225,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3540,
+          "bullets": 21
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1082,
+          "bullets": 14
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 656,
+          "bullets": 9
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 703,
+          "bullets": 3
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 3,
+      "obsidianLinks": 3,
+      "linksGesamt": 6,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 21,
+      "behauptungenMitTimestamp": 11,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "Ya51a1EJPZk",
+      "zeichen": 8997,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 267,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1850,
+          "bullets": 15
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3931,
+          "bullets": 33
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1606,
+          "bullets": 22
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 804,
+          "bullets": 11
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 427,
+          "bullets": 4
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 7,
+      "obsidianLinks": 2,
+      "linksGesamt": 9,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 33,
+      "behauptungenMitTimestamp": 20,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "YlzoEaYjAMs",
+      "art": "art3-kurzes-news-video",
+      "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+      "title": "Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model",
+      "channel": "AI Revolution",
+      "durationSec": 529,
+      "auditedAt": "2026-06-20T01:15:09.106Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 8471,
+      "promptChars": 13912,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Revolution/Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Revolution/Liquid AI Just Dropped the Fastest, Best Open-Source Foundation Model.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "YlzoEaYjAMs",
+      "zeichen": 5569,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 289,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1083,
+          "bullets": 10
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2531,
+          "bullets": 26
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 390,
+          "bullets": 5
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 585,
+          "bullets": 3
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 2,
+      "obsidianLinks": 1,
+      "linksGesamt": 3,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 26,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "YlzoEaYjAMs",
+      "zeichen": 4343,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 289,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1116,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2084,
+          "bullets": 20
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 496,
+          "bullets": 7
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 267,
+          "bullets": 2
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 3,
+      "obsidianLinks": 1,
+      "linksGesamt": 4,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 20,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "YAJPdlWaWzM",
+      "art": "art3-kurzes-news-video",
+      "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+      "title": "OpenAI Just Dropped ChatGPT Apps SDK: Massive Upgrade!",
+      "channel": "AI Revolution",
+      "durationSec": 666,
+      "auditedAt": "2026-06-20T01:10:23.002Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 10688,
+      "promptChars": 16129,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Revolution/OpenAI Just Dropped ChatGPT Apps SDK Massive Upgrade!.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Revolution/OpenAI Just Dropped ChatGPT Apps SDK Massive Upgrade!.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "YAJPdlWaWzM",
+      "zeichen": 6808,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 322,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 983,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2691,
+          "bullets": 24
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 870,
+          "bullets": 12
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 597,
+          "bullets": 4
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 4,
+      "obsidianLinks": 1,
+      "linksGesamt": 5,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 24,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "YAJPdlWaWzM",
+      "zeichen": 9946,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 262,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1604,
+          "bullets": 13
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 5594,
+          "bullets": 48
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1367,
+          "bullets": 25
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1028,
+          "bullets": 7
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 10,
+      "obsidianLinks": 3,
+      "linksGesamt": 13,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 48,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "Rw37z2Cma-k",
+      "art": "art3-kurzes-news-video",
+      "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+      "title": "New Chinese AI Model Destroys DeepSeek: 100X More Powerful",
+      "channel": "AI Revolution",
+      "durationSec": 749,
+      "auditedAt": "2026-06-17T01:38:21.370Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 10422,
+      "promptChars": 15863,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/AI Revolution/New Chinese AI Model Destroys DeepSeek 100X More Powerful.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Revolution/New Chinese AI Model Destroys DeepSeek 100X More Powerful.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "Rw37z2Cma-k",
+      "zeichen": 6864,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 283,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1855,
+          "bullets": 16
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2749,
+          "bullets": 25
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 447,
+          "bullets": 4
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 957,
+          "bullets": 6
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 6,
+      "obsidianLinks": 1,
+      "linksGesamt": 7,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 1,
+      "behauptungenBullets": 25,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 1
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "Rw37z2Cma-k",
+      "zeichen": 5902,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 229,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1291,
+          "bullets": 12
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2521,
+          "bullets": 27
+        },
+        "Demos / Schritte": {
+          "vorhanden": false,
+          "zeichen": 0,
+          "bullets": 0
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 674,
+          "bullets": 11
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1096,
+          "bullets": 9
+        }
+      },
+      "sektionenVorhanden": 5,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 8,
+      "obsidianLinks": 2,
+      "linksGesamt": 10,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 27,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "R1_bL8g7HIY",
+      "art": "art3-kurzes-news-video",
+      "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+      "title": "OpenAI NEW Agent Builder: Easily Create AI Agents That Can Automate Anything! n8n Killer? (Agentkit)",
+      "channel": "WorldofAI",
+      "durationSec": 598,
+      "auditedAt": "2026-06-17T01:11:47.686Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 9676,
+      "promptChars": 15117,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/WorldofAI/OpenAI NEW Agent Builder Easily Create AI Agents That Can Automate Anything! n8n Killer (Agentkit).md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/WorldofAI/OpenAI NEW Agent Builder Easily Create AI Agents That Can Automate Anything! n8n Killer (Agentkit).md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "R1_bL8g7HIY",
+      "zeichen": 6048,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 260,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 953,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 1506,
+          "bullets": 13
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1015,
+          "bullets": 6
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 658,
+          "bullets": 10
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 301,
+          "bullets": 2
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 4,
+      "obsidianLinks": 0,
+      "linksGesamt": 4,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 13,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "R1_bL8g7HIY",
+      "zeichen": 6445,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 257,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 894,
+          "bullets": 10
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 1961,
+          "bullets": 16
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1203,
+          "bullets": 8
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 845,
+          "bullets": 12
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 1173,
+          "bullets": 8
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 7,
+      "obsidianLinks": 3,
+      "linksGesamt": 10,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 16,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "RuH3uiJy84A",
+      "art": "art4-kurzes-tool-demo",
+      "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+      "title": "This Claude Skill Cuts Your Token Costs In HALF",
+      "channel": "Better Stack",
+      "durationSec": 305,
+      "auditedAt": "2026-07-08T12:16:17.910Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 6960,
+      "promptChars": 12401,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Better Stack/This Claude Skill Cuts Your Token Costs In HALF.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/This Claude Skill Cuts Your Token Costs In HALF.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "RuH3uiJy84A",
+      "zeichen": 6021,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 218,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 825,
+          "bullets": 7
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2529,
+          "bullets": 14
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 678,
+          "bullets": 5
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 334,
+          "bullets": 5
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 716,
+          "bullets": 4
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 4,
+      "linksGesamt": 5,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 14,
+      "behauptungenMitTimestamp": 8,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "RuH3uiJy84A",
+      "zeichen": 6273,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 265,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1090,
+          "bullets": 9
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2663,
+          "bullets": 25
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 520,
+          "bullets": 6
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 653,
+          "bullets": 9
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 970,
+          "bullets": 6
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 11,
+      "linksGesamt": 12,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 25,
+      "behauptungenMitTimestamp": 17,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "2xuFcmUAQUc",
+      "art": "art4-kurzes-tool-demo",
+      "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+      "title": "This Claude Code Plugin Writes 94% Less Code (ponytail)",
+      "channel": "Better Stack",
+      "durationSec": 607,
+      "auditedAt": "2026-07-08T09:22:11.048Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 10554,
+      "promptChars": 15995,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Better Stack/This Claude Code Plugin Writes 94% Less Code (ponytail).md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/This Claude Code Plugin Writes 94% Less Code (ponytail).md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "2xuFcmUAQUc",
+      "zeichen": 8434,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 255,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1044,
+          "bullets": 6
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3768,
+          "bullets": 20
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 907,
+          "bullets": 6
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 432,
+          "bullets": 4
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 862,
+          "bullets": 4
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 3,
+      "linksGesamt": 4,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 20,
+      "behauptungenMitTimestamp": 12,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "2xuFcmUAQUc",
+      "zeichen": 6616,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 311,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1038,
+          "bullets": 7
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2868,
+          "bullets": 24
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 719,
+          "bullets": 6
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 579,
+          "bullets": 4
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 989,
+          "bullets": 6
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 10,
+      "linksGesamt": 11,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 24,
+      "behauptungenMitTimestamp": 15,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "qnIu-Xu64H0",
+      "art": "art4-kurzes-tool-demo",
+      "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+      "title": "Herdr in about 6 minutes",
+      "channel": "Jilles",
+      "durationSec": 397,
+      "auditedAt": "2026-07-21T10:48:31.381Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 4770,
+      "promptChars": 10211,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Jilles/Herdr in about 6 minutes.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Jilles/Herdr in about 6 minutes.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "qnIu-Xu64H0",
+      "zeichen": 8963,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 288,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 839,
+          "bullets": 8
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2570,
+          "bullets": 17
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1733,
+          "bullets": 10
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 483,
+          "bullets": 6
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 713,
+          "bullets": 3
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 0,
+      "obsidianLinks": 3,
+      "linksGesamt": 3,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 17,
+      "behauptungenMitTimestamp": 9,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "qnIu-Xu64H0",
+      "zeichen": 5559,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 238,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 747,
+          "bullets": 8
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 1926,
+          "bullets": 21
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1346,
+          "bullets": 14
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 536,
+          "bullets": 7
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 654,
+          "bullets": 5
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 6,
+      "linksGesamt": 7,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 21,
+      "behauptungenMitTimestamp": 11,
+      "timestampsFormatVerletzt": 0
+    }
+  },
+  {
+    "meta": {
+      "youtubeId": "PlN86TvzGy4",
+      "art": "art4-kurzes-tool-demo",
+      "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+      "title": "herdr: Is This the Ultimate Agent Multiplexer?",
+      "channel": "Better Stack",
+      "durationSec": 430,
+      "auditedAt": "2026-07-21T08:06:02.056Z",
+      "auditModelPass1u2": "claude-sonnet-4-6",
+      "auditedMdChars": 10864,
+      "promptChars": 16305,
+      "stubVault": "stefans-vault/shared",
+      "stubRelPath": "youtube/Better Stack/herdr_ Is This the Ultimate Agent Multiplexer_.md",
+      "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/herdr_ Is This the Ultimate Agent Multiplexer_.md"
+    },
+    "opus": {
+      "quelle": "opus",
+      "youtubeId": "PlN86TvzGy4",
+      "zeichen": 7496,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 321,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 872,
+          "bullets": 6
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 2368,
+          "bullets": 21
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1326,
+          "bullets": 10
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 878,
+          "bullets": 10
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 667,
+          "bullets": 3
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 1,
+      "obsidianLinks": 3,
+      "linksGesamt": 4,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 21,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    },
+    "grok": {
+      "quelle": "grok",
+      "youtubeId": "PlN86TvzGy4",
+      "zeichen": 8986,
+      "sektionen": {
+        "Worum es geht": {
+          "vorhanden": true,
+          "zeichen": 328,
+          "bullets": 0
+        },
+        "Besprochene Konzepte": {
+          "vorhanden": true,
+          "zeichen": 1173,
+          "bullets": 10
+        },
+        "Behauptungen": {
+          "vorhanden": true,
+          "zeichen": 3550,
+          "bullets": 33
+        },
+        "Demos / Schritte": {
+          "vorhanden": true,
+          "zeichen": 1844,
+          "bullets": 16
+        },
+        "Genannte Tools": {
+          "vorhanden": true,
+          "zeichen": 1097,
+          "bullets": 17
+        },
+        "Verwandt": {
+          "vorhanden": true,
+          "zeichen": 882,
+          "bullets": 7
+        }
+      },
+      "sektionenVorhanden": 6,
+      "fremdeUeberschriften": [],
+      "vorredeZeichen": 0,
+      "wikilinks": 5,
+      "obsidianLinks": 5,
+      "linksGesamt": 10,
+      "brokenWikilinks": 0,
+      "brokenObsidianUris": 0,
+      "brokenRelativeMdLinks": 0,
+      "linksInBacktick": 0,
+      "linksInBehauptungen": 0,
+      "selbstReferenzen": 0,
+      "behauptungenBullets": 33,
+      "behauptungenMitTimestamp": 0,
+      "timestampsFormatVerletzt": 0
+    }
+  }
+]

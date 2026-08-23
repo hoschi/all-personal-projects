@@ -1,0 +1,310 @@
+[
+  {
+    "youtubeId": "Ib5GBkD555M",
+    "art": "art1-konferenz-talk",
+    "A": "grok",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 3,
+        "opus": 2
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 0
+      },
+      "fehlend": {
+        "grok": 9,
+        "opus": 11
+      }
+    }
+  },
+  {
+    "youtubeId": "YgEv7IQzGdM",
+    "art": "art1-konferenz-talk",
+    "A": "opus",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "gleich",
+      "praezision": "opus",
+      "regeltreue": "opus"
+    },
+    "zaehlung": {}
+  },
+  {
+    "youtubeId": "WkBPX-oDMnA",
+    "art": "art1-konferenz-talk",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "gleich",
+      "praezision": "opus",
+      "regeltreue": "opus"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 1,
+        "opus": 2
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "uy2WSS1MjGM",
+    "art": "art1-konferenz-talk",
+    "A": "opus",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "gleich",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "spekulation": {
+        "opus": 0,
+        "grok": 1
+      }
+    }
+  },
+  {
+    "youtubeId": "qMnClynCAmM",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {}
+  },
+  {
+    "youtubeId": "vDVSGVpB2vc",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "opus",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "opus"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 0,
+        "grok": 0
+      },
+      "spekulation": {
+        "opus": 0,
+        "grok": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "TxlVdB2gmGE",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "spekulation": {
+        "grok": 0,
+        "opus": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "Ya51a1EJPZk",
+    "art": "art2-langes-workflow-tutorial",
+    "A": "opus",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "grok"
+    },
+    "zaehlung": {}
+  },
+  {
+    "youtubeId": "YlzoEaYjAMs",
+    "art": "art3-kurzes-news-video",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "grok"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 0,
+        "opus": 1
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "YAJPdlWaWzM",
+    "art": "art3-kurzes-news-video",
+    "A": "opus",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "gleich",
+      "regeltreue": "opus"
+    },
+    "zaehlung": {
+      "spekulation": {
+        "opus": 0,
+        "grok": 0
+      },
+      "fehlend": {
+        "opus": 11,
+        "grok": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "Rw37z2Cma-k",
+    "art": "art3-kurzes-news-video",
+    "A": "grok",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "gleich",
+      "praezision": "gleich",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 1,
+        "opus": 3
+      },
+      "spekulation": {
+        "grok": 0,
+        "opus": 2
+      },
+      "fehlend": {
+        "grok": 9,
+        "opus": 8
+      }
+    }
+  },
+  {
+    "youtubeId": "R1_bL8g7HIY",
+    "art": "art3-kurzes-news-video",
+    "A": "opus",
+    "urteil": {
+      "treue": "grok",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 4,
+        "grok": 1
+      },
+      "spekulation": {
+        "opus": 0,
+        "grok": 0
+      },
+      "fehlend": {
+        "opus": 10,
+        "grok": 3
+      }
+    }
+  },
+  {
+    "youtubeId": "RuH3uiJy84A",
+    "art": "art4-kurzes-tool-demo",
+    "A": "grok",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "grok": 0,
+        "opus": 1
+      },
+      "spekulation": {
+        "grok": 1,
+        "opus": 1
+      },
+      "fehlend": {
+        "grok": 2,
+        "opus": 8
+      }
+    }
+  },
+  {
+    "youtubeId": "2xuFcmUAQUc",
+    "art": "art4-kurzes-tool-demo",
+    "A": "opus",
+    "urteil": {
+      "treue": "opus",
+      "vollstaendigkeit": "grok",
+      "praezision": "gleich",
+      "regeltreue": "opus"
+    },
+    "zaehlung": {
+      "nicht_gedeckt": {
+        "opus": 1,
+        "grok": 2
+      },
+      "spekulation": {
+        "opus": 0,
+        "grok": 0
+      },
+      "fehlend": {
+        "opus": 9,
+        "grok": 2
+      }
+    }
+  },
+  {
+    "youtubeId": "qnIu-Xu64H0",
+    "art": "art4-kurzes-tool-demo",
+    "A": "grok",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "gleich"
+    },
+    "zaehlung": {
+      "spekulation": {
+        "grok": 0,
+        "opus": 0
+      }
+    }
+  },
+  {
+    "youtubeId": "PlN86TvzGy4",
+    "art": "art4-kurzes-tool-demo",
+    "A": "opus",
+    "urteil": {
+      "treue": "gleich",
+      "vollstaendigkeit": "grok",
+      "praezision": "grok",
+      "regeltreue": "grok"
+    },
+    "zaehlung": {}
+  }
+]

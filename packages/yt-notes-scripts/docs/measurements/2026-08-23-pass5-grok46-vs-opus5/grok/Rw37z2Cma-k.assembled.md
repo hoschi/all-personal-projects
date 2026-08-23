@@ -1,0 +1,88 @@
+# New Chinese AI Model Destroys DeepSeek: 100X More Powerful
+
+## Worum es geht
+
+Der Sprecher stellt zwei kompakte, offene Reasoning-Modelle vor: A3B von BYU (sparse MoE) und K2 Think von MBZUAI/G42 (dichtes 32B). These: Frontier-Reasoning kommt von Training, Inferenz-Planung und Hardware, nicht von Rohgröße.
+
+---
+
+## Notizen
+
+[URL](https://youtu.be/Rw37z2Cma-k?si=L9ex8eJbpstO_rWu)
+
+Heißt 3B aktiv, dann, dass ich auch nicht den vRAM-Speicher brauche für die ganzen 21B-Parameter? Mixture of Experts heißt ja aber auch, dass, wenn ich eine Aufgabe habe, die sehr speziell ist, wie zum Beispiel die Erzeugung von Code, ich kein 21B-Modell habe, sondern quasi nur ein 3B-Modell, weil eben das der Experte für Coding ist?
+
+---
+
+---
+
+## Besprochene Konzepte
+
+- Mixture of Experts — 21 Mrd. Parameter gesamt, nur 3 Mrd. pro Token aktiv, ein Router wählt die Experten
+- Router-Orthogonalisierungs-Loss und Token-Balanced-Loss — sollen Experten-Kollaps verhindern und das Training glätten
+- 3 Mrd. aktive Parameter als Sweet Spot — laut BYU genug für ernstes Reasoning, noch trainier- und deploybar
+- 128.000-Token-Kontext — Rotary Position Embeddings progressiv von 10.000 auf 500.000 skaliert, plus Flash-Mask-Attention
+- A3B-Trainingsrezept — Text-Pretraining 8.000→128.000 Tokens, SFT auf Mathe/Logik/Code/Science, progressives RL, Unified Preference Optimization
+- Structured Function Calling — das Modell ruft während des Reasonings APIs und andere Tools auf
+- Dichtes 32B-Backbone — K2 Think setzt auf Qwen 2.5 32B plus Post-Training und Inferenz-Gerüst, nicht auf Sparse-MoE
+- Long-Chain-of-Thought-SFT — Schritt-für-Schritt-Lösungen statt nur Endergebnisse
+- Verifiable Rewards / Datensatz Guru — rund 92.000 Prompts; Belohnung nur für prüfbar richtige Antworten
+- SFT/RL-Balance — zu viel SFT vor RL flacht die RL-Gewinne ab; früherer RL-Start bringt mehr
+- Inferenz-Zeit-Planung — Kurzplan, volle Antwort, etwa drei Kandidaten, Verifier wählt
+- Speculative Decoding — mehrere Tokens auf einmal vorhersagen, hier an Cerebras-Hardware gekoppelt
+
+## Behauptungen
+
+- Rohe Modellgröße bestimmt das Frontier-Niveau nicht mehr; Fortschritt kommt von Training, Planung und Hardware, die mithält.
+- A3B (im Video kurz für „ERA 4.521B A3B thinking“) ist ein MoE mit 21 Mrd. Parametern, davon 3 Mrd. aktiv pro Token.
+- A3B steht unter Apache 2.0 auf HuggingFace, auch für kommerzielle Produkte.
+- Der 128.000-Token-Kontext ist direkt ins Training gebaut, kein nachträglicher Patch.
+- Unified Preference Optimization mischt Preference Learning mit PO; der Sprecher sagt, das vermeide Reward Hacking und mache Alignment stabiler.
+- A3B hat eingebautes strukturiertes Function Calling.
+- A3B integriert mit VLM Transformers ab Version 4.54 und mit Fast Deploy.
+- Der Sprecher hält A3B bei logischem Reasoning, Mathe, wissenschaftlichem QA und Programmierung für stark und gegen deutlich größere Dense-Modelle konkurrenzfähig.
+- BYU setze anders an als OpenAI o3, Anthropic Claude, R1 oder Qwen 3: effizient, long-context-fähig, offen unter permissiver Lizenz.
+- K2 Think zeige, dass ein handhabbares 32B-Basismodell plus Post-Training und Inferenz-Gerüst an viel größere Systeme heranreicht.
+- Nach etwa einer halben SFT-Runde stieg die Genauigkeit auf schweren Mathe-Aufgaben bereits deutlich, noch vor Reinforcement Learning.
+- RL mit verifizierbaren Rewards auf Guru (Mathe, Code, Science, Logik, Simulation, Tabellen) sei zuverlässiger als Belohnung nur für „gut klingende“ Antworten.
+- RL näher am Basismodell bringe große Gewinne; startet man nach zu viel Fine-Tuning, flachen sie ab.
+- Plan, dann Antwort, dann mehrere Kandidaten plus Verifier steigere die Genauigkeit und mache Antworten kürzer und klarer.
+- AIME24: 90.83, Antworten 6,7 % kürzer.
+- AIME25: 81.24, Antworten 3,9 % kürzer.
+- HMMT25: 73.75, Antworten 7,2 % kürzer.
+- OmniMath: 60.73, Antworten 11,7 % kürzer.
+- Antworten kürzer als bei Qwen 3 235B A22B und in der Größenordnung von GPT-OSS 120B.
+- Live Codebench V5: 63.97 gegen 56.64 bei Qwen 3 235B A22B, Antworten 10,5 % kürzer.
+- SciCode: 39.2 auf Teilaufgaben, 12.0 auf Hauptaufgaben.
+- GPQA Diamond: 71.08.
+- Der Sprecher nannte HLE als weiteren Prüfstand für wissenschaftliches Reasoning.
+- MacroSafety 4: 0.75; Refusal 83; Conversational Robustness 89; Jailbreak Resistance 72; Cyber Security 56.
+- Mit Speculative Decoding und Cerebras Wafer-Scale Engine rund 2.000 Tokens pro Sekunde.
+- K2 Think konkurriere mit DeepSeek V3.1 (671B) und GPT-OSS 120B, sei aber 32B.
+- MBZUAI veröffentliche Gewichte, Trainingsdaten, Deployment-Code und Test-Time-Optimierungs-Code.
+
+## Genannte Tools
+
+- [[hugging face]] — Bezugsort für A3B-Gewichte unter Apache 2.0
+- VLM Transformers 4.54+ — genannte Integrationsschicht für A3B
+- Fast Deploy — genannte Deployment-Option für A3B
+- Cerebras Wafer-Scale Engine — Inferenz-Hardware für die genannten ~2.000 Tokens/s von K2 Think
+- Qwen 2.5 32B — Backbone von K2 Think
+- Qwen 3 / Qwen 3 235B A22B — Vergleichsmodell bei Mathe- und Code-Zahlen
+- OpenAI o3 — geschlossenes Vergleichsmodell
+- Anthropic Claude — geschlossenes Vergleichsmodell
+- R1 — weiteres genanntes Vergleichsmodell
+- DeepSeek V3.1 — 671B-Vergleich, dem K2 Think laut Sprecher die Stirn bietet
+- GPT-OSS 120B — Vergleich für Antwortlänge und Parametereffizienz
+
+## Verwandt
+
+- [lokale-ki-werkzeuge](obsidian://open?vault=knowledge-base&file=lokale-ki-werkzeuge) — Hardware, Runtimes und MoE-Durchsatz bei kompakten lokalen Modellen
+- [llm-benchmark-register](obsidian://open?vault=knowledge-base&file=llm-benchmark-register) — AIME eingeschränkt, LiveCodeBench brauchbar (Split V5), GPQA-Diamond eingeschränkt, HLE-Original korrumpiert
+- [[Lokale KI]] — Einstieg zu lokal laufenden Modellen statt API-only
+- [[welche LLM für was]] — Modellwahl nach Aufgabe, inklusive offener Alternativen
+- [[Tiny AI Is About to Change Everything (IBM Granite 4.0)]] — dieselbe These: kompakt und effizient statt Rohgröße
+- [[New DeepSeek «Chimera» SHOCKED Experts 2X Faster and Smarter Than Original DeepSeek]] — andere Expert-Kombination, verwandt zur Sparse-/Experten-Familie
+- [[DeepSeek’s New AI Just Humiliated GPT-5]] — DeepSeek V3.1, im Video als Vergleichsgröße
+- [[New AI Just Broke Reasoning Limits at HUMAN Level]] — Inferenz-Zeit-Reasoning und kürzere Antworten
+- [[Modelle von Hugging Face mit Ollama und n8n verwenden]] — praktische Nutzung von HuggingFace-Gewichten lokal
