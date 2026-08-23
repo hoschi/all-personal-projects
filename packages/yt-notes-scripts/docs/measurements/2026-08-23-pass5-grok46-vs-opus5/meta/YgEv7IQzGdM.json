@@ -1,0 +1,15 @@
+{
+  "youtubeId": "YgEv7IQzGdM",
+  "art": "art1-konferenz-talk",
+  "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+  "title": "How to Kill the Code Review — Ankit Jain, Aviator",
+  "channel": "AI Engineer",
+  "durationSec": 986,
+  "auditedAt": "2026-08-23T11:46:33.661Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 14489,
+  "promptChars": 19930,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/AI Engineer/How to Kill the Code Review — Ankit Jain, Aviator.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/How to Kill the Code Review — Ankit Jain, Aviator.md"
+}

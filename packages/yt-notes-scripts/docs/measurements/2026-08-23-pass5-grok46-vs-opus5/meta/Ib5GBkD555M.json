@@ -1,0 +1,15 @@
+{
+  "youtubeId": "Ib5GBkD555M",
+  "art": "art1-konferenz-talk",
+  "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+  "title": "Harness Engineering is not Enough: Why Software Factories Fail — Dex Horthy, HumanLayer",
+  "channel": "AI Engineer",
+  "durationSec": 1158,
+  "auditedAt": "2026-08-23T11:52:00.365Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 21987,
+  "promptChars": 27428,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/AI Engineer/Harness Engineering is not Enough_ Why Software Factories Fail — Dex Horthy, HumanLayer.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/AI Engineer/Harness Engineering is not Enough_ Why Software Factories Fail — Dex Horthy, HumanLayer.md"
+}

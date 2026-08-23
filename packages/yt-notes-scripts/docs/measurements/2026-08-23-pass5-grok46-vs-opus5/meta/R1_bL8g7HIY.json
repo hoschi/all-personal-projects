@@ -1,0 +1,15 @@
+{
+  "youtubeId": "R1_bL8g7HIY",
+  "art": "art3-kurzes-news-video",
+  "artBeschreibung": "Kurzes Release-/News-Video, 8-13 min, hohe Produktnamen-Dichte, geringe Tiefe",
+  "title": "OpenAI NEW Agent Builder: Easily Create AI Agents That Can Automate Anything! n8n Killer? (Agentkit)",
+  "channel": "WorldofAI",
+  "durationSec": 598,
+  "auditedAt": "2026-06-17T01:11:47.686Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 9676,
+  "promptChars": 15117,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/WorldofAI/OpenAI NEW Agent Builder Easily Create AI Agents That Can Automate Anything! n8n Killer (Agentkit).md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/WorldofAI/OpenAI NEW Agent Builder Easily Create AI Agents That Can Automate Anything! n8n Killer (Agentkit).md"
+}

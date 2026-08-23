@@ -1,0 +1,15 @@
+{
+  "youtubeId": "qnIu-Xu64H0",
+  "art": "art4-kurzes-tool-demo",
+  "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+  "title": "Herdr in about 6 minutes",
+  "channel": "Jilles",
+  "durationSec": 397,
+  "auditedAt": "2026-07-21T10:48:31.381Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 4770,
+  "promptChars": 10211,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Jilles/Herdr in about 6 minutes.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Jilles/Herdr in about 6 minutes.md"
+}

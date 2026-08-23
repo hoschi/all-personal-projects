@@ -1,0 +1,15 @@
+{
+  "youtubeId": "qMnClynCAmM",
+  "art": "art2-langes-workflow-tutorial",
+  "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+  "title": "The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them",
+  "channel": "Cole Medin",
+  "durationSec": 1848,
+  "auditedAt": "2026-06-17T02:20:30.711Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 34139,
+  "promptChars": 39580,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Cole Medin/The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Cole Medin/The Next Evolution of AI Coding Is Harnesses - Here's How to Build Them.md"
+}

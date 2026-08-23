@@ -1,0 +1,15 @@
+{
+  "youtubeId": "uy2WSS1MjGM",
+  "art": "art1-konferenz-talk",
+  "artBeschreibung": "Konferenz-Vortrag, ein Sprecher, konzeptlastig, 16-27 min, keine Bildschirm-Demo",
+  "title": "TanStack is Your New Favorite Framework",
+  "channel": "CascadiaJS",
+  "durationSec": 1550,
+  "auditedAt": "2026-06-18T01:49:31.555Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 23134,
+  "promptChars": 28575,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/CascadiaJS/TanStack is Your New Favorite Framework.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/CascadiaJS/TanStack is Your New Favorite Framework.md"
+}

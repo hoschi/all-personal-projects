@@ -1,0 +1,15 @@
+{
+  "youtubeId": "vDVSGVpB2vc",
+  "art": "art2-langes-workflow-tutorial",
+  "artBeschreibung": "Langer Setup-/Workflow-Screencast mit vorgefuehrten Schritten, 15-31 min, viele Tool-Namen",
+  "title": "How to Build Claude Agent Teams Better Than 99% of People",
+  "channel": "Nate Herk | AI Automation",
+  "durationSec": 990,
+  "auditedAt": "2026-06-17T11:52:23.154Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 23299,
+  "promptChars": 28740,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Nate Herk _ AI Automation/How to Build Claude Agent Teams Better Than 99% of People.md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Nate Herk _ AI Automation/How to Build Claude Agent Teams Better Than 99% of People.md"
+}

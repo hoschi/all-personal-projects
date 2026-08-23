@@ -1,0 +1,15 @@
+{
+  "youtubeId": "2xuFcmUAQUc",
+  "art": "art4-kurzes-tool-demo",
+  "artBeschreibung": "Kurzes Tool-Demo/Explainer mit starkem Vault-Bezug (Claude Code, Herdr), 5-11 min",
+  "title": "This Claude Code Plugin Writes 94% Less Code (ponytail)",
+  "channel": "Better Stack",
+  "durationSec": 607,
+  "auditedAt": "2026-07-08T09:22:11.048Z",
+  "auditModelPass1u2": "claude-sonnet-4-6",
+  "auditedMdChars": 10554,
+  "promptChars": 15995,
+  "stubVault": "stefans-vault/shared",
+  "stubRelPath": "youtube/Better Stack/This Claude Code Plugin Writes 94% Less Code (ponytail).md",
+  "stubAbsPath": "/Users/hoschi/Library/CloudStorage/Dropbox/obsidian-test/test/shared/youtube/Better Stack/This Claude Code Plugin Writes 94% Less Code (ponytail).md"
+}
