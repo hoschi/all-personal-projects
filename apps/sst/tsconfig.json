@@ -9,7 +9,10 @@
     "target": "ES2022",
     "jsx": "react-jsx",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // ES2023 statt ES2022: die serverseitig eingebundenen Quellen aus
+    // @repo/yt-notes-scripts nutzen Array.prototype.findLast /
+    // findLastIndex. Nur die Typbibliothek — "target" bleibt ES2022.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "bun", "node"],
     /* Bundler mode */
     "moduleResolution": "bundler",
