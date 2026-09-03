@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { callClaudeCli } from "@repo/yt-notes-scripts/llm-caller"
+import { callLlmCli } from "@repo/yt-notes-scripts/llm-caller"
 
 export interface CorrectWithClaudeInput {
   prompt: string
@@ -31,7 +31,8 @@ export async function correctWithClaude(
 ): Promise<CorrectWithClaudeResult> {
   const env = readCorrectWithClaudeEnv()
 
-  const callPromise = callClaudeCli({
+  const callPromise = callLlmCli({
+    channel: "claude-cli",
     prompt: input.prompt,
     allowedTools: "", // STT-Korrektur braucht keine Tools
     model: env.SST_CLAUDE_MODEL,
