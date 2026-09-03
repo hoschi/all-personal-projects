@@ -13,6 +13,7 @@ mock.module("@tanstack/react-start", () => ({
 import { test, expect } from "bun:test"
 import {
   appendToNotizenSection,
+  buildVideoDetailsArgs,
   formatMissingTranscriptMessage,
 } from "./yt-binding-actions"
 
@@ -152,4 +153,25 @@ Inhalt.
   const idxAndere = result.indexOf("## Andere")
   expect(idxFirst).toBeLessThan(idxSecond)
   expect(idxSecond).toBeLessThan(idxAndere)
+})
+
+test("buildVideoDetailsArgs trennt die Video-ID mit `--` ab", () => {
+  // YouTube-IDs dürfen mit `-` beginnen (z.B. -Gj0-EIyx6g). Ohne den
+  // `--`-Trenner liest commander so eine ID als unbekannte Option und
+  // get_video_details bricht mit "unknown option" ab.
+  const args = buildVideoDetailsArgs("-Gj0-EIyx6g")
+  expect(args.at(-1)).toBe("-Gj0-EIyx6g")
+  expect(args.at(-2)).toBe("--")
+  expect(args.at(-3)).toBe("fetch")
+})
+
+test("buildVideoDetailsArgs behält den Trenner auch für IDs ohne `-`", () => {
+  const args = buildVideoDetailsArgs("dQw4w9WgXcQ")
+  expect(args).toEqual([
+    "run",
+    "packages/yt-notes-scripts/src/get_video_details.ts",
+    "fetch",
+    "--",
+    "dQw4w9WgXcQ",
+  ])
 })

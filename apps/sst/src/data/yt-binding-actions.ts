@@ -236,19 +236,26 @@ function parseVideoIdFromUrl(url: string): string | null {
   return null
 }
 
-// get_video_details.ts nutzt Subcommand-Syntax: `fetch <videoId>` (kein --id Flag)
+// get_video_details.ts nutzt Subcommand-Syntax: `fetch <videoId>` (kein --id
+// Flag). Der `--`-Trenner beendet die Optionserkennung von commander: eine
+// YouTube-ID darf mit `-` beginnen (z.B. -Gj0-EIyx6g) und wird sonst als
+// unbekannte Option gelesen.
+export function buildVideoDetailsArgs(youtubeId: string): string[] {
+  return [
+    "run",
+    "packages/yt-notes-scripts/src/get_video_details.ts",
+    "fetch",
+    "--",
+    youtubeId,
+  ]
+}
+
 async function fetchAndPersistVideoDetails(youtubeId: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const proc = spawn(
-      "bun",
-      [
-        "run",
-        "packages/yt-notes-scripts/src/get_video_details.ts",
-        "fetch",
-        youtubeId,
-      ],
-      { cwd: REPO_ROOT, stdio: "pipe" },
-    )
+    const proc = spawn("bun", buildVideoDetailsArgs(youtubeId), {
+      cwd: REPO_ROOT,
+      stdio: "pipe",
+    })
     let stderr = ""
     proc.stderr.on("data", (b) => {
       stderr += b.toString()
