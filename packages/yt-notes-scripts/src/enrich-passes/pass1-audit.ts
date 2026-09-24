@@ -5,7 +5,7 @@ import { callLlmCli } from "../llm-caller"
 // which model actually ran — enrich-pipeline.ts wrote a hardcoded id into
 // Transcript.auditModel that drifted away from the alias. Both the call and
 // the provenance field now read this constant.
-export const PASS1_AUDIT_MODEL = "claude-opus-5"
+export const PASS1_AUDIT_MODEL = "claude-opus-5-5"
 
 export interface Chapter {
   timestamp: string
