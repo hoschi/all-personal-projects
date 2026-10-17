@@ -288,6 +288,7 @@ Useful scopes:
 ### Gmail sync behavior
 
 - On every process start the stored cursor is cleared so boot always begins with full sync.
+- Resuming `gmail_history_id` across restarts was tried and removed in `cbe0fea` (2026-08-12). A restart replayed the Gmail history backlog: label changes and messages that arrived while the process was down. History mode stays limited to the running process, after the boot full sync has drained.
 - `agent_state.gmail_history_id` stores the mailbox cursor used only after boot full sync finishes.
 - Incremental mode uses `users.history.list(startHistoryId=...)` with pagination until all pages are consumed.
 - Full sync mode uses `users.messages.list` with `MAIL_AGENT_GMAIL_FILTER_QUERY` in small pages (`maxResults=5`), one page per poll cycle.
