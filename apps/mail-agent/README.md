@@ -51,11 +51,13 @@ Required variables:
 Optional variables:
 
 - `MAIL_AGENT_TELEGRAM_ALLOWED_USER_IDS`
+- `MAIL_AGENT_GMAIL_NOTIFY_SKIP_QUERY`
 
 Notes:
 
 - `MAIL_AGENT_GMAIL_FILTER_QUERY` has a default in `.env.base` and can be overridden in `.env`.
 - The query is used for full-sync candidate listing (first run and invalid-history fallback).
+- `MAIL_AGENT_GMAIL_NOTIFY_SKIP_QUERY` is an optional Gmail search. Mail that matches it does not get an arrival notice. Empty means nothing is silenced. `.env.example` and `.env.base` use `-in:inbox`, which silences mail outside the inbox (sent, drafts, spam, trash, archived). Mail that is in the inbox, including `category:social`, still gets an arrival notice unless the skip query names it too, for example `-in:inbox OR category:social OR label:SomeLabel`.
 - AI prompt rule env vars (`MAIL_AGENT_AI_RULES_DELETE`, `MAIL_AGENT_AI_RULES_KEEP`, `MAIL_AGENT_AI_RULES_SUMMARY`, `MAIL_AGENT_AI_RULES_SENDER`) accept `||`-separated bullet entries and are rendered into the system prompt under their respective headings.
 - `MAIL_AGENT_HTTP_HOST` + `MAIL_AGENT_HTTP_PORT` define both:
   - the Bun bind target
@@ -317,6 +319,14 @@ Useful scopes:
   - apply undo when `user_action` is `null`
   - re-apply original action when `user_action` is already `undo_*`
 - `processed_emails.user_action` is the toggle state source of truth.
+
+### Arrival notices for mail outside the AI query
+
+- On process start the arrival cursor is set to the current Gmail `historyId` and kept in memory only. Mail already in the mailbox, and mail that arrived while the process was stopped, is not notified.
+- While the process runs, `users.history.list` with `messageAdded` supplies arrivals after that cursor.
+- A message that matches `MAIL_AGENT_GMAIL_FILTER_QUERY` stays on the AI path. A message that matches `MAIL_AGENT_GMAIL_NOTIFY_SKIP_QUERY` stays silent. Every other arrival gets one Telegram message: inbox icon, sender, subject, and an undo link. No snippet and no AI label.
+- The undo link moves the message to trash. The same link restores it. The Telegram icon switches between 📥 and 🗑️ only while this process still holds the Telegram message id. After a restart the link still moves the message, because trash state is read from Gmail, and the old icon is left unchanged.
+- An invalid arrival cursor is replaced with the current `historyId`. The gap is not backfilled.
 
 ### Telegram notification behavior
 

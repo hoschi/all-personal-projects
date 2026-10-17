@@ -58,8 +58,82 @@ async function main() {
   let pollCycle = 0
   let repeatedFullSyncBatchCount = 0
   let previousFullSyncBatchSignature: string | null = null
+  let notifyHistoryId: string | null = null
+
+  const seedNotifyHistoryId = async (): Promise<string | null> => {
+    try {
+      const historyId = await gmail.readProfileHistoryId()
+      debug("Notify cursor seeded at current mailbox: historyId=%s", historyId)
+      return historyId
+    } catch (error: unknown) {
+      const seedError = error instanceof Error ? error.message : String(error)
+      debug("Notify cursor seed failed: error=%s", seedError)
+      return null
+    }
+  }
+
+  notifyHistoryId = await seedNotifyHistoryId()
 
   while (true) {
+    if (!notifyHistoryId) {
+      notifyHistoryId = await seedNotifyHistoryId()
+    }
+
+    if (notifyHistoryId) {
+      const notifyCursor = notifyHistoryId
+
+      try {
+        const arrivalPoll = await gmail.pollArrivalNotifications(notifyCursor)
+        let arrivalFailed = false
+
+        for (const message of arrivalPoll.messages) {
+          try {
+            const undoUrl = httpRuntime.createArrivalUndoUrl(
+              message.gmailMessageId,
+            )
+
+            await notifier.sendArrivalNotification({
+              gmailMessageId: message.gmailMessageId,
+              sender: message.sender,
+              subject: message.subject,
+              undoUrl,
+            })
+
+            debug(
+              "Arrival notice sent: gmailMessageId=%s, sender=%s",
+              message.gmailMessageId,
+              message.sender,
+            )
+          } catch (error: unknown) {
+            arrivalFailed = true
+            const arrivalError =
+              error instanceof Error ? error.message : String(error)
+
+            debug(
+              "Arrival notice failed: gmailMessageId=%s, error=%s",
+              message.gmailMessageId,
+              arrivalError,
+            )
+            break
+          }
+        }
+
+        if (!arrivalFailed) {
+          notifyHistoryId = arrivalPoll.cursorAfter
+          debug(
+            "Notify cursor advanced: cursorAfter=%s, messageCount=%d",
+            arrivalPoll.cursorAfter,
+            arrivalPoll.messages.length,
+          )
+        }
+      } catch (error: unknown) {
+        const arrivalPollError =
+          error instanceof Error ? error.message : String(error)
+
+        debug("Arrival poll failed: error=%s", arrivalPollError)
+      }
+    }
+
     pollCycle += 1
     const gmailPollResult = await gmail.poll()
     const currentBatchSignature = gmailPollResult.candidateMessageIds.join(",")

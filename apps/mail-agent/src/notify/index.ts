@@ -23,9 +23,23 @@ export type NotificationResult = {
   providerMessageId: string
 }
 
+export type ArrivalNotificationInput = {
+  gmailMessageId: string
+  sender: string
+  subject: string
+  undoUrl: string
+}
+
+export type ArrivalStatusUpdateInput = {
+  gmailMessageId: string
+  inTrash: boolean
+}
+
 export interface Notifier {
   sendNotification(input: NotificationInput): Promise<NotificationResult>
   updateNotificationStatus(input: NotificationStatusUpdateInput): Promise<void>
+  sendArrivalNotification(input: ArrivalNotificationInput): Promise<void>
+  updateArrivalNotification(input: ArrivalStatusUpdateInput): Promise<void>
 }
 
 export type NotificationMappingStorePort = {
@@ -173,6 +187,30 @@ function normalizeNotificationInput(
     reason: sanitizeReasonForNotification(input.reason),
     summary: sanitizeSummaryForNotification(input.summary),
   }
+}
+
+const ARRIVAL_KEPT_ICON = "📥" as const
+const ARRIVAL_TRASH_ICON = "🗑️" as const
+
+function sanitizeSingleLine(value: string, fallback: string): string {
+  const normalizedValue = value.replace(/\s+/g, " ").trim()
+
+  return normalizedValue.length > 0 ? normalizedValue : fallback
+}
+
+function formatArrivalTelegramMessage(input: {
+  sender: string
+  subject: string
+  undoUrl: string
+  inTrash: boolean
+}): string {
+  const icon = input.inTrash ? ARRIVAL_TRASH_ICON : ARRIVAL_KEPT_ICON
+
+  return [
+    `${escapeMarkdownV2(icon)} ${escapeMarkdownV2(input.sender)}`,
+    escapeMarkdownV2(input.subject),
+    `[UNDO](${escapeMarkdownV2LinkUrl(input.undoUrl)})`,
+  ].join("\n")
 }
 
 function formatTelegramMessage(input: NotificationInput): string {
@@ -392,6 +430,15 @@ export function createNotifier(
       undoUrl: string
     }
   >()
+  const arrivalNotificationsByGmailMessageId = new Map<
+    string,
+    {
+      providerMessageId: string
+      sender: string
+      subject: string
+      undoUrl: string
+    }
+  >()
 
   return {
     async sendNotification(
@@ -552,6 +599,89 @@ export function createNotifier(
         input.gmailMessageId,
         sentNotification.providerMessageId,
         input.appliedAction,
+      )
+    },
+    async sendArrivalNotification(
+      input: ArrivalNotificationInput,
+    ): Promise<void> {
+      const debug = Debug("app:action:sendArrivalNotification")
+
+      if (arrivalNotificationsByGmailMessageId.has(input.gmailMessageId)) {
+        debug(
+          "Skipping duplicate arrival notification: gmailMessageId=%s",
+          input.gmailMessageId,
+        )
+        return
+      }
+
+      const sender = sanitizeSingleLine(input.sender, "Unbekannter Absender")
+      const subject = sanitizeSubjectForNotification(input.subject)
+      const formattedMessage = formatArrivalTelegramMessage({
+        sender,
+        subject,
+        undoUrl: input.undoUrl,
+        inTrash: false,
+      })
+
+      debug(
+        "Sending arrival notification: gmailMessageId=%s, sender=%s, formattedMessage=%s",
+        input.gmailMessageId,
+        sender,
+        formattedMessage,
+      )
+
+      const providerMessageId = await sendTelegramMessage(
+        config,
+        formattedMessage,
+      )
+
+      arrivalNotificationsByGmailMessageId.set(input.gmailMessageId, {
+        providerMessageId,
+        sender,
+        subject,
+        undoUrl: input.undoUrl,
+      })
+
+      debug(
+        "Sent arrival notification: gmailMessageId=%s, providerMessageId=%s",
+        input.gmailMessageId,
+        providerMessageId,
+      )
+    },
+    async updateArrivalNotification(
+      input: ArrivalStatusUpdateInput,
+    ): Promise<void> {
+      const debug = Debug("app:action:updateArrivalNotification")
+      const sentNotification = arrivalNotificationsByGmailMessageId.get(
+        input.gmailMessageId,
+      )
+
+      if (!sentNotification) {
+        debug(
+          "Skipping arrival status update: no in-memory telegram mapping for gmailMessageId=%s",
+          input.gmailMessageId,
+        )
+        return
+      }
+
+      const updatedMessage = formatArrivalTelegramMessage({
+        sender: sentNotification.sender,
+        subject: sentNotification.subject,
+        undoUrl: sentNotification.undoUrl,
+        inTrash: input.inTrash,
+      })
+
+      await editTelegramMessage(
+        config,
+        sentNotification.providerMessageId,
+        updatedMessage,
+      )
+
+      debug(
+        "Updated arrival status: gmailMessageId=%s, providerMessageId=%s, inTrash=%s",
+        input.gmailMessageId,
+        sentNotification.providerMessageId,
+        input.inTrash,
       )
     },
   }

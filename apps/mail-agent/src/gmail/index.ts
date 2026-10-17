@@ -12,6 +12,20 @@ const GMAIL_SCOPES = [
 ] as const
 const FULL_SYNC_PAGE_SIZE = 5 as const
 const NORMALIZED_MESSAGE_FETCH_BATCH_SIZE = 5 as const
+const GMAIL_TRASH_LABEL_ID = "TRASH" as const
+
+class HistoryQueryLookupError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "HistoryQueryLookupError"
+  }
+}
+
+type HistoryCandidateMatch = {
+  matchedIds: string[]
+  unresolvedIds: string[]
+  hadLookupGap: boolean
+}
 
 export type NormalizedGmailMessage = {
   gmailMessageId: string
@@ -37,6 +51,13 @@ export type GmailPollResult = {
   candidateMessageIds: string[]
   normalizedMessages: NormalizedGmailMessage[]
 }
+
+export type ArrivalPollResult = {
+  cursorAfter: string
+  messages: NormalizedGmailMessage[]
+}
+
+export type InboxTrashPlacement = "trashed" | "restored"
 
 export type GmailAppliedAction = "keep" | "delete" | "hidden"
 
@@ -284,41 +305,46 @@ async function getRfc822IdFromHistory(
   }
 }
 
-async function filterHistoryCandidatesByQuery(
+async function matchHistoryCandidatesByQuery(
   gmailClient: gmail_v1.Gmail,
   candidateMessageIds: string[],
   gmailFilterQuery: string,
   managedLabelIds: Set<string>,
-): Promise<string[]> {
-  // Build dynamic filter query excluding AI-managed labels
-  const aiLabelExclusions = Array.from(managedLabelIds)
-    .map((labelId) => `-label:${labelId}`)
-    .join(" ")
-
+  options: {
+    includeOnLookupError: boolean
+    appendManagedLabelExclusions: boolean
+  },
+): Promise<HistoryCandidateMatch> {
+  const aiLabelExclusions = options.appendManagedLabelExclusions
+    ? Array.from(managedLabelIds)
+        .map((labelId) => `-label:${labelId}`)
+        .join(" ")
+    : ""
   const dynamicFilterQuery = `${gmailFilterQuery} ${aiLabelExclusions}`.trim()
   const debug = Debug("app:action:filterHistoryCandidates")
   debug(
-    "Filtering history candidates: candidateCount=%d, filterQuery=%s",
+    "Filtering history candidates: candidateCount=%d, filterQuery=%s, includeOnLookupError=%s",
     candidateMessageIds.length,
     dynamicFilterQuery,
+    options.includeOnLookupError,
   )
 
-  const filteredMessageIds: string[] = []
+  const matchedIds: string[] = []
+  const unresolvedIds: string[] = []
+  let hadLookupGap = false
+  const batchSize = 5
 
-  // Process candidates in batches to avoid rate limits
-  const BATCH_SIZE = 5
-  for (let i = 0; i < candidateMessageIds.length; i += BATCH_SIZE) {
-    const batch = candidateMessageIds.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < candidateMessageIds.length; i += batchSize) {
+    const batch = candidateMessageIds.slice(i, i + batchSize)
 
     debug(
       "Processing filter batch: batchIndex=%d, batchSize=%d",
-      Math.floor(i / BATCH_SIZE),
+      Math.floor(i / batchSize),
       batch.length,
     )
 
     for (const messageId of batch) {
       try {
-        // Get RFC822 Message-ID from history message
         const rfcMessageId = await getRfc822IdFromHistory(
           gmailClient,
           messageId,
@@ -329,12 +355,16 @@ async function filterHistoryCandidatesByQuery(
             "Failed to get RFC822 ID for history candidate: messageId=%s",
             messageId,
           )
-          // On error getting RFC822 ID, include the message to be safe
-          filteredMessageIds.push(messageId)
+
+          if (options.includeOnLookupError) {
+            matchedIds.push(messageId)
+          } else {
+            unresolvedIds.push(messageId)
+          }
+
           continue
         }
 
-        // Use Gmail search with RFC822 Message-ID to check if message matches the filter
         const searchQuery = `${dynamicFilterQuery} rfc822msgid:${rfcMessageId}`
         const searchResponse = await gmailClient.users.messages.list({
           userId: "me",
@@ -342,12 +372,11 @@ async function filterHistoryCandidatesByQuery(
           maxResults: 1,
         })
 
-        // If message is found in search results, it matches the filter
         if (
           searchResponse.data.messages &&
           searchResponse.data.messages.length > 0
         ) {
-          filteredMessageIds.push(messageId)
+          matchedIds.push(messageId)
           debug(
             "History candidate matches filter: messageId=%s, rfcMessageId=%s",
             messageId,
@@ -366,25 +395,53 @@ async function filterHistoryCandidatesByQuery(
           messageId,
           error,
         )
-        // On error, include the message to be safe
-        filteredMessageIds.push(messageId)
+
+        if (options.includeOnLookupError || isInvalidHistoryError(error)) {
+          if (options.includeOnLookupError) {
+            matchedIds.push(messageId)
+          } else {
+            unresolvedIds.push(messageId)
+          }
+        } else {
+          hadLookupGap = true
+        }
       }
     }
 
-    // Small delay between batches to avoid rate limiting
-    if (i + BATCH_SIZE < candidateMessageIds.length) {
+    if (i + batchSize < candidateMessageIds.length) {
       await new Promise((resolve) => setTimeout(resolve, 1000))
     }
   }
 
   debug(
-    "History filtering completed: totalCandidates=%d, filteredCandidates=%d, filteredOut=%d",
+    "History filtering completed: totalCandidates=%d, filteredCandidates=%d, filteredOut=%d, hadLookupGap=%s",
     candidateMessageIds.length,
-    filteredMessageIds.length,
-    candidateMessageIds.length - filteredMessageIds.length,
+    matchedIds.length,
+    candidateMessageIds.length - matchedIds.length,
+    hadLookupGap,
   )
 
-  return filteredMessageIds
+  return { matchedIds, unresolvedIds, hadLookupGap }
+}
+
+async function filterHistoryCandidatesByQuery(
+  gmailClient: gmail_v1.Gmail,
+  candidateMessageIds: string[],
+  gmailFilterQuery: string,
+  managedLabelIds: Set<string>,
+): Promise<string[]> {
+  const match = await matchHistoryCandidatesByQuery(
+    gmailClient,
+    candidateMessageIds,
+    gmailFilterQuery,
+    managedLabelIds,
+    {
+      includeOnLookupError: true,
+      appendManagedLabelExclusions: true,
+    },
+  )
+
+  return match.matchedIds
 }
 
 async function readStoredCursor(): Promise<string | null> {
@@ -973,7 +1030,198 @@ export function createGmailSync(config: BootstrapConfig) {
     }
   }
 
+  async function readProfileHistoryId(): Promise<string | null> {
+    const debug = Debug("app:action:readProfileHistoryId")
+    const profileResponse = await gmailClient.users.getProfile({
+      userId: "me",
+    })
+    const historyId = profileResponse.data.historyId ?? null
+
+    debug("Read Gmail profile history id: hasHistoryId=%s", historyId !== null)
+
+    return historyId
+  }
+
+  async function pollArrivalNotifications(
+    startHistoryId: string,
+  ): Promise<ArrivalPollResult> {
+    const debug = Debug("app:action:pollArrivalNotifications")
+
+    try {
+      const historyPages: gmail_v1.Schema$ListHistoryResponse[] = []
+      let pageToken: string | undefined
+      let cursorAfter = startHistoryId
+
+      do {
+        const historyResponse = await gmailClient.users.history.list({
+          userId: "me",
+          startHistoryId,
+          historyTypes: ["messageAdded"],
+          pageToken,
+        })
+
+        historyPages.push(historyResponse.data)
+        cursorAfter = historyResponse.data.historyId ?? cursorAfter
+        pageToken = historyResponse.data.nextPageToken ?? undefined
+      } while (pageToken)
+
+      const candidateMessageIds = [
+        ...new Set(
+          historyPages.flatMap((page) =>
+            extractHistoryCandidateMessageIds(page),
+          ),
+        ),
+      ]
+
+      if (candidateMessageIds.length === 0) {
+        debug(
+          "Arrival history empty: cursorBefore=%s, cursorAfter=%s",
+          startHistoryId,
+          cursorAfter,
+        )
+
+        return { cursorAfter, messages: [] }
+      }
+
+      const managedLabelIds = await getManagedLabelIdsByPrefix()
+      const aiMatch = await matchHistoryCandidatesByQuery(
+        gmailClient,
+        candidateMessageIds,
+        config.gmailFilterQuery,
+        managedLabelIds,
+        {
+          includeOnLookupError: false,
+          appendManagedLabelExclusions: true,
+        },
+      )
+
+      if (aiMatch.hadLookupGap) {
+        throw new HistoryQueryLookupError(
+          "Arrival AI-query lookup did not finish.",
+        )
+      }
+
+      const skipQuery = config.gmailNotifySkipQuery.trim()
+      let skipMatchedIds: string[] = []
+      let skipUnresolvedIds: string[] = []
+
+      if (skipQuery.length > 0) {
+        const skipMatch = await matchHistoryCandidatesByQuery(
+          gmailClient,
+          candidateMessageIds,
+          skipQuery,
+          managedLabelIds,
+          {
+            includeOnLookupError: false,
+            appendManagedLabelExclusions: false,
+          },
+        )
+
+        if (skipMatch.hadLookupGap) {
+          throw new HistoryQueryLookupError(
+            "Arrival skip-query lookup did not finish.",
+          )
+        }
+
+        skipMatchedIds = skipMatch.matchedIds
+        skipUnresolvedIds = skipMatch.unresolvedIds
+      }
+
+      const excludedIds = new Set<string>([
+        ...aiMatch.matchedIds,
+        ...aiMatch.unresolvedIds,
+        ...skipMatchedIds,
+        ...skipUnresolvedIds,
+      ])
+      const notifyIds = candidateMessageIds.filter(
+        (messageId) => !excludedIds.has(messageId),
+      )
+
+      debug(
+        "Arrival candidates selected: historyCandidates=%d, aiMatches=%d, skipMatches=%d, notify=%d",
+        candidateMessageIds.length,
+        aiMatch.matchedIds.length,
+        skipMatchedIds.length,
+        notifyIds.length,
+      )
+
+      const normalizedMessages: NormalizedGmailMessage[] = []
+
+      for (const messageId of notifyIds) {
+        try {
+          const message = await fetchNormalizedMessage(gmailClient, messageId)
+
+          if (message) {
+            normalizedMessages.push(message)
+          }
+        } catch (error: unknown) {
+          if (isInvalidHistoryError(error)) {
+            debug("Arrival message missing, skipping: messageId=%s", messageId)
+            continue
+          }
+
+          throw error
+        }
+      }
+
+      return {
+        cursorAfter,
+        messages: sortNormalizedMessagesByInternalDate(normalizedMessages),
+      }
+    } catch (error: unknown) {
+      if (
+        error instanceof HistoryQueryLookupError ||
+        !isInvalidHistoryError(error)
+      ) {
+        throw error
+      }
+
+      const cursorAfter = (await readProfileHistoryId()) ?? startHistoryId
+
+      debug(
+        "Arrival history cursor invalid, reseeded to now: cursorBefore=%s, cursorAfter=%s",
+        startHistoryId,
+        cursorAfter,
+      )
+
+      return { cursorAfter, messages: [] }
+    }
+  }
+
+  async function toggleInboxTrash(
+    gmailMessageId: string,
+  ): Promise<InboxTrashPlacement> {
+    const debug = Debug("app:action:toggleInboxTrash")
+    const messageResponse = await gmailClient.users.messages.get({
+      userId: "me",
+      id: gmailMessageId,
+      format: "minimal",
+    })
+    const labelIds = messageResponse.data.labelIds ?? []
+
+    if (labelIds.includes(GMAIL_TRASH_LABEL_ID)) {
+      await gmailClient.users.messages.untrash({
+        userId: "me",
+        id: gmailMessageId,
+      })
+      debug("Restored message from trash: gmailMessageId=%s", gmailMessageId)
+
+      return "restored"
+    }
+
+    await gmailClient.users.messages.trash({
+      userId: "me",
+      id: gmailMessageId,
+    })
+    debug("Moved message to trash: gmailMessageId=%s", gmailMessageId)
+
+    return "trashed"
+  }
+
   return {
+    readProfileHistoryId,
+    pollArrivalNotifications,
+    toggleInboxTrash,
     async poll(): Promise<GmailPollResult> {
       const debug = Debug("app:action:pollGmail")
       debug("Starting Gmail poll")

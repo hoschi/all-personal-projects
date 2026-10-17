@@ -7,7 +7,7 @@ import type {
   ProcessedEmailStoreUndoPort,
 } from "./contracts"
 import { createUndoService } from "./undo-service"
-import { createUndoToken } from "./undo-token"
+import { createUndoToken, type UndoTokenKind } from "./undo-token"
 import { match } from "ts-pattern"
 
 export type {
@@ -31,6 +31,7 @@ export function createHttpRuntime(
 ): {
   state: HttpRuntimeState
   createUndoUrl(gmailMessageId: string): string
+  createArrivalUndoUrl(gmailMessageId: string): string
 } {
   const debug = Debug("app:action:createHttpRuntime")
   const undoUrlBase = new URL(UNDO_PATH, config.publicBaseUrl).toString()
@@ -92,25 +93,35 @@ export function createHttpRuntime(
     config.publicBaseUrl,
   )
 
+  function createSignedUndoUrl(
+    gmailMessageId: string,
+    kind: UndoTokenKind,
+  ): string {
+    const token = createUndoToken(gmailMessageId, config.undoTokenSecret, kind)
+    const undoUrl = new URL(UNDO_PATH, config.publicBaseUrl)
+    undoUrl.searchParams.set("token", token)
+
+    const tokenDebug = Debug("app:action:createUndoUrl")
+    tokenDebug(
+      "Undo URL created: gmailMessageId=%s, kind=%s, undoUrlBase=%s",
+      gmailMessageId,
+      kind,
+      undoUrl,
+    )
+
+    return undoUrl.toString()
+  }
+
   return {
     state: {
       enabled: true,
       undoUrlBase,
     },
     createUndoUrl(gmailMessageId: string): string {
-      const token = createUndoToken(gmailMessageId, config.undoTokenSecret)
-
-      const undoUrl = new URL(UNDO_PATH, config.publicBaseUrl)
-      undoUrl.searchParams.set("token", token)
-
-      const tokenDebug = Debug("app:action:createUndoUrl")
-      tokenDebug(
-        "Undo URL created: gmailMessageId=%s, undoUrlBase=%s",
-        gmailMessageId,
-        undoUrl,
-      )
-
-      return undoUrl.toString()
+      return createSignedUndoUrl(gmailMessageId, "ai")
+    },
+    createArrivalUndoUrl(gmailMessageId: string): string {
+      return createSignedUndoUrl(gmailMessageId, "notify")
     },
   }
 }

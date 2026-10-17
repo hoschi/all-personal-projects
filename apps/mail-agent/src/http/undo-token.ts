@@ -1,10 +1,17 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 const UNDO_TOKEN_VERSION = 1 as const
+const UNDO_TOKEN_KIND_AI = "ai" as const
+const UNDO_TOKEN_KIND_NOTIFY = "notify" as const
+
+export type UndoTokenKind =
+  | typeof UNDO_TOKEN_KIND_AI
+  | typeof UNDO_TOKEN_KIND_NOTIFY
 
 type UndoTokenPayload = {
   v: typeof UNDO_TOKEN_VERSION
   gmailMessageId: string
+  kind: UndoTokenKind
 }
 
 function toBase64Url(value: string): string {
@@ -24,10 +31,12 @@ function createSignature(payloadBase64Url: string, secret: string): string {
 export function createUndoToken(
   gmailMessageId: string,
   undoTokenSecret: string,
+  kind: UndoTokenKind = UNDO_TOKEN_KIND_AI,
 ): string {
   const payload: UndoTokenPayload = {
     v: UNDO_TOKEN_VERSION,
     gmailMessageId,
+    kind,
   }
 
   const payloadBase64Url = toBase64Url(JSON.stringify(payload))
@@ -73,12 +82,15 @@ export function verifyUndoToken(
   const payload = payloadUnknown as {
     v?: unknown
     gmailMessageId?: unknown
+    kind?: unknown
   }
+  const kind = payload.kind ?? UNDO_TOKEN_KIND_AI
 
   if (
     payload.v !== UNDO_TOKEN_VERSION ||
     typeof payload.gmailMessageId !== "string" ||
-    payload.gmailMessageId.length === 0
+    payload.gmailMessageId.length === 0 ||
+    (kind !== UNDO_TOKEN_KIND_AI && kind !== UNDO_TOKEN_KIND_NOTIFY)
   ) {
     throw new Error("Undo token payload schema mismatch.")
   }
@@ -86,5 +98,6 @@ export function verifyUndoToken(
   return {
     v: UNDO_TOKEN_VERSION,
     gmailMessageId: payload.gmailMessageId,
+    kind,
   }
 }

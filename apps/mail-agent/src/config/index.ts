@@ -21,6 +21,7 @@ const bootstrapEnvSchema = z.object({
   MAIL_AGENT_GMAIL_CLIENT_SECRET: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_REFRESH_TOKEN: z.string().trim().min(1),
   MAIL_AGENT_GMAIL_FILTER_QUERY: z.string().trim().min(1),
+  MAIL_AGENT_GMAIL_NOTIFY_SKIP_QUERY: z.string().trim().optional(),
   MAIL_AGENT_POLL_INTERVAL_MS: z.coerce.number().int().positive(),
   MAIL_AGENT_LABEL_AI_LABEL_PREFIX: z.string().trim().min(1),
   MAIL_AGENT_LABEL_KEEP: z.string().trim().min(1),
@@ -58,6 +59,7 @@ export type BootstrapConfig = {
   gmailClientSecret: string
   gmailRefreshToken: string
   gmailFilterQuery: string
+  gmailNotifySkipQuery: string
   labels: {
     aiLabelPrefix: string
     keep: string
@@ -212,6 +214,7 @@ export function createBootstrapConfig(): BootstrapConfig {
     gmailClientSecret: env.MAIL_AGENT_GMAIL_CLIENT_SECRET,
     gmailRefreshToken: env.MAIL_AGENT_GMAIL_REFRESH_TOKEN,
     gmailFilterQuery: env.MAIL_AGENT_GMAIL_FILTER_QUERY,
+    gmailNotifySkipQuery: env.MAIL_AGENT_GMAIL_NOTIFY_SKIP_QUERY ?? "",
     labels: {
       aiLabelPrefix: env.MAIL_AGENT_LABEL_AI_LABEL_PREFIX,
       keep: buildManagedLabelName(

@@ -26,9 +26,39 @@ export function createUndoService(
       const serviceDebug = Debug("app:action:executeUndoService")
       const payload = verifyUndoToken(token, config.undoTokenSecret)
       serviceDebug(
-        "Undo token accepted: gmailMessageId=%s",
+        "Undo token accepted: gmailMessageId=%s, kind=%s",
         payload.gmailMessageId,
+        payload.kind,
       )
+
+      if (payload.kind === "notify") {
+        const placement = await gmail.toggleInboxTrash(payload.gmailMessageId)
+
+        try {
+          await notifier.updateArrivalNotification({
+            gmailMessageId: payload.gmailMessageId,
+            inTrash: placement === "trashed",
+          })
+        } catch (error: unknown) {
+          const notificationMessage =
+            error instanceof Error ? error.message : String(error)
+          serviceDebug(
+            "Arrival notification status update failed: gmailMessageId=%s, error=%s",
+            payload.gmailMessageId,
+            notificationMessage,
+          )
+        }
+
+        serviceDebug(
+          "Arrival undo finished: gmailMessageId=%s, placement=%s",
+          payload.gmailMessageId,
+          placement,
+        )
+
+        return {
+          outcome: placement === "trashed" ? "applied" : "reverted",
+        }
+      }
 
       const undoTarget = await processedEmailStore.findUndoTarget(
         payload.gmailMessageId,

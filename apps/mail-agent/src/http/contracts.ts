@@ -29,12 +29,17 @@ export type GmailUndoPort = {
   ): Promise<{
     userAction: UserAction
   }>
+  toggleInboxTrash(gmailMessageId: string): Promise<"trashed" | "restored">
 }
 
 export type NotificationStatusPort = {
   updateNotificationStatus(input: {
     gmailMessageId: string
     appliedAction: GmailAppliedAction
+  }): Promise<void>
+  updateArrivalNotification(input: {
+    gmailMessageId: string
+    inTrash: boolean
   }): Promise<void>
 }
 
