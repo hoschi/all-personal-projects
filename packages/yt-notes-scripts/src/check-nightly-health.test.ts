@@ -53,6 +53,24 @@ describe("parseLastNightlyRun", () => {
     expect(result.steps).toEqual({ step1: 0, step2: 2, step3: 0, step4: 1 })
   })
 
+  test("parst auch Step 5 und 6 (relocate + OHS-Reindex)", () => {
+    const log = `
+[yt-pipeline-nightly] start 2026-10-18 02:00:04 CEST
+[yt-pipeline-nightly] end 2026-10-18 04:10:12 CEST  step1=0 step2=0 step3=0 step4=0 step5=0 step6=1
+`
+    const result = parseLastNightlyRun(log)
+    expect(result.kind).toBe("ended")
+    if (result.kind !== "ended") return
+    expect(result.steps).toEqual({
+      step1: 0,
+      step2: 0,
+      step3: 0,
+      step4: 0,
+      step5: 0,
+      step6: 1,
+    })
+  })
+
   test("start nach letztem end → 'hanging' (nicht 'ended')", () => {
     const log = `
 [yt-pipeline-nightly] start 2026-06-14 03:00:05 CEST
@@ -104,6 +122,19 @@ describe("classifyJobHealth", () => {
     expect(result.kind).toBe("step-error")
     if (result.kind !== "step-error") return
     expect(result.failedSteps).toEqual([{ step: "step2", code: 2 }])
+  })
+
+  test("ein fehlgeschlagener Step 6 zählt als step-error", () => {
+    const today = new Date("2026-10-18T08:00:00Z")
+    const status: NightlyRunStatus = {
+      kind: "ended",
+      endTime: "2026-10-18 04:10:12 CEST",
+      steps: { step1: 0, step2: 0, step3: 0, step4: 0, step5: 0, step6: 1 },
+    }
+    const result = classifyJobHealth(status, today)
+    expect(result.kind).toBe("step-error")
+    if (result.kind !== "step-error") return
+    expect(result.failedSteps).toEqual([{ step: "step6", code: 1 }])
   })
 
   test("hanging → hanging", () => {

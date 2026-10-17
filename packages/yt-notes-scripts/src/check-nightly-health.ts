@@ -10,7 +10,9 @@ export type NightlyRunStatus =
   | {
       kind: "ended"
       endTime: string
-      steps: { step1: number; step2: number; step3: number; step4: number }
+      // Exit-Code je Step, in Log-Reihenfolge ("step1" … "stepN"). Die Zahl
+      // der Steps folgt der end-Zeile, nicht einer festen Liste.
+      steps: Record<string, number>
     }
 
 export function parseLastNightlyRun(logContent: string): NightlyRunStatus {
@@ -18,7 +20,7 @@ export function parseLastNightlyRun(logContent: string): NightlyRunStatus {
 
   const lines = logContent.split("\n")
   const endRegex =
-    /\[yt-pipeline-nightly\] end (.+?)\s+step1=(\d+) step2=(\d+) step3=(\d+) step4=(\d+)/
+    /\[yt-pipeline-nightly\] end (.+?)\s+(step1=\d+(?: step\d+=\d+)*)/
   const startRegex = /\[yt-pipeline-nightly\] start (.+)$/
 
   // Jeweils letzten start- und end-Marker suchen (rückwärts, ein Durchlauf).
@@ -55,12 +57,12 @@ export function parseLastNightlyRun(logContent: string): NightlyRunStatus {
     return {
       kind: "ended",
       endTime: endMatch[1] ?? "",
-      steps: {
-        step1: parseInt(endMatch[2] ?? "0", 10),
-        step2: parseInt(endMatch[3] ?? "0", 10),
-        step3: parseInt(endMatch[4] ?? "0", 10),
-        step4: parseInt(endMatch[5] ?? "0", 10),
-      },
+      steps: Object.fromEntries(
+        (endMatch[2] ?? "")
+          .split(" ")
+          .map((pair) => pair.split("="))
+          .map(([step, code]) => [step ?? "", parseInt(code ?? "0", 10)]),
+      ),
     }
   }
 
@@ -87,8 +89,8 @@ export function classifyJobHealth(
     return { kind: "hanging", startTime: status.startTime }
 
   // status.kind === "ended"
-  const failedSteps = (["step1", "step2", "step3", "step4"] as const).flatMap(
-    (s) => (status.steps[s] !== 0 ? [{ step: s, code: status.steps[s] }] : []),
+  const failedSteps = Object.entries(status.steps).flatMap(([step, code]) =>
+    code !== 0 ? [{ step, code }] : [],
   )
   if (failedSteps.length > 0) {
     return { kind: "step-error", endTime: status.endTime, failedSteps }
