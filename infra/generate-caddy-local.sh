@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env"
 LOCAL_CADDY_FILE="$SCRIPT_DIR/caddy/Caddyfile.local"
+EXTRA_CADDY_FILE="$SCRIPT_DIR/caddy/Caddyfile.extra"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -21,10 +22,8 @@ EOF
 
 if [[ -z "$FRITZBOX_DEVICE_HOSTNAME" ]]; then
   echo "No FRITZBOX_DEVICE_HOSTNAME configured. Created empty local Caddy config."
-  exit 0
-fi
-
-cat >> "$LOCAL_CADDY_FILE" <<EOF
+else
+  cat >> "$LOCAL_CADDY_FILE" <<EOF
 
 # FRITZ!Box hostname routing (LAN)
 # Example URL: https://${FRITZBOX_DEVICE_HOSTNAME}:8449 -> sst dev
@@ -69,4 +68,11 @@ ${FRITZBOX_DEVICE_HOSTNAME}:9450 {
 }
 EOF
 
-echo "Generated $LOCAL_CADDY_FILE for FRITZBOX_DEVICE_HOSTNAME=$FRITZBOX_DEVICE_HOSTNAME"
+  echo "Generated $LOCAL_CADDY_FILE for FRITZBOX_DEVICE_HOSTNAME=$FRITZBOX_DEVICE_HOSTNAME"
+fi
+
+if [[ -f "$EXTRA_CADDY_FILE" ]]; then
+  printf '\n' >> "$LOCAL_CADDY_FILE"
+  cat "$EXTRA_CADDY_FILE" >> "$LOCAL_CADDY_FILE"
+  echo "Appended $EXTRA_CADDY_FILE to $LOCAL_CADDY_FILE"
+fi

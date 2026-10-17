@@ -24,9 +24,12 @@ It enables secure browser contexts for features like microphone access (`getUser
 
 - `infra/caddy/Caddyfile` – base domain routing and TLS config.
 - `infra/caddy/Caddyfile.local` – generated machine-local routes (gitignored).
+- `infra/caddy/Caddyfile.extra` – optional machine-local site blocks appended after generate (gitignored).
 - `infra/docker-compose.yml` – Caddy container setup.
+- `infra/docker-compose.override.yml` – optional extra published ports for this machine (gitignored).
 - `infra/setup-trust.sh` – generates local config, starts Caddy, exports/installs Caddy root CA.
-- `infra/generate-caddy-local.sh` – generates machine-local Caddy routes from `infra/.env`.
+- `infra/generate-caddy-local.sh` – generates machine-local Caddy routes from `infra/.env`, then appends `Caddyfile.extra` when present.
+- `infra/compose-caddy.sh` – runs `docker compose` with the override file when it exists.
 - `infra/.env.example` – template for machine-local config.
 
 ## Port mapping
@@ -79,6 +82,7 @@ Notes:
 
 - `infra/.env` is gitignored and must never be committed.
 - `infra/caddy/Caddyfile.local` is generated and also gitignored.
+- `infra/caddy/Caddyfile.extra` and `infra/docker-compose.override.yml` are gitignored machine-local hooks for apps that live outside this repo.
 
 ## Initial setup
 
@@ -87,7 +91,7 @@ Run from repository root:
 ```bash
 bun install
 cp infra/.env.example infra/.env
-chmod +x infra/setup-trust.sh infra/generate-caddy-local.sh
+chmod +x infra/setup-trust.sh infra/generate-caddy-local.sh infra/compose-caddy.sh
 ./infra/setup-trust.sh
 ```
 
@@ -101,24 +105,47 @@ What happens:
 
 ## Start and stop Caddy
 
+Use `infra/compose-caddy.sh` so an optional `infra/docker-compose.override.yml` is loaded when present. A bare `docker compose -f infra/docker-compose.yml` does not load that override.
+
 Start:
 
 ```bash
 bash infra/generate-caddy-local.sh
-docker compose -f infra/docker-compose.yml up -d
+bash infra/compose-caddy.sh up -d
 ```
 
-Restart after `Caddyfile`, `infra/.env`, or local routing changes:
+Restart after `Caddyfile`, `infra/.env`, `Caddyfile.extra`, or local routing changes:
 
 ```bash
 bash infra/generate-caddy-local.sh
-docker compose -f infra/docker-compose.yml restart caddy
+bash infra/compose-caddy.sh up -d --force-recreate caddy
 ```
 
 Stop:
 
 ```bash
-docker compose -f infra/docker-compose.yml down
+bash infra/compose-caddy.sh down
+```
+
+## Machine-local apps outside this repo
+
+Foreign apps on this machine can publish through Caddy without committing playlist-specific routes:
+
+1. Add site blocks to gitignored `infra/caddy/Caddyfile.extra` (appended as-is by `generate-caddy-local.sh`).
+2. Publish extra ports in gitignored `infra/docker-compose.override.yml`, for example:
+
+```yaml
+services:
+  caddy:
+    ports:
+      - "9451:9451"
+```
+
+3. Regenerate and recreate Caddy:
+
+```bash
+bash infra/generate-caddy-local.sh
+bash infra/compose-caddy.sh up -d --force-recreate caddy
 ```
 
 ## App integration requirements
@@ -255,7 +282,7 @@ Expected:
 
    ```bash
    bash infra/generate-caddy-local.sh
-   docker compose -f infra/docker-compose.yml restart caddy
+   bash infra/compose-caddy.sh up -d --force-recreate caddy
    ```
 
 3. Transfer `infra/caddy-root-ca.crt` to the device.

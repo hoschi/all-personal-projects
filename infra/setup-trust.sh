@@ -8,11 +8,11 @@ echo "==> Generating machine-local Caddy config..."
 bash "$SCRIPT_DIR/generate-caddy-local.sh"
 
 echo "==> Starting Caddy to generate internal CA..."
-docker compose -f "$SCRIPT_DIR/docker-compose.yml" up -d caddy
+bash "$SCRIPT_DIR/compose-caddy.sh" up -d caddy
 sleep 3
 
 echo "==> Exporting root CA from Docker volume..."
-docker compose -f "$SCRIPT_DIR/docker-compose.yml" \
+bash "$SCRIPT_DIR/compose-caddy.sh" \
   exec caddy cat /data/caddy/pki/authorities/local/root.crt > "$CERT_FILE"
 
 echo "==> Root CA exported: $CERT_FILE"
