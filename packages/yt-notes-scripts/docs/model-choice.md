@@ -19,16 +19,27 @@ Marina Wyss).
 > `LlmCallOptions` in `src/llm-caller.ts` ist eine Union über `channel`, jede
 > Aufrufstelle nennt Kanal, Modell und Reasoning-Stufe selbst.
 
+> **Update 2026-10-17:** Pass 1–4 laufen nicht mehr über `claude --print`,
+> sondern über `codex exec` (Codex-Kontingent des ChatGPT-Pro-Abos, Entscheidung
+> des Nutzers: Claude-Guthaben sparen). Modell und Effort folgen der
+> Zuordnung aus der KIMS-KB (`modellwahl-teuer-einmal-statt-billig-mehrfach`,
+> `codex-als-dritte-harness`): Sol zählt wie Opus bei gleicher Stufe, also
+> `opus`/`low` → `gpt-6.1-sol`/`low`; die leichte Klasse ist Luna, also
+> `sonnet`/`low` → `gpt-6-luna`/`low`. Die Qualitätsbefunde weiter unten sind an
+> Claude gemessen; für Codex gibt es bisher nur einen Rauchtest (alle vier Pässe
+> lieferten formgerechte Ausgaben), keine Vergleichsmessung.
+
 ## Pro-Pass-Konfiguration
 
-Kanal ist `claude --print`, wo nichts anderes dabeisteht.
+Kanal ist `codex exec`, wo nichts anderes dabeisteht. Die Spalte „Begründung"
+beschreibt die Aufgabe und die Claude-Messung, aus der die Stufe stammt.
 
 | Pass                                   | Modell                                        | Effort  | Begründung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------------------------------- | --------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 audit (Werbung + Sektionierung)      | `opus`                                        | `low`   | Nutzer-Entscheidung 2026-07-11: auf Opus vereinheitlicht. Sektionierung mit gegebenen Chapters ist deterministisch; Werbung-Erkennung braucht Kontext, Pass-1-Regel "bei Unsicherheit drin lassen" begrenzt das Risiko.                                                                                                                                                                                                                                                                                                                   |
-| 2 asr-fix (ASR-Fehler korrigieren)     | `opus`                                        | `low`   | Nutzer-Entscheidung 2026-07-11: auf Opus vereinheitlicht. Domain-Verständnis nötig. Haiku bleibt **disqualifiziert** — versteht Domain-Vokabular nicht (Effect-Begriffe wie `Redacted`, `PgLive`, `@effect/sql` verpasst).                                                                                                                                                                                                                                                                                                                |
-| 3 display_title (max 80 Zeichen)       | `sonnet`                                      | `low`   | Mini-Generation, 1 Zeile Output. Sonnet hält Limit konsistent (Opus hat es 1× verletzt mit 88ch). Haiku zu wörtlich, matched Production-Stil nicht.                                                                                                                                                                                                                                                                                                                                                                                       |
-| 4 description (3 Sätze)                | `sonnet`                                      | `low`   | Sonnet trifft "kompakt + konkret" am besten. Haiku zu generisch, Opus erzeugt 100-Wort-Bandwurm-Sätze.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 1 audit (Werbung + Sektionierung)      | `gpt-6.1-sol`                                 | `low`   | Nutzer-Entscheidung 2026-07-11: auf Opus vereinheitlicht. Sektionierung mit gegebenen Chapters ist deterministisch; Werbung-Erkennung braucht Kontext, Pass-1-Regel "bei Unsicherheit drin lassen" begrenzt das Risiko.                                                                                                                                                                                                                                                                                                                   |
+| 2 asr-fix (ASR-Fehler korrigieren)     | `gpt-6.1-sol`                                 | `low`   | Nutzer-Entscheidung 2026-07-11: auf Opus vereinheitlicht. Domain-Verständnis nötig. Haiku bleibt **disqualifiziert** — versteht Domain-Vokabular nicht (Effect-Begriffe wie `Redacted`, `PgLive`, `@effect/sql` verpasst).                                                                                                                                                                                                                                                                                                                |
+| 3 display_title (max 80 Zeichen)       | `gpt-6-luna`                                  | `low`   | Mini-Generation, 1 Zeile Output. Sonnet hält Limit konsistent (Opus hat es 1× verletzt mit 88ch). Haiku zu wörtlich, matched Production-Stil nicht.                                                                                                                                                                                                                                                                                                                                                                                       |
+| 4 description (3 Sätze)                | `gpt-6-luna`                                  | `low`   | Sonnet trifft "kompakt + konkret" am besten. Haiku zu generisch, Opus erzeugt 100-Wort-Bandwurm-Sätze.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | 5 summary-long (Markdown + Shell-Tool) | `cursor-grok-4.6` über `cursor-agent --print` | `xhigh` | Agentic Loop mit Tool-Use (`ohs-search-merged.sh` für Wikilink-Disambiguierung), Spekulations-Disziplin, mehrere strukturierte Sektionen. Gegen `opus`/`high` gemessen an 16 Videos in vier Video-Arten: Grok gewinnt Vollständigkeit einstimmig über zwei verblindete Richter und Präzision deutlich, setzt 182 statt 95 Vault-Links (alle auflösbar) und hält das Wikilink-Verfahren in 16 von 16 Läufen ein. Preis fällt nicht ins Gewicht (enthaltener Topf des Cursor-Pro+-Plans), Laufzeit schon: 209–696 s je Video, Median 412 s. |
 
 ## Warum nicht alles auf einem Modell?
@@ -49,17 +60,19 @@ Titel + 3-Satz + agentic Synthese). Per-Pass-Modellwahl erlaubt:
 
 ## Effort-Wahl
 
-Die beiden Kanäle drücken die Reasoning-Stufe verschieden aus, deshalb zwei
-Leitern.
+Die Kanäle drücken die Reasoning-Stufe verschieden aus, deshalb je eine
+Leiter.
 
-**Claude CLI (Pass 1–4)** hat `--effort {low, medium, high, xhigh, max}`.
-Default ist `xhigh` — **explizit setzen, sonst läuft alles unnötig teuer und
-langsam**.
+**Codex CLI (Pass 1–4)** bekommt die Stufe als
+`-c model_reasoning_effort=<stufe>`, Leiter `{low, medium, high, xhigh}`. Das
+Modell steht immer ausdrücklich da: ohne `-m` springt der Bundle-Default
+`gpt-6-astra` ein, der aus Preisgründen gesperrt ist.
 
 - `low`: klare Aufgaben mit Domain-Verständnis + Mini-Outputs (Pass 1, 2, 3, 4).
-- `medium`: aktuell in keinem Pass genutzt.
-- `high`: bis 2026-08-23 der Wert von Pass 5, seit dem Kanalwechsel ungenutzt.
-- `xhigh`/`max`: für die Claude-Pässe dieser Pipeline nicht nötig.
+- `medium`: die SST-Korrektur (`apps/sst`, `SST_CODEX_EFFORT`).
+
+**Claude CLI** hat `--effort {low, medium, high, xhigh, max}`, Default `xhigh`.
+Der Kanal ist vorhanden, aber von keinem Pass genutzt.
 
 **Cursor CLI (Pass 5)** kennt keinen eigenen Schalter: die Stufe steckt im
 Modell-Slug (`cursor-grok-4.6-xhigh`), Leiter `{low, medium, high, xhigh}`.
@@ -225,12 +238,41 @@ Siehe `current/youtube-pipeline-rollout.md` § "Verbleibende Detail-Punkte":
 - **OHS-Sandbox-Fix**: Permission für `~/.claude/session-env/` ergänzen, damit
   Pass-5-Wikilinks stabil funktionieren (siehe Rollout-Plan).
 
+## Wie der codex-Kanal gerufen wird
+
+`buildCodexCliArgs` in `src/llm-caller.ts` koppelt den Lauf von der
+interaktiven Codex-Umgebung ab, gemessen 2026-10-17 mit codex-cli 0.163.0:
+
+- `--ignore-user-config`: keine MCP-Server, kein Modell-Default und kein
+  KIMS-Profil aus `~/.codex/config.toml`. Die Anmeldung kommt weiter aus
+  `CODEX_HOME`.
+- `--disable hooks`: die KIMS- und herdr-Hooks aus `~/.codex/hooks.json` laufen
+  nicht mit.
+- `--sandbox read-only` in einem Wegwerf-Verzeichnis; Websuche, Shell, Plugins,
+  Apps, Unter-Agenten und Bilderzeugung sind aus. Die Pässe sind reine
+  Text-Aufgaben über ungeprüftem Transcript-Text.
+- `--ephemeral`: keine Sitzungsdatei, die Pipeline-Aufrufe erscheinen nicht in
+  `codex resume`.
+- Der Prompt geht über stdin (`-`), nicht als Argument.
+
+Was nicht abschaltbar war: die Skill-Liste aus `~/.agents/skills` kommt trotz
+`--disable skill_search` in den Kontext. Ein Einzeiler-Prompt kostete damit
+13.875 Eingabe-Token (gemessen an `gpt-6-luna`; wie viel davon allein die
+Skill-Liste ist, ist nicht getrennt gemessen). Ohne Shell und mit Lese-Sandbox
+kann das Modell keinen Skill ausführen.
+
+`codex` läuft nicht in der Bash-Sandbox von Claude Code: ein Kindprozess von
+`bun` scheitert dort mit `failed to initialize in-process app-server client:
+Operation not permitted`. Der Nightly-Job (launchd) und der SST-Server sind
+davon nicht betroffen; ein manueller Test aus einer Claude-Sitzung braucht eine
+Shell ohne Sandbox.
+
 ## Code-Verweise
 
 - Kanal + Modell + Effort pro Pass: `src/enrich-passes/pass{1,2,3,4,5}-*.ts`;
   für Pass 5 gebündelt in `buildPass5CallOptions()`
-- CLI-Brücke, beide Kanäle: `src/llm-caller.ts` (`LlmCallOptions` als Union über
-  `channel`, `model` + `effort` in beiden Zweigen Pflichtfelder)
+- CLI-Brücke, alle Kanäle: `src/llm-caller.ts` (`LlmCallOptions` als Union über
+  `channel`, `model` + `effort` in jedem Zweig Pflichtfelder)
 - Werkzeug-Schranke des cursor-Kanals: `src/cursor-agent-guard.ts`
 - Vorreden-Absicherung vor `assembleEnrichedBody`: `dropPreambleBeforeFirstH2`
   in `src/pass5-sanitize.ts`

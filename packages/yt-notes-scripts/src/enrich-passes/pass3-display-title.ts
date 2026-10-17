@@ -49,10 +49,9 @@ export async function runPass3(
   const firstSection = extractFirstH3Section(auditedMd)
   const prompt = buildPass3Prompt({ originalTitle, description, firstSection })
   const raw = await callLlmCli({
-    channel: "claude-cli",
+    channel: "codex-cli",
     prompt,
-    allowedTools: "",
-    model: "sonnet",
+    model: "gpt-6-luna",
     effort: "low",
   })
   const title = raw.trim().replace(/^["']|["']$/g, "")

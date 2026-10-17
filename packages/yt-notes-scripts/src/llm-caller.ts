@@ -15,6 +15,10 @@ const CLAUDE_CALL_TIMEOUT_MS = 10 * 60 * 1000
 // und lassen Raum für den Kaltstart des Wegwerf-Konfigverzeichnisses.
 const CURSOR_CALL_TIMEOUT_MS = 20 * 60 * 1000
 
+// Der codex-Kanal trägt die reinen Text-Pässe 1–4 und die SST-Korrektur —
+// dieselbe Aufgabenklasse wie der claude-Kanal, deshalb derselbe Wert.
+const CODEX_CALL_TIMEOUT_MS = 10 * 60 * 1000
+
 export type Classification = "arbeit" | "privat"
 
 /** Effort-Stufen der Claude CLI (`--effort`). */
@@ -28,6 +32,9 @@ export type ClaudeEffort = "low" | "medium" | "high" | "xhigh" | "max"
  */
 export type CursorEffort = "low" | "medium" | "high" | "xhigh"
 
+/** Reasoning-Stufen von `codex exec` (`-c model_reasoning_effort=…`). */
+export type CodexEffort = "low" | "medium" | "high" | "xhigh"
+
 interface LlmCallOptionsBase {
   prompt: string
   // Optionaler Caller-Kontext (z.B. "pass5/yt=GEYixPDCl1k attempt=1"). Wird in
@@ -36,7 +43,7 @@ interface LlmCallOptionsBase {
   tag?: string
 }
 
-/** Kanal 1: `claude --print`. Pass 1–4. */
+/** Kanal 1: `claude --print`. Derzeit von keinem Pass genutzt. */
 export interface ClaudeCliCallOptions extends LlmCallOptionsBase {
   channel: "claude-cli"
   input?: string
@@ -59,7 +66,22 @@ export interface CursorCliCallOptions extends LlmCallOptionsBase {
   allowedShellPrefixes: string[]
 }
 
-export type LlmCallOptions = ClaudeCliCallOptions | CursorCliCallOptions
+/** Kanal 3: `codex exec`. Pass 1–4 und die SST-Korrektur. */
+export interface CodexCliCallOptions extends LlmCallOptionsBase {
+  channel: "codex-cli"
+  /**
+   * Pflicht. Voller Slug, z.B. "gpt-6.1-sol" oder "gpt-6-luna". Ohne `-m`
+   * springt der Bundle-Default der CLI ein (`gpt-6-astra`, aus Preisgründen
+   * gesperrt).
+   */
+  model: string
+  effort: CodexEffort // Pflicht. Geht als `-c model_reasoning_effort=…` an die CLI.
+}
+
+export type LlmCallOptions =
+  | ClaudeCliCallOptions
+  | CursorCliCallOptions
+  | CodexCliCallOptions
 
 export interface LlmCallResult {
   result: string
@@ -115,6 +137,112 @@ export function buildCursorCliArgs(opts: CursorCliCallOptions): string[] {
     "--",
     opts.prompt,
   ]
+}
+
+/**
+ * Argumente für `codex exec`. Der Prompt kommt über stdin (`-`), nicht als
+ * Argument — ein langes Transcript stößt sonst an die argv-Grenze.
+ *
+ * Die Schalter halten den Lauf unabhängig von der interaktiven Codex-Umgebung
+ * des Nutzers (gemessen 2026-10-17 mit codex-cli 0.163.0):
+ * - `--ignore-user-config` lädt `~/.codex/config.toml` nicht — keine
+ *   MCP-Server, kein Modell-Default, kein KIMS-Profil. Die Anmeldung kommt
+ *   trotzdem aus `CODEX_HOME`.
+ * - `--disable hooks` hält die KIMS- und herdr-Hooks aus `hooks.json` fern;
+ *   ohne den Schalter meldet jeder Aufruf einen SessionEnd-Hook.
+ * - `--sandbox read-only` im Wegwerf-Verzeichnis, Websuche, Shell, Plugins,
+ *   Apps, Unter-Agenten und Bilderzeugung aus: die Pässe sind reine
+ *   Text-Aufgaben über ungeprüftem Transcript-Text.
+ * - `--ephemeral` schreibt keine Sitzungsdatei; die Pipeline-Aufrufe tauchen
+ *   damit nicht in `codex resume` auf.
+ */
+export function buildCodexCliArgs(
+  opts: CodexCliCallOptions,
+  workspaceDir: string,
+): string[] {
+  return [
+    "exec",
+    "--json",
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "--skip-git-repo-check",
+    "--sandbox",
+    "read-only",
+    "--cd",
+    workspaceDir,
+    "--model",
+    opts.model,
+    "-c",
+    `model_reasoning_effort="${opts.effort}"`,
+    "-c",
+    'web_search="disabled"',
+    "--disable",
+    "hooks",
+    "--disable",
+    "shell_tool",
+    "--disable",
+    "unified_exec",
+    "--disable",
+    "plugins",
+    "--disable",
+    "apps",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "image_generation",
+    "-",
+  ]
+}
+
+interface CodexEvent {
+  type?: unknown
+  thread_id?: unknown
+  message?: unknown
+  error?: { message?: unknown }
+  item?: { type?: unknown; text?: unknown }
+}
+
+/**
+ * Liest den JSONL-Strom von `codex exec --json`. Gemessen 2026-10-17
+ * (codex-cli 0.163.0): Erfolg ist `thread.started` → `turn.started` →
+ * `item.completed` (type `agent_message`) → `turn.completed`. Ein
+ * abgewiesener Turn endet mit einem `error`- und einem `turn.failed`-Event.
+ * `item.completed` mit type `error` sind Warnungen (z.B. fehlende
+ * Modell-Metadaten) und brechen den Lauf nicht ab.
+ *
+ * Der Strom trägt weder Dauer noch Modellnamen; die Dauer misst der Aufrufer.
+ */
+export function parseCodexCliStream(raw: string): LlmCallResult {
+  const events = parseNdjson(raw) as unknown as CodexEvent[]
+  const failed = events.findLast(
+    (e) => e.type === "turn.failed" || e.type === "error",
+  )
+  if (failed) {
+    const detail =
+      failed.type === "turn.failed" ? failed.error?.message : failed.message
+    throw new Error(`Codex CLI ${String(failed.type)}: ${String(detail)}`)
+  }
+  if (!events.some((e) => e.type === "turn.completed"))
+    throw new Error("Codex CLI: kein turn.completed im JSONL-Strom")
+
+  const lastMessage = events.findLast(
+    (e) =>
+      e.type === "item.completed" &&
+      e.item?.type === "agent_message" &&
+      typeof e.item.text === "string",
+  )
+  if (!lastMessage)
+    throw new Error("Codex CLI: keine agent_message im JSONL-Strom")
+
+  const thread = events.find((e) => e.type === "thread.started")
+  return {
+    result: lastMessage.item?.text as string,
+    sessionId:
+      typeof thread?.thread_id === "string" ? thread.thread_id : undefined,
+    durationMs: 0,
+    numTurns: undefined,
+  }
 }
 
 /** `Shell(…)`-Einträge für die Allowlist der Cursor-CLI-Konfiguration. */
@@ -408,6 +536,11 @@ function spawnCli(params: SpawnCliParams): Promise<LlmCallResult> {
               detail = `${obj.result} (is_error=${obj.is_error})`
               break
             }
+            // codex exec: der abgewiesene Turn steht als `turn.failed` am Ende.
+            if (typeof obj?.error?.message === "string") {
+              detail = obj.error.message
+              break
+            }
           } catch {
             /* nicht-JSON, naechster Kandidat */
           }
@@ -481,6 +614,34 @@ async function callCursorCliWithMeta(
   }
 }
 
+async function callCodexCliWithMeta(
+  opts: CodexCliCallOptions,
+): Promise<LlmCallResult> {
+  // Wegwerf-Arbeitsverzeichnis: Codex sucht ab dem Arbeitsverzeichnis nach
+  // AGENTS.md und Repo-Regeln — hier findet es keine.
+  const workspaceDir = mkdtempSync(join(tmpdir(), "yt-codex-"))
+  const startedAt = Date.now()
+  try {
+    return await spawnCli({
+      command: "codex",
+      args: buildCodexCliArgs(opts, workspaceDir),
+      parseOutput: (raw) => ({
+        ...parseCodexCliStream(raw),
+        durationMs: Date.now() - startedAt,
+      }),
+      env: subAgentEnv(),
+      cwd: workspaceDir,
+      input: opts.prompt,
+      timeoutMs: CODEX_CALL_TIMEOUT_MS,
+      tag: opts.tag,
+      model: `${opts.model} effort=${opts.effort}`,
+      toolScope: "",
+    })
+  } finally {
+    rmSync(workspaceDir, { recursive: true, force: true })
+  }
+}
+
 export async function callLlmCliWithMeta(
   opts: LlmCallOptions,
 ): Promise<LlmCallResult> {
@@ -489,6 +650,8 @@ export async function callLlmCliWithMeta(
       return await callClaudeCliWithMeta(opts)
     case "cursor-cli":
       return await callCursorCliWithMeta(opts)
+    case "codex-cli":
+      return await callCodexCliWithMeta(opts)
   }
 }
 

@@ -2,34 +2,18 @@
 
 TypeScript scripts for ingesting YouTube data into the `yt.*` schema of a PostgreSQL database. All scripts use [Prisma](https://www.prisma.io/) (schema in `prisma/schema.prisma`) and [commander](https://github.com/tj/commander.js) for the CLI surface.
 
-## Compliance: Claude-Code-CLI + Subscription (ab 15. Juni 2026: Credit-Pool)
+## Compliance: Codex-CLI + ChatGPT-Abo
 
-**Stand 2026-06-07, Kanal-Ergänzung 2026-08-23.** Die Enrichment-Pipeline ruft
-`claude --print` per Subprocess auf (`src/llm-caller.ts`) — keine direkte
-Anthropic-API-Nutzung, keine SDK-Integration, kein `ANTHROPIC_API_KEY`. Auth
-läuft über die normale Claude-Code-OAuth-Session (macOS Keychain
-`Claude Code-credentials`), genauso wie Claude Code interaktiv. Das gilt für
-Pass 1–4; Pass 5 geht seit 2026-08-23 über `cursor-agent --print` und damit über
-das Cursor-Abo, nicht über den Claude-Topf.
+**Stand 2026-10-17.** Pass 1–4 der Enrichment-Pipeline rufen `codex exec` per
+Subprocess auf (`src/llm-caller.ts`) — keine direkte OpenAI-API-Nutzung, kein
+API-Key. Auth läuft über die normale Codex-Anmeldung des ChatGPT-Kontos
+(`~/.codex/auth.json`), genauso wie Codex interaktiv; verbraucht wird das
+Codex-Kontingent des Pro-Abos, nicht der Claude-Topf. Pass 5 geht seit
+2026-08-23 über `cursor-agent --print` und damit über das Cursor-Abo.
 
-**Ab 15. Juni 2026** wandert `claude -p`-Nutzung in einen separaten monatlichen
-Agent-SDK-Credit-Pool (Team Premium: $100/Monat, Pro: $20, Max 20x: $200). Der
-Wechsel passiert **automatisch ohne Code-Änderung** — die Pipeline läuft weiter
-wie heute, nur die Abrechnung kommt aus einem anderen Topf. One-Time-Opt-In im
-Claude-Account ist nötig — Anthropic schickt eine Email mit Claim-Link vor dem 15. Juni.
-
-**Volumen-Schätzung**: 5 Passes × ~10 Videos/Tag × 30 Tage = 1.500 Pass-Calls/Monat.
-Mit `claude -p`-Boilerplate (~21k Token pro Call, davon ~19k cached) landet das
-bei ~30M Input-Tokens/Monat ≈ $90 API-äquivalent. Passt knapp in den $100
-Team-Premium-Pool.
-
-**Reaktivierung von Cluster 4k (Low-Level-SDK + API-Key)**: Wenn der Verbrauch
-nach 15. Juni den Pool sprengt, wird `llm-caller.ts` auf direktes `@anthropic-ai/sdk`
-mit `ANTHROPIC_API_KEY` umgestellt (Spec/Plan unter
-`~/repos/personal-three/current/yt-pipeline-cluster4k-{spec,plan}.md`, müssen vor
-Reaktivierung von „Agent SDK" auf „Low-Level SDK" umgeschrieben werden).
-
-Anthropic hat zwischen Januar und Juni 2026 die Policy zum Thema „Agent SDK + Subscription-OAuth" mehrfach gedreht. Wer die genaue Saga + Auth-Entscheidungs-Matrix für die eigene Nutzung wissen will, sucht extern nach Anthropic-Quellen — diese Doku hat sich oft genug geändert, dass eine fixierte Referenz hier schnell stale wäre.
+Bis 2026-10-17 liefen Pass 1–4 über `claude --print`. Der Kanal ist in
+`src/llm-caller.ts` weiter vorhanden; ein Pass kehrt zurück, indem er an seiner
+Aufrufstelle wieder `channel: "claude-cli"` samt Claude-Modell und Effort setzt.
 
 ## Captions-only yt-dlp policy
 
@@ -339,13 +323,13 @@ Run tests: `bun test`.
 
 ## Cluster 4 — Enrichment-Pipeline
 
-5-Pass-Pipeline (Pass 0 deterministische Stub-Migration + Pass 1-5 via Claude-Sub-Agent) für `arbeit`-Videos. Schreibt `yt.transcript.audited_md`, `yt.video.display_title` und — falls ein Vault-Stub existiert — Frontmatter + `## Agent Zusammenfassung`-Sektion in den Stub-File.
+5-Pass-Pipeline (Pass 0 deterministische Stub-Migration + Pass 1-5 via CLI-Sub-Agent) für `arbeit`-Videos. Schreibt `yt.transcript.audited_md`, `yt.video.display_title` und — falls ein Vault-Stub existiert — Frontmatter + `## Agent Zusammenfassung`-Sektion in den Stub-File.
 
 > [!info] Kanal-, Modell- und Effort-Wahl pro Pass
-> Pass 1+2 laufen auf `opus` (effort `low`), Pass 3+4 auf `sonnet` (effort
-> `low`) — alle vier über `claude --print`. Pass 5 läuft seit 2026-08-23 über
+> Pass 1+2 laufen auf `gpt-6.1-sol` (effort `low`), Pass 3+4 auf `gpt-6-luna`
+> (effort `low`) — alle vier über `codex exec`. Pass 5 läuft seit 2026-08-23 über
 > `cursor-agent --print` auf `cursor-grok-4.6-xhigh`. `LlmCallOptions` ist eine
-> Union über `channel`; `model` und `effort` sind in beiden Zweigen
+> Union über `channel`; `model` und `effort` sind in jedem Zweig
 > Pflichtfelder — TypeScript-Compiler erzwingt explizite Wahl pro Call-Site.
 > Begründung, Werkzeug-Schranke des cursor-Kanals und Verifikationsbefunde:
 > siehe [`docs/model-choice.md`](docs/model-choice.md).

@@ -1,14 +1,17 @@
 import { describe, expect, test } from "bun:test"
 import {
   buildClaudeCliArgs,
+  buildCodexCliArgs,
   buildCursorCliArgs,
   buildCursorCliConfig,
   buildCursorHooksConfig,
   buildCursorModelSlug,
   buildCursorShellAllowEntries,
   buildAgentGuardCommand,
+  parseCodexCliStream,
   parseCursorCliStream,
   parseAgentCliOutput,
+  type CodexCliCallOptions,
   type CursorCliCallOptions,
   type LlmCallOptions,
 } from "./llm-caller"
@@ -116,6 +119,122 @@ describe("Kanal-Wahl ist Pflicht", () => {
       allowedShellPrefixes: [],
     }
     expect(opts.channel).toBe("claude-cli")
+  })
+
+  test("codex-Kanal ohne Reasoning-Stufe kompiliert nicht", () => {
+    // @ts-expect-error effort fehlt
+    const opts: LlmCallOptions = {
+      channel: "codex-cli",
+      prompt: "Hello",
+      model: "gpt-6-luna",
+    }
+    expect(opts.channel).toBe("codex-cli")
+  })
+
+  test("codex-Kanal kennt kein allowedTools", () => {
+    const opts: LlmCallOptions = {
+      channel: "codex-cli",
+      prompt: "Hello",
+      model: "gpt-6.1-sol",
+      effort: "low",
+      // @ts-expect-error Feld gehört dem claude-Kanal
+      allowedTools: "",
+    }
+    expect(opts.channel).toBe("codex-cli")
+  })
+})
+
+describe("buildCodexCliArgs", () => {
+  const base: CodexCliCallOptions = {
+    channel: "codex-cli",
+    prompt: "langer Transcript-Text",
+    model: "gpt-6.1-sol",
+    effort: "low",
+  }
+  const args = buildCodexCliArgs(base, "/tmp/ws")
+
+  test("setzt Modell und Reasoning-Stufe ausdrücklich", () => {
+    expect(args[args.indexOf("--model") + 1]).toBe("gpt-6.1-sol")
+    expect(args).toContain('model_reasoning_effort="low"')
+  })
+
+  test("liest den Prompt über stdin statt als Argument", () => {
+    expect(args.at(-1)).toBe("-")
+    expect(args).not.toContain("langer Transcript-Text")
+  })
+
+  test("läuft read-only im übergebenen Wegwerf-Verzeichnis", () => {
+    expect(args[args.indexOf("--sandbox") + 1]).toBe("read-only")
+    expect(args[args.indexOf("--cd") + 1]).toBe("/tmp/ws")
+  })
+
+  test("koppelt sich von Nutzer-Konfiguration, Hooks und Sitzungsablage ab", () => {
+    expect(args).toContain("--ignore-user-config")
+    expect(args).toContain("--ephemeral")
+    expect(args[args.indexOf("hooks") - 1]).toBe("--disable")
+    expect(args).toContain('web_search="disabled"')
+  })
+})
+
+describe("parseCodexCliStream", () => {
+  // Nachgebaut aus echten JSONL-Mitschnitten von exec --json
+  // (codex-cli 0.163.0, 2026-10-17).
+  const ok = [
+    JSON.stringify({ type: "thread.started", thread_id: "01a1-thread" }),
+    JSON.stringify({
+      type: "item.completed",
+      item: {
+        id: "item_0",
+        type: "error",
+        message: "Model metadata for `x` not found.",
+      },
+    }),
+    JSON.stringify({ type: "turn.started" }),
+    JSON.stringify({
+      type: "item.completed",
+      item: { id: "item_1", type: "agent_message", text: "### Einleitung" },
+    }),
+    JSON.stringify({
+      type: "turn.completed",
+      usage: { input_tokens: 13875, output_tokens: 359 },
+    }),
+  ].join("\n")
+
+  test("liefert die letzte agent_message und die Thread-Kennung", () => {
+    const parsed = parseCodexCliStream(ok)
+    expect(parsed.result).toBe("### Einleitung")
+    expect(parsed.sessionId).toBe("01a1-thread")
+  })
+
+  test("eine Warnung als item.completed bricht nicht ab", () => {
+    expect(() => parseCodexCliStream(ok)).not.toThrow()
+  })
+
+  test("wirft bei turn.failed mit der Meldung der API", () => {
+    const failed = [
+      JSON.stringify({ type: "thread.started", thread_id: "t" }),
+      JSON.stringify({ type: "turn.started" }),
+      JSON.stringify({ type: "error", message: "status 400" }),
+      JSON.stringify({
+        type: "turn.failed",
+        error: {
+          message: "The 'gpt-6.1-luna' model is not supported",
+        },
+      }),
+    ].join("\n")
+    expect(() => parseCodexCliStream(failed)).toThrow(
+      /Codex CLI turn.failed: .*not supported/,
+    )
+  })
+
+  test("wirft ohne turn.completed", () => {
+    const cut = JSON.stringify({ type: "thread.started", thread_id: "t" })
+    expect(() => parseCodexCliStream(cut)).toThrow(/kein turn.completed/)
+  })
+
+  test("wirft ohne agent_message", () => {
+    const empty = JSON.stringify({ type: "turn.completed", usage: {} })
+    expect(() => parseCodexCliStream(empty)).toThrow(/keine agent_message/)
   })
 })
 

@@ -30,10 +30,9 @@ export async function runPass4(
 ): Promise<string> {
   const prompt = buildPass4Prompt({ description, auditedMd })
   const raw = await callLlmCli({
-    channel: "claude-cli",
+    channel: "codex-cli",
     prompt,
-    allowedTools: "",
-    model: "sonnet",
+    model: "gpt-6-luna",
     effort: "low",
   })
   return raw.trim()
