@@ -8,7 +8,7 @@ import {
   processTabRecordingInputSchema,
 } from "@/contracts/tab-sync"
 import { buildPrivatePrompt, buildWorkPrompt } from "./correction-prompts"
-import { correctWithClaude } from "./correct-with-claude"
+import { correctWithCodex } from "./correct-with-codex"
 import { prisma as sstPrisma } from "./prisma"
 import { loadYtContext } from "./yt-context"
 
@@ -176,8 +176,8 @@ export const improveTabRecordingFn = createServerFn({ method: "POST" })
           bottomTextContext: recordingInput.contextText,
           ytContext,
         })
-        const claudeResult = await correctWithClaude({ prompt })
-        return { text: claudeResult.text, modelId: claudeResult.modelId }
+        const codexResult = await correctWithCodex({ prompt })
+        return { text: codexResult.text, modelId: codexResult.modelId }
       })
       .with(["private", P._], ["work", null], async () => {
         const prompt = buildPrivatePrompt({
