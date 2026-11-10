@@ -130,7 +130,7 @@ Required AI pipeline env vars (loaded from `.env.base` and overridden by `.env`)
 ```bash
 SST_WHISPER_ENDPOINT=http://localhost:9100/inference
 SST_OLLAMA_ENDPOINT=http://localhost:11434/api/generate
-SST_OLLAMA_MODEL_ID=gemma3:latest
+SST_OLLAMA_MODEL_ID=gemma4:e2b
 ```
 
 If one of these values is missing or invalid, SST fails fast at server startup.
@@ -278,7 +278,7 @@ When recording stops, SST runs a server-side two-step pipeline automatically (ma
 
 1. Whisper transcription request with `response_format=verbose_json`
 2. Text normalization (including line-break artifact cleanup)
-3. Ollama correction with context from the lower textbox (`gemma3:latest` by default)
+3. Ollama correction with context from the lower textbox (`gemma4:e2b` by default)
 
 The server action returns both `rawTranscriptionText` and `correctedText`, then top text is persisted.
 
